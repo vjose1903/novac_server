@@ -1,0 +1,109 @@
+class CabeceraFactura < ApplicationRecord
+  belongs_to :tipo_factura
+  belongs_to :suplidor, optional: true
+  belongs_to :cliente, optional: true
+  belongs_to :user
+
+  has_many :detalle_facturas, dependent: :destroy
+
+  attribute :detalle_facturas
+  attribute :cliente
+  attribute :suplidor
+  attribute :tipo_factura
+
+  accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
+  # ===================================================================================================================================================
+  def self.get_facturas_venta_by_params(campo, valor)
+    puts "campo ".red + "#{campo}"
+    puts "valor ".green + "#{valor}"
+
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_facturacion, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, 
+    CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
+    from_ = "FROM cabecera_facturas ca"
+    joins_ = "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
+    inner join users u on ca.user_id = u.id"
+    where_ = ""
+    if campo == "numero_comprobante"
+      where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta'"
+    else
+      where_ = "WHERE #{campo} = #{valor} and tipo = 'venta'"
+    end
+    query = "#{select_} #{from_} #{joins_} #{where_}"
+
+    return ActiveRecord::Base.connection.exec_query(query)
+  end
+  # ===================================================================================================================================================
+  def self.get_facturas_by_cliente_id_and_estado(cliente_id, pagada)
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_facturacion, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, 
+    CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
+    from_ = "FROM cabecera_facturas ca"
+    joins_ =
+      "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
+    inner join users u on ca.user_id = u.id"
+    where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta'"
+    query = "#{select_} #{from_} #{joins_} #{where_}"
+    return ActiveRecord::Base.connection.exec_query(query)
+  end
+  # ===================================================================================================================================================
+
+  def self.get_facturas_by_cliente_id(cliente_id)
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_facturacion, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, 
+    CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
+    from_ = "FROM cabecera_facturas ca"
+    joins_ =
+      "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
+    inner join users u on ca.user_id = u.id"
+    where_ = " WHERE cliente_id=#{cliente_id} and tipo='venta'"
+    query = "#{select_} #{from_} #{joins_} #{where_}"
+
+    return ActiveRecord::Base.connection.exec_query(query)
+  end
+
+  # ====================================================================================================
+  def self.payFacturas(facturas)
+    res = { error: false, msg: "facturas actualizadas" }
+    facturas["detalle_recibos_attributes"].each do |f|
+      factura_a_pagar = CabeceraFactura.find_by_id(f["cabecera_factura_id"])
+
+      if f["pago_total"]
+        if f["deposito"] == factura_a_pagar["balance"]
+          unless factura_a_pagar.update({ balance: 0, pagada: true })
+            res = { error: true, msg: factura_a_pagar.errors }
+            return res
+          end
+        else
+          res = { error: true, msg: factura_a_pagar.errors }
+          return res
+        end
+      else
+        newBalance = factura_a_pagar["balance"] - f["deposito"]
+
+        if f["deposito"] == factura_a_pagar["balance"]
+          unless factura_a_pagar.update({ balance: newBalance, pagada: true })
+            res = { error: true, msg: factura_a_pagar.errors }
+            return res
+          end
+        else
+          unless factura_a_pagar.update({ balance: newBalance })
+            res = { error: true, msg: factura_a_pagar.errors }
+            return res
+          end
+        end
+      end
+    end
+    return res
+  end
+
+  # =====================================================================================================================
+  def self.cancelar_factura(id)
+    puts 'ANTES DE ENTRAR EN LA FUNCION QUE CAMBIA EL ESTADO'.yellow
+    peticion = ActiveRecord::Base.connection.exec_query("UPDATE cabecera_facturas SET estado=#{false} WHERE id=#{id}")
+
+    if peticion
+      return  true
+    else
+      return  false
+      end
+      
+  end
+end

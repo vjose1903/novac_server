@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  articulo: one
+  referencia: 1
+  costo: 1.5
+  precio: 1.5
+  cantidad: 1
+  medida: MyString
+
+two:
+  articulo: two
+  referencia: 1
+  costo: 1.5
+  precio: 1.5
+  cantidad: 1
+  medida: MyString
