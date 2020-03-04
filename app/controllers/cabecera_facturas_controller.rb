@@ -201,7 +201,8 @@ class CabeceraFacturasController < ApplicationController
         objD["costo"] = costo_calculado
         objD["precio"] = detalleF["precio"]
         objD["total"] = detalleF["total"]
-        objD["descuento"] = detalleF["descuento"]
+        objD["descuento_valor"] = detalleF["descuento_valor"]
+        objD["descuento_porciento"] = detalleF["descuento_porciento"]
         objD["itbis"] = detalleF["itbis"]
         objD["cantidad"] = detalleF["cantidad"]
         objD["tipo"] = tipoArticuloD
@@ -356,7 +357,8 @@ class CabeceraFacturasController < ApplicationController
           objD["costo"] = costo_calculado
           objD["precio"] = doc["precio"]
           objD["total"] = doc["total"]
-          objD["descuento"] = doc["descuento"]
+          objD["descuento_valor"] = doc["descuento_valor"]
+          objD["descuento_porciento"] = doc["descuento_porciento"]
           objD["itbis"] = doc["itbis"]
           objD["cantidad"] = doc["cantidad"]
           objD["tipo"] = tipoArticuloD
@@ -590,7 +592,7 @@ class CabeceraFacturasController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def cabecera_factura_params
     params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_facturacion, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
-                                             :pagada, :vendedor_id, :balance, :devuelta, :adelantada, :is_nota, :aplicada_a
-                                             detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento, :itbis, :precio])
+                                             :pagada, :vendedor_id, :balance, :devuelta, :adelantada, :is_nota, :aplicada_a,
+                                             detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio])
   end
 end

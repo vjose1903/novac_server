@@ -47,6 +47,6 @@ class DetalleFacturasController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def detalle_factura_params
-    params.require(:detalle_factura).permit(:cabecera_factura_id, :articulo_id, :cantidad, :total, :unidad, :descuento, :itbis, :precio)
+    params.require(:detalle_factura).permit(:cabecera_factura_id, :articulo_id, :cantidad, :total, :unidad, :descuento_valor,:descuento_porciento, :itbis, :precio)
   end
 end
