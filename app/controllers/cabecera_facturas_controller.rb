@@ -418,12 +418,16 @@ class CabeceraFacturasController < ApplicationController
   def update_secuencia
     if @actual_secuencia_factura["tipo_factura_id"] == 13
       # --------- VENTA ---------
-      unless @actual_secuencia_comprobante.update({ secuencia: @next_secuencia_comprobante })
-        render json: { msg: "Error actualizando la tabla de secuencia de comprobante" }, status: :unprocessable_entity
+      
+      actualizando = SecuenciaComprobante.aumentar_secuencia(@actual_secuencia_comprobante["id"])
+      # actualizando = @actual_secuencia_comprobante.update({ secuencia: @next_secuencia_comprobante })
+      unless actualizando
+
+        render json: { msg: "Error actualizando la tabla de secuencia de comprobante Venta" }, status: :unprocessable_entity
         # render json: @actual_secuencia_comprobante.errors, status: :unprocessable_entity
       else
         unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
-          render json: { msg: "Error actualizando la tabla de secuencia de Factura" }, status: :unprocessable_entity
+          render json: { msg: "Error actualizando la tabla de secuencia de Factura Venta" }, status: :unprocessable_entity
           # render json: @actual_secuencia_factura.errors, status: :unprocessable_entity
         else
           cabecera = parseal(@cabecera_factura)
@@ -434,7 +438,7 @@ class CabeceraFacturasController < ApplicationController
       # --------- COMPRA ---------
 
       unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
-        render json: { msg: "Error actualizando la tabla de secuencia de Factura" }, status: :unprocessable_entity
+        render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
       else
         cabecera = parseal(@cabecera_factura)
         render json: cabecera, status: :created, location: @cabecera_factura
@@ -538,13 +542,19 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def find_secuencia
-    @actual_secuencia_comprobante = SecuenciaFactura.find_by_tipo_factura_id(params[:tipo_factura_id])
+    @actual_secuencia_comprobante = SecuenciaComprobante.get_paquete_rnc_by_estado(params[:tipo_factura_id] , true)
+    if @actual_secuencia_comprobante[:error]
+      return render :json => @actual_secuencia_comprobante, status: @actual_secuencia_comprobante[:status]
+    end
+
+    @actual_secuencia_comprobante = @actual_secuencia_comprobante[:body]
+    
     @tipoFactura = TipoFactura.find_by_id(params[:tipo_factura_id])
     @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:FACTURA_DE])
-
+    
     @next_secuencia_factura = @actual_secuencia_factura["secuencia"] + 1
-    @next_secuencia_comprobante = @actual_secuencia_comprobante["secuencia"] + 1
-
+    @next_secuencia_comprobante = @actual_secuencia_comprobante["secuencia"]
+    
     @numero_factura = @next_secuencia_factura
 
     if @actual_secuencia_factura["tipo_factura_id"] == 13
@@ -554,12 +564,6 @@ class CabeceraFacturasController < ApplicationController
       # --------- COMPRA ---------
       @numero_comprobante = cabecera_factura_params["numero_comprobante"]
     end
-
-    puts "=====" * 15
-    puts " " * 25 + " numero comprobante"
-    puts "=====" * 15
-    puts @numero_comprobante
-    puts "=====" * 15
   end
 
   # PATCH/PUT /cabecera_facturas/1

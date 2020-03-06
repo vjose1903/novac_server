@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :secuencia_comprobantes
   resources :secuencia_ingresos
   resources :detalle_recibos
   resources :tipo_recibos
@@ -30,6 +31,9 @@ Rails.application.routes.draw do
 
   # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"
+
+  # secuencia comprobantes
+  get "paqueteNCF/:id/:estado" => "secuencia_comprobantes#getPaqueteRncByEstado"
 
   # usuarios
   get "users" => "users#getUsers"
