@@ -51,6 +51,7 @@ class SecuenciaComprobante < ApplicationRecord
 				end
     end
 		# ============================================================================================================================================================
+		
 		def self.get_paquetes_por_activar(tipo_factura_id)
 			puts ' -------------- Inicio get_paquetes_por_activar -------------- '
 			tipoFac= TipoFactura.find_by_id(tipo_factura_id)
