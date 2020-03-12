@@ -46,6 +46,6 @@ class SecuenciaFacturasController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def secuencia_factura_params
-      params.fetch(:secuencia_factura).permit(:tipo_factura_id, :secuencia)
+      params.require(:secuencia_factura).permit(:tipo_factura_id, :secuencia)
     end
 end

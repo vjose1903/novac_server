@@ -1,0 +1,12 @@
+rails g scaffold suplidor nombre:string telefono:string direccion:string email:string estado:boolean
+rails g scaffold tipo_agencia descripcion:string comentario:string estado:boolean
+rails g scaffold agencia tipo_agencia:references nombre:string direccion:string telefono:string pais:string comentario:string estado:boolean
+rails g scaffold documento_identidad user:references suplidor:references agencia:references descripcion:string documento:string
+rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
+rails g scaffold oferta agencia:references suplidor:references precio:float fecha_inicio:date fecha_fin:date moneda:string cantidad_reservas:integer estado:boolean
+rails g scaffold imagen user:references oferta:references agencia:references descripcion:string fileName:string base_64:string path:string
+rails g scaffold oferta_favorita user:references oferta:references
+rails g scaffold cabecera_factura user:references forma_pago:string numero_factura:integer total_factura:float pagada:boolean balance:float
+rails g scaffold detalle_factura cabecera_factura:references oferta:references cantidad:integer total:float precio:float
+rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
+rails g scaffold historico_oferta user:references oferta:references precio:float fecha_inicio:date fecha_fin:date estado:boolean moneda:string cantidad_reservas:integer

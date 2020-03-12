@@ -238,14 +238,6 @@ ActiveRecord::Schema.define(version: 2020_01_16_200448) do
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"
   end
 
-  create_table "secuencia_facturas", force: :cascade do |t|
-    t.bigint "tipo_factura_id"
-    t.integer "secuencia"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["tipo_factura_id"], name: "index_secuencia_facturas_on_tipo_factura_id"
-  end
-
   create_table "suplidores", force: :cascade do |t|
     t.string "nombre"
     t.string "telefono"

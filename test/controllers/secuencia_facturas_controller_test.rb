@@ -12,7 +12,7 @@ class SecuenciaFacturasControllerTest < ActionDispatch::IntegrationTest
 
   test "should create secuencia_factura" do
     assert_difference('SecuenciaFactura.count') do
-      post secuencia_facturas_url, params: { secuencia_factura: {  } }, as: :json
+      post secuencia_facturas_url, params: { secuencia_factura: { secuencia: @secuencia_factura.secuencia, tipo_factura_id: @secuencia_factura.tipo_factura_id } }, as: :json
     end
 
     assert_response 201
@@ -24,7 +24,7 @@ class SecuenciaFacturasControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update secuencia_factura" do
-    patch secuencia_factura_url(@secuencia_factura), params: { secuencia_factura: {  } }, as: :json
+    patch secuencia_factura_url(@secuencia_factura), params: { secuencia_factura: { secuencia: @secuencia_factura.secuencia, tipo_factura_id: @secuencia_factura.tipo_factura_id } }, as: :json
     assert_response 200
   end
 

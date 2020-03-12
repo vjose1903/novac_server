@@ -11,7 +11,6 @@ Rails.application.routes.draw do
   resources :mantenimiento_articulos
   resources :detalle_facturas
   resources :cabecera_facturas
-  resources :secuencia_facturas
   resources :tipo_facturas
   resources :suplidores
   resources :clientes
@@ -20,6 +19,7 @@ Rails.application.routes.draw do
   resources :contenido_articulos
   resources :articulos
   resources :tipo_articulos
+  resources :secuencia_facturas
 
   # articulos
   get "articulosF" => "articulos#getArticulosFormateados"

@@ -419,7 +419,7 @@ class CabeceraFacturasController < ApplicationController
     if @actual_secuencia_factura["tipo_factura_id"] == 13
       # --------- VENTA ---------
       
-      actualizando = SecuenciaComprobante.aumentar_secuencia(@actual_secuencia_comprobante["id"])
+      actualizando = SecuenciaComprobante.aumentar_secuencia_venta(@actual_secuencia_comprobante["id"])
       # actualizando = @actual_secuencia_comprobante.update({ secuencia: @next_secuencia_comprobante })
       unless actualizando
 
