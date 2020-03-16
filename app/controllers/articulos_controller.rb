@@ -144,21 +144,54 @@ class ArticulosController < ApplicationController
           @obj["codigo"] = @articulo["codigo"]
 
           if articulo_params["isCombo"]
-            if Articulo.update_formula(articulo_params)
+            seguirFormula = true
+            articulo_params["formulas_productos_terminados_attributes"].each do |articulo_formula|
+              form = FormulasProductosTerminado.find_by_id(articulo_formula["id"])
+              formulaObj = {
+                "articulo_id": @articulo["id"],
+                "articulo_combo": articulo_formula["articulo_combo"],
+                "cantidad": articulo_formula["cantidad"],
+                "costo": articulo_formula["costo"],
+                "precio": articulo_formula["precio"],
+              }
+
+              if form == nil
+                new_formula = FormulasProductosTerminado.new(formulaObj)
+
+                puts "-----".red * 20
+                puts new_formula.to_json
+                puts "-----".red * 20
+                FormulasProductosTerminado.transaction do
+                  unless new_formula.save
+                    seguirFormula = false
+                    return render json: { error: new_formula.errors, msg: "Error agregando formula de articulo" }, status: 400
+                  end
+                end
+              else
+                FormulasProductosTerminado.transaction do
+                  unless form.update(formulaObj)
+                    seguirFormula = false
+                    return render json: { error: form.errors, msg: "Error editando formula de articulo" }, status: 400
+                  end
+                end
+              end
+            end
+
+            if seguirFormula
               render json: @obj
             else
-              return render json: { error: formu.errors, msg: "Error editando formula de articulo" }, status: :unprocessable_entity
+              return render json: { msg: "Error editando formula de articulo, << luego del seguir >>" }, status: 400
             end
           else
             render json: @obj
           end
         else
-          return render json: @articulo.errors, status: :unprocessable_entity
+          return render json: @articulo.errors, status: 400
         end
       else
         puts "error creando historico".red
         1
-        return render json: { error: @articulo.errors, msg: "error creando historico" }, status: :unprocessable_entity
+        return render json: { error: @articulo.errors, msg: "error creando historico" }, status: 400
       end
     end
   end
