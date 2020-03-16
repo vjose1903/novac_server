@@ -557,6 +557,19 @@ class CabeceraFacturasController < ApplicationController
     
     @numero_factura = @next_secuencia_factura
 
+    puts " --------- @actual_secuencia_comprobante ----------"
+    puts @actual_secuencia_comprobante.to_json
+    puts " --------------------------------------------------"
+
+    puts " --------- @next_secuencia_comprobante ----------"
+    puts @next_secuencia_comprobante
+    puts " --------------------------------------------------"
+
+    puts " --------- @next_secuencia_factura ----------"
+    puts @next_secuencia_factura
+    puts " --------------------------------------------------"
+
+    return render json: { msg: "pruebas", body:{} }, status: 400
     if @actual_secuencia_factura["tipo_factura_id"] == 13
       # --------- VENTA ---------
       @numero_comprobante = "B" + @tipoFactura["referencia"] + ("%08d" % @next_secuencia_comprobante)

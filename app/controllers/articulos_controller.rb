@@ -73,7 +73,7 @@ class ArticulosController < ApplicationController
   # PATCH/PUT /articulos/1
   def update
     puts "EDITANDO".red
-    ActiveRecord::Base.transaction do
+    Articulo.transaction do
       @ant_articulo = Articulo.parseal(@articulo)
       if articulo_params["existencia"] == @ant_articulo["existencia"]
         seguir = addHistorico(@ant_articulo)
@@ -96,6 +96,7 @@ class ArticulosController < ApplicationController
           "suplidor_id": articulo_params["suplidor_id"],
           "medida_alerta": articulo_params["medida_alerta"],
           "aviso_existencia": articulo_params["aviso_existencia"],
+          "otros_costos": articulo_params["otros_costos"],
           "calcular_itbis": articulo_params["calcular_itbis"],
           "codigo": @articulo["codigo"],
         }
@@ -103,6 +104,8 @@ class ArticulosController < ApplicationController
         if @articulo.update(newArticulo)
           articulo_params["contenido_articulos_attributes"].each do |contenido|
             content = ContenidoArticulo.find_by_id(contenido["id"])
+            contenidoCompleto = ContenidoArticulo.where({ articulo_id: @articulo["id"] })
+
             newContenido = {
               "costo": contenido["costo"],
               "precio": contenido["precio"],
@@ -111,10 +114,30 @@ class ArticulosController < ApplicationController
               "condicion": contenido["condicion"],
               "calcular_itbis": contenido["calcular_itbis"],
             }
-            unless content.update(newContenido)
-              render json: { error: content.errors, msg: "Error editando contenido de articulo" }, status: :unprocessable_entity
+
+            if contenidoCompleto == [] || contenidoCompleto == nil
+              newContenido["articulo_id"] = @articulo["id"]
+              new_contenido = ContenidoArticulo.new(newContenido)
+              if new_contenido.save
+                unless @articulo.contenido_articulos.length <= 1
+                  firstContenido = @articulo.contenido_articulos.first
+
+                  lastContenido = @articulo.contenido_articulos.last
+
+                  unless lastContenido.update({ referencia: firstContenido.id })
+                    render json: lastContenido.errors, status: :unprocessable_entity
+                  end
+                end
+              else
+                return render json: new_contenido.errors, status: :unprocessable_entity
+              end
+            else
+              unless content.update(newContenido)
+                return render json: { error: content.errors, msg: "Error editando contenido de articulo" }, status: :unprocessable_entity
+              end
             end
           end
+
           @obj = articulo_params
 
           @obj["id"] = @articulo["id"]
@@ -124,18 +147,18 @@ class ArticulosController < ApplicationController
             if Articulo.update_formula(articulo_params)
               render json: @obj
             else
-              render json: { error: formu.errors, msg: "Error editando formula de articulo" }, status: :unprocessable_entity
+              return render json: { error: formu.errors, msg: "Error editando formula de articulo" }, status: :unprocessable_entity
             end
           else
             render json: @obj
           end
         else
-          render json: @articulo.errors, status: :unprocessable_entity
+          return render json: @articulo.errors, status: :unprocessable_entity
         end
       else
         puts "error creando historico".red
         1
-        render json: { error: @articulo.errors, msg: "error creando historico" }, status: :unprocessable_entity
+        return render json: { error: @articulo.errors, msg: "error creando historico" }, status: :unprocessable_entity
       end
     end
   end
