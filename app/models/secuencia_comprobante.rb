@@ -3,55 +3,58 @@ class SecuenciaComprobante < ApplicationRecord
     puts " -------------- Inicio get_paquete_rnc_by_estado -------------- "
 
     tipoFac = TipoFactura.find_by_id(tipo_factura_id)
-
-    select_ = "select *"
-    from_ = "from secuencia_comprobantes"
-    where_ = "where estado = #{estado} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
-    order_ = "ORDER BY created_at ASC LIMIT 1"
-    query = "#{select_} #{from_} #{where_} #{order_}"
-    paquete = ActiveRecord::Base.connection.exec_query(query)[0]
-
-    if paquete == [] || paquete == nil
-      existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
-      if existen_siguientes[:bool]
-        activar_nuevo_paquete(tipo_factura_id)
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => false, :msg => "correcto, siguiente paquete", :body => existen_siguientes[:Paquete], :status => 200 } #respuesta correcta
-      end
-
-      existen_anteriores = ver_si_existen_paquetes_previos(tipo_factura_id)
-      if existen_anteriores
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => true, :msg => "Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de comprar mas.", :body => [], :status => 404 }
-      else
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => true, :msg => "No se han comprado paquete de comprobantes para #{tipoFac["descripcion"]}", :body => [], :status => 404 }
-      end
-      #
-    elsif paquete["secuencia"] == paquete["hasta"]
-      puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-      return { :error => false, :msg => "Ultimo comprobante de este paquete", :body => paquete, :status => 200 }
-      #
-    elsif paquete["secuencia"] > paquete["hasta"]
+    if tipoFac["referencia"] == "00" || tipoFac["referencia"] == 0
+      return { :error => false, :msg => "factura sin comprobante no necesitan paquetes", :body => { fecha_valida: nil }, :status => 200 }
+    else
       select_ = "select *"
       from_ = "from secuencia_comprobantes"
-      where_ = "where estado = #{false} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
+      where_ = "where estado = #{estado} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
       order_ = "ORDER BY created_at ASC LIMIT 1"
-      newQuery = "#{select_} #{from_} #{where_} #{order_}"
-      nuevoPaquete = ActiveRecord::Base.connection.exec_query(newQuery)[0]
+      query = "#{select_} #{from_} #{where_} #{order_}"
+      paquete = ActiveRecord::Base.connection.exec_query(query)[0]
 
-      if nuevoPaquete == [] || nuevoPaquete == nil
+      if paquete == [] || paquete == nil
+        existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
+        if existen_siguientes[:bool]
+          activar_nuevo_paquete(tipo_factura_id)
+          puts " -------------- fin get_paquete_rnc_by_estado -------------- "
+          return { :error => false, :msg => "correcto, siguiente paquete", :body => existen_siguientes[:Paquete], :status => 200 } #respuesta correcta
+        end
+
+        existen_anteriores = ver_si_existen_paquetes_previos(tipo_factura_id)
+        if existen_anteriores
+          puts " -------------- fin get_paquete_rnc_by_estado -------------- "
+          return { :error => true, :msg => "Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de comprar mas.", :body => [], :status => 404 }
+        else
+          puts " -------------- fin get_paquete_rnc_by_estado -------------- "
+          return { :error => true, :msg => "No se han solicitado paquetes de comprobantes para #{tipoFac["descripcion"]}", :body => [], :status => 404 }
+        end
+        #
+      elsif paquete["secuencia"] == paquete["hasta"]
         puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => true, :msg => "Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de comprar mas.", :body => [], :status => 404 }
+        return { :error => false, :msg => "Ultimo comprobante de este paquete", :body => paquete, :status => 200 }
+        #
+      elsif paquete["secuencia"] > paquete["hasta"]
+        select_ = "select *"
+        from_ = "from secuencia_comprobantes"
+        where_ = "where estado = #{false} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
+        order_ = "ORDER BY created_at ASC LIMIT 1"
+        newQuery = "#{select_} #{from_} #{where_} #{order_}"
+        nuevoPaquete = ActiveRecord::Base.connection.exec_query(newQuery)[0]
+
+        if nuevoPaquete == [] || nuevoPaquete == nil
+          puts " -------------- fin get_paquete_rnc_by_estado -------------- "
+          return { :error => true, :msg => "Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de comprar mas.", :body => [], :status => 404 }
+        else
+          # return { :error => true, :msg => "Existen errores en la base de datos, secuencia no pertene al paquete de NCF seleccionado", :body => [], :status => 404 }
+          puts " -------------- fin get_paquete_rnc_by_estado -------------- "
+          return { :error => false, :msg => "siguiente paquete", :body => nuevoPaquete, :status => 200 }
+        end
+        #
       else
-        # return { :error => true, :msg => "Existen errores en la base de datos, secuencia no pertene al paquete de NCF seleccionado", :body => [], :status => 404 }
         puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => false, :msg => "siguiente paquete", :body => nuevoPaquete, :status => 200 }
+        return { :error => false, :msg => "correcto", :body => paquete, :status => 200 }
       end
-      #
-    else
-      puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-      return { :error => false, :msg => "correcto", :body => paquete, :status => 200 }
     end
   end
 

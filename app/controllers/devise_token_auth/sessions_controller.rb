@@ -16,29 +16,30 @@ module DeviseTokenAuth
 
       user = User.find_by_usuario(params[:usuario])
 
-      if user["role"] === "V"
-        puts ""
-        puts ""
-        puts "++++++++".red * 20
-        puts "                                                               VENDEDOR"
-        puts "++++++++".red * 20
-        puts ""
-        puts ""
-        return render_error(423, "Usuario es un vendedor no tiene acceso al sistema.")
-      end
-
-      if user["estado"] === false
-        puts ""
-        puts ""
-        puts "++++++++".red * 20
-        puts "                                                               BLOQUEADO"
-        puts "++++++++".red * 20
-        puts ""
-        puts ""
-        return render_error(423, "Usuario desactivado, favor de comunicarse con el administrador del sistema.")
-      end
-
       unless user.nil?
+
+      # if user["role"] === "V"
+      #   puts ""
+      #   puts ""
+      #   puts "++++++++".red * 20
+      #   puts "                                                               VENDEDOR"
+      #   puts "++++++++".red * 20
+      #   puts ""
+      #   puts ""
+      #   return render_error(423, "Usuario es un vendedor no tiene acceso al sistema.")
+      # end
+
+      # if user["estado"] === false
+      #   puts ""
+      #   puts ""
+      #   puts "++++++++".red * 20
+      #   puts "                                                               BLOQUEADO"
+      #   puts "++++++++".red * 20
+      #   puts ""
+      #   puts ""
+      #   return render_error(423, "Usuario desactivado, favor de comunicarse con el administrador del sistema.")
+      # end
+
         params[:email] = user.email
       else
         # return render json: { msg: "Usuario ingresado no existe" }, status: 401

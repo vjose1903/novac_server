@@ -4,13 +4,12 @@ class CabeceraFactura < ApplicationRecord
   belongs_to :cliente, optional: true
   belongs_to :user
 
-  has_many :detalle_facturas, dependent: :destroy
-
-  attribute :detalle_facturas
   attribute :cliente
   attribute :suplidor
   attribute :tipo_factura
 
+  has_many :detalle_facturas, dependent: :destroy
+  attribute :detalle_facturas
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
   def self.get_facturas_venta_by_params(campo, valor)
@@ -96,14 +95,13 @@ class CabeceraFactura < ApplicationRecord
 
   # =====================================================================================================================
   def self.cancelar_factura(id)
-    puts 'ANTES DE ENTRAR EN LA FUNCION QUE CAMBIA EL ESTADO'.yellow
+    puts "ANTES DE ENTRAR EN LA FUNCION QUE CAMBIA EL ESTADO".yellow
     peticion = ActiveRecord::Base.connection.exec_query("UPDATE cabecera_facturas SET estado=#{false} WHERE id=#{id}")
 
     if peticion
-      return  true
+      return true
     else
-      return  false
-      end
-      
+      return false
+    end
   end
 end

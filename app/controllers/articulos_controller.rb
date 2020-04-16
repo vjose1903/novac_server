@@ -29,7 +29,7 @@ class ArticulosController < ApplicationController
 
   # POST /articulos
   def create
-    ActiveRecord::Base.transaction do
+    Articulo.transaction do
       puts "=====".red * 25
       puts :json => articulo_params
       puts "=====".red * 25
