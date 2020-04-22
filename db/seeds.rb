@@ -127,6 +127,10 @@ tipo_factura = TipoFactura.create(
       "referencia": nil,
       "descripcion": "Compra",
     },
+    {
+      "referencia": nil,
+      "descripcion": "Conduce",
+    },
   ]
 )
 tipo_recibo = TipoRecibo.create(
@@ -156,6 +160,18 @@ secuencia_factura = SecuenciaFactura.create(
     },
     {
       "tipo_factura_id": 14,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 5,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 4,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 15,
       "secuencia": 0,
     },
   ]
