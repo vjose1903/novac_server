@@ -12,7 +12,7 @@ class CabeceraFactura < ApplicationRecord
   attribute :detalle_facturas
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
-  def self.get_facturas_venta_by_params(campo, valor)
+  def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id)
     puts "campo ".red + "#{campo}"
     puts "valor ".green + "#{valor}"
 
@@ -23,9 +23,9 @@ class CabeceraFactura < ApplicationRecord
     inner join users u on ca.user_id = u.id"
     where_ = ""
     if campo == "numero_comprobante"
-      where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta'"
+      where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
     else
-      where_ = "WHERE #{campo} = #{valor} and tipo = 'venta'"
+      where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
     end
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
@@ -94,7 +94,7 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.cancelar_factura(id)
+  def self.anular_factura(id)
     puts "ANTES DE ENTRAR EN LA FUNCION QUE CAMBIA EL ESTADO".yellow
     peticion = ActiveRecord::Base.connection.exec_query("UPDATE cabecera_facturas SET estado=#{false} WHERE id=#{id}")
 

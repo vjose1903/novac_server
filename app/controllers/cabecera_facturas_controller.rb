@@ -24,6 +24,8 @@ class CabeceraFacturasController < ApplicationController
   def getFacturasByParams
     campoNum = params[:campo]
     valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
+    tipo_factura_id = params[:tipo_factura_id]
+
     campo = ""
     if campoNum == "1"
       campo = "cliente_id"
@@ -37,7 +39,7 @@ class CabeceraFacturasController < ApplicationController
     elsif campoNum == "4"
     end
 
-    cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des)
+    cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id)
 
     puts "=-=".yellow * 20
     puts cabe.to_json
@@ -416,7 +418,7 @@ class CabeceraFacturasController < ApplicationController
 
   def cancelarFactura
     puts "CANCELANDO FACTURA".red
-    res = CabeceraFactura.cancelar_factura(params[:id])
+    res = CabeceraFactura.anular_factura(params[:id])
 
     if res
       render json: { msg: "Factura anulada correctamente", status: 200 }, status: 200

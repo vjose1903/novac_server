@@ -43,8 +43,8 @@ Rails.application.routes.draw do
   # cabecera facturas
   get "cabecera_facturas/cliente/:id/pagada/:pagada" => "cabecera_facturas#getFacturasByClienteIdAndEstado"
   get "cabecera_facturas/cliente/:id" => "cabecera_facturas#getFacturasByClienteId"
-  get "cabecera_facturas/params/:campo/:valor" => "cabecera_facturas#getFacturasByParams"
-  post "cabecera_facturas/cancelar_factura/:id" => "cabecera_facturas#cancelarFactura"
+  get "cabecera_facturas/params/:campo/:valor/:tipo_factura_id" => "cabecera_facturas#getFacturasByParams"
+  post "cabecera_facturas/anular_factura/:id" => "cabecera_facturas#cancelarFactura"
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
                                         sessions: "devise_token_auth/sessions",
