@@ -155,11 +155,19 @@ secuencia_ingresos = SecuenciaIngreso.create(
 secuencia_factura = SecuenciaFactura.create(
   [
     {
-      "tipo_factura_id": 13,
+      "tipo_factura_id": 1,
       "secuencia": 0,
     },
     {
-      "tipo_factura_id": 14,
+      "tipo_factura_id": 2,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 3,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 4,
       "secuencia": 0,
     },
     {
@@ -167,7 +175,39 @@ secuencia_factura = SecuenciaFactura.create(
       "secuencia": 0,
     },
     {
-      "tipo_factura_id": 4,
+      "tipo_factura_id": 6,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 7,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 8,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 9,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 10,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 11,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 12,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 13,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 14,
       "secuencia": 0,
     },
     {

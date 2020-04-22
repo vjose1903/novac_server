@@ -104,4 +104,30 @@ class CabeceraFactura < ApplicationRecord
       return false
     end
   end
+  # =====================================================================================================================
+  def self.ReCalculateBalanceFactura(id, totalFactura, operacion)
+    puts " -------------- Inicio ReCalculateBalanceFactura -------------- "
+
+    factura = CabeceraFactura.find_by_id(id)
+    balance = factura["balance"]
+
+    if operacion == "+"
+      sumatoria = balance + totalFactura.to_f
+    else
+      if totalFactura.to_f > balance
+        return { :error => true, :msg => "El monto ingresado es mayor al balance de la factura", :status => 400 }
+      else
+        sumatoria = balance - totalFactura.to_f
+      end
+    end
+    sumatoria = sumatoria.to_d.truncate(2).to_f
+
+    unless factura.update({ balance: sumatoria })
+      puts " -------------- fin ReCalculateBalanceFactura -------------- "
+      return { :error => true, :msg => "Error actualizanco el balance de la factura", :status => 400 }
+    else
+      puts " -------------- fin ReCalculateBalanceFactura -------------- "
+      return { :error => false, :balance => sumatoria }
+    end
+  end
 end

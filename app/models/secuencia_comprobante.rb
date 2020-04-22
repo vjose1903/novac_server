@@ -80,8 +80,8 @@ class SecuenciaComprobante < ApplicationRecord
   end
 
   # ============================================================================================================================================================
-  def self.aumentar_secuencia_venta(paquete_id)
-    puts " -------------- inicio aumentar_secuencia_venta -------------- "
+  def self.aumentar_secuencia_comprobante(paquete_id)
+    puts " -------------- inicio aumentar_secuencia_comprobante -------------- "
     paquete = SecuenciaComprobante.find_by_id(paquete_id)
 
     sigue = true
@@ -102,7 +102,7 @@ class SecuenciaComprobante < ApplicationRecord
         sigue = false
       end
     end
-    puts " -------------- fin aumentar_secuencia_venta -------------- "
+    puts " -------------- fin aumentar_secuencia_comprobante -------------- "
     return sigue
   end
 
