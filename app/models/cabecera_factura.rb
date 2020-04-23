@@ -22,11 +22,21 @@ class CabeceraFactura < ApplicationRecord
     joins_ = "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
     inner join users u on ca.user_id = u.id"
     where_ = ""
-    if campo == "numero_comprobante"
-      where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
+
+    if tipo_factura_id == 0 || tipo_factura_id == "0"
+      if campo == "numero_comprobante"
+        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta'"
+      else
+        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta'"
+      end
     else
-      where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
+      if campo == "numero_comprobante"
+        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
+      else
+        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
+      end
     end
+
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
     return ActiveRecord::Base.connection.exec_query(query)
