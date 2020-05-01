@@ -119,6 +119,9 @@ class CabeceraFactura < ApplicationRecord
     puts " -------------- Inicio ReCalculateBalanceFactura -------------- "
 
     factura = CabeceraFactura.find_by_id(id)
+    puts "-----".blue * 15
+    puts "factura" + factura.to_json
+    puts "-----".blue * 15
     balance = factura["balance"]
 
     if operacion == "+"
@@ -138,6 +141,19 @@ class CabeceraFactura < ApplicationRecord
     else
       puts " -------------- fin ReCalculateBalanceFactura -------------- "
       return { :error => false, :balance => sumatoria }
+    end
+  end
+  # =====================================================================================================================
+  def self.agregarNotaACabeceraFactura(id)
+    puts " -------------- Inicio agregarNotaACabeceraFactura -------------- "
+
+    factura = CabeceraFactura.find_by_id(id)
+    unless factura.update({ tiene_nota: true })
+      puts " -------------- fin agregarNotaACabeceraFactura -------------- "
+      return { :error => true, :msg => "Error agregando nota la factura", :status => 400 }
+    else
+      puts " -------------- fin agregarNotaACabeceraFactura -------------- "
+      return { :error => false, :tiene_nota => true }
     end
   end
 end

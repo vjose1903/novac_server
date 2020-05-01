@@ -79,27 +79,45 @@ class CabeceraFacturasController < ApplicationController
 
       resultCliente = { :error => false }
       resultBalanceFact = { :error => false }
+      resultAgregarNota = { :error => false }
       if att["condicion"] == "Crédito" && att["tipo"] == "venta"
         resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"], "+")
       end
 
       # NOTA DE CREDITO
       if att["is_nota"] && att["tipo_factura_id"] == 5
-        resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"], "-")
-        resultBalanceFact = CabeceraFactura.ReCalculateBalanceFactura(att["cliente_id"], att["total_factura"], "-")
+        resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
+        # resultBalanceFact = CabeceraFactura.ReCalculateBalanceFactura(@factura_aplicada_id, att["total_factura"].to_f.abs, "+")
+        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id)
       end
 
       # NOTA DE DEBITO
       if att["is_nota"] && att["tipo_factura_id"] == 4
-        resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"], "+")
-        resultBalanceFact = CabeceraFactura.ReCalculateBalanceFactura(att["cliente_id"], att["total_factura"], "+")
+        resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
+        # resultBalanceFact = CabeceraFactura.ReCalculateBalanceFactura(@factura_aplicada_id, att["total_factura"].to_f.abs, "+")
+        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id)
       end
+
+      puts ">>>>>" * 15
+      puts "result Balance".red
+      puts ">>>>>" * 15
+      puts :json => resultBalanceFact
+      puts ">>>>>" * 15
+
+      puts ">>>>>" * 15
+      puts "result cliente".yellow
+      puts ">>>>>" * 15
+      puts :json => resultCliente
+      puts ">>>>>" * 15
 
       if resultCliente[:error]
         render json: resultCliente
         break
       elsif resultBalanceFact[:error]
         render json: resultBalanceFact
+        break
+      elsif resultAgregarNota[:error]
+        render json: resultAgregarNota
         break
       else
         att["fecha_facturacion"] = att["fecha_facturacion"] ? att["fecha_facturacion"] : DateTime.now
@@ -247,7 +265,7 @@ class CabeceraFacturasController < ApplicationController
 
     cliente = {}
 
-    if objeto["cliente_id"]
+    if objeto["cliente_id"] || objeto["is_nota"]
       cli = Cliente.find_by_id(obj["cliente_id"])
       cliente["nombre"] = "#{cli["nombre"]} #{cli["apellido"]}".titleize
       cliente["direccion"] = cli["direccion"]
@@ -279,7 +297,7 @@ class CabeceraFacturasController < ApplicationController
     att = objeto.attributes
     # att = objeto
 
-    if objeto["tipo"] === "venta"
+    if objeto["tipo"] === "venta" || objeto["is_nota"]
       cliente = {}
 
       if objeto["cliente_id"]
@@ -325,10 +343,6 @@ class CabeceraFacturasController < ApplicationController
         articuloSelect = articuloSelect[0]
       end
 
-      puts "=====".blue * 20
-      puts "=====".blue * 20
-      puts "=====".blue * 20
-      puts "=====".blue * 20
       puts "=====".blue * 20
       puts articuloSelect.to_json
 
@@ -378,17 +392,20 @@ class CabeceraFacturasController < ApplicationController
       objD["cantidad"] = doc["cantidad"]
       objD["tipo"] = tipoArticuloD
       objD["id"] = doc["id"]
+      objD["articulo_id"] = doc["articulo_id"]
 
       unless objeto["adelantada"]
-        unless @actual_secuencia_factura == nil
-          factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
+        unless objeto["is_nota"]
+          unless @actual_secuencia_factura == nil
+            factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
 
-          if articuloSelect["contenido_articulos"] == nil
-            array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(doc["articulo_id"])
-            articuloSelect["contenido_articulos"] = array_contenido
+            if articuloSelect["contenido_articulos"] == nil
+              array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(doc["articulo_id"])
+              articuloSelect["contenido_articulos"] = array_contenido
+            end
+
+            movimientos_de_inventario(factura_tipo, articuloSelect, unidad, objD["cantidad"])
           end
-
-          movimientos_de_inventario(factura_tipo, articuloSelect, unidad, objD["cantidad"])
         end
       end
 
@@ -552,6 +569,7 @@ class CabeceraFacturasController < ApplicationController
 
   def find_secuencia
     if params["tipo"] == "venta" || params["is_nota"]
+      @factura_aplicada_id = params[:factura_id]
       @actual_secuencia_comprobante = SecuenciaComprobante.get_paquete_rnc_by_estado(params[:tipo_factura_id], true)
       if @actual_secuencia_comprobante[:error]
         return render :json => @actual_secuencia_comprobante, status: @actual_secuencia_comprobante[:status]
@@ -561,10 +579,13 @@ class CabeceraFacturasController < ApplicationController
     end
 
     @tipoFactura = TipoFactura.find_by_id(params[:tipo_factura_id])
+
     if params["tipo"] == "venta"
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:tipo_factura_id])
-    else
+    elsif params["tipo"] == "compra"
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:FACTURA_DE])
+    else
+      @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:tipo_factura_id])
     end
 
     @next_secuencia_factura = @actual_secuencia_factura["secuencia"] + 1
@@ -610,7 +631,7 @@ class CabeceraFacturasController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def cabecera_factura_params
     params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_facturacion, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
-                                             :pagada, :vendedor_id, :balance, :devuelta, :adelantada, :is_nota, :aplicada_a,
+                                             :pagada, :vendedor_id, :balance, :devuelta, :adelantada, :is_nota, :aplicada_a, :tiene_nota,
                                              detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor])
   end
 end
