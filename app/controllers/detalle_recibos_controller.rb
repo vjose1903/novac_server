@@ -47,6 +47,6 @@ class DetalleRecibosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def detalle_recibo_params
-    params.fetch(:detalle_recibo).permit(:recibos_ingreso_id, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo)
+    params.fetch(:detalle_recibo).permit(:recibos_ingreso_id, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo)
   end
 end

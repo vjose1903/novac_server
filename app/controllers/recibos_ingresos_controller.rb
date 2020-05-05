@@ -15,7 +15,7 @@ class RecibosIngresosController < ApplicationController
 
   # POST /recibos_ingresos
   def create
-    ActiveRecord::Base.transaction do
+    RecibosIngreso.transaction do
       @recibos_ingreso = RecibosIngreso.new(recibos_ingreso_params)
       @recibos_ingreso.numero_recibo = RecibosIngreso.find_secuencia
 
@@ -26,6 +26,7 @@ class RecibosIngresosController < ApplicationController
           id = @recibos_ingreso.cliente_id
           total = @recibos_ingreso.total
           resultCliente = Cliente.CalculateBalanceCLiente(id, total, "-")
+
           if resultCliente[:error]
             render json: resultCliente, :status => resultCliente[:status]
             break
@@ -33,7 +34,7 @@ class RecibosIngresosController < ApplicationController
             continuar = CabeceraFactura.payFacturas(recibos_ingreso_params)
             unless continuar[:error]
               respuesta = @recibos_ingreso
-              respuesta["newBalance"] = resultCliente[:balance]
+              # respuesta["newBalance"] = resultCliente[:balance]
               render json: respuesta, status: :created, location: @recibos_ingreso
             else
               render json: continuar[:msg], status: :unprocessable_entity
@@ -70,6 +71,6 @@ class RecibosIngresosController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def recibos_ingreso_params
     params.fetch(:recibos_ingreso).permit(:user_id, :cliente_id, :total, :forma_pago, :tipo_recibo_id, :devuelta,
-                                          detalle_recibos_attributes: [:recibos_ingreso_id, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo])
+                                          detalle_recibos_attributes: [:recibos_ingreso_id, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo])
   end
 end

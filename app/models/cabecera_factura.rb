@@ -74,6 +74,19 @@ class CabeceraFactura < ApplicationRecord
     facturas["detalle_recibos_attributes"].each do |f|
       factura_a_pagar = CabeceraFactura.find_by_id(f["cabecera_factura_id"])
 
+      if factura_a_pagar["tiene_nota"]
+        monto_editado_por_notas = 0
+        notas = CabeceraFactura.where({ aplicada_a: factura_a_pagar["numero_comprobante"] })
+        notas.each do |nota|
+          if nota["tipo_factura_id"] === 5
+            monto_editado_por_notas = monto_editado_por_notas - nota["total_factura"].abs
+          elsif nota["tipo_factura_id"] === 4
+            monto_editado_por_notas = monto_editado_por_notas + nota["total_factura"].abs
+          end
+        end
+        factura_a_pagar["balance"] = factura_a_pagar["balance"] + monto_editado_por_notas
+      end
+
       if f["pago_total"]
         if f["deposito"] == factura_a_pagar["balance"]
           unless factura_a_pagar.update({ balance: 0, pagada: true })

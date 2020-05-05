@@ -281,8 +281,18 @@ class CabeceraFacturasController < ApplicationController
       vendedor = "#{vendedor_["nombre"]} #{vendedor_["apellido"]}"
       obj["vendedor"] = vendedor
     end
-
+    obj["notas"] = CabeceraFactura.where({ aplicada_a: objeto["numero_comprobante"] })
     obj["cliente"] = cliente
+    obj["tiene_nota"] = objeto["tiene_nota"]
+
+    obj["pagos"] = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] })
+
+    if obj["pagos"].length > 0
+      obj["pagos"].each do |detalle_recibo|
+        detalle_recibo = detalle_recibo.as_json
+        detalle_recibo["recibo"] = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
+      end
+    end
 
     puts "--------------- fin parseoSelecM ---------------"
     puts ""
@@ -411,13 +421,22 @@ class CabeceraFacturasController < ApplicationController
 
       detalle_facturas.push(objD)
     end
+    att["notas"] = CabeceraFactura.where({ aplicada_a: objeto["numero_comprobante"] })
+    att["pagos"] = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] })
 
     att["detalle_facturas"] = detalle_facturas
     att["cliente"] = cliente
     att["usuario"] = usuario
     att["suplidor"] = suplidor
     att["tipo_factura"] = objeto.tipo_factura["descripcion"]
+    att["tiene_nota"] = objeto["tiene_nota"]
 
+    if att["pagos"].length > 0
+      att["pagos"].each do |detalle_recibo|
+        id = detalle_recibo["recibos_ingreso_id"]
+        detalle_recibo["recibos_ingreso_id"] = RecibosIngreso.find_by_id(id)
+      end
+    end
     puts "--------------- fin parseal ---------------"
     puts " "
     puts " "
