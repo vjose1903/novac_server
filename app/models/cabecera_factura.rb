@@ -98,9 +98,21 @@ class CabeceraFactura < ApplicationRecord
           return res
         end
       else
+        # si la factura tiene una nota le quito el valor modificado
+        if factura_a_pagar["tiene_nota"]
+          factura_a_pagar["balance"] = factura_a_pagar["balance"] - monto_editado_por_notas
+        end
+
         newBalance = factura_a_pagar["balance"] - f["deposito"]
 
-        if f["deposito"] == factura_a_pagar["balance"]
+        # si la factura tiene una nota le agrego el valor modificado
+        if factura_a_pagar["tiene_nota"]
+          balance = factura_a_pagar["balance"] + monto_editado_por_notas
+        else
+          balance = factura_a_pagar["balance"]
+        end
+
+        if f["deposito"] == balance
           unless factura_a_pagar.update({ balance: newBalance, pagada: true })
             res = { error: true, msg: factura_a_pagar.errors }
             return res

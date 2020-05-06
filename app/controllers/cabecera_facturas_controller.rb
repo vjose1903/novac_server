@@ -259,10 +259,6 @@ class CabeceraFacturasController < ApplicationController
 
     obj["detalle_facturas"] = detalleFacturas
 
-    puts "??????".blue * 20
-    puts arrayDetalle.to_json
-    puts "??????".blue * 20
-
     cliente = {}
 
     if objeto["cliente_id"] || objeto["is_nota"]
@@ -285,14 +281,22 @@ class CabeceraFacturasController < ApplicationController
     obj["cliente"] = cliente
     obj["tiene_nota"] = objeto["tiene_nota"]
 
-    obj["pagos"] = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] })
+    pago_ = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] }).as_json
+    pago_parseo = []
 
-    if obj["pagos"].length > 0
-      obj["pagos"].each do |detalle_recibo|
+    if pago_.length > 0
+      pago_parseo = pago_.map do |detalle_recibo|
         detalle_recibo = detalle_recibo.as_json
-        detalle_recibo["recibo"] = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
+        recibo = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
+
+        detalle_recibo["numero_recibo"] = recibo["numero_recibo"]
+        detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
+        detalle_recibo["recibo_created_at"] = recibo["created_at"]
+        detalle_recibo
       end
     end
+
+    obj["pagos"] = pago_parseo
 
     puts "--------------- fin parseoSelecM ---------------"
     puts ""
@@ -431,12 +435,22 @@ class CabeceraFacturasController < ApplicationController
     att["tipo_factura"] = objeto.tipo_factura["descripcion"]
     att["tiene_nota"] = objeto["tiene_nota"]
 
-    if att["pagos"].length > 0
-      att["pagos"].each do |detalle_recibo|
-        id = detalle_recibo["recibos_ingreso_id"]
-        detalle_recibo["recibos_ingreso_id"] = RecibosIngreso.find_by_id(id)
+    pago_ = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] }).as_json
+    pago_parseo = []
+
+    if pago_.length > 0
+      pago_parseo = pago_.map do |detalle_recibo|
+        detalle_recibo = detalle_recibo.as_json
+        recibo = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
+
+        detalle_recibo["numero_recibo"] = recibo["numero_recibo"]
+        detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
+        detalle_recibo["recibo_created_at"] = recibo["created_at"]
+        detalle_recibo
       end
     end
+
+    att["pagos"] = pago_parseo
     puts "--------------- fin parseal ---------------"
     puts " "
     puts " "
