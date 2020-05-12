@@ -173,6 +173,7 @@ class CabeceraFacturasController < ApplicationController
   def parseoSelecM(objeto)
     puts "--------------- inicio parseoSelecM ---------------"
     obj = objeto
+    puts objeto.to_json.red
 
     arrayDetalle = DetalleFactura.where({ cabecera_factura_id: obj["id"] })
     detalleFacturas = []
@@ -186,9 +187,7 @@ class CabeceraFacturasController < ApplicationController
       tipoArticulo = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
 
       continuar = compareDateFactura(articuloSelect)
-      puts ":::::::::::::::::  continuar   :::::::::::::::::"
-      puts "                     #{continuar}   "
-      puts "::::::::::::::::::::::::::::::::::::::::::::::::"
+
       unless continuar
         articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_facturacion"], articuloSelect["id"])
         articuloSelect = articuloSelect[0]
@@ -349,16 +348,11 @@ class CabeceraFacturasController < ApplicationController
       tipoArticulo = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
 
       continuar = compareDateFactura(articuloSelect)
-      puts ":::::::::::::::::  continuar   :::::::::::::::::"
-      puts "                     #{continuar}   "
-      puts "::::::::::::::::::::::::::::::::::::::::::::::::"
+
       unless continuar
         articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_facturacion"], articuloSelect["id"])
         articuloSelect = articuloSelect[0]
       end
-
-      puts "=====".blue * 20
-      puts articuloSelect.to_json
 
       precioPrincipal = articuloSelect["precio_principal"]
       costoPrincipal = articuloSelect["costo_principal"]
