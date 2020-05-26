@@ -25,6 +25,7 @@ class CabeceraFacturasController < ApplicationController
     campoNum = params[:campo]
     valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
     tipo_factura_id = params[:tipo_factura_id]
+    adelantada = params[:adelantada]
 
     campo = ""
     if campoNum == "1"
@@ -39,7 +40,7 @@ class CabeceraFacturasController < ApplicationController
     elsif campoNum == "4"
     end
 
-    cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id)
+    cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, adelantada)
 
     puts "=-=".yellow * 20
     puts cabe.to_json

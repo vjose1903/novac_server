@@ -12,7 +12,7 @@ class CabeceraFactura < ApplicationRecord
   attribute :detalle_facturas
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
-  def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id)
+  def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id, adelantada)
     puts "campo ".red + "#{campo}"
     puts "valor ".green + "#{valor}"
 
@@ -25,15 +25,15 @@ class CabeceraFactura < ApplicationRecord
 
     if tipo_factura_id == 0 || tipo_factura_id == "0"
       if campo == "numero_comprobante"
-        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta'"
+        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and adelantada = #{adelantada}"
       else
-        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta'"
+        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and adelantada = #{adelantada}"
       end
     else
       if campo == "numero_comprobante"
-        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
+        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and adelantada = #{adelantada}"
       else
-        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id}"
+        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and adelantada = #{adelantada}"
       end
     end
 
