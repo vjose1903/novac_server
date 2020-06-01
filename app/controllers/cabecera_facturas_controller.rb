@@ -208,6 +208,7 @@ class CabeceraFacturasController < ApplicationController
       if unidad.length > 1
         objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
         objD["unidad"] = "#{unidad[0]}"
+        objD["peso_saco"] = unidad[2]
       else
         objD["descripcion"] = "#{articuloSelect["nombre"]}"
         objD["unidad"] = detalleF["unidad"]
@@ -369,6 +370,7 @@ class CabeceraFacturasController < ApplicationController
       if unidad.length > 1
         objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
         objD["unidad"] = "#{unidad[0]}"
+        objD["peso_saco"] = unidad[2]
       else
         objD["descripcion"] = "#{articuloSelect["nombre"]}"
         objD["unidad"] = doc["unidad"]
