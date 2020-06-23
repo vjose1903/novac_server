@@ -214,5 +214,6 @@ secuencia_factura = SecuenciaFactura.create(
       "tipo_factura_id": 15,
       "secuencia": 0,
     },
+
   ]
 )

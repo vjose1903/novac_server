@@ -9,7 +9,12 @@ rails g scaffold oferta_favorita user:references oferta:references
 rails g scaffold cabecera_factura user:references forma_pago:string numero_factura:integer total_factura:float pagada:boolean balance:float
 rails g scaffold detalle_factura cabecera_factura:references oferta:references cantidad:integer total:float precio:float
 rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
-rails g scaffold historico_oferta user:references oferta:references precio:float fecha_inicio:date fecha_fin:date estado:boolean moneda:string cantidad_reservas:integer
+
 
 
 rails g migration AddTieneNotaToCabeceraFactura tiene_nota:boolean
+rails g migration AddRetiradoToDetalleFactura retirado:integer
+
+rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer 
+rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer 
+

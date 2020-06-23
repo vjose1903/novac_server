@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :detalle_conduces
+  resources :cabecera_conduces
   resources :secuencia_comprobantes
   resources :secuencia_ingresos
   resources :detalle_recibos
