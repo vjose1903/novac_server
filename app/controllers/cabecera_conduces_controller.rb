@@ -39,13 +39,15 @@ class CabeceraConducesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_cabecera_conduce
-      @cabecera_conduce = CabeceraConduce.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def cabecera_conduce_params
-      params.require(:cabecera_conduce).permit(:user_id, :cliente_id, :numero_conduce)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_cabecera_conduce
+    @cabecera_conduce = CabeceraConduce.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def cabecera_conduce_params
+    params.require(:cabecera_conduce).permit(:user_id, :cliente_id, :numero_conduce,
+                                             detalle_conduce_attributes: [:cabecera_conduce_id, :detalle_factura_id, :articulo_id, :cantidad, :unidad])
+  end
 end

@@ -233,6 +233,7 @@ class CabeceraFacturasController < ApplicationController
       end       end
 
       objD["articulo"] = articuloSelect["nombre"]
+      objD["articulo_id"] = articuloSelect["id"]
       objD["codigo"] = articuloSelect["codigo"]
       objD["costo"] = costo_calculado
       objD["precio"] = detalleF["precio"]
@@ -398,6 +399,7 @@ class CabeceraFacturasController < ApplicationController
       end       end
 
       objD["articulo"] = articuloSelect["nombre"]
+      objD["articulo_id"] = articuloSelect["id"]
       objD["codigo"] = articuloSelect["codigo"]
       objD["costo"] = costo_calculado
       objD["precio"] = doc["precio"]
@@ -668,6 +670,6 @@ class CabeceraFacturasController < ApplicationController
   def cabecera_factura_params
     params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_facturacion, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
                                              :pagada, :vendedor_id, :balance, :devuelta, :adelantada, :is_nota, :aplicada_a, :tiene_nota,
-                                             detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado])
+                                             detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado, :retirado_en_venta])
   end
 end

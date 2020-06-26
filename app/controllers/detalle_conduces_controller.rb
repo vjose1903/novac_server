@@ -39,13 +39,14 @@ class DetalleConducesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_detalle_conduce
-      @detalle_conduce = DetalleConduce.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def detalle_conduce_params
-      params.require(:detalle_conduce).permit(:cabecera_conduce_id, :detalle_factura_id, :articulo_id, :cantidad)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_detalle_conduce
+    @detalle_conduce = DetalleConduce.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def detalle_conduce_params
+    params.require(:detalle_conduce).permit(:cabecera_conduce_id, :detalle_factura_id, :articulo_id, :cantidad, :unidad)
+  end
 end
