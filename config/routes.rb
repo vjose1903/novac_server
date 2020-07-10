@@ -30,6 +30,7 @@ Rails.application.routes.draw do
   patch "articulos/delete/:id" => "articulos#deleteArticulo"
   get "condicionContenido" => "contenido_articulos#getCondicionContenido"
   get "condicionContenido/:id" => "contenido_articulos#getCondicionContenidoById"
+  get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
 
   # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"

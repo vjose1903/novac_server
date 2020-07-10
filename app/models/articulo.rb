@@ -18,6 +18,23 @@ class Articulo < ApplicationRecord
     return ActiveRecord::Base.connection.exec_query("SELECT a.id, a.nombre, ta.descripcion as tipo_articulo, a.costo_principal, a.precio_principal, a.existencia, a.codigo, a.fecha_ingreso, a.medida, a.is_detallable, ca.*, a.created_at, a.updated_at from articulos a INNER JOIN tipo_articulos ta on a.tipo_articulo_id = ta.id INNER JOIN contenido_articulos ca on ca.articulo_id = a.id")
   end
   # =====================================================================================================================
+
+  def self.get_articulo_by_name_o_by_codigo(tipo, nombre)
+    select_ = "SELECT id, tipo_articulo_id, nombre, costo_principal, precio_principal, existencia, codigo, fecha_ingreso, medida, is_detallable, created_at, updated_at, imagen_id, aviso_existencia, suplidor_id, medida_alerta, calcular_itbis, estado, is_combo, otros_costos"
+    from_ = "FROM articulos a"
+    where_ = ""
+
+    if (tipo == "nombre")
+      where_ = " WHERE lower(#{tipo}) like lower('#{nombre}%') AND estado = true"
+    else
+      where_ = " WHERE #{tipo} like '#{nombre}' AND estado = true"
+    end
+
+    query = "#{select_} #{from_} #{where_}"
+    return ActiveRecord::Base.connection.exec_query(query)
+  end
+
+  # =====================================================================================================================
   def self.delete_articulo(id)
     return ActiveRecord::Base.connection.exec_query("UPDATE articulos SET estado=#{false} WHERE id=#{id}")
   end
@@ -50,15 +67,15 @@ class Articulo < ApplicationRecord
     att["contenido_articulos"] = objeto.contenido_articulos
     att["contenido"] = calcularContenidos(objeto.contenido_articulos, objeto)
     att["cantidades"] = calcularCantidades(objeto.contenido_articulos, objeto)
-    if att["isCombo"]
+    if att["is_combo"]
       att["formulas_productos_terminados"] = objeto.formulas_productos_terminados
     end
     return att
   end
   # =====================================================================================================================
   def self.parsealHistorico(objeto)
-    puts '--------------------- inicio parsealHistorico ---------------------'
-    puts ''
+    puts "--------------------- inicio parsealHistorico ---------------------"
+    puts ""
     puts "======".cyan * 20
     puts objeto.to_json
     puts "======".cyan * 20
@@ -66,12 +83,12 @@ class Articulo < ApplicationRecord
     objeto["contenido_articulos"] = objeto["contenido_articulos"]
     objeto["contenido"] = calcularContenidosHistorico(objeto["contenido_articulos"], objeto)
     objeto["cantidades"] = calcularCantidadesHistorico(objeto["contenido_articulos"], objeto)
-    # if objeto["isCombo"]
+    # if objeto["is_combo"]
     #   objeto["formulas_productos_terminados"] = objeto["formulas_productos_terminados"]
     # end
-    puts '--------------------- fin parsealHistorico ---------------------'
-    puts ' '
-    puts ' '
+    puts "--------------------- fin parsealHistorico ---------------------"
+    puts " "
+    puts " "
     return objeto
   end
 
@@ -94,24 +111,25 @@ class Articulo < ApplicationRecord
       cantPrincipal = 1
       cantHijo = 1
       cantPadre = 1
-      
+
       contenido.each do |conte|
         cantPrincipal *= conte["cantidad"]
         if conte["referencia"] != nil
           cantPadre = conte["cantidad"]
         end
       end
-      
+
       contenidos[articulo.medida] = cantPrincipal
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
-    
+
     puts " ------------------- fin calcularContenidos -------------------"
     puts " "
     puts " "
     return contenidos
   end
+
   def self.calcularContenidosHistorico(contenido, articulo)
     puts " ------------------- inicio calcularContenidosHistorico -------------------"
     contenidos = {}
@@ -129,27 +147,27 @@ class Articulo < ApplicationRecord
       cantPrincipal = 1
       cantHijo = 1
       cantPadre = 1
-      
+
       contenido.each do |conte|
         cantPrincipal *= conte["cantidad"]
         if conte["referencia"] != nil
           cantPadre = conte["cantidad"]
         end
       end
-      
+
       contenidos[articulo["medida"]] = cantPrincipal
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
-    
+
     puts " ------------------- fin calcularContenidosHistorico -------------------"
     puts " "
     puts " "
     return contenidos
   end
-  
+
   # =====================================================================================================================
-  
+
   def self.calcularCantidades(contenido, articulo)
     existencia = articulo["existencia"]
     if contenido == nil

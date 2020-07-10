@@ -21,3 +21,6 @@ rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:ref
 rails g migration AddUnidadToDetalleConduce unidad:string
 rails g migration AddRetiradoEnLaVentaToDetalleFactura retirado_en_venta:integer
 
+rails g migration ChangeIsComboToBeIsComboInArticulos
+ 
+

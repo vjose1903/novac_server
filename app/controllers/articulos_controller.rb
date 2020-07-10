@@ -13,10 +13,13 @@ class ArticulosController < ApplicationController
     render json: @articulos
   end
 
-  # def getArticulosFormateados
-  #   @articulosF = Articulo.get_articulos_formateado
-  #   render json: @articulosF
-  # end
+  def getArticuloByNameObyCodigo
+    tipo_ = params[:tipo]
+    nom_ = params[:nombre]
+
+    @articulos = Articulo.get_articulo_by_name_o_by_codigo(tipo_, nom_)
+    render json: @articulos
+  end
 
   # GET /articulos/1
   def show
@@ -143,7 +146,7 @@ class ArticulosController < ApplicationController
           @obj["id"] = @articulo["id"]
           @obj["codigo"] = @articulo["codigo"]
 
-          if articulo_params["isCombo"]
+          if articulo_params["is_combo"]
             seguirFormula = true
             articulo_params["formulas_productos_terminados_attributes"].each do |articulo_formula|
               form = FormulasProductosTerminado.find_by_id(articulo_formula["id"])
@@ -211,7 +214,7 @@ class ArticulosController < ApplicationController
            "ant_alertaExistencia": anterior["aviso_existencia"],
            "ant_isDetallable": anterior["is_detallable"],
            "ant_calcularItbis": anterior["calcular_itbis"],
-           "ant_isCombo": anterior["isCombo"] }
+           "ant_isCombo": anterior["is_combo"] }
     #  "ant_otrosCostos": anterior["otros_costos"]
 
     anterior["contenido_articulos"].each do |contenido|
@@ -254,7 +257,7 @@ class ArticulosController < ApplicationController
     else
       res = true
 
-      if @ant["isCombo"]
+      if @ant["is_combo"]
         puts "======".green * 20
         puts :json => historico
         puts "======".green * 20
@@ -314,7 +317,7 @@ class ArticulosController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def articulo_params
     params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable, :suplidor_id,
-                                     :aviso_existencia, :calcular_itbis, :isCombo, :otros_costos,
+                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos,
                                      imagen_attributes: [:fileName, :base_64, :path],
                                      contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis],
                                      formulas_productos_terminados_attributes: [:articulo_id, :cantidad, :costo, :_destroy, :articulo_combo, :id, :precio])

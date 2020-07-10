@@ -17,9 +17,8 @@ class MantenimientoArticulo < ApplicationRecord
     return ActiveRecord::Base.connection.exec_query(query)
   end
 
-
   # ============================================================================================================================================================
-  
+
   def self.get_historico_by_date_mayor(date, articulo_id)
     select_ = "select * ,ta.descripcion as descripcion"
     from_ = "from mantenimiento_articulos ma"
@@ -28,27 +27,26 @@ class MantenimientoArticulo < ApplicationRecord
     query = "#{select_} #{from_} #{joins_} #{where_}"
     return ActiveRecord::Base.connection.exec_query(query)
   end
-  
+
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
-    puts ' -------------- Inicio get_one_articulo_by_date -------------- '
-    fechaConHora =date.to_s.split(':')[0]+':'+date.to_s.split(':')[1]
+    puts " -------------- Inicio get_one_articulo_by_date -------------- "
+    fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
-    
-    
-    hist = get_historico_by_date_menor(fechaConHora,  articulo_id)
-    
+
+    hist = get_historico_by_date_menor(fechaConHora, articulo_id)
+
     if hist.rows == []
-      histM = get_historico_by_date_mayor(fechaConHora,  articulo_id)
+      histM = get_historico_by_date_mayor(fechaConHora, articulo_id)
       if histM.rows == []
         puts "    no se ha modifico".red
-        
+
         historico.push(Articulo.parseal(articulo))
       else
         puts "    no se modifico antes de la fecha introducida".red
         puts "====".yellow * 30
-        puts  articulo_id
+        puts articulo_id
         puts "////" * 30
         puts histM.to_json
         puts "====".yellow * 30
@@ -58,17 +56,17 @@ class MantenimientoArticulo < ApplicationRecord
     else
       puts "====".blue * 30
       puts "    Buscando en las fechas menores".red
-      puts  articulo_id
+      puts articulo_id
       puts "////" * 30
       puts hist.to_json
       puts "====".blue * 30
       articulo = crearArticuloHistorico(hist[0], articulo)
       historico.push(Articulo.parsealHistorico(articulo))
     end
-    
-    puts ' -------------- fin get_one_articulo_by_date -------------- '
-    puts ' '
-    puts ' '
+
+    puts " -------------- fin get_one_articulo_by_date -------------- "
+    puts " "
+    puts " "
     return historico
   end
   # ============================================================================================================================================================
@@ -77,12 +75,12 @@ class MantenimientoArticulo < ApplicationRecord
     puts date.to_s
     Articulo.all.each do |articulo|
       hist = get_historico_by_date_menor(date, articulo["id"])
-      
+
       if hist.rows == []
         histM = get_historico_by_date_mayor(date, articulo["id"])
         if histM.rows == []
           puts "    no se ha modifico".red
-          
+
           historico.push(Articulo.parseal(articulo))
         else
           puts "    no se modifico antes de la fecha introducida".red
@@ -107,19 +105,19 @@ class MantenimientoArticulo < ApplicationRecord
     end
     return historico
   end
-  
+
   # ============================================================================================================================================================
   def self.crearArticuloHistorico(historico, articulo)
-    puts ' -------------- inicio crearArticuloHistorico -------------- '
+    puts " -------------- inicio crearArticuloHistorico -------------- "
     contenidoArticulo = articulo.contenido_articulos
     puts "=====".green * 20
     puts contenidoArticulo.to_json
     puts "=====".green * 20
-    
+
     puts "=====".red * 20
     puts articulo.to_json
     puts "=====".red * 20
-    
+
     articuloHistorico = {}
     articuloHistorico["id"] = articulo["id"]
     articuloHistorico["tipo_articulo_id"] = historico["ant_tipoArticuloId"]
@@ -138,8 +136,8 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["suplidor_id"] = historico["ant_suplidor"]
     articuloHistorico["medida_alerta"] = historico["ant_medidaAlerta"]
     articuloHistorico["calcular_itbis"] = historico["ant_calcularItbis"]
-    articuloHistorico["isCombo"] = historico["ant_isCombo"]
-    
+    articuloHistorico["is_combo"] = historico["ant_isCombo"]
+
     contents = []
     contenidoArticulo.each do |contenido|
       conte = {}
@@ -169,31 +167,31 @@ class MantenimientoArticulo < ApplicationRecord
       contents.push(conte)
     end
     articuloHistorico["contenido_articulos"] = contents
-    
+
     if historico["ant_isCombo"]
       fomulaS = []
       formulas = MantenimientoFormula.get_mantenimiento_formulas_by_secuencia(historico["secuencia"])
       formulas.each do |f|
         obj = { "articulo_combo": f["articulo_combo"],
-          "cantidad": f["cantidad"],
-          "costo": f["costo"] }
-        end
-        articuloHistorico["formulas_productos_terminados"] = fomulaS
+               "cantidad": f["cantidad"],
+               "costo": f["costo"] }
       end
-      
-      unless articuloHistorico["descripcion"]
-        des = TipoArticulo.find_by_id(articuloHistorico["tipo_articulo_id"])
-        articuloHistorico["descripcion"] = des["descripcion"]
-      end
-      
-      puts "=========".blue * 20
-      puts :json => articuloHistorico
-      puts "=========".blue * 20
-      puts ' -------------- fin crearArticuloHistorico -------------- '
-      puts " "
-      puts " "
-      return articuloHistorico
+      articuloHistorico["formulas_productos_terminados"] = fomulaS
     end
+
+    unless articuloHistorico["descripcion"]
+      des = TipoArticulo.find_by_id(articuloHistorico["tipo_articulo_id"])
+      articuloHistorico["descripcion"] = des["descripcion"]
+    end
+
+    puts "=========".blue * 20
+    puts :json => articuloHistorico
+    puts "=========".blue * 20
+    puts " -------------- fin crearArticuloHistorico -------------- "
+    puts " "
+    puts " "
+    return articuloHistorico
   end
-  
-  # ============================================================================================================================================================
+end
+
+# ============================================================================================================================================================

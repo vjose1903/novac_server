@@ -45,13 +45,9 @@ class ClientesController < ApplicationController
 
   def getClientesByName
     nom_ = params[:nombre]
-    puts "-".red * 20
-    puts nom_.to_json.red
-    puts "-".red * 20
+
     clientes_ = Cliente.get_cliente_by_name(nom_)
-    puts "-".yellow * 20
-    puts clientes_.to_json.yellow
-    puts "-".yellow * 20
+
     @clientes = []
     clientes_.each do |cliente|
       if cliente["estado"] == true
