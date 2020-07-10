@@ -11,6 +11,10 @@ class Cliente < ApplicationRecord
 
   # =========================================================================================================================================================
 
+  #
+  #
+  # ;
+
   def self.CalculateBalanceCLiente(id, totalFactura, operacion)
     cliente = Cliente.find_by_id(id)
     balance = cliente["balance"]
@@ -31,5 +35,14 @@ class Cliente < ApplicationRecord
     else
       return { :error => false, :balance => sumatoria }
     end
+  end
+
+  # ===================================================================================================================================================
+  def self.get_cliente_by_name(nombre)
+    select_ = "SELECT id, imagen_id, nombre, apellido, telefono, direccion, sexo, created_at, updated_at, limite_credito, estado, maximo_credito, vendedor_id, balance"
+    from_ = "FROM clientes"
+    where_ = " WHERE lower(nombre) like lower('#{nombre}%') AND estado = true"
+    query = "#{select_} #{from_} #{where_}"
+    return ActiveRecord::Base.connection.exec_query(query)
   end
 end

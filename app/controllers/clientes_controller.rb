@@ -8,16 +8,23 @@ class ClientesController < ApplicationController
 
     Cliente.all.each do |cliente|
       if cliente["estado"] == true
-        @clientes.push(parseal(cliente))
+        @clientes.push(parsearData(cliente))
       end
     end
     render json: @clientes
   end
 
-  def parseal(objeto)
+  def parsearData(objeto)
     documents = []
-    att = objeto.attributes
-    objeto.documentos_de_identidad.each do |doc|
+
+    begin
+      att = objeto.attributes
+    rescue
+      att = objeto
+    end
+
+    documentos = DocumentoDeIdentidad.where({ cliente_id: att["id"] })
+    documentos.each do |doc|
       obj = {}
       obj["descripcion"] = doc["descripcion"]
       obj["documento"] = doc["documento"]
@@ -26,14 +33,7 @@ class ClientesController < ApplicationController
     end
     att["documentos_de_identidad"] = documents
 
-    puts "=====".red * 20
-    puts :json => att
-    puts "=====".red * 20
-
     vendedor = User.get_vendedor_by_id(att["vendedor_id"])
-    puts "=====".red * 20
-    puts :json => vendedor[0]
-    puts "=====".red * 20
 
     objV = {}
     objV["nombre"] = vendedor[0]["nombre"]
@@ -43,9 +43,27 @@ class ClientesController < ApplicationController
     return att
   end
 
+  def getClientesByName
+    nom_ = params[:nombre]
+    puts "-".red * 20
+    puts nom_.to_json.red
+    puts "-".red * 20
+    clientes_ = Cliente.get_cliente_by_name(nom_)
+    puts "-".yellow * 20
+    puts clientes_.to_json.yellow
+    puts "-".yellow * 20
+    @clientes = []
+    clientes_.each do |cliente|
+      if cliente["estado"] == true
+        @clientes.push(parsearData(cliente))
+      end
+    end
+    render json: @clientes
+  end
+
   # GET /clientes/1
   def show
-    cliente = parseal(@cliente)
+    cliente = parsearData(@cliente)
     if cliente["estado"] == false
       cliente = { "nombre": "Este cliente esta desactivado." }
     end

@@ -9,7 +9,7 @@ class CabeceraFacturasController < ApplicationController
     # @cabecera_facturas = CabeceraFactura.all
     @cabecera_facturas = []
     CabeceraFactura.all.each do |factura|
-      @cabecera_facturas.push(parseal(factura))
+      @cabecera_facturas.push(parsearData(factura))
     end
 
     render json: @cabecera_facturas
@@ -17,7 +17,7 @@ class CabeceraFacturasController < ApplicationController
 
   # GET /cabecera_facturas/1
   def show
-    cabecera = parseal(@cabecera_factura)
+    cabecera = parsearData(@cabecera_factura)
     render json: cabecera
   end
 
@@ -49,7 +49,7 @@ class CabeceraFacturasController < ApplicationController
     cabecera = []
 
     cabe.each do |factura|
-      cabecera.push(parseoSelecM(factura))
+      cabecera.push(parsearData(factura))
     end
     puts "/////".red * 20
     puts cabecera.to_json
@@ -61,9 +61,9 @@ class CabeceraFacturasController < ApplicationController
 
     cabecera = []
     cabe.each do |factura|
-      cabecera.push(parseoSelecM(factura))
+      cabecera.push(parsearData(factura))
     end
-    # cabecera = parseal(cabe)
+    # cabecera = parsearData(cabe)
     render json: cabecera
   end
 
@@ -171,10 +171,16 @@ class CabeceraFacturasController < ApplicationController
     return contents
   end
 
-  def parseoSelecM(objeto)
-    puts "--------------- inicio parseoSelecM ---------------"
-    obj = objeto
-    puts objeto.to_json.red
+  def parsearData(objeto)
+    puts "--------------- inicio parsearData ---------------"
+
+    begin
+      obj = objeto.attributes
+    rescue
+      obj = objeto
+    end
+
+    puts "#{obj}".red
 
     arrayDetalle = DetalleFactura.where({ cabecera_factura_id: obj["id"] })
     detalleFacturas = []
@@ -262,6 +268,14 @@ class CabeceraFacturasController < ApplicationController
       detalleFacturas.push(objD)
     end
 
+    puts detalleFacturas.to_json.blue
+
+    puts "*" * 20
+    puts obj["detalle_facturas"].to_json
+
+    puts obj
+
+    obj["detalle_facturas"] = []
     obj["detalle_facturas"] = detalleFacturas
 
     cliente = {}
@@ -282,7 +296,9 @@ class CabeceraFacturasController < ApplicationController
       vendedor = "#{vendedor_["nombre"]} #{vendedor_["apellido"]}"
       obj["vendedor"] = vendedor
     end
+
     obj["notas"] = CabeceraFactura.where({ aplicada_a: objeto["numero_comprobante"] })
+
     obj["cliente"] = cliente
     obj["tiene_nota"] = objeto["tiene_nota"]
 
@@ -303,163 +319,10 @@ class CabeceraFacturasController < ApplicationController
 
     obj["pagos"] = pago_parseo
 
-    puts "--------------- fin parseoSelecM ---------------"
+    puts "--------------- fin parsearData ---------------"
     puts ""
     puts ""
     return obj
-  end
-
-  def parseal(objeto)
-    puts "--------------- inicio parseal ---------------"
-    puts objeto.to_json
-    detalle_facturas = []
-    att = objeto.attributes
-    # att = objeto
-
-    if objeto["tipo"] === "venta" || objeto["is_nota"]
-      cliente = {}
-
-      if objeto["cliente_id"]
-        cliente["nombre"] = "#{objeto.cliente["nombre"]} #{objeto.cliente["apellido"]}".titleize
-        cliente["direccion"] = objeto.cliente["direccion"]
-        cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: objeto.cliente["id"] })[0]["documento"]
-      else
-        cliente["nombre"] = objeto["NoCliente_nombre"]
-        cliente["direccion"] = objeto["NoCliente_direccion"]
-        cliente["rnc"] = nil
-      end
-    else
-      suplidor = {}
-      suplidor["nombre"] = objeto.suplidor["nombre"]
-      suplidor["direccion"] = objeto.suplidor["direccion"]
-      suplidor["rnc"] = DocumentoDeIdentidad.where({ principal: true, suplidor_id: objeto.suplidor["id"] })[0]["documento"]
-    end
-
-    responsableFact = User.find_by_id(objeto["user_id"])
-
-    usuario = "#{responsableFact["nombre"]} #{responsableFact["apellido"]}"
-
-    if objeto["vendedor_id"]
-      vendedor_ = User.get_vendedor_by_id(objeto["vendedor_id"])[0]
-      vendedor = "#{vendedor_["nombre"]} #{vendedor_["apellido"]}".titleize
-      att["vendedor"] = vendedor
-    end
-
-    objeto.detalle_facturas.each do |doc|
-      objD = {}
-
-      condicionDetalle = ContenidoArticulo.get_condicion_contenido_by_id(doc["articulo_id"])
-
-      articuloSelect = Articulo.find_by_id(doc["articulo_id"])
-      tipoArticulo = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
-
-      continuar = compareDateFactura(articuloSelect)
-
-      unless continuar
-        articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_facturacion"], articuloSelect["id"])
-        articuloSelect = articuloSelect[0]
-      end
-
-      precioPrincipal = articuloSelect["precio_principal"]
-      costoPrincipal = articuloSelect["costo_principal"]
-
-      tipoArticuloD = tipoArticulo["descripcion"]
-
-      contenidoCantidad = 0
-      precio = 0
-      costo_calculado = 0
-
-      unidad = doc["unidad"].split(" ")
-
-      if unidad.length > 1
-        objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
-        objD["unidad"] = "#{unidad[0]}"
-        objD["peso_saco"] = unidad[2]
-      else
-        objD["descripcion"] = "#{articuloSelect["nombre"]}"
-        objD["unidad"] = doc["unidad"]
-      end
-
-      if unidad[0] == "Quintal" || unidad[0] == "Caja"
-        costo_calculado = costoPrincipal
-      elsif unidad[0] == "Saco"
-        condicionDetalle.each do |condi|
-          if condi["medida"] == "Libra"
-            costoC = (unidad[2].to_f * condi["costo"])
-            costo_calculado = costoC.to_d.truncate(2).to_f
-          end
-        end
-      else unidad[0] == "Paquete" || unidad[0] == "Libra"
-        condicionDetalle.each do |condi|
-        if condi["medida"] == unidad[0]
-          contenidoCantidad = condi["cantidad"]
-          precio = condi["precio"]
-          costo_calculado = condi["costo"]
-        end
-      end       end
-
-      objD["articulo"] = articuloSelect["nombre"]
-      objD["articulo_id"] = articuloSelect["id"]
-      objD["codigo"] = articuloSelect["codigo"]
-      objD["costo"] = costo_calculado
-      objD["precio"] = doc["precio"]
-      objD["total"] = doc["total"]
-      objD["descuento_valor"] = doc["descuento_valor"]
-      objD["descuento_porciento"] = doc["descuento_porciento"]
-      objD["itbis"] = doc["itbis"]
-      objD["cantidad"] = doc["cantidad"]
-      objD["tipo"] = tipoArticuloD
-      objD["id"] = doc["id"]
-      objD["articulo_id"] = doc["articulo_id"]
-      objD["retirado"] = doc["retirado"]
-
-      unless objeto["adelantada"]
-        unless objeto["is_nota"]
-          unless @actual_secuencia_factura == nil
-            factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
-
-            if articuloSelect["contenido_articulos"] == nil
-              array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(doc["articulo_id"])
-              articuloSelect["contenido_articulos"] = array_contenido
-            end
-
-            movimientos_de_inventario(factura_tipo, articuloSelect, unidad, objD["cantidad"])
-          end
-        end
-      end
-
-      detalle_facturas.push(objD)
-    end
-    att["notas"] = CabeceraFactura.where({ aplicada_a: objeto["numero_comprobante"] })
-    att["pagos"] = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] })
-
-    att["detalle_facturas"] = detalle_facturas
-    att["cliente"] = cliente
-    att["usuario"] = usuario
-    att["suplidor"] = suplidor
-    att["tipo_factura"] = objeto.tipo_factura["descripcion"]
-    att["tiene_nota"] = objeto["tiene_nota"]
-
-    pago_ = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] }).as_json
-    pago_parseo = []
-
-    if pago_.length > 0
-      pago_parseo = pago_.map do |detalle_recibo|
-        detalle_recibo = detalle_recibo.as_json
-        recibo = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
-
-        detalle_recibo["numero_recibo"] = recibo["numero_recibo"]
-        detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
-        detalle_recibo["recibo_created_at"] = recibo["created_at"]
-        detalle_recibo
-      end
-    end
-
-    att["pagos"] = pago_parseo
-    puts "--------------- fin parseal ---------------"
-    puts " "
-    puts " "
-    return att
   end
 
   # def calcularPrecioCantSacos(unidad, precio, tipo, cantidad)
@@ -490,7 +353,7 @@ class CabeceraFacturasController < ApplicationController
         unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
           render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
         else
-          cabecera = parseal(@cabecera_factura)
+          cabecera = parsearData(@cabecera_factura)
           render json: cabecera, status: :created, location: @cabecera_factura
         end
       else
@@ -502,7 +365,7 @@ class CabeceraFacturasController < ApplicationController
           unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
             render json: { msg: "Error actualizando la tabla de secuencia de Factura Venta" }, status: :unprocessable_entity
           else
-            cabecera = parseal(@cabecera_factura)
+            cabecera = parsearData(@cabecera_factura)
             render json: cabecera, status: :created, location: @cabecera_factura
           end
         end
