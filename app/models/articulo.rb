@@ -62,13 +62,25 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
   def self.parseal(objeto)
-    att = objeto.attributes
-    att["descripcion"] = objeto.tipo_articulo.descripcion
-    att["contenido_articulos"] = objeto.contenido_articulos
-    att["contenido"] = calcularContenidos(objeto.contenido_articulos, objeto)
-    att["cantidades"] = calcularCantidades(objeto.contenido_articulos, objeto)
+    begin
+      att = objeto.attributes
+    rescue
+      att = objeto
+    end
+
+    puts "objeto ==> ".red, att
+
+    tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
+
+    contenido = ContenidoArticulo.where({ articulo_id: objeto["id"] })
+    formula = FormulasProductosTerminado.where({ articulo_id: objeto["id"] })
+
+    att["descripcion"] = tipoArt["descripcion"]
+    att["contenido_articulos"] = contenido
+    att["contenido"] = calcularContenidos(contenido, objeto)
+    att["cantidades"] = calcularCantidades(contenido, objeto)
     if att["is_combo"]
-      att["formulas_productos_terminados"] = objeto.formulas_productos_terminados
+      att["formulas_productos_terminados"] = formula
     end
     return att
   end
@@ -76,9 +88,7 @@ class Articulo < ApplicationRecord
   def self.parsealHistorico(objeto)
     puts "--------------------- inicio parsealHistorico ---------------------"
     puts ""
-    puts "======".cyan * 20
-    puts objeto.to_json
-    puts "======".cyan * 20
+
     objeto["descripcion"] = objeto["descripcion"]
     objeto["contenido_articulos"] = objeto["contenido_articulos"]
     objeto["contenido"] = calcularContenidosHistorico(objeto["contenido_articulos"], objeto)
@@ -97,15 +107,11 @@ class Articulo < ApplicationRecord
   def self.calcularContenidos(contenido, articulo)
     puts " ------------------- inicio calcularContenidos -------------------"
     contenidos = {}
-    puts "[][][]".yellow * 20
-    puts "        Articulo"
-    puts "-------".yellow * 20
-    puts articulo.to_json
-    puts "[][][]".yellow * 20
+
     if contenido.length == 0
-      contenidos[articulo.medida] = 1
+      contenidos[articulo["medida"]] = 1
     elsif contenido.length == 1
-      contenidos[articulo.medida] = contenido[0]["cantidad"]
+      contenidos[articulo["medida"]] = contenido[0]["cantidad"]
       contenidos[contenido[0]["medida"]] = 1
     else
       cantPrincipal = 1
@@ -119,7 +125,7 @@ class Articulo < ApplicationRecord
         end
       end
 
-      contenidos[articulo.medida] = cantPrincipal
+      contenidos[articulo["medida"]] = cantPrincipal
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
@@ -133,11 +139,6 @@ class Articulo < ApplicationRecord
   def self.calcularContenidosHistorico(contenido, articulo)
     puts " ------------------- inicio calcularContenidosHistorico -------------------"
     contenidos = {}
-    puts "[][][]".yellow * 20
-    puts "        Articulo"
-    puts "-------".yellow * 20
-    puts articulo.to_json
-    puts "[][][]".yellow * 20
     if contenido.length == 0
       contenidos[articulo["medida"]] = 1
     elsif contenido.length == 1
@@ -180,9 +181,9 @@ class Articulo < ApplicationRecord
     cantidades = {}
 
     if contenido.length == 0
-      cantidades[articulo.medida] = existencia
+      cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1
-      cantidades[articulo.medida] = (existencia / contenido[0]["cantidad"])
+      cantidades[articulo["medida"]] = (existencia / contenido[0]["cantidad"])
       cantidades[contenido[0]["medida"]] = existencia
     else
       maxCant = 1
@@ -194,13 +195,14 @@ class Articulo < ApplicationRecord
         end
       end
 
-      cantidades[articulo.medida] = (existencia / maxCant)
+      cantidades[articulo["medida"]] = (existencia / maxCant)
       cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
       cantidades[contenido[1]["medida"]] = existencia
     end
 
     return cantidades
   end
+
   def self.calcularCantidadesHistorico(contenido, articulo)
     existencia = articulo["existencia"]
     if contenido == nil

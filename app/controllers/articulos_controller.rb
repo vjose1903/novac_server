@@ -17,8 +17,14 @@ class ArticulosController < ApplicationController
     tipo_ = params[:tipo]
     nom_ = params[:nombre]
 
+    articulos_ = []
     @articulos = Articulo.get_articulo_by_name_o_by_codigo(tipo_, nom_)
-    render json: @articulos
+
+    @articulos.each do |art|
+      articulos_.push(Articulo.parseal(art))
+    end
+
+    render json: articulos_
   end
 
   # GET /articulos/1
