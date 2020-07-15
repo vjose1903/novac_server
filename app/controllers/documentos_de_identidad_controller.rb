@@ -39,14 +39,13 @@ class DocumentosDeIdentidadController < ApplicationController
   end
 
   private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_documento_de_identidad
+      @documento_de_identidad = DocumentoDeIdentidad.find(params[:id])
+    end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_documento_de_identidad
-    @documento_de_identidad = DocumentoDeIdentidad.find(params[:id])
-  end
-
-  # Only allow a trusted parameter "white list" through.
-  def documento_de_identidad_params
-    params.require(:documento_de_identidad).permit(:user_id, :cliente_id, :suplidor_id, :descripcion, :documento, :principal)
-  end
+    # Only allow a trusted parameter "white list" through.
+    def documento_de_identidad_params
+      params.require(:documento_de_identidad).permit(:user_id, :suplidor_id, :cliente_id, :descripcion, :documento)
+    end
 end

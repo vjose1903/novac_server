@@ -1,37 +1,27 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  tipo_factura: one
-  suplidor: one
-  cliente: one
   user: one
-  fecha_facturacion: 2019-11-17
-  fecha_vencimiento: 2019-11-17
-  fecha_valida: 2019-11-17
-  numero_comprobante: MyString
-  numero_factura: 1
-  condicion: MyString
+  cliente: one
   forma_pago: MyString
-  total_factura: 1
-  itbis: 1
-  descuento: 1
-  estado: false
-  tipo: MyString
+  numero_factura: 1
+  total_factura: 1.5
+  pagada: false
+  balance: 1.5
+  tiene_nota: false
+  devuelta: 1.5
+  noCliente_nombre: MyString
+  noCliente_direccion: MyString
 
 two:
-  tipo_factura: two
-  suplidor: two
-  cliente: two
   user: two
-  fecha_facturacion: 2019-11-17
-  fecha_vencimiento: 2019-11-17
-  fecha_valida: 2019-11-17
-  numero_comprobante: MyString
-  numero_factura: 1
-  condicion: MyString
+  cliente: two
   forma_pago: MyString
-  total_factura: 1
-  itbis: 1
-  descuento: 1
-  estado: false
-  tipo: MyString
+  numero_factura: 1
+  total_factura: 1.5
+  pagada: false
+  balance: 1.5
+  tiene_nota: false
+  devuelta: 1.5
+  noCliente_nombre: MyString
+  noCliente_direccion: MyString

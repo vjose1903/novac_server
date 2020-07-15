@@ -1,0 +1,41 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  articulo: one
+  suplidor: one
+  marca: one
+  modelo: one
+  tipo_articulo: one
+  identificador: MyString
+  nombre: MyString
+  color: MyString
+  costo_principal: 1.5
+  precio_principal: 1.5
+  existencia: 1
+  codigo: MyString
+  medida: MyString
+  is_detallable: false
+  aviso_existencia: 1
+  medida_alerta: MyString
+  estado: false
+  is_combo: false
+
+two:
+  articulo: two
+  suplidor: two
+  marca: two
+  modelo: two
+  tipo_articulo: two
+  identificador: MyString
+  nombre: MyString
+  color: MyString
+  costo_principal: 1.5
+  precio_principal: 1.5
+  existencia: 1
+  codigo: MyString
+  medida: MyString
+  is_detallable: false
+  aviso_existencia: 1
+  medida_alerta: MyString
+  estado: false
+  is_combo: false

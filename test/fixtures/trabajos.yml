@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cliente: one
+  tipo_trabajo: MyString
+  marca: one
+  modelo: one
+  identificador: MyString
+  tiene_bateria: false
+  descripcion: MyString
+
+two:
+  cliente: two
+  tipo_trabajo: MyString
+  marca: two
+  modelo: two
+  identificador: MyString
+  tiene_bateria: false
+  descripcion: MyString

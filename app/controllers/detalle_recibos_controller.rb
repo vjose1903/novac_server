@@ -39,14 +39,13 @@ class DetalleRecibosController < ApplicationController
   end
 
   private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_detalle_recibo
+      @detalle_recibo = DetalleRecibo.find(params[:id])
+    end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_detalle_recibo
-    @detalle_recibo = DetalleRecibo.find(params[:id])
-  end
-
-  # Only allow a trusted parameter "white list" through.
-  def detalle_recibo_params
-    params.fetch(:detalle_recibo).permit(:recibos_ingreso_id, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo)
-  end
+    # Only allow a trusted parameter "white list" through.
+    def detalle_recibo_params
+      params.require(:detalle_recibo).permit(:cabecera_recibo_id, :trabajo_id, :cabecera_factura_id, :total, :descripcion, :deposito)
+    end
 end

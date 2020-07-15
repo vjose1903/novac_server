@@ -12,7 +12,7 @@ class SuplidoresControllerTest < ActionDispatch::IntegrationTest
 
   test "should create suplidor" do
     assert_difference('Suplidor.count') do
-      post suplidores_url, params: { suplidor: { direccion: @suplidor.direccion, email: @suplidor.email, nombre: @suplidor.nombre, telefono: @suplidor.telefono } }, as: :json
+      post suplidores_url, params: { suplidor: { direccion: @suplidor.direccion, email: @suplidor.email, estado: @suplidor.estado, nombre: @suplidor.nombre, telefono: @suplidor.telefono } }, as: :json
     end
 
     assert_response 201
@@ -24,7 +24,7 @@ class SuplidoresControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update suplidor" do
-    patch suplidor_url(@suplidor), params: { suplidor: { direccion: @suplidor.direccion, email: @suplidor.email, nombre: @suplidor.nombre, telefono: @suplidor.telefono } }, as: :json
+    patch suplidor_url(@suplidor), params: { suplidor: { direccion: @suplidor.direccion, email: @suplidor.email, estado: @suplidor.estado, nombre: @suplidor.nombre, telefono: @suplidor.telefono } }, as: :json
     assert_response 200
   end
 

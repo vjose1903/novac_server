@@ -39,15 +39,13 @@ class DetalleFacturasController < ApplicationController
   end
 
   private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_detalle_factura
+      @detalle_factura = DetalleFactura.find(params[:id])
+    end
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_detalle_factura
-    @detalle_factura = DetalleFactura.find(params[:id])
-  end
-
-  # Only allow a trusted parameter "white list" through.
-  def detalle_factura_params
-    params.require(:detalle_factura).permit(:cabecera_factura_id, :articulo_id, :cantidad, :total, :unidad, :descuento_valor, :descuento_porciento,
-                                            :itbis, :precio, :retirado, :retirado_en_venta)
-  end
+    # Only allow a trusted parameter "white list" through.
+    def detalle_factura_params
+      params.require(:detalle_factura).permit(:cabecera_factura_id, :articulo_id, :cantidad, :total, :precio, :costo, :retirado, :retirado_en_venta)
+    end
 end

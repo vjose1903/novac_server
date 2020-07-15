@@ -12,7 +12,7 @@ class CabeceraFacturasControllerTest < ActionDispatch::IntegrationTest
 
   test "should create cabecera_factura" do
     assert_difference('CabeceraFactura.count') do
-      post cabecera_facturas_url, params: { cabecera_factura: { cliente_id: @cabecera_factura.cliente_id, condicion: @cabecera_factura.condicion, descuento: @cabecera_factura.descuento, estado: @cabecera_factura.estado, fecha_facturacion: @cabecera_factura.fecha_facturacion, fecha_valida: @cabecera_factura.fecha_valida, fecha_vencimiento: @cabecera_factura.fecha_vencimiento, forma_pago: @cabecera_factura.forma_pago, itbis: @cabecera_factura.itbis, numero_comprobante: @cabecera_factura.numero_comprobante, numero_factura: @cabecera_factura.numero_factura, suplidor_id: @cabecera_factura.suplidor_id, tipo: @cabecera_factura.tipo, tipo_factura_id: @cabecera_factura.tipo_factura_id, total_factura: @cabecera_factura.total_factura, user_id: @cabecera_factura.user_id } }, as: :json
+      post cabecera_facturas_url, params: { cabecera_factura: { balance: @cabecera_factura.balance, cliente_id: @cabecera_factura.cliente_id, devuelta: @cabecera_factura.devuelta, forma_pago: @cabecera_factura.forma_pago, noCliente_direccion: @cabecera_factura.noCliente_direccion, noCliente_nombre: @cabecera_factura.noCliente_nombre, numero_factura: @cabecera_factura.numero_factura, pagada: @cabecera_factura.pagada, tiene_nota: @cabecera_factura.tiene_nota, total_factura: @cabecera_factura.total_factura, user_id: @cabecera_factura.user_id } }, as: :json
     end
 
     assert_response 201
@@ -24,7 +24,7 @@ class CabeceraFacturasControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update cabecera_factura" do
-    patch cabecera_factura_url(@cabecera_factura), params: { cabecera_factura: { cliente_id: @cabecera_factura.cliente_id, condicion: @cabecera_factura.condicion, descuento: @cabecera_factura.descuento, estado: @cabecera_factura.estado, fecha_facturacion: @cabecera_factura.fecha_facturacion, fecha_valida: @cabecera_factura.fecha_valida, fecha_vencimiento: @cabecera_factura.fecha_vencimiento, forma_pago: @cabecera_factura.forma_pago, itbis: @cabecera_factura.itbis, numero_comprobante: @cabecera_factura.numero_comprobante, numero_factura: @cabecera_factura.numero_factura, suplidor_id: @cabecera_factura.suplidor_id, tipo: @cabecera_factura.tipo, tipo_factura_id: @cabecera_factura.tipo_factura_id, total_factura: @cabecera_factura.total_factura, user_id: @cabecera_factura.user_id } }, as: :json
+    patch cabecera_factura_url(@cabecera_factura), params: { cabecera_factura: { balance: @cabecera_factura.balance, cliente_id: @cabecera_factura.cliente_id, devuelta: @cabecera_factura.devuelta, forma_pago: @cabecera_factura.forma_pago, noCliente_direccion: @cabecera_factura.noCliente_direccion, noCliente_nombre: @cabecera_factura.noCliente_nombre, numero_factura: @cabecera_factura.numero_factura, pagada: @cabecera_factura.pagada, tiene_nota: @cabecera_factura.tiene_nota, total_factura: @cabecera_factura.total_factura, user_id: @cabecera_factura.user_id } }, as: :json
     assert_response 200
   end
 

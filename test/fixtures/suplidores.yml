@@ -5,9 +5,11 @@ one:
   telefono: MyString
   direccion: MyString
   email: MyString
+  estado: false
 
 two:
   nombre: MyString
   telefono: MyString
   direccion: MyString
   email: MyString
+  estado: false

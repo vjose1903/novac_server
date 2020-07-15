@@ -31,7 +31,6 @@ class UsersController < ApplicationController
   end
 
   def parsealUser(objeto)
-    docs = []
     object = {}
 
     object["id"] = objeto["id"]
@@ -53,19 +52,13 @@ class UsersController < ApplicationController
     if objeto == ""
     end
 
-    documentos = DocumentoDeIdentidad.get_documentos_by_user_id(objeto["id"])
+    documento_ = DocumentoDeIdentidad.where({ user_id: objeto["id"] })[0]
 
-    object["documentos_de_identidad"] = []
-    unless documentos.rows == []
-      puts " ------ LLENO ------"
-      documentos.each do |doc|
-        obj = {}
-        obj["descripcion"] = doc["descripcion"]
-        obj["documento"] = doc["documento"]
-        obj["principal"] = doc["principal"]
-        docs.push(obj)
-      end
-      object["documentos_de_identidad"] = docs
+    unless documento_.nil?
+      object["documento_de_identidad"] = {
+        :descripcion => documento_["descripcion"],
+        :documento => documento_["documento"],
+      }
     end
 
     return object

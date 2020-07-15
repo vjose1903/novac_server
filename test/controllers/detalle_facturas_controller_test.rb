@@ -12,7 +12,7 @@ class DetalleFacturasControllerTest < ActionDispatch::IntegrationTest
 
   test "should create detalle_factura" do
     assert_difference('DetalleFactura.count') do
-      post detalle_facturas_url, params: { detalle_factura: { articulo_id: @detalle_factura.articulo_id, cabecera_factura_id: @detalle_factura.cabecera_factura_id, cantidad: @detalle_factura.cantidad, descuento: @detalle_factura.descuento, itbis: @detalle_factura.itbis, total: @detalle_factura.total } }, as: :json
+      post detalle_facturas_url, params: { detalle_factura: { articulo_id: @detalle_factura.articulo_id, cabecera_factura_id: @detalle_factura.cabecera_factura_id, cantidad: @detalle_factura.cantidad, costo: @detalle_factura.costo, precio: @detalle_factura.precio, retirado: @detalle_factura.retirado, retirado_en_venta: @detalle_factura.retirado_en_venta, total: @detalle_factura.total } }, as: :json
     end
 
     assert_response 201
@@ -24,7 +24,7 @@ class DetalleFacturasControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update detalle_factura" do
-    patch detalle_factura_url(@detalle_factura), params: { detalle_factura: { articulo_id: @detalle_factura.articulo_id, cabecera_factura_id: @detalle_factura.cabecera_factura_id, cantidad: @detalle_factura.cantidad, descuento: @detalle_factura.descuento, itbis: @detalle_factura.itbis, total: @detalle_factura.total } }, as: :json
+    patch detalle_factura_url(@detalle_factura), params: { detalle_factura: { articulo_id: @detalle_factura.articulo_id, cabecera_factura_id: @detalle_factura.cabecera_factura_id, cantidad: @detalle_factura.cantidad, costo: @detalle_factura.costo, precio: @detalle_factura.precio, retirado: @detalle_factura.retirado, retirado_en_venta: @detalle_factura.retirado_en_venta, total: @detalle_factura.total } }, as: :json
     assert_response 200
   end
 

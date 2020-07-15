@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  cliente: one
+  forma_pago: MyString
+  numero_recibo: 1
+  total: 1.5
+  devuelta: 1.5
+
+two:
+  user: two
+  cliente: two
+  forma_pago: MyString
+  numero_recibo: 1
+  total: 1.5
+  devuelta: 1.5

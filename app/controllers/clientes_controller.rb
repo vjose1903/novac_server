@@ -3,44 +3,14 @@ class ClientesController < ApplicationController
 
   # GET /clientes
   def index
-    # @clientes = Cliente.all
     @clientes = []
 
     Cliente.all.each do |cliente|
       if cliente["estado"] == true
-        @clientes.push(parsearData(cliente))
+        @clientes.push(cliente)
       end
     end
     render json: @clientes
-  end
-
-  def parsearData(objeto)
-    documents = []
-
-    begin
-      att = objeto.attributes
-    rescue
-      att = objeto
-    end
-
-    documentos = DocumentoDeIdentidad.where({ cliente_id: att["id"] })
-    documentos.each do |doc|
-      obj = {}
-      obj["descripcion"] = doc["descripcion"]
-      obj["documento"] = doc["documento"]
-      obj["principal"] = doc["principal"]
-      documents.push(obj)
-    end
-    att["documentos_de_identidad"] = documents
-
-    vendedor = User.get_vendedor_by_id(att["vendedor_id"])
-
-    objV = {}
-    objV["nombre"] = vendedor[0]["nombre"]
-    objV["vendedor_id"] = vendedor[0]["id"]
-    att["vendedor"] = objV
-
-    return att
   end
 
   def getClientesByName
@@ -59,7 +29,7 @@ class ClientesController < ApplicationController
 
   # GET /clientes/1
   def show
-    cliente = parsearData(@cliente)
+    cliente = @cliente
     if cliente["estado"] == false
       cliente = { "nombre": "Este cliente esta desactivado." }
     end
@@ -79,16 +49,16 @@ class ClientesController < ApplicationController
 
   # PATCH/PUT /clientes/1
   def update
-    oldDocuments = DocumentoDeIdentidad.get_documentos_by_cliente_id(params[:id])
-    puts "=====".red * 20
-    puts oldDocuments
-    puts "=====".red * 20
-    oldDocuments.each do |doc|
-      documento = DocumentoDeIdentidad.find_by_id(doc["id"])
-      if documento.delete()
+    oldDocuments = DocumentoDeIdentidad.where({ cliente_id: params[:id] })[0]
+
+    puts "oldDocuments.nil?".red, oldDocuments.nil?
+
+    unless oldDocuments.nil?
+      if oldDocuments.delete()
         puts "ELIMINADO"
       end
     end
+
     if @cliente.update(cliente_params)
       render json: @cliente
     else
@@ -110,8 +80,7 @@ class ClientesController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def cliente_params
-    params.require(:cliente).permit(:imagen_id, :nombre, :estado, :apellido, :limite_credito, :telefono, :direccion, :sexo,
-                                    :maximo_credito, :vendedor_id, :cuenta, :balance,
-                                    documentos_de_identidad_attributes: [:cliente_id, :descripcion, :documento, :principal])
+    params.require(:cliente).permit(:nombre, :telefono, :direccion, :email, :estado, :apellido,
+                                    documento_de_identidad_attributes: [:suplidor_id, :descripcion, :documento])
   end
 end

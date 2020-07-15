@@ -76,14 +76,11 @@ module DeviseTokenAuth
 
       @resource = User.find_by_id(params[:id])
 
-      oldDocuments = DocumentoDeIdentidad.get_documentos_by_user_id(params[:id])
+      oldDocuments = DocumentoDeIdentidad.where({ user_id: params[:id] })[0]
 
-      if oldDocuments.length > 0
-        oldDocuments.each do |doc|
-          documento = DocumentoDeIdentidad.find_by_id(doc["id"])
-          if documento.delete()
-            puts "ELIMINADO"
-          end
+      unless oldDocuments.nil?
+        if oldDocuments.delete()
+          puts "ELIMINADO"
         end
       end
 
@@ -92,6 +89,7 @@ module DeviseTokenAuth
           yield @resource if block_given?
           render_update_success
         else
+          puts "======".yellow
           render_update_error
         end
       else
@@ -114,7 +112,10 @@ module DeviseTokenAuth
     end
 
     def account_update_params
-      params.permit(*params_for_resource(:account_update))
+      permits = [:nombre, :usuario, :estado, :cedula, :apellido, :sexo, :fotoPerfil, :fotoPerfil_cache, :telefono, :email, :fecha_nacimiento, :role, :password, :password_confirmation, :registration,
+                 documento_de_identidad_attributes: [:user_id, :descripcion, :documento]]
+
+      params.permit(permits)
     end
 
     protected
@@ -185,6 +186,7 @@ module DeviseTokenAuth
     end
 
     def render_update_error
+      puts "resource_errors ------> ".red, resource_errors
       render json: {
         status: "error",
         errors: resource_errors,

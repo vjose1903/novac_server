@@ -1,4 +1,10 @@
 Rails.application.routes.draw do
+  resources :cabecera_recibos
+  resources :trabajos
+  resources :documento_identidads
+  resources :historico_articulos
+  resources :modelos
+  resources :marcas
   resources :detalle_conduces
   resources :cabecera_conduces
   resources :secuencia_comprobantes

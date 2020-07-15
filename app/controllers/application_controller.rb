@@ -12,8 +12,9 @@ class ApplicationController < ActionController::API
 
   def configure_permitted_parameters
     permits = [:nombre, :usuario, :estado, :cedula, :apellido, :sexo, :fotoPerfil, :fotoPerfil_cache, :telefono, :email, :fecha_nacimiento, :role, :password, :password_confirmation, :registration,
-               imagen_attributes: [:fileName, :base_64, :path],
-               documentos_de_identidad_attributes: [:user_id, :descripcion, :documento, :principal]]
+               documento_de_identidad_attributes: [:user_id, :descripcion, :documento]]
+
+    devise_parameter_sanitizer.permit(:account_update, keys: permits)
 
     devise_parameter_sanitizer.permit(:sign_up, keys: permits)
 

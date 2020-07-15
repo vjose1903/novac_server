@@ -14,7 +14,7 @@ class User < ApplicationRecord
     :recoverable, :rememberable, :trackable, :validatable
   validates :usuario, presence: { :message => "Usuario no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Usuario ya esta registrado" }
   validates :telefono, presence: { :message => "Telefono no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Telefono ya esta registrado" }
-  validates :email, presence: { :message => "Email no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Email ya esta registrado" }
+  validates :email, presence: { :message => "no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Email ya esta registrado" }
   include DeviseTokenAuth::Concerns::User
 
   def self.get_users

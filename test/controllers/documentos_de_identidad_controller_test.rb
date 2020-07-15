@@ -12,7 +12,7 @@ class DocumentosDeIdentidadControllerTest < ActionDispatch::IntegrationTest
 
   test "should create documento_de_identidad" do
     assert_difference('DocumentoDeIdentidad.count') do
-      post documentos_de_identidad_url, params: { documento_de_identidad: { descripcion: @documento_de_identidad.descripcion, principal: @documento_de_identidad.principal, user_id: @documento_de_identidad.user_id } }, as: :json
+      post documentos_de_identidad_url, params: { documento_de_identidad: { cliente_id: @documento_de_identidad.cliente_id, descripcion: @documento_de_identidad.descripcion, documento: @documento_de_identidad.documento, suplidor_id: @documento_de_identidad.suplidor_id, user_id: @documento_de_identidad.user_id } }, as: :json
     end
 
     assert_response 201
@@ -24,7 +24,7 @@ class DocumentosDeIdentidadControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update documento_de_identidad" do
-    patch documento_de_identidad_url(@documento_de_identidad), params: { documento_de_identidad: { descripcion: @documento_de_identidad.descripcion, principal: @documento_de_identidad.principal, user_id: @documento_de_identidad.user_id } }, as: :json
+    patch documento_de_identidad_url(@documento_de_identidad), params: { documento_de_identidad: { cliente_id: @documento_de_identidad.cliente_id, descripcion: @documento_de_identidad.descripcion, documento: @documento_de_identidad.documento, suplidor_id: @documento_de_identidad.suplidor_id, user_id: @documento_de_identidad.user_id } }, as: :json
     assert_response 200
   end
 

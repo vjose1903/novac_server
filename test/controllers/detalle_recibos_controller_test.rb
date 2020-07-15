@@ -12,7 +12,7 @@ class DetalleRecibosControllerTest < ActionDispatch::IntegrationTest
 
   test "should create detalle_recibo" do
     assert_difference('DetalleRecibo.count') do
-      post detalle_recibos_url, params: { detalle_recibo: {  } }, as: :json
+      post detalle_recibos_url, params: { detalle_recibo: { cabecera_factura_id: @detalle_recibo.cabecera_factura_id, cabecera_recibo_id: @detalle_recibo.cabecera_recibo_id, deposito: @detalle_recibo.deposito, descripcion: @detalle_recibo.descripcion, total: @detalle_recibo.total, trabajo_id: @detalle_recibo.trabajo_id } }, as: :json
     end
 
     assert_response 201
@@ -24,7 +24,7 @@ class DetalleRecibosControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update detalle_recibo" do
-    patch detalle_recibo_url(@detalle_recibo), params: { detalle_recibo: {  } }, as: :json
+    patch detalle_recibo_url(@detalle_recibo), params: { detalle_recibo: { cabecera_factura_id: @detalle_recibo.cabecera_factura_id, cabecera_recibo_id: @detalle_recibo.cabecera_recibo_id, deposito: @detalle_recibo.deposito, descripcion: @detalle_recibo.descripcion, total: @detalle_recibo.total, trabajo_id: @detalle_recibo.trabajo_id } }, as: :json
     assert_response 200
   end
 

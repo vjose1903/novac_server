@@ -1,26 +1,27 @@
 rails g scaffold suplidor nombre:string telefono:string direccion:string email:string estado:boolean
-rails g scaffold tipo_agencia descripcion:string comentario:string estado:boolean
-rails g scaffold agencia tipo_agencia:references nombre:string direccion:string telefono:string pais:string comentario:string estado:boolean
-rails g scaffold documento_identidad user:references suplidor:references agencia:references descripcion:string documento:string
-rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
-rails g scaffold oferta agencia:references suplidor:references precio:float fecha_inicio:date fecha_fin:date moneda:string cantidad_reservas:integer estado:boolean
-rails g scaffold imagen user:references oferta:references agencia:references descripcion:string fileName:string base_64:string path:string
-rails g scaffold oferta_favorita user:references oferta:references
-rails g scaffold cabecera_factura user:references forma_pago:string numero_factura:integer total_factura:float pagada:boolean balance:float
-rails g scaffold detalle_factura cabecera_factura:references oferta:references cantidad:integer total:float precio:float
-rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
+rails g scaffold tipo_articulo descripcion:string 
+rails g scaffold marca descripcion:string 
+rails g scaffold modelo marca:references descripcion:string 
+rails g scaffold articulo suplidor:references marca:references modelo:references tipo_articulo:references identificador:string nombre:string color:string costo_principal:float precio_principal:float existencia:integer codigo:string medida:string is_detallable:boolean aviso_existencia:integer medida_alerta:string estado:boolean is_combo:boolean
+rails g scaffold historico_articulo articulo:references suplidor:references marca:references modelo:references tipo_articulo:references identificador:string nombre:string color:string costo_principal:float precio_principal:float existencia:integer codigo:string medida:string is_detallable:boolean aviso_existencia:integer medida_alerta:string estado:boolean is_combo:boolean
+rails g scaffold cliente nombre:string telefono:string direccion:string email:string estado:boolean
+rails g scaffold documento_de_identidad user:references suplidor:references cliente:references descripcion:string documento:string 
+rails g scaffold cabecera_factura user:references cliente:references forma_pago:string numero_factura:integer total_factura:float pagada:boolean balance:float tiene_nota:boolean devuelta:float noCliente_nombre:string noCliente_direccion:string
+rails g scaffold detalle_factura cabecera_factura:references articulo:references cantidad:integer total:float precio:float costo:float retirado:integer retirado_en_venta:integer
+rails g scaffold trabajo cliente:references tipo_trabajo:string marca:references modelo:references identificador:string tiene_bateria:boolean descripcion:string
 
+rails g scaffold cabecera_recibo user:references cliente:references forma_pago:string numero_recibo:integer total:float devuelta:float
+rails g scaffold detalle_recibo cabecera_recibo:references trabajo:references cabecera_factura:references total:float descripcion:string deposito:float
+rails g migration AddApellidoToCliente apellido:string
 
+rails g scaffold tipo_factura referencia:string descripcion:string 
+rails g scaffold secuencia_factura tipo_factura:references secuencia:integer 
+rails g migration AddEstadoToUser estado:boolean
 
-rails g migration AddTieneNotaToCabeceraFactura tiene_nota:boolean
-rails g migration AddRetiradoToDetalleFactura retirado:integer
 
 rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer 
-rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer 
 
-rails g migration AddUnidadToDetalleConduce unidad:string
-rails g migration AddRetiradoEnLaVentaToDetalleFactura retirado_en_venta:integer
+rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer unidad:string
+rails g scaffold imagen user:references oferta:references agencia:references descripcion:string fileName:string base_64:string path:string
 
-rails g migration ChangeIsComboToBeIsComboInArticulos
  
-

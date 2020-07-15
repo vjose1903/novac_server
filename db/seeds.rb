@@ -8,13 +8,13 @@
 
 user = User.create(
   {
-    "nombre": "Mari",
-    "usuario": "ADM",
-    "apellido": "Santos",
-    "sexo": "f",
-    "telefono": "(829)292-8772",
-    "email": "mari_santos0515@hotmail.com",
-    "fecha_nacimiento": "1968-17-10",
+    "nombre": "alvaro",
+    "usuario": "admin",
+    "apellido": "",
+    "sexo": "m",
+    "telefono": "(809)277-0729",
+    "email": "prueba@hotmail.com",
+    "fecha_nacimiento": "",
     "role": "A",
     "password": "1234567",
     "password_confirmation": "1234567",
@@ -23,49 +23,74 @@ user = User.create(
 
 cliente = Cliente.create(
   {
-    "imagen_id": nil,
     "nombre": "Cliente contado",
     "apellido": nil,
     "telefono": nil,
-    "direccion": "Autopista duarte KM 0 el Higuero",
-    "sexo": nil,
-    "limite_credito": nil,
+    "direccion": "C/Padre adolfo Esq. Manuel Ubaldo Gómez No.28",
+    "email": "prueba1@hotmail.com",
+    "estado": true,
   }
 )
 
-documento_de_identidad = DocumentoDeIdentidad.create(
+documentos_de_identidad = DocumentoDeIdentidad.create(
   [
     {
       "user_id": 1,
       "descripcion": "cedula",
-      "documento": "402-1463928-4",
-      "principal": "true",
+      "documento": "402-1447836-4",
     },
-    {
-      "user_id": nil,
-      "descripcion": "cedula",
-      "documento": " ",
-      "principal": true,
-      "cliente_id": 1,
-      "suplidor_id": nil,
-    },
+
   ]
 )
 
 tipo_articulo = TipoArticulo.create(
   [
     {
-      "descripcion": "Veterinaria",
+      "descripcion": "Celular",
     },
     {
-      "descripcion": "Materia prima",
+      "descripcion": "Accesorio",
+    },
+  ]
+)
+marca = Marca.create(
+  [
+    {
+      "descripcion": "Iphone",
     },
     {
-      "descripcion": "Producto terminado",
+      "descripcion": "Samsung",
+    },
+  ]
+)
+
+modelo = Modelo.create(
+  [
+    {
+      "marca_id": 1,
+      "descripcion": "6S",
     },
     {
-      "descripcion": "Otros",
+      "marca_id": 1,
+      "descripcion": "X",
     },
+    {
+      "marca_id": 1,
+      "descripcion": "11",
+    },
+    {
+      "marca_id": 2,
+      "descripcion": "Galaxy S9 plus",
+    },
+    {
+      "marca_id": 2,
+      "descripcion": "Galaxy S10",
+    },
+    {
+      "marca_id": 2,
+      "descripcion": "Galaxy A20",
+    },
+
   ]
 )
 
@@ -131,23 +156,9 @@ tipo_factura = TipoFactura.create(
       "referencia": nil,
       "descripcion": "Conduce",
     },
-  ]
-)
-tipo_recibo = TipoRecibo.create(
-  [
     {
-      "descripcion": "compra_adelantada",
-    },
-    {
-      "descripcion": "Pago factura",
-    },
-  ]
-)
-secuencia_ingresos = SecuenciaIngreso.create(
-  [
-    {
-      "tipo_recibo_id": 1,
-      "secuencia": 0,
+      "referencia": nil,
+      "descripcion": "Pago trabajo",
     },
   ]
 )
@@ -212,6 +223,10 @@ secuencia_factura = SecuenciaFactura.create(
     },
     {
       "tipo_factura_id": 15,
+      "secuencia": 0,
+    },
+    {
+      "tipo_factura_id": 16,
       "secuencia": 0,
     },
 

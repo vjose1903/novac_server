@@ -1,2 +1,0 @@
-class TipoRecibo < ApplicationRecord
-end

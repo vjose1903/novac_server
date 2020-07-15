@@ -4,14 +4,18 @@ one:
   cabecera_factura: one
   articulo: one
   cantidad: 1
-  total: 1
-  descuento: 1
-  itbis: 1
+  total: 1.5
+  precio: 1.5
+  costo: 1.5
+  retirado: 1
+  retirado_en_venta: 1
 
 two:
   cabecera_factura: two
   articulo: two
   cantidad: 1
-  total: 1
-  descuento: 1
-  itbis: 1
+  total: 1.5
+  precio: 1.5
+  costo: 1.5
+  retirado: 1
+  retirado_en_venta: 1
