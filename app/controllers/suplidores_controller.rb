@@ -57,18 +57,20 @@ class SuplidoresController < ApplicationController
 
   # PATCH/PUT /suplidores/1
   def update
-    oldDocuments = DocumentoDeIdentidad.where({ suplidor_id: params[:id] })[0]
+    Suplidor.transaction do
+      oldDocuments = DocumentoDeIdentidad.where({ suplidor_id: params[:id] })[0]
 
-    unless oldDocuments.nil?
-      if oldDocuments.delete()
-        puts "ELIMINADO"
+      unless oldDocuments.nil?
+        if oldDocuments.delete()
+          puts "ELIMINADO"
+        end
       end
-    end
 
-    if @suplidor.update(suplidor_params)
-      render json: @suplidor
-    else
-      render json: @suplidor.errors, status: :unprocessable_entity
+      if @suplidor.update(suplidor_params)
+        render json: @suplidor
+      else
+        render json: @suplidor.errors, status: :unprocessable_entity
+      end
     end
   end
 

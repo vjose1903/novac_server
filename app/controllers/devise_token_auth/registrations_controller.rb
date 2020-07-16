@@ -70,30 +70,18 @@ module DeviseTokenAuth
     end
 
     def update
-      # puts "=====".red * 20
-      # puts "update usuario => ", :json => params
-      # puts "=====".red * 20
-
-      @resource = User.find_by_id(params[:id])
-
-      oldDocuments = DocumentoDeIdentidad.where({ user_id: params[:id] })[0]
-
-      unless oldDocuments.nil?
-        if oldDocuments.delete()
-          puts "ELIMINADO"
-        end
-      end
-
-      if @resource
-        if @resource.send(resource_update_method, account_update_params)
-          yield @resource if block_given?
-          render_update_success
+      DocumentoDeIdentidad.transaction do
+        @resource = User.find_by_id(params[:id])
+        puts "account_update_params ".yellow, account_update_params
+        if @resource
+          if @resource.update(account_update_params)
+            render json: @resource
+          else
+            render json: resource_errors, status: :unprocessable_entity
+          end
         else
-          puts "======".yellow
-          render_update_error
+          render_update_error_user_not_found
         end
-      else
-        render_update_error_user_not_found
       end
     end
 
@@ -112,10 +100,7 @@ module DeviseTokenAuth
     end
 
     def account_update_params
-      permits = [:nombre, :usuario, :estado, :cedula, :apellido, :sexo, :fotoPerfil, :fotoPerfil_cache, :telefono, :email, :fecha_nacimiento, :role, :password, :password_confirmation, :registration,
-                 documento_de_identidad_attributes: [:user_id, :descripcion, :documento]]
-
-      params.permit(permits)
+      params.permit(*params_for_resource(:account_update))
     end
 
     protected

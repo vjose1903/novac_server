@@ -2,19 +2,17 @@
 
 class User < ApplicationRecord
   extend Devise::Models
-  belongs_to :imagen, optional: true
 
-  has_many :documentos_de_identidad, dependent: :destroy
-  attribute :documentos_de_identidad
-
-  accepts_nested_attributes_for :imagen
-  accepts_nested_attributes_for :documentos_de_identidad
+  has_one :documento_de_identidad, dependent: :destroy
+  attribute :documento_de_identidad
+  accepts_nested_attributes_for :documento_de_identidad, :allow_destroy => true
 
   devise :database_authenticatable, :registerable,
     :recoverable, :rememberable, :trackable, :validatable
-  validates :usuario, presence: { :message => "Usuario no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Usuario ya esta registrado" }
-  validates :telefono, presence: { :message => "Telefono no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Telefono ya esta registrado" }
-  validates :email, presence: { :message => "no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Email ya esta registrado" }
+
+  validates :usuario, presence: { :message => "no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
+  validates :telefono, presence: { :message => "no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
+  validates :email, presence: { :message => "no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
   include DeviseTokenAuth::Concerns::User
 
   def self.get_users

@@ -49,20 +49,22 @@ class ClientesController < ApplicationController
 
   # PATCH/PUT /clientes/1
   def update
-    oldDocuments = DocumentoDeIdentidad.where({ cliente_id: params[:id] })[0]
+    Cliente.transaction do
+      oldDocuments = DocumentoDeIdentidad.where({ cliente_id: params[:id] })[0]
 
-    puts "oldDocuments.nil?".red, oldDocuments.nil?
+      puts "oldDocuments.nil?".red, oldDocuments.nil?
 
-    unless oldDocuments.nil?
-      if oldDocuments.delete()
-        puts "ELIMINADO"
+      unless oldDocuments.nil?
+        if oldDocuments.delete()
+          puts "ELIMINADO"
+        end
       end
-    end
 
-    if @cliente.update(cliente_params)
-      render json: @cliente
-    else
-      render json: @cliente.errors, status: :unprocessable_entity
+      if @cliente.update(cliente_params)
+        render json: @cliente
+      else
+        render json: @cliente.errors, status: :unprocessable_entity
+      end
     end
   end
 

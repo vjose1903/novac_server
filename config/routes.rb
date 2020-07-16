@@ -29,6 +29,9 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
 
+  # modelos
+  get "modelos/por_marca/:marca" => "modelos#getModelosPorMarca"
+
   # articulos
   get "articulosF" => "articulos#getArticulosFormateados"
   get "historico/:id" => "contenido_articulos#getCondicionContenidoById"

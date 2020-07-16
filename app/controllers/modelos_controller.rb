@@ -13,6 +13,13 @@ class ModelosController < ApplicationController
     render json: @modelo
   end
 
+  def getModelosPorMarca
+    marca = params["marca"]
+    modelos = Modelo.where({ marca_id: marca })
+
+    render json: modelos
+  end
+
   # POST /modelos
   def create
     @modelo = Modelo.new(modelo_params)
@@ -39,13 +46,14 @@ class ModelosController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_modelo
-      @modelo = Modelo.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def modelo_params
-      params.require(:modelo).permit(:marca_id, :descripcion)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_modelo
+    @modelo = Modelo.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def modelo_params
+    params.require(:modelo).permit(:marca_id, :descripcion)
+  end
 end
