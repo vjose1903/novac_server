@@ -39,13 +39,16 @@ class HistoricoArticulosController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_historico_articulo
-      @historico_articulo = HistoricoArticulo.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def historico_articulo_params
-      params.require(:historico_articulo).permit(:articulo_id, :suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color, :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable, :aviso_existencia, :medida_alerta, :estado, :is_combo)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_historico_articulo
+    @historico_articulo = HistoricoArticulo.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def historico_articulo_params
+    params.require(:historico_articulo).permit(:articulo_id, :suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color,
+                                               :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable, :aviso_existencia,
+                                               :medida_alerta, :estado, :is_combo, :secuencia, :user_id, :agotado)
+  end
 end

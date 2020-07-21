@@ -32,22 +32,6 @@ class Articulo < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.parseal(objeto)
-    begin
-      att = objeto.attributes
-    rescue
-      att = objeto
-    end
-
-    puts "objeto ==> ".red, att
-
-    tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
-
-    att["descripcion"] = tipoArt["descripcion"]
-    att["cantidades"] = calcularCantidades(contenido, objeto)
-    return att
-  end
-  # =====================================================================================================================
 
   def self.parsealHistorico(objeto)
     puts "--------------------- inicio parsealHistorico ---------------------"
