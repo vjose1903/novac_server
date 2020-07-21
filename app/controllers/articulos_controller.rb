@@ -39,12 +39,6 @@ class ArticulosController < ApplicationController
   def create
     @articulo = Articulo.new(articulo_params)
 
-    if @articulo.save
-      render json: @articulo, status: :created, location: @articulo
-    else
-      render json: @articulo.errors, status: :unprocessable_entity
-    end
-
     unless @articulo.save
       render json: @articulo.errors, status: :unprocessable_entity
     else
@@ -85,6 +79,8 @@ class ArticulosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def articulo_params
-    params.require(:articulo).permit(:suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color, :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable, :aviso_existencia, :medida_alerta, :estado, :is_combo)
+    params.require(:articulo).permit(:suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color,
+                                     :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable,
+                                     :aviso_existencia, :medida_alerta, :estado, :is_combo, :unico, :agotado)
   end
 end

@@ -17,6 +17,8 @@ rails g migration AddApellidoToCliente apellido:string
 rails g scaffold tipo_factura referencia:string descripcion:string 
 rails g scaffold secuencia_factura tipo_factura:references secuencia:integer 
 rails g migration AddEstadoToUser estado:boolean
+rails g migration AddUnicoToArticulo unico:boolean
+rails g migration AddAgotadoToArticulo agotado:boolean
 
 
 rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer 
