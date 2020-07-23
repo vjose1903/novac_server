@@ -3,9 +3,13 @@ class ModelosController < ApplicationController
 
   # GET /modelos
   def index
-    @modelos = Modelo.all
+    page = params["page"]
+    per_page = params["per_page"].to_i
 
-    render json: @modelos
+    @modelos = Modelo.all
+    modelos_paginado = @modelos.to_a.my_paginate(page, per_page)
+
+    render json: modelos_paginado
   end
 
   # GET /modelos/1
