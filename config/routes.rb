@@ -66,6 +66,7 @@ Rails.application.routes.draw do
   get "users" => "users#getUsers"
   get "users/vendedores" => "users#getVendedores"
   get "users/:id" => "users#getUserById"
+  get "users/filtro/:arg" => "users#getUsuariosFiltrados"
 
   # cabecera facturas
   get "cabecera_facturas/cliente/:id/pagada/:pagada" => "cabecera_facturas#getFacturasByClienteIdAndEstado"

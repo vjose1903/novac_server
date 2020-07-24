@@ -13,7 +13,7 @@ class Suplidor < ApplicationRecord
     select_ = "SELECT s.*, doc.documento as doc_documento, doc.descripcion as doc_descripcion, doc.id as doc_id"
     from_ = "FROM suplidores s "
     joins_ = "inner join documentos_de_identidad doc on s.id = doc.suplidor_id "
-    where_ = "where lower(s.nombre || ' ' || s.direccion || ' ' || s.email || ' ' || doc.documento ) like lower('%#{arg}%')"
+    where_ = "where lower(s.nombre || ' ' || s.direccion || ' ' || s.email || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%')"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 

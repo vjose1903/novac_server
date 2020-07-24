@@ -32,10 +32,10 @@ class User < ApplicationRecord
   end
 
   def self.filtrarUsusarios(arg)
-    select_ = "SELECT u.*, ma.descripcion as marca_descripcion, ma.id as marca_id"
+    select_ = "SELECT u.*, doc.descripcion as doc_descripcion, doc.id as doc_id, doc.documento as doc_documento"
     from_ = "FROM users u "
-    joins_ = "inner join marcas ma on m.marca_id = ma.id"
-    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion) like lower('%#{arg}%')"
+    joins_ = "inner join documentos_de_identidad doc on u.id = doc.cliente_id "
+    where_ = "where lower(u.nombre || ' ' || u.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%')"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 

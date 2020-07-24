@@ -13,6 +13,21 @@ class UsersController < ApplicationController
     render json: @usuarios
   end
 
+  def getUsuariosFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"].to_i
+
+    usuarios = User.filtrarUsusarios(arg)
+
+    usuarios_ = User.parsearUsuariosFiltro(usuarios)
+
+    usuarios_paginado = usuarios_.to_a.my_paginate(page, per_page)
+
+    render json: usuarios_paginado
+  end
+
   def getVendedores
     @usuarios = []
     User.get_vendedores.each do |user|
