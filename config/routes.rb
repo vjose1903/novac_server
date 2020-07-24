@@ -31,8 +31,10 @@ Rails.application.routes.draw do
 
   # modelos
   get "modelos/por_marca/:marca" => "modelos#getModelosPorMarca"
+  get "modelos/filtro/:arg" => "modelos#getModelosFiltrados"
 
   # articulos
+  get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados"
   get "articulosF" => "articulos#getArticulosFormateados"
   get "historico/:id" => "contenido_articulos#getCondicionContenidoById"
   get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getAllArticulosByDate"

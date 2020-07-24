@@ -10,6 +10,19 @@ class Articulo < ApplicationRecord
   validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
 
   # =====================================================================================================================
+  def self.filtrarArticulo(arg)
+    select_ = "SELECT * "
+    from_ = "FROM articulos a"
+    joins_ = "inner join modelos m on a.modelo_id = m.id
+              inner join marcas ma on a.marca_id = ma.id"
+    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion|| ' ' ||a.nombre ) like lower('%#{arg}%') AND estado = true"
+
+    query = "#{select_} #{from_} #{joins_} #{where_}"
+
+    my_query(query)
+  end
+
+  # =====================================================================================================================
 
   def self.get_articulo_by_name_o_by_codigo(tipo, nombre)
     select_ = "SELECT *"

@@ -14,14 +14,14 @@ class ClientesController < ApplicationController
   end
 
   def getClientesByName
-    nom_ = params[:nombre]
+    nom_ = params[:nombre].downcase
 
-    clientes_ = Cliente.get_cliente_by_name(nom_)
+    clientes_ = Cliente.where("lower(nombre) LIKE ?", "%" + nom_ + "%")
 
     @clientes = []
     clientes_.each do |cliente|
-      if cliente["estado"] == true
-        @clientes.push(parsearData(cliente))
+      if cliente["estado"] == true && cliente["nombre"] != "Cliente contado"
+        @clientes.push(cliente)
       end
     end
     render json: @clientes

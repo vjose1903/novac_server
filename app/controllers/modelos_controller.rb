@@ -24,6 +24,23 @@ class ModelosController < ApplicationController
     render json: modelos
   end
 
+  def getModelosFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"].to_i
+
+    puts "arg #{arg}"
+    puts "page #{page}"
+    puts "per_page #{per_page}"
+
+    modelos = Modelo.filtrarModelo(arg)
+
+    modelos_paginado = modelos.to_a.my_paginate(page, per_page)
+
+    render json: modelos_paginado
+  end
+
   # POST /modelos
   def create
     @modelo = Modelo.new(modelo_params)

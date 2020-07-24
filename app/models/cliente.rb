@@ -5,7 +5,7 @@ class Cliente < ApplicationRecord
 
   # ===================================================================================================================================================
   def self.get_cliente_by_name(nombre)
-    select_ = "SELECT id, imagen_id, nombre, apellido, telefono, direccion, sexo, created_at, updated_at, limite_credito, estado, maximo_credito, vendedor_id, balance"
+    select_ = "SELECT *"
     from_ = "FROM clientes"
     where_ = " WHERE lower(nombre) like lower('#{nombre}%') AND estado = true"
     query = "#{select_} #{from_} #{where_}"
