@@ -4,6 +4,10 @@ def desencriptarBase64(enc)
   return valor_des
 end
 
+def my_query(query)
+  return ActiveRecord::Base.connection.exec_query(query)
+end
+
 class Array
   def my_paginate(page, per_page)
     itemsTem = []

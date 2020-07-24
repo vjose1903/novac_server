@@ -4,7 +4,7 @@ class Suplidor < ApplicationRecord
   accepts_nested_attributes_for :documento_de_identidad, :allow_destroy => true
 
   def self.get_nombres_suplidores
-    return ActiveRecord::Base.connection.exec_query("SELECT s.id, s.nombre from suplidores s")
+    return my_query("SELECT s.id, s.nombre from suplidores s")
   end
 
   #   ==============================================================================================================

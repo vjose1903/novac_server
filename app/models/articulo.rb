@@ -23,12 +23,12 @@ class Articulo < ApplicationRecord
     end
 
     query = "#{select_} #{from_} #{where_}"
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
 
   # =====================================================================================================================
   def self.delete_articulo(id)
-    return ActiveRecord::Base.connection.exec_query("UPDATE articulos SET estado=#{false} WHERE id=#{id}")
+    return my_query("UPDATE articulos SET estado=#{false} WHERE id=#{id}")
   end
 
   # =====================================================================================================================
