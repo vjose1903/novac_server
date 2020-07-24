@@ -9,11 +9,11 @@ class Suplidor < ApplicationRecord
 
   #   ==============================================================================================================
 
-  def self.filtrarModelo(arg)
-    select_ = "SELECT m.*, ma.descripcion as marca_descripcion, ma.id as marca_id"
-    from_ = "FROM modelos m "
-    joins_ = "inner join marcas ma on m.marca_id = ma.id"
-    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion) like lower('%#{arg}%')"
+  def self.filtrarSuplidores(arg)
+    select_ = "SELECT s.*, doc.documento as doc_documento, doc.descripcion as doc_descripcion, doc.id as doc_id"
+    from_ = "FROM suplidores s "
+    joins_ = "inner join documentos_de_identidad doc on s.id = doc.suplidor_id "
+    where_ = "where lower(s.nombre || ' ' || s.direccion || ' ' || s.email || ' ' || doc.documento ) like lower('%#{arg}%')"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
@@ -22,20 +22,14 @@ class Suplidor < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.parsearModelosFiltro(modelos)
-    puts "------".red * 20
-    puts modelos.to_json
-    puts "------".red * 20
+  def self.parsearSuplidoresFiltro(suplidores)
+    suplidores.each do |supli|
+      supli["documento_de_identidad"] = { id: supli["doc_id"], descripcion: supli["doc_descripcion"], documento: supli["doc_documento"], cliente_id: supli["id"] }
 
-    modelos.each do |model|
-      model["marca"] = { id: model["marca_id"], descripcion: model["marca_descripcion"] }
-      model.delete("marca_descripcion")
-      model.delete("marca_id")
+      supli.delete("doc_descripcion")
+      supli.delete("doc_id")
+      supli.delete("doc_documento")
     end
-
-    puts "------".yellow * 20
-    puts modelos.to_json
-    puts "------".yellow * 20
-    return modelos
+    return suplidores
   end
 end

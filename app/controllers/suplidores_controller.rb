@@ -34,6 +34,21 @@ class SuplidoresController < ApplicationController
     render json: supli
   end
 
+  def getSuplidoresFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"].to_i
+
+    cuplidores = Suplidor.filtrarSuplidores(arg)
+
+    suplidores_ = Suplidor.parsearSuplidoresFiltro(cuplidores)
+
+    suplidores_paginado = suplidores_.to_a.my_paginate(page, per_page)
+
+    render json: suplidores_paginado
+  end
+
   # POST /suplidores
   def create
     Suplidor.transaction do

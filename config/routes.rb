@@ -48,6 +48,7 @@ Rails.application.routes.draw do
 
   # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"
+  get "suplidores/filtro/:arg" => "suplidores#getSuplidoresFiltrados"
 
   # suplidores
   get "clientes/nombre/:nombre" => "clientes#getClientesByName"
