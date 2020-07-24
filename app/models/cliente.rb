@@ -11,4 +11,31 @@ class Cliente < ApplicationRecord
     query = "#{select_} #{from_} #{where_}"
     return my_query(query)
   end
+  # =====================================================================================================================
+
+  #
+
+  def self.filtrarCliente(arg)
+    select_ = "SELECT c.*, doc.documento as doc_documento, doc.descripcion as doc_descripcion, doc.id as doc_id "
+    from_ = "FROM clientes c"
+    joins_ = "inner join documentos_de_identidad doc on c.id = doc.cliente_id "
+    where_ = "where lower(c.nombre || ' ' || c.apellido || ' ' || doc.documento ) like lower('%#{arg}%')"
+
+    query = "#{select_} #{from_} #{joins_} #{where_}"
+
+    my_query(query)
+  end
+
+  # =====================================================================================================================
+
+  def self.parsearClientesFiltro(clientes)
+    clientes.each do |cli|
+      cli["documento_de_identidad"] = { id: cli["doc_id"], descripcion: cli["doc_descripcion"], documento: cli["doc_documento"], cliente_id: cli["id"] }
+
+      cli.delete("doc_descripcion")
+      cli.delete("doc_id")
+      cli.delete("doc_documento")
+    end
+    return clientes
+  end
 end

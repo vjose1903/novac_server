@@ -13,6 +13,22 @@ class ClientesController < ApplicationController
     render json: @clientes
   end
 
+  def getClientesFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"].to_i
+
+    clientes = Cliente.filtrarCliente(arg)
+
+    clientes_ = Cliente.parsearClientesFiltro(clientes)
+    puts "SALIO DEL PARSEO ---> #{clientes_.to_json}"
+
+    clientes_paginado = clientes_.to_a.my_paginate(page, per_page)
+
+    render json: clientes_paginado
+  end
+
   def getClientesByName
     nom_ = params[:nombre].downcase
 

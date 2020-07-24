@@ -12,4 +12,23 @@ class Modelo < ApplicationRecord
 
     my_query(query)
   end
+
+  # =====================================================================================================================
+
+  def self.parsearModelosFiltro(modelos)
+    puts "------".red * 20
+    puts modelos.to_json
+    puts "------".red * 20
+
+    modelos.each do |model|
+      model["marca"] = { id: model["marca_id"], descripcion: model["marca_descripcion"] }
+      model.delete("marca_descripcion")
+      model.delete("marca_id")
+    end
+
+    puts "------".yellow * 20
+    puts modelos.to_json
+    puts "------".yellow * 20
+    return modelos
+  end
 end

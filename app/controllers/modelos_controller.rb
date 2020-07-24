@@ -30,11 +30,9 @@ class ModelosController < ApplicationController
     page = params["page"]
     per_page = params["per_page"].to_i
 
-    puts "arg #{arg}"
-    puts "page #{page}"
-    puts "per_page #{per_page}"
-
     modelos = Modelo.filtrarModelo(arg)
+
+    modelos_ = Modelo.parsearModelosFiltro(modelos)
 
     modelos_paginado = modelos.to_a.my_paginate(page, per_page)
 
