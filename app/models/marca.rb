@@ -1,8 +1,8 @@
 class Marca < ApplicationRecord
-  def self.filtrarMarca(arg)
+  def self.filtrarMarcas(arg)
     select_ = "SELECT m.*  "
     from_ = "FROM marcas m"
-    where_ = "where lower(m.descripcion) like lower('%a%')"
+    where_ = "where lower(m.descripcion) like lower('%#{arg}%')"
 
     query = "#{select_} #{from_} #{where_}"
 

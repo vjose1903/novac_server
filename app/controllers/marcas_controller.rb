@@ -8,6 +8,19 @@ class MarcasController < ApplicationController
     render json: @marcas
   end
 
+  def getMarcasFiltradas
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"].to_i
+
+    marcas = Marca.filtrarMarcas(arg)
+
+    marcas_paginado = marcas.to_a.my_paginate(page, per_page)
+
+    render json: marcas_paginado
+  end
+
   # GET /marcas/1
   def show
     render json: @marca
@@ -39,13 +52,14 @@ class MarcasController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_marca
-      @marca = Marca.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def marca_params
-      params.require(:marca).permit(:descripcion)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_marca
+    @marca = Marca.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def marca_params
+    params.require(:marca).permit(:descripcion)
+  end
 end
