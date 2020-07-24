@@ -13,6 +13,21 @@ class TrabajosController < ApplicationController
     render json: @trabajo
   end
 
+  def getTrabajosFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"].to_i
+
+    trabajos = Trabajo.filtrarTrabajo(arg)
+
+    trabajos_ = Trabajo.parsearTrabajosFiltro(trabajos)
+
+    trabajos_paginado = trabajos_.to_a.my_paginate(page, per_page)
+
+    render json: trabajos_paginado
+  end
+
   # POST /trabajos
   def create
     @trabajo = Trabajo.new(trabajo_params)
@@ -39,13 +54,14 @@ class TrabajosController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_trabajo
-      @trabajo = Trabajo.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def trabajo_params
-      params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_trabajo
+    @trabajo = Trabajo.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def trabajo_params
+    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion)
+  end
 end

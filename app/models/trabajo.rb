@@ -3,11 +3,14 @@ class Trabajo < ApplicationRecord
   belongs_to :marca
   belongs_to :modelo
 
-  def self.filtrarModelo(arg)
-    select_ = "SELECT m.*, ma.descripcion as marca_descripcion, ma.id as marca_id"
-    from_ = "FROM modelos m "
-    joins_ = "inner join marcas ma on m.marca_id = ma.id"
-    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion) like lower('%#{arg}%')"
+  def self.filtrarTrabajo(arg)
+    select_ = "SELECT t.*, c.nombre as cliente_nombre, c.apellido as cliente_apellido , doc.documento as cliente_doc_documento  , doc.id as cliente_doc_id , doc.descripcion as cliente_doc_descripcion , mo.descripcion as modelo_descripcion, mo.id as modelo_id , ma.descripcion as marca_descripcion , ma.id as marca_id"
+    from_ = "FROM trabajos t "
+    joins_ = "inner join clientes c on t.cliente_id = c.id
+              inner join marcas ma on t.marca_id = ma.id
+              inner join modelos mo on t.modelo_id = mo.id
+              inner join documentos_de_identidad doc on doc.cliente_id = t.cliente_id "
+    where_ = "where lower(t.identificador || ' ' || t.descripcion || ' ' || t.tipo_trabajo || ' ' || c.nombre || ' ' || c.apellido || ' ' || doc.documento ) like lower('%#{arg}%')"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
@@ -16,20 +19,26 @@ class Trabajo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.parsearModelosFiltro(modelos)
-    puts "------".red * 20
-    puts modelos.to_json
-    puts "------".red * 20
+  def self.parsearTrabajosFiltro(trabajos)
+    trabajos.each do |work|
+      work["marca"] = { id: work["marca_id"], descripcion: work["marca_descripcion"] }
+      work["modelo"] = { id: work["modelo_id"], descripcion: work["modelo_descripcion"] }
+      work["cliente"] = { id: work["cliente_id"], nombre: work["cliente_nombre"], apellido: work["cliente_apellido"],
+                         documento_de_identidad: { id: work["cliente_doc_id"], documento: work["cliente_doc_documento"], descripcion: work["cliente_doc_descripcion"] } }
 
-    modelos.each do |model|
-      model["marca"] = { id: model["marca_id"], descripcion: model["marca_descripcion"] }
-      model.delete("marca_descripcion")
-      model.delete("marca_id")
+      work.delete("marca_descripcion")
+      work.delete("marca_id")
+
+      work.delete("modelo_descripcion")
+      work.delete("modelo_id")
+
+      work.delete("cliente_nombre")
+      work.delete("cliente_apellido")
+      work.delete("cliente_doc_id")
+      work.delete("cliente_doc_descripcion")
+      work.delete("cliente_doc_documento")
     end
 
-    puts "------".yellow * 20
-    puts modelos.to_json
-    puts "------".yellow * 20
-    return modelos
+    return trabajos
   end
 end

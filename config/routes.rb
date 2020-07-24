@@ -29,6 +29,9 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
 
+  # trabajos
+  get "trabajos/filtro/:arg" => "trabajos#getTrabajosFiltrados"
+
   # marcas
   get "marcas/filtro/:arg" => "marcas#getMarcasFiltradas"
 
