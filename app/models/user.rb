@@ -33,7 +33,7 @@ class User < ApplicationRecord
 
   def self.filtrarUsusarios(arg)
     select_ = "SELECT u.*, ma.descripcion as marca_descripcion, ma.id as marca_id"
-    from_ = "FROM u u "
+    from_ = "FROM users u "
     joins_ = "inner join marcas ma on m.marca_id = ma.id"
     where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion) like lower('%#{arg}%')"
 
@@ -44,20 +44,15 @@ class User < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.parsearModelosFiltro(modelos)
-    puts "------".red * 20
-    puts modelos.to_json
-    puts "------".red * 20
+  def self.parsearUsuariosFiltro(usuarios)
+    usuarios.each do |user|
+      user["documento_de_identidad"] = { id: user["doc_id"], descripcion: user["doc_descripcion"], documento: user["doc_documento"], user_id: user["id"] }
 
-    modelos.each do |model|
-      model["marca"] = { id: model["marca_id"], descripcion: model["marca_descripcion"] }
-      model.delete("marca_descripcion")
-      model.delete("marca_id")
+      user.delete("doc_descripcion")
+      user.delete("doc_id")
+      user.delete("doc_documento")
     end
 
-    puts "------".yellow * 20
-    puts modelos.to_json
-    puts "------".yellow * 20
-    return modelos
+    return usuarios
   end
 end

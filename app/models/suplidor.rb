@@ -24,7 +24,7 @@ class Suplidor < ApplicationRecord
 
   def self.parsearSuplidoresFiltro(suplidores)
     suplidores.each do |supli|
-      supli["documento_de_identidad"] = { id: supli["doc_id"], descripcion: supli["doc_descripcion"], documento: supli["doc_documento"], cliente_id: supli["id"] }
+      supli["documento_de_identidad"] = { id: supli["doc_id"], descripcion: supli["doc_descripcion"], documento: supli["doc_documento"], suplidor_id: supli["id"] }
 
       supli.delete("doc_descripcion")
       supli.delete("doc_id")
