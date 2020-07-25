@@ -11,6 +11,7 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
   def self.filtrarArticulo(arg)
+    arg = arg === " " ? "" : arg
     select_ = "SELECT * "
     from_ = "FROM articulos a"
     joins_ = "inner join modelos m on a.modelo_id = m.id

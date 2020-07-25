@@ -4,6 +4,7 @@ class Trabajo < ApplicationRecord
   belongs_to :modelo
 
   def self.filtrarTrabajo(arg)
+    arg = arg === " " ? "" : arg
     select_ = "SELECT t.*, c.nombre as cliente_nombre, c.apellido as cliente_apellido , doc.documento as cliente_doc_documento  , doc.id as cliente_doc_id , doc.descripcion as cliente_doc_descripcion , mo.descripcion as modelo_descripcion, mo.id as modelo_id , ma.descripcion as marca_descripcion , ma.id as marca_id"
     from_ = "FROM trabajos t "
     joins_ = "inner join clientes c on t.cliente_id = c.id

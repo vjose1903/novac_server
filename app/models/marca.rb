@@ -1,5 +1,7 @@
 class Marca < ApplicationRecord
   def self.filtrarMarcas(arg)
+    arg = arg === " " ? "" : arg
+
     select_ = "SELECT m.*  "
     from_ = "FROM marcas m"
     where_ = "where lower(m.descripcion) like lower('%#{arg}%')"
