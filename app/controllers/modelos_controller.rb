@@ -5,11 +5,19 @@ class ModelosController < ApplicationController
   def index
     page = params["page"]
     per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
 
     @modelos = Modelo.all
-    modelos_paginado = @modelos.to_a.my_paginate(page, per_page)
 
-    render json: modelos_paginado
+    res = []
+
+    if paginado
+      res = @modelos.to_a.my_paginate(page, per_page)
+    else
+      res = @modelos
+    end
+
+    render json: res
   end
 
   # GET /modelos/1
@@ -29,14 +37,21 @@ class ModelosController < ApplicationController
 
     page = params["page"]
     per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
 
     modelos = Modelo.filtrarModelo(arg)
 
     modelos_ = Modelo.parsearModelosFiltro(modelos)
 
-    modelos_paginado = modelos.to_a.my_paginate(page, per_page)
+    res = []
 
-    render json: modelos_paginado
+    if paginado
+      res = modelos.to_a.my_paginate(page, per_page)
+    else
+      res = modelos
+    end
+
+    render json: res
   end
 
   # POST /modelos

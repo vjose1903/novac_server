@@ -30,7 +30,11 @@ class Cliente < ApplicationRecord
 
   def self.parsearClientesFiltro(clientes)
     clientes.each do |cli|
-      cli["documento_de_identidad"] = { id: cli["doc_id"], descripcion: cli["doc_descripcion"], documento: cli["doc_documento"], cliente_id: cli["id"] }
+      if cli["doc_id"]
+        cli["documento_de_identidad"] = { id: cli["doc_id"], descripcion: cli["doc_descripcion"], documento: cli["doc_documento"], user_id: cli["id"] }
+      else
+        cli["documento_de_identidad"] = {}
+      end
 
       cli.delete("doc_descripcion")
       cli.delete("doc_id")

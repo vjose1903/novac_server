@@ -7,10 +7,23 @@ end
 class UsersController < ApplicationController
   def getUsers
     @usuarios = []
+    page = params["page"]
+    per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
+
     User.get_users.each do |user|
       @usuarios.push(parsealUser(user))
     end
-    render json: @usuarios
+
+    res = []
+
+    if paginado
+      res = @usuarios.to_a.my_paginate(page, per_page)
+    else
+      res = @usuarios
+    end
+
+    render json: res
   end
 
   def getUsuariosFiltrados
@@ -18,14 +31,21 @@ class UsersController < ApplicationController
 
     page = params["page"]
     per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
 
     usuarios = User.filtrarUsusarios(arg)
 
     usuarios_ = User.parsearUsuariosFiltro(usuarios)
 
-    usuarios_paginado = usuarios_.to_a.my_paginate(page, per_page)
+    res = []
 
-    render json: usuarios_paginado
+    if paginado
+      res = usuarios_.to_a.my_paginate(page, per_page)
+    else
+      res = usuarios_
+    end
+
+    render json: res
   end
 
   def getVendedores
@@ -61,11 +81,7 @@ class UsersController < ApplicationController
     object["role"] = objeto["role"]
     object["created_at"] = objeto["created_at"]
     object["updated_at"] = objeto["updated_at"]
-    object["imagen_id"] = objeto["imagen_id"]
     object["estado"] = objeto["estado"]
-
-    if objeto == ""
-    end
 
     documento_ = DocumentoDeIdentidad.where({ user_id: objeto["id"] })[0]
 
@@ -74,6 +90,8 @@ class UsersController < ApplicationController
         :descripcion => documento_["descripcion"],
         :documento => documento_["documento"],
       }
+    else
+      object["documento_de_identidad"] = {}
     end
 
     return object

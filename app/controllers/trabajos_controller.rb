@@ -18,14 +18,21 @@ class TrabajosController < ApplicationController
 
     page = params["page"]
     per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
 
     trabajos = Trabajo.filtrarTrabajo(arg)
 
     trabajos_ = Trabajo.parsearTrabajosFiltro(trabajos)
 
-    trabajos_paginado = trabajos_.to_a.my_paginate(page, per_page)
+    res = []
 
-    render json: trabajos_paginado
+    if paginado
+      res = trabajos_.to_a.my_paginate(page, per_page)
+    else
+      res = trabajos_
+    end
+
+    render json: res
   end
 
   # POST /trabajos

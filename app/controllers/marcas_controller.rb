@@ -5,7 +5,17 @@ class MarcasController < ApplicationController
   def index
     @marcas = Marca.all
 
-    render json: @marcas
+    page = params["page"]
+    per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
+
+    if paginado
+      res = @marcas.to_a.my_paginate(page, per_page)
+    else
+      res = @marcas
+    end
+
+    render json: res
   end
 
   def getMarcasFiltradas
@@ -13,12 +23,19 @@ class MarcasController < ApplicationController
 
     page = params["page"]
     per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
 
     marcas = Marca.filtrarMarcas(arg)
 
-    marcas_paginado = marcas.to_a.my_paginate(page, per_page)
+    res = []
 
-    render json: marcas_paginado
+    if paginado
+      res = marcas.to_a.my_paginate(page, per_page)
+    else
+      res = marcas
+    end
+
+    render json: res
   end
 
   # GET /marcas/1

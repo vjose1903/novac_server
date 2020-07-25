@@ -18,15 +18,22 @@ class ClientesController < ApplicationController
 
     page = params["page"]
     per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
 
     clientes = Cliente.filtrarCliente(arg)
 
     clientes_ = Cliente.parsearClientesFiltro(clientes)
     puts "SALIO DEL PARSEO ---> #{clientes_.to_json}"
 
-    clientes_paginado = clientes_.to_a.my_paginate(page, per_page)
+    res = []
 
-    render json: clientes_paginado
+    if paginado
+      res = clientes_.to_a.my_paginate(page, per_page)
+    else
+      res = clientes_
+    end
+
+    render json: res
   end
 
   def getClientesByName

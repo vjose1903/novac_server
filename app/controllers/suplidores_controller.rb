@@ -39,14 +39,21 @@ class SuplidoresController < ApplicationController
 
     page = params["page"]
     per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
 
     cuplidores = Suplidor.filtrarSuplidores(arg)
 
     suplidores_ = Suplidor.parsearSuplidoresFiltro(cuplidores)
 
-    suplidores_paginado = suplidores_.to_a.my_paginate(page, per_page)
+    res = []
 
-    render json: suplidores_paginado
+    if paginado
+      res = suplidores_.to_a.my_paginate(page, per_page)
+    else
+      res = suplidores_
+    end
+
+    render json: res
   end
 
   # POST /suplidores

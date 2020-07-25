@@ -32,9 +32,9 @@ class User < ApplicationRecord
   end
 
   def self.filtrarUsusarios(arg)
-    select_ = "SELECT u.*, doc.descripcion as doc_descripcion, doc.id as doc_id, doc.documento as doc_documento"
+    select_ = "SELECT u.id, u.uid, u.sign_in_count, u.nombre, u.usuario, u.apellido, u.sexo, u.telefono, u.email, u.fecha_nacimiento, u.role, u.created_at, u.updated_at, u.estado, doc.descripcion as doc_descripcion, doc.id as doc_id, doc.documento as doc_documento"
     from_ = "FROM users u "
-    joins_ = "inner join documentos_de_identidad doc on u.id = doc.cliente_id "
+    joins_ = "left join documentos_de_identidad doc on u.id = doc.cliente_id "
     where_ = "where lower(u.nombre || ' ' || u.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%')"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
@@ -46,8 +46,11 @@ class User < ApplicationRecord
 
   def self.parsearUsuariosFiltro(usuarios)
     usuarios.each do |user|
-      user["documento_de_identidad"] = { id: user["doc_id"], descripcion: user["doc_descripcion"], documento: user["doc_documento"], user_id: user["id"] }
-
+      if user["doc_id"]
+        user["documento_de_identidad"] = { id: user["doc_id"], descripcion: user["doc_descripcion"], documento: user["doc_documento"], user_id: user["id"] }
+      else
+        user["documento_de_identidad"] = {}
+      end
       user.delete("doc_descripcion")
       user.delete("doc_id")
       user.delete("doc_documento")
