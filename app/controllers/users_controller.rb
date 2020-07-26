@@ -12,7 +12,9 @@ class UsersController < ApplicationController
     paginado = params["paginado"] === "true" ? true : false
 
     User.get_users.each do |user|
-      @usuarios.push(parsealUser(user))
+      if user["estado"]
+        @usuarios.push(parsealUser(user))
+      end
     end
 
     res = []

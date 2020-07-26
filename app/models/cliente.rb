@@ -20,7 +20,7 @@ class Cliente < ApplicationRecord
     select_ = "SELECT c.*, doc.documento as doc_documento, doc.descripcion as doc_descripcion, doc.id as doc_id "
     from_ = "FROM clientes c"
     joins_ = "inner join documentos_de_identidad doc on c.id = doc.cliente_id "
-    where_ = "where lower(c.nombre || ' ' || c.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%')"
+    where_ = "where lower(c.nombre || ' ' || c.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%') AND estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 

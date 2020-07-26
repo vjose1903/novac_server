@@ -19,8 +19,16 @@ class TrabajosController < ApplicationController
     page = params["page"]
     per_page = params["per_page"].to_i
     paginado = params["paginado"] === "true" ? true : false
+    trabajos = []
 
-    trabajos = Trabajo.filtrarTrabajo(arg)
+    works = Trabajo.filtrarTrabajo(arg)
+
+    works = User.filtrarUsusarios(arg)
+    works.each do |trabajo_|
+      if trabajo_["estado"]
+        works.push(trabajo_)
+      end
+    end
 
     trabajos_ = Trabajo.parsearTrabajosFiltro(trabajos)
 
@@ -69,6 +77,6 @@ class TrabajosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def trabajo_params
-    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion)
+    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion, :empezado, :terminado, :estado)
   end
 end

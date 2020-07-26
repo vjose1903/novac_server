@@ -23,6 +23,8 @@ rails g migration AddUserToHistoricoArticulo user:references
 rails g migration AddSecuenciaToHistoricoArticulo secuencia:integer
 rails g migration AddagotadoToHistoricoArticulo agotado:boolean
 
+rails g migration AddCamposToTrabajo empezado:boolean terminado:boolean estado:boolean
+
 
 rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer 
 

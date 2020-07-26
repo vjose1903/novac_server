@@ -39,13 +39,14 @@ class TipoFacturasController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_tipo_factura
-      @tipo_factura = TipoFactura.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def tipo_factura_params
-      params.require(:tipo_factura).permit(:referencia, :descripcion)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_tipo_factura
+    @tipo_factura = TipoFactura.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def tipo_factura_params
+    params.require(:tipo_factura).permit(:referencia, :descripcion)
+  end
 end

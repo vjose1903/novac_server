@@ -11,7 +11,7 @@ class Trabajo < ApplicationRecord
               inner join marcas ma on t.marca_id = ma.id
               inner join modelos mo on t.modelo_id = mo.id
               inner join documentos_de_identidad doc on doc.cliente_id = t.cliente_id "
-    where_ = "where lower(t.identificador || ' ' || t.descripcion || ' ' || t.tipo_trabajo || ' ' || c.nombre || ' ' || c.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%')"
+    where_ = "where lower(t.identificador || ' ' || t.descripcion || ' ' || t.tipo_trabajo || ' ' || c.nombre || ' ' || c.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%') AND estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 

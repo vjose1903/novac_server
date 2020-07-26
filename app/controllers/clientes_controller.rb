@@ -23,7 +23,6 @@ class ClientesController < ApplicationController
     clientes = Cliente.filtrarCliente(arg)
 
     clientes_ = Cliente.parsearClientesFiltro(clientes)
-    puts "SALIO DEL PARSEO ---> #{clientes_.to_json}"
 
     res = []
 
