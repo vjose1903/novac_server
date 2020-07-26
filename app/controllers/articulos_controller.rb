@@ -12,6 +12,28 @@ class ArticulosController < ApplicationController
     render json: @articulos
   end
 
+  def getArticulosFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"].to_i
+    paginado = params["paginado"] === "true" ? true : false
+
+    articulos = Articulo.filtrarArticulo(arg)
+
+    articulos_ = Articulo.parsearArticulosFiltro(articulos)
+
+    res = []
+
+    if paginado
+      res = articulos_.to_a.my_paginate(page, per_page)
+    else
+      res = articulos_
+    end
+
+    render json: res
+  end
+
   def getArticuloByNameObyCodigo
     tipo_ = params[:tipo]
     nom_ = params[:nombre]

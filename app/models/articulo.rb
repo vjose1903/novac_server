@@ -12,15 +12,32 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
   def self.filtrarArticulo(arg)
     arg = arg === " " ? "" : arg
-    select_ = "SELECT * "
+    select_ = "SELECT a.*, m.descripcion as modelo_descripcion, ma.descripcion as marca_descripcion, ta.descripcion as tipo_articulo_descripcion"
     from_ = "FROM articulos a"
-    joins_ = "inner join modelos m on a.modelo_id = m.id
+    joins_ = "inner join modelos m on a.modelo_id = m.id 
+              inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
               inner join marcas ma on a.marca_id = ma.id"
     where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion|| ' ' ||a.nombre ) like lower('%#{arg}%') AND estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
     my_query(query)
+  end
+
+  # =====================================================================================================================
+
+  def self.parsearArticulosFiltro(articulos)
+    articulos.each do |arti|
+      arti["marca"] = { id: arti["marca_id"], descripcion: arti["marca_descripcion"] }
+      arti["modelo"] = { id: arti["modelo_id"], descripcion: arti["modelo_descripcion"] }
+      arti["tipo_articulo"] = { id: arti["tipo_articulo_id"], descripcion: arti["tipo_articulo_descripcion"] }
+
+      arti.delete("marca_descripcion")
+      arti.delete("modelo_descripcion")
+      arti.delete("tipo_articulo_descripcion")
+    end
+
+    return articulos
   end
 
   # =====================================================================================================================
