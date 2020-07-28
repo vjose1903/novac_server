@@ -49,6 +49,8 @@ class HistoricoArticulosController < ApplicationController
   def historico_articulo_params
     params.require(:historico_articulo).permit(:articulo_id, :suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color,
                                                :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable, :aviso_existencia,
-                                               :medida_alerta, :estado, :is_combo, :secuencia, :user_id, :agotado)
+                                               :medida_alerta, :estado, :is_combo, :secuencia, :user_id, :agotado,
+                                               :medida_hijo, :costo_hijo, :precio_hijo, :cantidad_hijo, :referencia_hijo, :medida_padre, :costo_padre,
+                                               :precio_padre, :cantidad_padre, :referencia_padre)
   end
 end

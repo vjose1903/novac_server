@@ -2,16 +2,20 @@
 
 one:
   articulo: one
-  referencia: 1
+  referencia: MyString
   costo: 1.5
   precio: 1.5
   cantidad: 1
   medida: MyString
+  condicion: MyString
+  calcular_itbis: false
 
 two:
   articulo: two
-  referencia: 1
+  referencia: MyString
   costo: 1.5
   precio: 1.5
   cantidad: 1
   medida: MyString
+  condicion: MyString
+  calcular_itbis: false

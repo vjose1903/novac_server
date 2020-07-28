@@ -4,13 +4,15 @@ class Articulo < ApplicationRecord
   belongs_to :modelo
   belongs_to :tipo_articulo
 
+  has_many :contenido_articulos, dependent: :destroy
+
   attribute :marca
   attribute :modelo
   attribute :tipo_articulo
   attribute :suplidor
+  attribute :contenido_articulos
 
-  # accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
-  # accepts_nested_attributes_for :formulas_productos_terminados, :allow_destroy => true
+  accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
 
   validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
 

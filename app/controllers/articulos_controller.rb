@@ -27,8 +27,15 @@ class ArticulosController < ApplicationController
 
     if paginado
       res = articulos_.to_a.my_paginate(page, per_page)
+      puts "res --> #{res[:data]}"
+      res[:data].each do |arti|
+        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+      end
     else
       res = articulos_
+      res.each do |arti|
+        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+      end
     end
 
     render json: res
@@ -60,13 +67,29 @@ class ArticulosController < ApplicationController
         end
       else
         if paginado
-          res = { data: articulos_.to_a.my_paginate(page, per_page), status: 200 }
+          article = articulos_.to_a.my_paginate(page, per_page)
+
+          article[:data].each do |arti|
+            arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+          end
+
+          res = { data: article, status: 200 }
+          # res = { data: articulos_.to_a.my_paginate(page, per_page), status: 200 }
         else
+          articulos_.each do |arti|
+            arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+          end
           res = { data: articulos_, status: 200 }
         end
       end
     else
-      res = @articulos[0].nil? ? { data: { msg: "No existe articulo con el codigo introducido." }, status: :unprocessable_entity } : { data: Articulo.parsearArticulos(@articulos[0]), status: 200 }
+      if @articulos[0].nil?
+        res = { data: { msg: "No existe articulo con el codigo introducido." }, status: :unprocessable_entity }
+      else
+        article = Articulo.parsearArticulos(@articulos[0])
+        article["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: article["id"] })
+        res = { data: article, status: 200 }
+      end
     end
 
     render json: res[:data], status: res[:status] # estructura para devolver info
@@ -75,6 +98,7 @@ class ArticulosController < ApplicationController
   # GET /articulos/1
   def show
     @articulo
+    puts "AQUIII---> #{@articulo}"
     if @articulo["estado"] == false
       @articulo = { "nombre": "Este articulo esta desactivado." }
     end
@@ -92,8 +116,26 @@ class ArticulosController < ApplicationController
       unless @articulo.save
         render json: @articulo.errors, status: :unprocessable_entity
       else
-        set_secuencia
+        set_contenido_referencia
+        # set_secuencia
       end
+    end
+  end
+
+  def set_contenido_referencia
+    if @articulo.contenido_articulos.length <= 1
+      set_secuencia
+      return
+    end
+
+    firstContenido = @articulo.contenido_articulos.first
+
+    lastContenido = @articulo.contenido_articulos.last
+
+    unless lastContenido.update({ referencia: firstContenido.id })
+      render json: lastContenido.errors, status: :unprocessable_entity
+    else
+      set_secuencia
     end
   end
 
@@ -149,7 +191,48 @@ class ArticulosController < ApplicationController
         }
 
         if @articulo.update(newArticulo)
-          render json: @articulo
+          articulo_params["contenido_articulos_attributes"].each do |contenido|
+            content = ContenidoArticulo.find_by_id(contenido["id"])
+            contenidoCompleto = ContenidoArticulo.where({ articulo_id: @articulo["id"] })
+
+            newContenido = {
+              "costo": contenido["costo"],
+              "precio": contenido["precio"],
+              "cantidad": contenido["cantidad"],
+              "medida": contenido["medida"],
+              "condicion": contenido["condicion"],
+              "calcular_itbis": contenido["calcular_itbis"],
+            }
+
+            if contenidoCompleto == [] || contenidoCompleto == nil
+              newContenido["articulo_id"] = @articulo["id"]
+              new_contenido = ContenidoArticulo.new(newContenido)
+              if new_contenido.save
+                unless @articulo.contenido_articulos.length <= 1
+                  firstContenido = @articulo.contenido_articulos.first
+
+                  lastContenido = @articulo.contenido_articulos.last
+
+                  unless lastContenido.update({ referencia: firstContenido.id })
+                    render json: lastContenido.errors, status: :unprocessable_entity
+                  end
+                end
+              else
+                return render json: new_contenido.errors, status: :unprocessable_entity
+              end
+            else
+              unless content.update(newContenido)
+                return render json: { error: content.errors, msg: "Error editando contenido de articulo" }, status: :unprocessable_entity
+              end
+            end
+          end
+
+          @obj = articulo_params
+
+          @obj["id"] = @articulo["id"]
+          @obj["codigo"] = @articulo["codigo"]
+
+          render json: @obj, status: 200
         else
           render json: @articulo.errors, status: :unprocessable_entity
         end
@@ -162,9 +245,9 @@ class ArticulosController < ApplicationController
 
   def deleteArticulo
     if Articulo.delete_articulo(params[:id])
-      render json: { msg: "Articulo borrado" }
+      render json: { msg: "Articulo borrado", status: 200 }
     else
-      render json: { msg: "error borrando articulo." }
+      render json: { msg: "error borrando articulo.", status: :unprocessable_entity }
     end
   end
 
@@ -194,6 +277,22 @@ class ArticulosController < ApplicationController
 
     }
 
+    anterior["contenido_articulos"].each do |contenido|
+      if contenido["referencia"]
+        obj["medida_hijo"] = contenido["medida"]
+        obj["costo_hijo"] = contenido["costo"]
+        obj["precio_hijo"] = contenido["precio"]
+        obj["cantidad_hijo"] = contenido["cantidad"]
+        obj["referencia_hijo"] = contenido["referencia"]
+      else
+        obj["medida_padre"] = contenido["medida"]
+        obj["costo_padre"] = contenido["costo"]
+        obj["precio_padre"] = contenido["precio"]
+        obj["cantidad_padre"] = contenido["cantidad"]
+        obj["referencia_padre"] = contenido["referencia"]
+      end
+    end
+
     numeroDeRegistros = HistoricoArticulo.all.count
     if numeroDeRegistros == 0
       secu = 0
@@ -212,9 +311,9 @@ class ArticulosController < ApplicationController
     historico = HistoricoArticulo.new(obj)
 
     unless historico.save
-      return { error: true, msg: historico.errors }
+      return { error: true, msg: historico.errors, status: :unprocessable_entity }
     else
-      return { error: false, msg: "" }
+      return { error: false, msg: "", status: 200 }
     end
   end
 
@@ -235,6 +334,7 @@ class ArticulosController < ApplicationController
   def articulo_params
     params.require(:articulo).permit(:suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color,
                                      :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable,
-                                     :aviso_existencia, :medida_alerta, :estado, :is_combo, :unico, :agotado, :user_id)
+                                     :aviso_existencia, :medida_alerta, :estado, :is_combo, :unico, :agotado, :user_id,
+                                     contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :condicion, :calcular_itbis])
   end
 end
