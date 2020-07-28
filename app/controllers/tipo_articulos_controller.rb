@@ -6,7 +6,7 @@ class TipoArticulosController < ApplicationController
     @tipo_articulos = TipoArticulo.all
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     res = []
@@ -24,7 +24,7 @@ class TipoArticulosController < ApplicationController
     arg = params["arg"]
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     tipoArticulos = TipoArticulo.filtrarTipoArticulo(arg)

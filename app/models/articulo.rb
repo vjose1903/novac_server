@@ -4,6 +4,11 @@ class Articulo < ApplicationRecord
   belongs_to :modelo
   belongs_to :tipo_articulo
 
+  attribute :marca
+  attribute :modelo
+  attribute :tipo_articulo
+  attribute :suplidor
+
   # accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
   # accepts_nested_attributes_for :formulas_productos_terminados, :allow_destroy => true
 
@@ -12,12 +17,18 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
   def self.filtrarArticulo(arg)
     arg = arg === " " ? "" : arg
-    select_ = "SELECT a.*, m.descripcion as modelo_descripcion, ma.descripcion as marca_descripcion, ta.descripcion as tipo_articulo_descripcion"
+
+    select_ = "SELECT a.*, m.descripcion as modelo_descripcion, ma.descripcion as marca_descripcion, ta.descripcion as tipo_articulo_descripcion,
+              s.nombre as suplidor_nombre, s.telefono as suplidor_telefono, s.direccion as suplidor_direccion, s.email as suplidor_email,
+              doc.descripcion as suplidor_documento_descripcion, doc.documento as suplidor_documento_documento "
+
     from_ = "FROM articulos a"
     joins_ = "inner join modelos m on a.modelo_id = m.id 
               inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
+              inner join suplidores s on a.suplidor_id = s.id
+              left join documentos_de_identidad doc on s.id = doc.suplidor_id
               inner join marcas ma on a.marca_id = ma.id"
-    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion|| ' ' ||a.nombre ) like lower('%#{arg}%') AND estado = true"
+    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion|| ' ' ||a.nombre ) like lower('%#{arg}%') AND a.estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
@@ -32,12 +43,55 @@ class Articulo < ApplicationRecord
       arti["modelo"] = { id: arti["modelo_id"], descripcion: arti["modelo_descripcion"] }
       arti["tipo_articulo"] = { id: arti["tipo_articulo_id"], descripcion: arti["tipo_articulo_descripcion"] }
 
+      arti["suplidor"] = { id: arti["suplidor_id"], nombre: arti["suplidor_nombre"], telefono: arti["suplidor_telefono"],
+                          direccion: arti["suplidor_direccion"], email: arti["suplidor_email"],
+                          documento_de_identidad: {
+        id: arti["suplidor_id"],
+        descripcion: arti["suplidor_documento_descripcion"],
+        documento: arti["suplidor_documento_documento"],
+      } }
+
       arti.delete("marca_descripcion")
       arti.delete("modelo_descripcion")
       arti.delete("tipo_articulo_descripcion")
+
+      arti.delete("suplidor_nombre")
+      arti.delete("suplidor_nombre")
+      arti.delete("suplidor_telefono")
+      arti.delete("suplidor_direccion")
+      arti.delete("suplidor_email")
+      arti.delete("suplidor_documento_descripcion")
+      arti.delete("suplidor_documento_documento")
     end
 
     return articulos
+  end
+
+  # =====================================================================================================================
+
+  def self.parsearArticulos(arti)
+    marca = Marca.find_by_id(arti["marca_id"].to_i)
+    modelo = Modelo.find_by_id(arti["modelo_id"].to_i)
+    tipo_articulo = TipoArticulo.find_by_id(arti["tipo_articulo_id"].to_i)
+
+    suplidor = Suplidor.find_by_id(arti["suplidor_id"].to_i)
+    suplidor_doc = DocumentoDeIdentidad.find_by_suplidor_id(arti["suplidor_id"].to_i)
+
+    arti["marca"] = { id: arti["marca_id"], descripcion: marca["descripcion"] }
+
+    arti["modelo"] = { id: arti["modelo_id"], descripcion: modelo["descripcion"] }
+
+    arti["suplidor"] = { id: arti["suplidor_id"], nombre: suplidor["nombre"], telefono: suplidor["telefono"],
+                        direccion: suplidor["direccion"], email: suplidor["email"],
+                        documento_de_identidad: {
+      id: suplidor_doc["id"],
+      descripcion: suplidor_doc["descripcion"],
+      documento: suplidor_doc["documento"],
+    } }
+
+    arti["tipo_articulo"] = { id: arti["tipo_articulo_id"], descripcion: tipo_articulo["descripcion"] }
+
+    return arti
   end
 
   # =====================================================================================================================
@@ -50,7 +104,7 @@ class Articulo < ApplicationRecord
     if (tipo == "nombre")
       where_ = " WHERE lower(#{tipo}) like lower('#{nombre}%') AND estado = true"
     else
-      where_ = " WHERE #{tipo} like '#{nombre}' AND estado = true"
+      where_ = " WHERE #{tipo} = '#{nombre}' AND estado = true"
     end
 
     query = "#{select_} #{from_} #{where_}"

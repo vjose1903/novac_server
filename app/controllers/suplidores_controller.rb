@@ -38,7 +38,7 @@ class SuplidoresController < ApplicationController
     arg = params["arg"]
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     suplidores = Suplidor.filtrarSuplidores(arg)

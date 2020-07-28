@@ -6,7 +6,7 @@ class MarcasController < ApplicationController
     @marcas = Marca.all
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     if paginado
@@ -22,7 +22,7 @@ class MarcasController < ApplicationController
     arg = params["arg"]
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     marcas = Marca.filtrarMarcas(arg)

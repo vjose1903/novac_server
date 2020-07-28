@@ -4,7 +4,7 @@ class ModelosController < ApplicationController
   # GET /modelos
   def index
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     @modelos = Modelo.all
@@ -36,7 +36,7 @@ class ModelosController < ApplicationController
     arg = params["arg"]
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     modelos = Modelo.filtrarModelo(arg)

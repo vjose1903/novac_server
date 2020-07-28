@@ -16,7 +16,7 @@ class ArticulosController < ApplicationController
     arg = params["arg"]
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     articulos = Articulo.filtrarArticulo(arg)
@@ -38,14 +38,38 @@ class ArticulosController < ApplicationController
     tipo_ = params[:tipo]
     nom_ = params[:nombre]
 
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
     articulos_ = []
+    res = nil
+
     @articulos = Articulo.get_articulo_by_name_o_by_codigo(tipo_, nom_)
 
-    @articulos.each do |art|
-      articulos_.push(art)
+    if tipo_ == "nombre"
+      @articulos.each do |art|
+        articulos_.push(Articulo.parsearArticulos(art))
+      end
+
+      if articulos_.length === 0
+        if paginado
+          res = { data: { msg: "Articulo buscado no existe." }, status: :unprocessable_entity }
+        else
+          res = { data: { msg: "Articulo buscado no existe." }, status: :unprocessable_entity }
+        end
+      else
+        if paginado
+          res = { data: articulos_.to_a.my_paginate(page, per_page), status: 200 }
+        else
+          res = { data: articulos_, status: 200 }
+        end
+      end
+    else
+      res = @articulos[0].nil? ? { data: { msg: "No existe articulo con el codigo introducido." }, status: :unprocessable_entity } : { data: Articulo.parsearArticulos(@articulos[0]), status: 200 }
     end
 
-    render json: articulos_
+    render json: res[:data], status: res[:status] # estructura para devolver info
   end
 
   # GET /articulos/1
@@ -54,7 +78,8 @@ class ArticulosController < ApplicationController
     if @articulo["estado"] == false
       @articulo = { "nombre": "Este articulo esta desactivado." }
     end
-    render json: @articulo
+    res = Articulo.parsearArticulos(@articulo)
+    render json: res
   end
 
   # POST /articulos

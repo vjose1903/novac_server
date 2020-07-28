@@ -8,7 +8,7 @@ class UsersController < ApplicationController
   def getUsers
     @usuarios = []
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     User.get_users.each do |user|
@@ -32,7 +32,7 @@ class UsersController < ApplicationController
     arg = params["arg"]
 
     page = params["page"]
-    per_page = params["per_page"].to_i
+    per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
     usuarios = User.filtrarUsusarios(arg)
