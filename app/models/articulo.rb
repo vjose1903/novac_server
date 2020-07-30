@@ -79,6 +79,8 @@ class Articulo < ApplicationRecord
     suplidor = Suplidor.find_by_id(arti["suplidor_id"].to_i)
     suplidor_doc = DocumentoDeIdentidad.find_by_suplidor_id(arti["suplidor_id"].to_i)
 
+    # contenido = ContenidoArticulo.find_by_articulo_id(arti["id"].to_i)
+
     arti["marca"] = { id: arti["marca_id"], descripcion: marca["descripcion"] }
 
     arti["modelo"] = { id: arti["modelo_id"], descripcion: modelo["descripcion"] }
@@ -92,6 +94,7 @@ class Articulo < ApplicationRecord
     } }
 
     arti["tipo_articulo"] = { id: arti["tipo_articulo_id"], descripcion: tipo_articulo["descripcion"] }
+    # arti["contenido_articulos"] = contenido
 
     return arti
   end

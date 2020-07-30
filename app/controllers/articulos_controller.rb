@@ -27,7 +27,6 @@ class ArticulosController < ApplicationController
 
     if paginado
       res = articulos_.to_a.my_paginate(page, per_page)
-      puts "res --> #{res[:data]}"
       res[:data].each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
       end
@@ -98,7 +97,6 @@ class ArticulosController < ApplicationController
   # GET /articulos/1
   def show
     @articulo
-    puts "AQUIII---> #{@articulo}"
     if @articulo["estado"] == false
       @articulo = { "nombre": "Este articulo esta desactivado." }
     end
@@ -149,7 +147,6 @@ class ArticulosController < ApplicationController
       if seguir[:error] == false
         render json: @articulo, status: :created, location: @articulo
       else
-        puts "error creando historico".red
         return render json: { error: seguir[:msg], msg: "error creando historico" }, status: :unprocessable_entity
       end
     else
@@ -162,7 +159,6 @@ class ArticulosController < ApplicationController
     Articulo.transaction do
       @ant_articulo = @articulo
 
-      puts @ant_articulo.to_json
       if articulo_params["existencia"] == @ant_articulo["existencia"]
         seguir = addHistorico(@ant_articulo)
       else
@@ -193,6 +189,7 @@ class ArticulosController < ApplicationController
         if @articulo.update(newArticulo)
           articulo_params["contenido_articulos_attributes"].each do |contenido|
             content = ContenidoArticulo.find_by_id(contenido["id"])
+
             contenidoCompleto = ContenidoArticulo.where({ articulo_id: @articulo["id"] })
 
             newContenido = {
@@ -237,7 +234,6 @@ class ArticulosController < ApplicationController
           render json: @articulo.errors, status: :unprocessable_entity
         end
       else
-        puts "error creando historico".red
         return render json: { error: seguir[:msg], msg: "error creando historico" }, status: :unprocessable_entity
       end
     end
@@ -253,31 +249,32 @@ class ArticulosController < ApplicationController
 
   def addHistorico(anterior)
     @ant = anterior
+
     obj = {
-      "articulo_id": anterior["id"],
-      "suplidor_id": anterior["suplidor_id"],
-      "marca_id": anterior["marca_id"],
-      "modelo_id": anterior["modelo_id"],
-      "tipo_articulo_id": anterior["tipo_articulo_id"],
-      "identificador": anterior["identificador"],
-      "nombre": anterior["nombre"],
-      "color": anterior["color"],
-      "costo_principal": anterior["costo_principal"],
-      "precio_principal": anterior["precio_principal"],
-      "existencia": anterior["existencia"],
-      "codigo": anterior["codigo"],
-      "medida": anterior["medida"],
-      "is_detallable": anterior["is_detallable"],
-      "aviso_existencia": anterior["aviso_existencia"],
-      "medida_alerta": anterior["medida_alerta"],
-      "agotado": anterior["agotado"],
-      "estado": anterior["estado"],
-      "is_combo": anterior["is_combo"],
+      "articulo_id": @ant["id"],
+      "suplidor_id": @ant["suplidor_id"],
+      "marca_id": @ant["marca_id"],
+      "modelo_id": @ant["modelo_id"],
+      "tipo_articulo_id": @ant["tipo_articulo_id"],
+      "identificador": @ant["identificador"],
+      "nombre": @ant["nombre"],
+      "color": @ant["color"],
+      "costo_principal": @ant["costo_principal"],
+      "precio_principal": @ant["precio_principal"],
+      "existencia": @ant["existencia"],
+      "codigo": @ant["codigo"],
+      "medida": @ant["medida"],
+      "is_detallable": @ant["is_detallable"],
+      "aviso_existencia": @ant["aviso_existencia"],
+      "medida_alerta": @ant["medida_alerta"],
+      "agotado": @ant["agotado"],
+      "estado": @ant["estado"],
+      "is_combo": @ant["is_combo"],
       "user_id": @usuario_id,
 
     }
 
-    anterior["contenido_articulos"].each do |contenido|
+    @ant.contenido_articulos.each do |contenido|
       if contenido["referencia"]
         obj["medida_hijo"] = contenido["medida"]
         obj["costo_hijo"] = contenido["costo"]
@@ -335,6 +332,6 @@ class ArticulosController < ApplicationController
     params.require(:articulo).permit(:suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color,
                                      :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable,
                                      :aviso_existencia, :medida_alerta, :estado, :is_combo, :unico, :agotado, :user_id,
-                                     contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :condicion, :calcular_itbis])
+                                     contenido_articulos_attributes: [:id, :articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :condicion, :calcular_itbis])
   end
 end
