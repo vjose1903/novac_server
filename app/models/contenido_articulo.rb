@@ -1,6 +1,6 @@
 class ContenidoArticulo < ApplicationRecord
   belongs_to :articulo
-  validates :articulo_id, presence: { :message => "Articulo id no esta llegando" }
+  # validates :articulo_id, presence: { :message => "Articulo id no esta llegando" }
   def self.get_condicion_contenido
     return ActiveRecord::Base.connection.exec_query("SELECT id, articulo_id, cantidad, costo, precio,  CASE WHEN referencia IS NULL THEN 'padre' ELSE 'hijo' end as condicion FROM contenido_articulos ORDER BY articulo_id ASC")
   end
