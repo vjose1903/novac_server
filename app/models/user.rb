@@ -18,18 +18,18 @@ class User < ApplicationRecord
   include DeviseTokenAuth::Concerns::User
 
   def self.get_users
-    return ActiveRecord::Base.connection.exec_query("SELECT * FROM users WHERE estado = #{true}")
+    return my_query("SELECT * FROM users WHERE estado = #{true}")
   end
 
   def self.get_vendedores
-    return ActiveRecord::Base.connection.exec_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V'")
+    return my_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V'")
   end
 
   def self.get_vendedor_by_id(id)
-    return ActiveRecord::Base.connection.exec_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V' AND id = #{id}")
+    return my_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V' AND id = #{id}")
   end
 
   def self.get_user_by_id(id)
-    return ActiveRecord::Base.connection.exec_query("SELECT * FROM users WHERE id = #{id}")
+    return my_query("SELECT * FROM users WHERE id = #{id}")
   end
 end

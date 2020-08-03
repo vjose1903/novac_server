@@ -17,7 +17,7 @@ class ImagenesController < ApplicationController
   def create
     att = imagen_params
 
-    att["path"] = Imagen.saveFileInThisServer(att[:fileName], att[:base_64])
+    att["path"] = Imagen.saveFileInThisServer(att[:file_name], att[:base_64])
     @imagen = Imagen.new(att)
 
     if @imagen.save
@@ -50,6 +50,6 @@ class ImagenesController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def imagen_params
-    params.require(:imagen).permit(:fileName, :base_64, :path)
+    params.require(:imagen).permit(:file_name, :base_64, :path)
   end
 end

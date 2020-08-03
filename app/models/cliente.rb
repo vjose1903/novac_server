@@ -43,6 +43,6 @@ class Cliente < ApplicationRecord
     from_ = "FROM clientes"
     where_ = " WHERE lower(nombre) like lower('#{nombre}%') AND estado = true"
     query = "#{select_} #{from_} #{where_}"
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
 end

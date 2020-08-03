@@ -15,10 +15,30 @@ class Articulo < ApplicationRecord
   validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
 
   def self.get_articulos_formateado
-    return ActiveRecord::Base.connection.exec_query("SELECT a.id, a.nombre, ta.descripcion as tipo_articulo, a.costo_principal, a.precio_principal, a.existencia, a.codigo, a.fecha_ingreso, a.medida, a.is_detallable, ca.*, a.created_at, a.updated_at from articulos a INNER JOIN tipo_articulos ta on a.tipo_articulo_id = ta.id INNER JOIN contenido_articulos ca on ca.articulo_id = a.id")
+    return my_query("SELECT a.id, a.nombre, ta.descripcion as tipo_articulo, a.costo_principal, a.precio_principal, a.existencia, a.codigo, a.fecha_ingreso, a.medida, a.is_detallable, ca.*, a.created_at, a.updated_at from articulos a INNER JOIN tipo_articulos ta on a.tipo_articulo_id = ta.id INNER JOIN contenido_articulos ca on ca.articulo_id = a.id")
   end
   # =====================================================================================================================
+  def self.filtrarArticulo(arg)
+    arg = arg === " " ? "" : arg
 
+    select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
+                s.nombre as suplidor_nombre, s.telefono as suplidor_telefono, s.direccion as suplidor_direccion, s.email as suplidor_email,
+                doc.descripcion as suplidor_documento_descripcion, doc.documento as suplidor_documento_documento,
+                img.file_name as file_name, img.base_64 as base_64, img.path as path "
+
+    from_ = "FROM articulos a"
+    joins_ = "inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
+              inner join suplidores s on a.suplidor_id = s.id
+              left join documentos_de_identidad doc on s.id = doc.suplidor_id
+              left join imagenes img on img.id = a.imagen_id"
+    where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || s.nombre || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%') AND a.estado = true"
+    order_ = "ORDER BY a.id ASC"
+
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
+
+    my_query(query)
+  end
+  # =====================================================================================================================
   def self.get_articulo_by_name_o_by_codigo(tipo, nombre)
     select_ = "SELECT id, tipo_articulo_id, nombre, costo_principal, precio_principal, existencia, codigo, fecha_ingreso, medida, is_detallable, created_at, updated_at, imagen_id, aviso_existencia, suplidor_id, medida_alerta, calcular_itbis, estado, is_combo, otros_costos"
     from_ = "FROM articulos a"
@@ -31,12 +51,12 @@ class Articulo < ApplicationRecord
     end
 
     query = "#{select_} #{from_} #{where_}"
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
 
   # =====================================================================================================================
   def self.delete_articulo(id)
-    return ActiveRecord::Base.connection.exec_query("UPDATE articulos SET estado=#{false} WHERE id=#{id}")
+    return my_query("UPDATE articulos SET estado=#{false} WHERE id=#{id}")
   end
 
   # =====================================================================================================================

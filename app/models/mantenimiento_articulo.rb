@@ -5,7 +5,7 @@ class MantenimientoArticulo < ApplicationRecord
   attribute :user
 
   def self.get_historico_by_id_articulo(id)
-    return ActiveRecord::Base.connection.exec_query("SELECT * FROM mantenimiento_articulos WHERE articulo_id = #{id} ORDER BY created_at ASC")
+    return my_query("SELECT * FROM mantenimiento_articulos WHERE articulo_id = #{id} ORDER BY created_at ASC")
   end
 
   def self.get_historico_by_date_menor(date, articulo_id)
@@ -14,7 +14,7 @@ class MantenimientoArticulo < ApplicationRecord
     joins_ = 'inner join tipo_articulos ta on ma."ant_tipoArticuloId"= ta.id'
     where_ = "where ma.created_at <= '#{date}:59' AND ma.articulo_id = #{articulo_id}"
     query = "#{select_} #{from_} #{joins_} #{where_}"
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
 
   # ============================================================================================================================================================
@@ -25,7 +25,7 @@ class MantenimientoArticulo < ApplicationRecord
     joins_ = 'inner join tipo_articulos ta on ma."ant_tipoArticuloId"= ta.id'
     where_ = "where ma.created_at >= '#{date}:00' AND ma.articulo_id = #{articulo_id}"
     query = "#{select_} #{from_} #{joins_} #{where_}"
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
 
   # ============================================================================================================================================================

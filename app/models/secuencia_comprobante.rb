@@ -11,7 +11,7 @@ class SecuenciaComprobante < ApplicationRecord
       where_ = "where estado = #{estado} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
       order_ = "ORDER BY created_at ASC LIMIT 1"
       query = "#{select_} #{from_} #{where_} #{order_}"
-      paquete = ActiveRecord::Base.connection.exec_query(query)[0]
+      paquete = my_query(query)[0]
 
       if paquete == [] || paquete == nil
         existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
@@ -40,7 +40,7 @@ class SecuenciaComprobante < ApplicationRecord
         where_ = "where estado = #{false} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
         order_ = "ORDER BY created_at ASC LIMIT 1"
         newQuery = "#{select_} #{from_} #{where_} #{order_}"
-        nuevoPaquete = ActiveRecord::Base.connection.exec_query(newQuery)[0]
+        nuevoPaquete = my_query(newQuery)[0]
 
         if nuevoPaquete == [] || nuevoPaquete == nil
           puts " -------------- fin get_paquete_rnc_by_estado -------------- "
@@ -68,7 +68,7 @@ class SecuenciaComprobante < ApplicationRecord
     where_ = "where estado = #{false} AND usado != #{true} AND tipo_factura_id = #{tipo_factura_id}"
     order_ = "ORDER BY created_at ASC LIMIT 1"
     newQuery = "#{select_} #{from_} #{where_} #{order_}"
-    nuevoPaquete = ActiveRecord::Base.connection.exec_query(newQuery)[0]
+    nuevoPaquete = my_query(newQuery)[0]
 
     if nuevoPaquete == [] || nuevoPaquete == nil
       puts " -------------- fin get_paquetes_por_activar -------------- "
@@ -128,7 +128,7 @@ class SecuenciaComprobante < ApplicationRecord
     from_ = "from secuencia_comprobantes"
     where_ = "where estado = false AND usado = true AND tipo_factura_id = #{tipo_factura_id}"
     query = "#{select_} #{from_} #{where_}"
-    paquete = ActiveRecord::Base.connection.exec_query(query)[0]
+    paquete = my_query(query)[0]
 
     if paquete == [] || paquete == nil
       puts " -------------- fin ver_si_existen_paquetes_previos -------------- "
@@ -148,7 +148,7 @@ class SecuenciaComprobante < ApplicationRecord
     where_ = "where estado = false AND usado = false AND tipo_factura_id = #{tipo_factura_id}"
     order_ = "ORDER BY created_at ASC LIMIT 1"
     query = "#{select_} #{from_} #{where_} #{order_}"
-    paquete = ActiveRecord::Base.connection.exec_query(query)[0]
+    paquete = my_query(query)[0]
 
     if paquete == [] || paquete == nil
       puts " -------------- fin ver_si_existen_paquetes_posteriores -------------- "
@@ -168,7 +168,7 @@ class SecuenciaComprobante < ApplicationRecord
     where_ = "where tipo_factura_id = #{tipo_factura_id}"
     order_ = "ORDER BY created_at ASC"
     query = "#{select_} #{from_} #{where_} #{order_}"
-    paquetes_registrados = ActiveRecord::Base.connection.exec_query(query)
+    paquetes_registrados = my_query(query)
 
     puts paquetes_registrados
 

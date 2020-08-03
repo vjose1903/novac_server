@@ -39,7 +39,7 @@ class CabeceraFactura < ApplicationRecord
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
   # ===================================================================================================================================================
   def self.get_facturas_by_cliente_id_and_estado(cliente_id, pagada)
@@ -51,7 +51,7 @@ class CabeceraFactura < ApplicationRecord
     inner join users u on ca.user_id = u.id"
     where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta'"
     query = "#{select_} #{from_} #{joins_} #{where_}"
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
   # ===================================================================================================================================================
 
@@ -65,7 +65,7 @@ class CabeceraFactura < ApplicationRecord
     where_ = " WHERE cliente_id=#{cliente_id} and tipo='venta'"
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
-    return ActiveRecord::Base.connection.exec_query(query)
+    return my_query(query)
   end
 
   # ====================================================================================================
@@ -131,7 +131,7 @@ class CabeceraFactura < ApplicationRecord
   # =====================================================================================================================
   def self.anular_factura(id)
     puts "ANTES DE ENTRAR EN LA FUNCION QUE CAMBIA EL ESTADO".yellow
-    peticion = ActiveRecord::Base.connection.exec_query("UPDATE cabecera_facturas SET estado=#{false} WHERE id=#{id}")
+    peticion = my_query("UPDATE cabecera_facturas SET estado=#{false} WHERE id=#{id}")
 
     if peticion
       return true

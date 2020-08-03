@@ -22,5 +22,7 @@ rails g migration AddUnidadToDetalleConduce unidad:string
 rails g migration AddRetiradoEnLaVentaToDetalleFactura retirado_en_venta:integer
 
 rails g migration ChangeIsComboToBeIsComboInArticulos
+
+rails g migration ChangeFileNameToBeFileNameInImagenes
  
 
