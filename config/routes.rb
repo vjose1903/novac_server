@@ -24,6 +24,7 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
 
   # articulos
+  get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados"
   get "articulosF" => "articulos#getArticulosFormateados"
   get "historico/:id" => "contenido_articulos#getCondicionContenidoById"
   get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getAllArticulosByDate"

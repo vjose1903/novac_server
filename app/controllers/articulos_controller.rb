@@ -17,14 +17,94 @@ class ArticulosController < ApplicationController
     tipo_ = params[:tipo]
     nom_ = params[:nombre]
 
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
     articulos_ = []
+    res = nil
+
     @articulos = Articulo.get_articulo_by_name_o_by_codigo(tipo_, nom_)
 
-    @articulos.each do |art|
-      articulos_.push(Articulo.parseal(art))
+    if tipo_ == "nombre"
+      @articulos.each do |art|
+        articulos_.push(Articulo.parseal(art))
+      end
+
+      if articulos_.length === 0
+        if paginado
+          res = { data: { msg: "Articulo buscado no existe." }, status: :unprocessable_entity }
+        else
+          res = { data: { msg: "Articulo buscado no existe." }, status: :unprocessable_entity }
+        end
+      else
+        if paginado
+          article = articulos_.to_a.my_paginate(page, per_page)
+
+          article[:data].each do |arti|
+            arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+            if arti["is_combo"]
+              att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+            end
+          end
+
+          res = { data: article, status: 200 }
+          # res = { data: articulos_.to_a.my_paginate(page, per_page), status: 200 }
+        else
+          articulos_.each do |arti|
+            arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+            if arti["is_combo"]
+              att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+            end
+          end
+          res = { data: articulos_, status: 200 }
+        end
+      end
+    else
+      if @articulos[0].nil?
+        res = { data: { msg: "No existe articulo con el codigo introducido." }, status: :unprocessable_entity }
+      else
+        article = Articulo.parsearArticulos(@articulos[0])
+        article["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: article["id"] })
+        res = { data: article, status: 200 }
+      end
     end
 
-    render json: articulos_
+    render json: res[:data], status: res[:status] # estructura para devolver info
+  end
+
+  def getArticulosFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
+    articulos = Articulo.filtrarArticulo(arg)
+
+    articulos_ = Articulo.parsearArticulosFiltro(articulos)
+
+    res = []
+
+    if paginado
+      res = articulos_.to_a.my_paginate(page, per_page)
+      res[:data].each do |arti|
+        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+        if arti["is_combo"]
+          att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+        end
+      end
+    else
+      res = articulos_
+      res.each do |arti|
+        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+        if arti["is_combo"]
+          att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+        end
+      end
+    end
+
+    render json: res
   end
 
   # GET /articulos/1
@@ -73,7 +153,13 @@ class ArticulosController < ApplicationController
     lastArticulo = @articulo
     @codigoSiguiente = "%05d" % lastArticulo["id"].to_s
     if lastArticulo.update({ codigo: @codigoSiguiente })
-      render json: @articulo, status: :created, location: @articulo
+      seguir = addHistorico(@articulo)
+
+      if seguir[:error] == false
+        render json: @articulo, status: :created, location: @articulo
+      else
+        return render json: { error: seguir[:msg], msg: "error creando historico" }, status: :unprocessable_entity
+      end
     else
       render json: lastArticulo.errors, status: :unprocessable_entity
     end

@@ -20,24 +20,56 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
   def self.filtrarArticulo(arg)
     arg = arg === " " ? "" : arg
+    # inner join suplidores s on a.suplidor_id = s.id
+    # left join documentos_de_identidad doc on s.id = doc.suplidor_id
+    # || ' ' || s.nombre || ' ' || coalesce(doc.documento, '')
 
     select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
-                s.nombre as suplidor_nombre, s.telefono as suplidor_telefono, s.direccion as suplidor_direccion, s.email as suplidor_email,
-                doc.descripcion as suplidor_documento_descripcion, doc.documento as suplidor_documento_documento,
                 img.file_name as file_name, img.base_64 as base_64, img.path as path "
 
     from_ = "FROM articulos a"
     joins_ = "inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
-              inner join suplidores s on a.suplidor_id = s.id
-              left join documentos_de_identidad doc on s.id = doc.suplidor_id
               left join imagenes img on img.id = a.imagen_id"
-    where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || s.nombre || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%') AND a.estado = true"
+    where_ = "where  lower(ta.descripcion || ' ' || a.nombre ) like lower('%#{arg}%') AND a.estado = true"
     order_ = "ORDER BY a.id ASC"
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
     my_query(query)
   end
+
+  # =====================================================================================================================
+  def self.parsearArticulosFiltro(articulos)
+    articulos.each do |arti|
+      arti["descripcion"] = arti["tipo_articulo_descripcion"]
+
+      arti["imagen"] = { file_name: arti["file_name"], base_64: arti["base_64"], path: arti["path"] }
+
+      # arti["suplidor"] = { id: arti["suplidor_id"], nombre: arti["suplidor_nombre"], telefono: arti["suplidor_telefono"],
+      #                     direccion: arti["suplidor_direccion"], email: arti["suplidor_email"],
+      #                     documento_de_identidad: {
+      #   id: arti["suplidor_id"],
+      #   descripcion: arti["suplidor_documento_descripcion"],
+      #   documento: arti["suplidor_documento_documento"],
+      # } }
+
+      arti.delete("tipo_articulo_descripcion")
+      arti.delete("path")
+      arti.delete("base_64")
+      arti.delete("file_name")
+
+      # arti.delete("suplidor_nombre")
+      # arti.delete("suplidor_nombre")
+      # arti.delete("suplidor_telefono")
+      # arti.delete("suplidor_direccion")
+      # arti.delete("suplidor_email")
+      # arti.delete("suplidor_documento_descripcion")
+      # arti.delete("suplidor_documento_documento")
+    end
+
+    return articulos
+  end
+
   # =====================================================================================================================
   def self.get_articulo_by_name_o_by_codigo(tipo, nombre)
     select_ = "SELECT id, tipo_articulo_id, nombre, costo_principal, precio_principal, existencia, codigo, fecha_ingreso, medida, is_detallable, created_at, updated_at, imagen_id, aviso_existencia, suplidor_id, medida_alerta, calcular_itbis, estado, is_combo, otros_costos"
@@ -87,21 +119,8 @@ class Articulo < ApplicationRecord
     rescue
       att = objeto
     end
-
-    puts "objeto ==> ".red, att
-
     tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
-
-    contenido = ContenidoArticulo.where({ articulo_id: objeto["id"] })
-    formula = FormulasProductosTerminado.where({ articulo_id: objeto["id"] })
-
     att["descripcion"] = tipoArt["descripcion"]
-    att["contenido_articulos"] = contenido
-    att["contenido"] = calcularContenidos(contenido, objeto)
-    att["cantidades"] = calcularCantidades(contenido, objeto)
-    if att["is_combo"]
-      att["formulas_productos_terminados"] = formula
-    end
     return att
   end
   # =====================================================================================================================
