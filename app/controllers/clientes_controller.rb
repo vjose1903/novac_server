@@ -52,6 +52,8 @@ class ClientesController < ApplicationController
 
     clientes = Cliente.filtrarCliente(arg)
 
+    puts "#{clientes.to_json}".blue
+
     res = []
 
     if paginado

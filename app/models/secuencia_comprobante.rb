@@ -59,6 +59,26 @@ class SecuenciaComprobante < ApplicationRecord
   end
 
   # ============================================================================================================================================================
+
+  def self.filtrar_ncf(arg)
+    puts " -------------- Inicio filtrar_ncf -------------- "
+    puts "######## #{arg}".blue
+
+    arg = arg === " " ? "" : arg
+
+    select_ = "SELECT sc.*"
+    from_ = "FROM secuencia_comprobantes sc"
+    joins_ = "inner join tipo_facturas tf on sc.tipo_factura_id = tf.id"
+    where_ = "where lower(tf.descripcion  || ' ' || desde || ' ' || hasta) like lower('%#{arg}%')"
+    order_ = "ORDER BY sc.id ASC"
+
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
+
+    puts " -------------- fin filtrar_ncf -------------- "
+    my_query(query)
+  end
+
+  # ============================================================================================================================================================
   def self.get_paquetes_por_activar(tipo_factura_id)
     puts " -------------- Inicio get_paquetes_por_activar -------------- "
     tipoFac = TipoFactura.find_by_id(tipo_factura_id)

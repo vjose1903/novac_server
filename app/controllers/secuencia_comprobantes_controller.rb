@@ -8,6 +8,33 @@ class SecuenciaComprobantesController < ApplicationController
     render json: @secuencia_comprobantes
   end
 
+  def getSecuenciaComprobantesFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
+    puts "page --> #{page}"
+    puts "per_page --> #{per_page}"
+    puts "paginado --> #{paginado}"
+    puts "arg --> #{arg}"
+
+    ncf_ = SecuenciaComprobante.filtrar_ncf(arg)
+
+    puts "ncf_ --> #{ncf_.to_json}"
+
+    res = []
+
+    if paginado
+      res = ncf_.to_a.my_paginate(page, per_page)
+    else
+      res = ncf_
+    end
+
+    render json: res
+  end
+
   # GET /secuencia_comprobantes/1
   def show
     render json: @secuencia_comprobante

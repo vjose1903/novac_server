@@ -41,6 +41,7 @@ Rails.application.routes.draw do
 
   # secuencia comprobantes
   get "paqueteNCF/:id/:estado" => "secuencia_comprobantes#getPaqueteRncByEstado"
+  get "secuencia_comprobantes/filtro/:arg" => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
 
   # clientes
   get "clientes/filtro/:arg" => "clientes#getClientesFiltrados"
