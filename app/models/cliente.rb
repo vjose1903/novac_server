@@ -13,14 +13,29 @@ class Cliente < ApplicationRecord
 
   def self.filtrarCliente(arg)
     arg = arg === " " ? "" : arg
-    select_ = "SELECT c.*"
+    select_ = "SELECT c.* , v.nombre as vendedor_nombre, v.apellido as vendedor_apellido"
     from_ = "FROM clientes c"
-    where_ = "where lower(c.nombre || ' ' || c.apellido ) like lower('%#{arg}%') AND estado = true"
+    joins_ = "inner join users v on c.vendedor_id = v.id"
+    where_ = "where lower(c.nombre || ' ' || c.apellido ) like lower('%#{arg}%') AND c.estado = true"
     order_ = "ORDER BY c.id ASC"
 
-    query = "#{select_} #{from_} #{where_} #{order_}"
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
     my_query(query)
+  end
+  #   ==============================================================================================================
+
+  def self.parsearClientes(clientes)
+    clientes.each do |cliente|
+      cliente["nombre"] = cliente["nombre"].capitalize
+      cliente["apellido"] = cliente["apellido"].capitalize
+      cliente["vendedor"] = { nombre: "#{cliente["vendedor_nombre"].capitalize} #{cliente["vendedor_apellido"].capitalize}", id: cliente["vendedor_id"] }
+
+      cliente.delete("vendedor_nombre")
+      cliente.delete("vendedor_apellido")
+    end
+
+    return clientes
   end
   # =========================================================================================================================================================
 

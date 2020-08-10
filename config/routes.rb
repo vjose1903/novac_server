@@ -34,10 +34,10 @@ Rails.application.routes.draw do
   get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
 
   # suplidores
-  get "nombreSuplidores" => "suplidores#getNombresSuplidores"
 
   # suplidores
-  get "clientes/nombre/:nombre" => "clientes#getClientesByName"
+  get "nombreSuplidores" => "suplidores#getNombresSuplidores"
+  get "suplidores/filtro/:arg" => "suplidores#getSuplidoresFiltrados"
 
   # secuencia comprobantes
   get "paqueteNCF/:id/:estado" => "secuencia_comprobantes#getPaqueteRncByEstado"
@@ -45,6 +45,7 @@ Rails.application.routes.draw do
 
   # clientes
   get "clientes/filtro/:arg" => "clientes#getClientesFiltrados"
+  get "clientes/nombre/:nombre" => "clientes#getClientesByName"
 
   # usuarios
   get "users" => "users#getUsers"

@@ -40,30 +40,33 @@ class SuplidoresController < ApplicationController
     render json: @nombresSuplidores
   end
 
-  # def getUsers
-  #   @usuarios = []
-  #   User.get_users.each do |user|
-  #     @usuarios.push(parsealUser(user))
-  #   end
-  #   render json: @usuarios
-  # end
+  def getSuplidoresFiltrados
+    arg = params["arg"]
 
-  # def getVendedores
-  #   @usuarios = []
-  #   User.get_vendedores.each do |user|
-  #     @usuarios.push(parsealUser(user))
-  #   end
-  #   render json: @usuarios
-  # end
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
 
-  # def getUserById
-  #   usuario = User.get_user_by_id(params[:id])
-  #   user = parsealUser(usuario[0])
-  #   if user["estado"] == false
-  #     user = { "nombre": "Este usuario esta desactivado." }
-  #   end
-  #   render json: user
-  # end
+    suplidores_ = Suplidor.filtrarSuplidores(arg)
+
+    suplidores = Suplidor.parsearSuplidores(suplidores_)
+
+    res = []
+
+    if paginado
+      res = suplidores.to_a.my_paginate(page, per_page)
+
+      res[:data].each do |suplidor|
+        suplidor["documentos_de_identidad"] = DocumentoDeIdentidad.where({ suplidor_id: suplidor["id"] })
+      end
+    else
+      res = suplidores.each do |suplidor|
+        arti["documentos_de_identidad"] = DocumentoDeIdentidad.where({ suplidor_id: suplidor["id"] })
+      end
+    end
+
+    render json: res
+  end
 
   def parsealUser(objeto)
     docs = []

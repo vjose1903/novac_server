@@ -50,7 +50,9 @@ class ClientesController < ApplicationController
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
-    clientes = Cliente.filtrarCliente(arg)
+    clientes_ = Cliente.filtrarCliente(arg)
+
+    clientes = Cliente.parsearClientes(clientes_)
 
     puts "#{clientes.to_json}".blue
 
