@@ -32,4 +32,28 @@ class User < ApplicationRecord
   def self.get_user_by_id(id)
     return my_query("SELECT * FROM users WHERE id = #{id}")
   end
+  # =====================================================================================================================
+
+  def self.filtrarUsusarios(arg)
+    arg = arg === " " ? "" : arg
+
+    select_ = "SELECT u.id, u.uid, u.sign_in_count, u.nombre, u.usuario, u.apellido, u.sexo, u.telefono, u.email, u.fecha_nacimiento, u.role, u.created_at, u.updated_at, u.estado"
+    from_ = "FROM users u "
+    where_ = "where lower(u.nombre || ' ' || u.apellido ) like lower('%#{arg}%') AND estado = true AND role != 'V'"
+
+    query = "#{select_} #{from_} #{where_}"
+
+    my_query(query)
+  end
+
+  # =====================================================================================================================
+
+  def self.parsearUsuariosFiltro(usuarios)
+    usuarios.each do |user|
+      user["nombre"] = user["nombre"].capitalize
+      user["apellido"] = user["apellido"].capitalize
+    end
+
+    return usuarios
+  end
 end

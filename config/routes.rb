@@ -34,8 +34,6 @@ Rails.application.routes.draw do
   get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
 
   # suplidores
-
-  # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"
   get "suplidores/filtro/:arg" => "suplidores#getSuplidoresFiltrados"
 
@@ -51,6 +49,7 @@ Rails.application.routes.draw do
   get "users" => "users#getUsers"
   get "users/vendedores" => "users#getVendedores"
   get "users/:id" => "users#getUserById"
+  get "users/filtro/:arg" => "users#getUsuariosFiltrados"
 
   # cabecera facturas
   get "cabecera_facturas/cliente/:id/pagada/:pagada" => "cabecera_facturas#getFacturasByClienteIdAndEstado"

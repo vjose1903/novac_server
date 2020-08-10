@@ -30,6 +30,34 @@ class UsersController < ApplicationController
     render json: user
   end
 
+  def getUsuariosFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
+    usuarios = User.filtrarUsusarios(arg)
+
+    usuarios_ = User.parsearUsuariosFiltro(usuarios)
+
+    res = []
+
+    if paginado
+      res = usuarios_.to_a.my_paginate(page, per_page)
+
+      res[:data].each do |user|
+        user["documentos_de_identidad"] = DocumentoDeIdentidad.where({ user_id: user["id"] })
+      end
+    else
+      res = usuarios_.each do |user|
+        user["documentos_de_identidad"] = DocumentoDeIdentidad.where({ user_id: user["id"] })
+      end
+    end
+
+    render json: res
+  end
+
   def parsealUser(objeto)
     docs = []
     object = {}

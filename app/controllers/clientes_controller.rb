@@ -54,8 +54,6 @@ class ClientesController < ApplicationController
 
     clientes = Cliente.parsearClientes(clientes_)
 
-    puts "#{clientes.to_json}".blue
-
     res = []
 
     if paginado
