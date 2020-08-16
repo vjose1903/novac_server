@@ -91,7 +91,7 @@ class ArticulosController < ApplicationController
       res[:data].each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
         if arti["is_combo"]
-          att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
         end
       end
     else
@@ -99,7 +99,7 @@ class ArticulosController < ApplicationController
       res.each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
         if arti["is_combo"]
-          att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
         end
       end
     end
