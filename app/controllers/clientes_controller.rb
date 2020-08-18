@@ -67,7 +67,7 @@ class ClientesController < ApplicationController
         arti["documentos_de_identidad"] = DocumentoDeIdentidad.where({ cliente_id: cliente["id"] })
       end
     end
-
+    puts "#{res.to_json}".green
     render json: res
   end
 
