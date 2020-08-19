@@ -30,6 +30,7 @@ class User < ApplicationRecord
   def self.get_user_by_id(id)
     return my_query("SELECT * FROM users WHERE id = #{id}")
   end
+<<<<<<< HEAD
 
   def self.filtrarUsusarios(arg)
     arg = arg === " " ? "" : arg
@@ -39,6 +40,18 @@ class User < ApplicationRecord
     where_ = "where lower(u.nombre || ' ' || u.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%') AND estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
+=======
+  # =====================================================================================================================
+
+  def self.filtrarUsusarios(arg)
+    arg = arg === " " ? "" : arg
+
+    select_ = "SELECT u.id, u.uid, u.sign_in_count, u.nombre, u.usuario, u.apellido, u.sexo, u.telefono, u.email, u.fecha_nacimiento, u.role, u.created_at, u.updated_at, u.estado"
+    from_ = "FROM users u "
+    where_ = "where lower(u.nombre || ' ' || u.apellido ) like lower('%#{arg}%') AND estado = true AND role != 'V'"
+
+    query = "#{select_} #{from_} #{where_}"
+>>>>>>> prueba
 
     my_query(query)
   end
@@ -47,6 +60,7 @@ class User < ApplicationRecord
 
   def self.parsearUsuariosFiltro(usuarios)
     usuarios.each do |user|
+<<<<<<< HEAD
       if user["doc_id"]
         user["documento_de_identidad"] = { id: user["doc_id"], descripcion: user["doc_descripcion"], documento: user["doc_documento"], user_id: user["id"] }
       else
@@ -55,6 +69,10 @@ class User < ApplicationRecord
       user.delete("doc_descripcion")
       user.delete("doc_id")
       user.delete("doc_documento")
+=======
+      user["nombre"] = user["nombre"].capitalize
+      user["apellido"] = user["apellido"].capitalize
+>>>>>>> prueba
     end
 
     return usuarios

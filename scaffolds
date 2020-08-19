@@ -35,4 +35,10 @@ rails g scaffold cabecera_conduce user:references cliente:references numero_cond
 rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer unidad:string
 rails g scaffold imagen user:references oferta:references agencia:references descripcion:string fileName:string base_64:string path:string
 
+<<<<<<< HEAD
+=======
+rails g migration ChangeIsComboToBeIsComboInArticulos
+
+rails g migration ChangeFileNameToBeFileNameInImagenes
+>>>>>>> prueba
  
