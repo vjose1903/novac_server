@@ -23,14 +23,7 @@ class TrabajosController < ApplicationController
 
     works = Trabajo.filtrarTrabajo(arg)
 
-    works = User.filtrarUsusarios(arg)
-    works.each do |trabajo_|
-      if trabajo_["estado"]
-        works.push(trabajo_)
-      end
-    end
-
-    trabajos_ = Trabajo.parsearTrabajosFiltro(trabajos)
+    trabajos_ = Trabajo.parsearTrabajosFiltro(works)
 
     res = []
 
