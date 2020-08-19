@@ -26,6 +26,7 @@ rails g migration AddCamposToTrabajo empezado:boolean terminado:boolean estado:b
 
 rails g scaffold contenido_articulo articulo:references referencia:string costo:float precio:float cantidad:integer medida:string condicion:string calcular_itbis:boolean
 rails g migration AddCamposToHistoricoArticulo medida_hijo:string costo_hijo:float precio_hijo:float cantidad_hijo:integer referencia_hijo:integer medida_padre:string costo_padre:float precio_padre:float cantidad_padre:integer referencia_padre:integer
+rails g migration AddFechaCanceladoToTrabajo fecha_cancelado:datetime
 
 
 
