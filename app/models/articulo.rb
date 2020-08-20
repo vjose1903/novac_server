@@ -41,30 +41,18 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
   def self.parsearArticulosFiltro(articulos)
     articulos.each do |arti|
+      arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
       arti["descripcion"] = arti["tipo_articulo_descripcion"]
 
       arti["imagen"] = { file_name: arti["file_name"], base_64: arti["base_64"], path: arti["path"] }
 
-      # arti["suplidor"] = { id: arti["suplidor_id"], nombre: arti["suplidor_nombre"], telefono: arti["suplidor_telefono"],
-      #                     direccion: arti["suplidor_direccion"], email: arti["suplidor_email"],
-      #                     documento_de_identidad: {
-      #   id: arti["suplidor_id"],
-      #   descripcion: arti["suplidor_documento_descripcion"],
-      #   documento: arti["suplidor_documento_documento"],
-      # } }
+      arti["contenido"] = calcularContenidosHistorico(arti["contenido_articulos"], arti)
+      arti["cantidades"] = calcularCantidadesHistorico(arti["contenido_articulos"], arti)
 
       arti.delete("tipo_articulo_descripcion")
       arti.delete("path")
       arti.delete("base_64")
       arti.delete("file_name")
-
-      # arti.delete("suplidor_nombre")
-      # arti.delete("suplidor_nombre")
-      # arti.delete("suplidor_telefono")
-      # arti.delete("suplidor_direccion")
-      # arti.delete("suplidor_email")
-      # arti.delete("suplidor_documento_descripcion")
-      # arti.delete("suplidor_documento_documento")
     end
 
     return articulos

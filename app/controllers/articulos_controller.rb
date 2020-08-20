@@ -89,7 +89,6 @@ class ArticulosController < ApplicationController
     if paginado
       res = articulos_.to_a.my_paginate(page, per_page)
       res[:data].each do |arti|
-        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
         if arti["is_combo"]
           arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
         end
@@ -97,7 +96,6 @@ class ArticulosController < ApplicationController
     else
       res = articulos_
       res.each do |arti|
-        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
         if arti["is_combo"]
           arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
         end
