@@ -8,6 +8,13 @@ def my_query(query)
   return ActiveRecord::Base.connection.exec_query(query)
 end
 
+class String
+  def numeric?
+    return true if self =~ /\A\d+\Z/
+    true if Float(self) rescue false
+  end
+end
+
 class Array
   def my_paginate(page, per_page)
     itemsTem = []
