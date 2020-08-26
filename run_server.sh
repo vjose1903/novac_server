@@ -1,4 +1,4 @@
-OPTIONS="rcms"
+OPTIONS="rcmsp"
 while getopts $OPTIONS opt; do
     echo "opciones => ${opt}"
     case "${opt}" in
@@ -17,6 +17,10 @@ while getopts $OPTIONS opt; do
         ;;
     s)
         echo "la opcion -s"
+        rails s -b 0.0.0.0
+        ;;
+    p)
+        echo "la opcion -p"
         rails s -b 0.0.0.0 -e production
         ;;
     *)
