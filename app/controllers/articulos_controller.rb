@@ -117,9 +117,7 @@ class ArticulosController < ApplicationController
   # POST /articulos
   def create
     Articulo.transaction do
-      puts "=====".red * 25
-      puts :json => articulo_params
-      puts "=====".red * 25
+      @usuario_id = params["user_id"]
       @articulo = Articulo.new(articulo_params)
 
       unless @articulo.save
@@ -141,6 +139,7 @@ class ArticulosController < ApplicationController
     lastContenido = @articulo.contenido_articulos.last
 
     unless lastContenido.update({ referencia: firstContenido.id })
+      @articulo.destroy
       render json: lastContenido.errors, status: :unprocessable_entity
     else
       set_secuencia
@@ -156,16 +155,17 @@ class ArticulosController < ApplicationController
       if seguir[:error] == false
         render json: @articulo, status: :created, location: @articulo
       else
+        @articulo.destroy
         return render json: { error: seguir[:msg], msg: "error creando historico" }, status: :unprocessable_entity
       end
     else
+      @articulo.destroy
       render json: lastArticulo.errors, status: :unprocessable_entity
     end
   end
 
   # PATCH/PUT /articulos/1
   def update
-    puts "EDITANDO".red
     Articulo.transaction do
       @ant_articulo = Articulo.parseal(@articulo)
       if articulo_params["existencia"] == @ant_articulo["existencia"]
@@ -173,9 +173,6 @@ class ArticulosController < ApplicationController
       else
         seguir = true
       end
-      puts "////////".red * 20
-      puts seguir
-      puts "////////".red * 20
       if seguir == true
         newArticulo = {
           "tipo_articulo_id": articulo_params["tipo_articulo_id"],
@@ -251,9 +248,6 @@ class ArticulosController < ApplicationController
               if form == nil
                 new_formula = FormulasProductosTerminado.new(formulaObj)
 
-                puts "-----".red * 20
-                puts new_formula.to_json
-                puts "-----".red * 20
                 FormulasProductosTerminado.transaction do
                   unless new_formula.save
                     seguirFormula = false
@@ -282,7 +276,6 @@ class ArticulosController < ApplicationController
           return render json: @articulo.errors, status: 400
         end
       else
-        puts "error creando historico".red
         1
         return render json: { error: @articulo.errors, msg: "error creando historico" }, status: 400
       end
@@ -290,95 +283,88 @@ class ArticulosController < ApplicationController
   end
 
   def addHistorico(anterior)
-    @ant = anterior
-    obj = { "articulo_id": anterior["id"],
-           "user_id": @usuario_id,
-           "ant_nombre": anterior["nombre"],
-           "ant_tipoArticuloId": anterior["tipo_articulo_id"],
-           "ant_tipoArticulo": anterior["descripcion"],
-           "ant_suplidor": anterior["suplidor_id"],
-           "ant_medida": anterior["medida"],
-           "ant_medidaAlerta": anterior["medida_alerta"],
-           "ant_costoP": anterior["costo_principal"],
-           "ant_precioP": anterior["precio_principal"],
-           "ant_alertaExistencia": anterior["aviso_existencia"],
-           "ant_isDetallable": anterior["is_detallable"],
-           "ant_calcularItbis": anterior["calcular_itbis"],
-           "ant_isCombo": anterior["is_combo"] }
-    #  "ant_otrosCostos": anterior["otros_costos"]
+    Articulo.transaction do
+      @ant = anterior
+      obj = { "articulo_id": anterior["id"],
+             "user_id": @usuario_id,
+             "ant_nombre": anterior["nombre"],
+             "ant_tipoArticuloId": anterior["tipo_articulo_id"],
+             "ant_tipoArticulo": anterior["descripcion"],
+             "ant_suplidor": anterior["suplidor_id"],
+             "ant_medida": anterior["medida"],
+             "ant_medidaAlerta": anterior["medida_alerta"],
+             "ant_costoP": anterior["costo_principal"],
+             "ant_precioP": anterior["precio_principal"],
+             "ant_alertaExistencia": anterior["aviso_existencia"],
+             "ant_isDetallable": anterior["is_detallable"],
+             "ant_calcularItbis": anterior["calcular_itbis"],
+             "ant_isCombo": anterior["is_combo"],
+             "ant_otrosCostos": anterior["otros_costos"] }
 
-    anterior["contenido_articulos"].each do |contenido|
-      if contenido["referencia"]
-        obj["ant_medidaHijo"] = contenido["medida"]
-        obj["ant_costoHijo"] = contenido["costo"]
-        obj["ant_precioHijo"] = contenido["precio"]
-        obj["ant_cantidadHijo"] = contenido["cantidad"]
-        obj["ant_idHijo"] = contenido["id"]
-        obj["ant_referenciaHijo"] = contenido["referencia"]
-      else
-        obj["ant_medidaPadre"] = contenido["medida"]
-        obj["ant_costoPadre"] = contenido["costo"]
-        obj["ant_precioPadre"] = contenido["precio"]
-        obj["ant_cantidadPadre"] = contenido["cantidad"]
-        obj["ant_idPadre"] = contenido["id"]
-        obj["ant_referenciaPadre"] = contenido["referencia"]
-      end
-    end
-
-    numeroDeRegistros = MantenimientoArticulo.all.count
-    if numeroDeRegistros == 0
-      secu = 0
-    else
-      lastmantenimiento = MantenimientoArticulo.last
-      secu = lastmantenimiento["id"]
-    end
-
-    if secu == nil
-      secu = 0
-    end
-
-    @secue = secu + 1
-    obj["secuencia"] = @secue
-
-    historico = MantenimientoArticulo.new(obj)
-
-    unless historico.save
-      return false
-    else
-      res = true
-
-      if @ant["is_combo"]
-        puts "======".green * 20
-        puts :json => historico
-        puts "======".green * 20
-        puts ""
-        puts ""
-        puts ""
-
-        @ant["formulas_productos_terminados"].each do |form|
-          formulaObj = {
-            "articulo_id": form["articulo_id"],
-            "articulo_combo": form["articulo_combo"],
-            "cantidad": form["cantidad"],
-            "costo": form["costo"],
-            "precio": form["precio"],
-            "secuencia": @secue,
-          }
-
-          historicoF = MantenimientoFormula.new(formulaObj)
-
-          if historicoF.save
-          else
-            puts historicoF.errors
-            res = false
-          end
+      anterior["contenido_articulos"].to_a.each do |contenido|
+        if contenido["referencia"]
+          obj["ant_medidaHijo"] = contenido["medida"]
+          obj["ant_costoHijo"] = contenido["costo"]
+          obj["ant_precioHijo"] = contenido["precio"]
+          obj["ant_cantidadHijo"] = contenido["cantidad"]
+          obj["ant_idHijo"] = contenido["id"]
+          obj["ant_referenciaHijo"] = contenido["referencia"]
+        else
+          obj["ant_medidaPadre"] = contenido["medida"]
+          obj["ant_costoPadre"] = contenido["costo"]
+          obj["ant_precioPadre"] = contenido["precio"]
+          obj["ant_cantidadPadre"] = contenido["cantidad"]
+          obj["ant_idPadre"] = contenido["id"]
+          obj["ant_referenciaPadre"] = contenido["referencia"]
         end
       end
 
-      if res == true
-        return true
+      numeroDeRegistros = MantenimientoArticulo.all.count
+      if numeroDeRegistros == 0
+        secu = 0
       else
-        return false
+        lastmantenimiento = MantenimientoArticulo.last
+        secu = lastmantenimiento["id"]
+      end
+
+      if secu == nil
+        secu = 0
+      end
+
+      @secue = secu + 1
+      obj["secuencia"] = @secue
+
+      historico = MantenimientoArticulo.new(obj)
+
+      unless historico.save
+        return { error: true, msg: historico.errors, status: :unprocessable_entity }
+      else
+        res = false
+
+        if @ant["is_combo"]
+          @ant["formulas_productos_terminados"].each do |form|
+            formulaObj = {
+              "articulo_id": form["articulo_id"],
+              "articulo_combo": form["articulo_combo"],
+              "cantidad": form["cantidad"],
+              "costo": form["costo"],
+              "precio": form["precio"],
+              "secuencia": @secue,
+            }
+
+            @historicoF = MantenimientoFormula.new(formulaObj)
+
+            unless @historicoF.save
+              res = true
+            end
+          end
+        end
+
+        if res == true
+          return { error: true, msg: @historicoF.errors, status: :unprocessable_entity }
+        else
+          return { error: false, msg: "", status: 200 }
+        end
       end
     end
   end
@@ -401,6 +387,7 @@ class ArticulosController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_articulo
     @usuario_id = params["user_id"]
+
     @articulo = Articulo.find(params[:id])
   end
 
@@ -409,7 +396,7 @@ class ArticulosController < ApplicationController
     params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable, :suplidor_id,
                                      :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos,
                                      imagen_attributes: [:file_name, :base_64, :path],
-                                     contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis],
+                                     contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis, :secuencia],
                                      formulas_productos_terminados_attributes: [:articulo_id, :cantidad, :costo, :_destroy, :articulo_combo, :id, :precio])
   end
 end

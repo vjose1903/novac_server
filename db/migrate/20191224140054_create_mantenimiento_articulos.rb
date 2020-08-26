@@ -30,6 +30,9 @@ class CreateMantenimientoArticulos < ActiveRecord::Migration[5.2]
       t.boolean :ant_isCombo
       t.boolean :ant_calcularItbis
 
+      t.float :ant_otrosCostos
+      t.integer :secuencia
+
       t.timestamps
     end
   end

@@ -235,6 +235,8 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.integer "ant_tipoArticuloId"
     t.boolean "ant_isCombo"
     t.boolean "ant_calcularItbis"
+    t.float "ant_otrosCostos"
+    t.integer "secuencia"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["articulo_id"], name: "index_mantenimiento_articulos_on_articulo_id"
