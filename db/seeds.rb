@@ -7,22 +7,42 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 user = User.create(
-  {
-    "nombre": "Mari",
-    "usuario": "ADM",
-    "apellido": "Santos",
-    "sexo": "f",
-    "telefono": "(829)292-8772",
-    "email": "mari_santos0515@hotmail.com",
-    "fecha_nacimiento": "1968-17-10",
-    "role": "A",
-    "password": "1234567",
-    "password_confirmation": "1234567",
-    "estado": true,
-  }
+  [
+    {
+      "nombre": "Mari",
+      "usuario": "ADM",
+      "apellido": "Santos",
+      "sexo": "f",
+      "telefono": "(829)292-8772",
+      "email": "mari_santos0515@hotmail.com",
+      "fecha_nacimiento": "1968-17-10",
+      "role": "A",
+      "password": "1234567",
+      "password_confirmation": "1234567",
+      "estado": true,
+      "imagen_id": nil,
+    },
+    # borrar -----------------------------------------
+    {
+      "nombre": "Alberto",
+      "usuario": "alberto",
+      "apellido": "santos",
+      "sexo": "m",
+      "telefono": "(131) 351-5131",
+      "email": "alberto@hotmail.com",
+      "fecha_nacimiento": "1990-02-02T04:00:00.000Z",
+      "password": "1234567",
+      "password_confirmation": "1234567",
+      "role": "V",
+      "imagen_id": nil,
+      "estado": true,
+    },
+  # ------------------------------------------------
+  ]
 )
 
-cliente = Cliente.create(
+cliente = Cliente.create([
+
   {
     "imagen_id": nil,
     "nombre": "Cliente contado",
@@ -31,9 +51,31 @@ cliente = Cliente.create(
     "direccion": "Autopista duarte KM 0 el Higuero",
     "sexo": nil,
     "limite_credito": nil,
+  },
+  {
+    "imagen_id": nil,
+    "nombre": "Juan",
+    "apellido": "Perez",
+    "telefono": "(131) 351-5134",
+    "direccion": "Por ahi en las carolinas",
+    "sexo": "m",
+    "limite_credito": 200000,
+    "estado": true,
+  },
+])
+
+# "vendedor_id": 2,
+# borrar -----------------------------------------
+suplidor = Suplidor.create(
+  {
+    "nombre": "animal Farm",
+    "telefono": "(834) 614-5613",
+    "direccion": "Por ahi en santo domingo",
+    "email": "animal@hotmail.com",
+    "estado": true,
   }
 )
-
+# ------------------------------------------------
 documento_de_identidad = DocumentoDeIdentidad.create(
   [
     {
@@ -43,13 +85,31 @@ documento_de_identidad = DocumentoDeIdentidad.create(
       "principal": "true",
     },
     {
-      "user_id": nil,
       "descripcion": "cedula",
       "documento": " ",
       "principal": true,
       "cliente_id": 1,
-      "suplidor_id": nil,
     },
+    # borrar -----------------------------------------
+    {
+      "user_id": 2,
+      "descripcion": "cedula",
+      "documento": "531-3138481-3",
+      "principal": true,
+    },
+    {
+      "cliente_id": 2,
+      "descripcion": "cedula",
+      "documento": "531-3138481-2",
+      "principal": true,
+    },
+    {
+      "descripcion": "rnc",
+      "suplidor_id": 1,
+      "documento": "047-65135-1",
+      "principal": true,
+    },
+  # ------------------------------------------------
   ]
 )
 

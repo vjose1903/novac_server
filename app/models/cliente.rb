@@ -15,7 +15,7 @@ class Cliente < ApplicationRecord
     arg = arg === " " ? "" : arg
     select_ = "SELECT c.* , v.nombre as vendedor_nombre, v.apellido as vendedor_apellido"
     from_ = "FROM clientes c"
-    joins_ = "inner join users v on c.vendedor_id = v.id"
+    joins_ = "left join users v on c.vendedor_id = v.id"
     where_ = "where lower(c.nombre || ' ' || c.apellido ) like lower('%#{arg}%') AND c.estado = true"
     order_ = "ORDER BY c.id ASC"
 
@@ -29,7 +29,7 @@ class Cliente < ApplicationRecord
     clientes.each do |cliente|
       cliente["nombre"] = cliente["nombre"].capitalize
       cliente["apellido"] = cliente["apellido"].capitalize
-      cliente["vendedor"] = { nombre: "#{cliente["vendedor_nombre"].capitalize} #{cliente["vendedor_apellido"].capitalize}", id: cliente["vendedor_id"] }
+      cliente["vendedor"] = { nombre: "#{cliente["vendedor_nombre"].capitalize if cliente["vendedor_nombre"]} #{cliente["vendedor_apellido"].capitalize if cliente["vendedor_apellido"]}", id: cliente["vendedor_id"] }
 
       cliente.delete("vendedor_nombre")
       cliente.delete("vendedor_apellido")
