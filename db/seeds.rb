@@ -18,6 +18,7 @@ user = User.create(
     "role": "A",
     "password": "1234567",
     "password_confirmation": "1234567",
+    "estado": true,
   }
 )
 
