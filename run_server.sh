@@ -12,11 +12,15 @@ while getopts $OPTIONS opt; do
         ;;
     m)
         echo "la opcion -m"
-        
+
         rake db:migrate RAILS_ENV=production
         ;;
     s)
         echo "la opcion -s"
+        rails s -b 0.0.0.0
+        ;;
+    p)
+        echo "la opcion -p"
         rails s -b 0.0.0.0 -e production
         ;;
     *)
