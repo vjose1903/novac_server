@@ -18,15 +18,13 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  # host: 192.168.0.158
   host: localhost
-  # username: juniorabreu
   username: postgres
-  # password: root
   password: Vasquez1903
   port: 5432
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
+
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
 
@@ -40,6 +38,7 @@ development:
   # the same name as the operating system user that initialized the database.
   #username: ADM
   # The password associated with the postgres role (username).
+  #password:
   #password:
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have

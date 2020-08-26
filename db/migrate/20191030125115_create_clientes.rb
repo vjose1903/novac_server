@@ -6,7 +6,12 @@ class CreateClientes < ActiveRecord::Migration[5.2]
       t.string :apellido
       t.string :telefono
       t.string :direccion
+      t.integer :limite_credito
       t.string :sexo, limit: 1
+      t.boolean :estado
+      t.float :maximo_credito
+      t.integer :vendedor_id
+      t.float :balance
 
       t.timestamps
     end

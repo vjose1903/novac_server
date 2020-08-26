@@ -8,6 +8,7 @@ class CreateSecuenciaComprobantes < ActiveRecord::Migration[5.2]
       t.timestamp :fecha_compra
       t.timestamp :fecha_valida
       t.boolean :estado
+      t.boolean :usado
 
       t.timestamps
     end

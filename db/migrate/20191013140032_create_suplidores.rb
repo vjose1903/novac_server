@@ -5,6 +5,7 @@ class CreateSuplidores < ActiveRecord::Migration[5.2]
       t.string :telefono
       t.string :direccion
       t.string :email
+      t.boolean :estado
 
       t.timestamps
     end
