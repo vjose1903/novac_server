@@ -55,11 +55,7 @@ class ArticulosController < ApplicationController
 
     if tipo_ == "nombre"
       @articulos.each do |art|
-<<<<<<< HEAD
         articulos_.push(Articulo.parsearArticulos(art))
-=======
-        articulos_.push(Articulo.parseal(art))
->>>>>>> prueba
       end
 
       if articulos_.length === 0
@@ -74,12 +70,6 @@ class ArticulosController < ApplicationController
 
           article[:data].each do |arti|
             arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-<<<<<<< HEAD
-=======
-            if arti["is_combo"]
-              att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-            end
->>>>>>> prueba
           end
 
           res = { data: article, status: 200 }
@@ -87,12 +77,6 @@ class ArticulosController < ApplicationController
         else
           articulos_.each do |arti|
             arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-<<<<<<< HEAD
-=======
-            if arti["is_combo"]
-              att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-            end
->>>>>>> prueba
           end
           res = { data: articulos_, status: 200 }
         end
@@ -105,49 +89,9 @@ class ArticulosController < ApplicationController
         article["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: article["id"] })
         res = { data: article, status: 200 }
       end
-<<<<<<< HEAD
     end
 
     render json: res[:data], status: res[:status] # estructura para devolver info
-=======
-    end
-
-    render json: res[:data], status: res[:status] # estructura para devolver info
-  end
-
-  def getArticulosFiltrados
-    arg = params["arg"]
-
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-
-    articulos = Articulo.filtrarArticulo(arg)
-
-    articulos_ = Articulo.parsearArticulosFiltro(articulos)
-
-    res = []
-
-    if paginado
-      res = articulos_.to_a.my_paginate(page, per_page)
-      res[:data].each do |arti|
-        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-        if arti["is_combo"]
-          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-        end
-      end
-    else
-      res = articulos_
-      res.each do |arti|
-        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-        if arti["is_combo"]
-          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-        end
-      end
-    end
-
-    render json: res
->>>>>>> prueba
   end
 
   # GET /articulos/1
@@ -385,17 +329,9 @@ class ArticulosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def articulo_params
-<<<<<<< HEAD
     params.require(:articulo).permit(:suplidor_id, :marca_id, :modelo_id, :tipo_articulo_id, :identificador, :nombre, :color,
                                      :costo_principal, :precio_principal, :existencia, :codigo, :medida, :is_detallable,
                                      :aviso_existencia, :medida_alerta, :estado, :is_combo, :unico, :agotado, :user_id,
                                      contenido_articulos_attributes: [:id, :articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :condicion, :calcular_itbis])
-=======
-    params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable, :suplidor_id,
-                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos,
-                                     imagen_attributes: [:file_name, :base_64, :path],
-                                     contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis],
-                                     formulas_productos_terminados_attributes: [:articulo_id, :cantidad, :costo, :_destroy, :articulo_combo, :id, :precio])
->>>>>>> prueba
   end
 end
