@@ -18,6 +18,8 @@ class CreateArticulos < ActiveRecord::Migration[5.2]
       t.string :medida_alerta
       t.boolean :estado
       t.boolean :is_combo
+      t.boolean :unico
+      t.boolean :agotado
 
       t.timestamps
     end

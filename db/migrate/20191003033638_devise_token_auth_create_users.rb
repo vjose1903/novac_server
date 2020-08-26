@@ -44,6 +44,7 @@ class DeviseTokenAuthCreateUsers < ActiveRecord::Migration[5.2]
       t.string :email
       t.date :fecha_nacimiento
       t.string :role
+      t.boolean :estado
 
       ## Tokens
       t.json :tokens

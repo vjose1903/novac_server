@@ -1,8 +1,5 @@
 class CabeceraFactura < ApplicationRecord
   belongs_to :user
-<<<<<<< HEAD
-  belongs_to :cliente
-=======
 
   attribute :cliente
   attribute :suplidor
@@ -181,5 +178,4 @@ class CabeceraFactura < ApplicationRecord
       return { :error => false, :tiene_nota => true }
     end
   end
->>>>>>> prueba
 end

@@ -58,12 +58,6 @@ Rails.application.routes.draw do
   # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"
   get "suplidores/filtro/:arg" => "suplidores#getSuplidoresFiltrados"
-<<<<<<< HEAD
-
-  # suplidores
-  get "clientes/nombre/:nombre" => "clientes#getClientesByName"
-=======
->>>>>>> prueba
 
   # secuencia comprobantes
   get "paqueteNCF/:id/:estado" => "secuencia_comprobantes#getPaqueteRncByEstado"
