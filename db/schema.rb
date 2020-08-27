@@ -33,6 +33,7 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.boolean "estado"
     t.boolean "is_combo"
     t.float "otros_costos"
+    t.string "vendido_en"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["imagen_id"], name: "index_articulos_on_imagen_id"

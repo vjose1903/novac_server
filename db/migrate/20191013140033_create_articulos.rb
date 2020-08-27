@@ -18,6 +18,7 @@ class CreateArticulos < ActiveRecord::Migration[5.2]
       t.boolean :estado
       t.boolean :is_combo
       t.float :otros_costos
+      t.string :vendido_en
 
       t.timestamps
     end
