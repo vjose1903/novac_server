@@ -5,7 +5,7 @@ class Trabajo < ApplicationRecord
 
   def self.filtrarTrabajo(arg)
     arg = arg === " " ? "" : arg
-    select_ = "SELECT t.cliente_id,t.descripcion, t.empezado, t.estado, t.fecha_cancelado, t.id, t.identificador, t.terminado, t.tiene_bateria, 
+    select_ = "SELECT t.cliente_id,t.descripcion, t.empezado, t.notas, t.estado, t.fecha_cancelado, t.id, t.identificador, t.terminado, t.tiene_bateria, 
     CASE 
       WHEN t.tipo_trabajo = 'reparacion' THEN 'Reparación'
       WHEN t.tipo_trabajo = 'desbloqueo'THEN 'Desbloqueo'

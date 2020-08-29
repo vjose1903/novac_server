@@ -236,6 +236,7 @@ ActiveRecord::Schema.define(version: 2020_07_28_115216) do
     t.string "identificador"
     t.boolean "tiene_bateria"
     t.string "descripcion"
+    t.string "notas"
     t.boolean "empezado"
     t.boolean "terminado"
     t.boolean "estado"

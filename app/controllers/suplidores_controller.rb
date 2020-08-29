@@ -64,6 +64,7 @@ class SuplidoresController < ApplicationController
       # @documento_identidad = DocumentoDeIdentidad.new(documento_identidad_)
 
       # if @documento_identidad.save
+
       @suplidor = Suplidor.new(suplidor_params)
 
       if @suplidor.save

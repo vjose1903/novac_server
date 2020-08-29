@@ -70,6 +70,6 @@ class TrabajosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def trabajo_params
-    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion, :empezado, :terminado, :estado)
+    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion, :notas, :empezado, :terminado, :estado)
   end
 end

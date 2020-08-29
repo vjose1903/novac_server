@@ -35,34 +35,6 @@ class ClientesController < ApplicationController
     render json: res
   end
 
-  def getClientesFiltrados
-    arg = params["arg"]
-
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-
-    clientes_ = Cliente.filtrarCliente(arg)
-
-    clientes = Cliente.parsearClientes(clientes_)
-
-    res = []
-
-    if paginado
-      res = clientes.to_a.my_paginate(page, per_page)
-
-      res[:data].each do |cliente|
-        cliente["documentos_de_identidad"] = DocumentoDeIdentidad.where({ cliente_id: cliente["id"] })
-      end
-    else
-      res = clientes.each do |cliente|
-        arti["documentos_de_identidad"] = DocumentoDeIdentidad.where({ cliente_id: cliente["id"] })
-      end
-    end
-    puts "#{res.to_json}".green
-    render json: res
-  end
-
   def getClientesByName
     nom_ = params[:nombre].downcase
 

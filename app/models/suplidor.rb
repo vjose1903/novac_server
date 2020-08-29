@@ -26,7 +26,7 @@ class Suplidor < ApplicationRecord
   def self.parsearSuplidoresFiltro(suplidores)
     suplidores.each do |supli|
       if supli["doc_id"]
-        supli["documento_de_identidad"] = { id: supli["doc_id"], descripcion: supli["doc_descripcion"], documento: supli["doc_documento"], user_id: supli["id"] }
+        supli["documento_de_identidad"] = { id: supli["doc_id"], descripcion: supli["doc_descripcion"], documento: supli["doc_documento"], suplidor_id: supli["id"] }
       else
         supli["documento_de_identidad"] = {}
       end

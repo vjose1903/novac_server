@@ -8,6 +8,7 @@ class CreateTrabajos < ActiveRecord::Migration[5.2]
       t.string :identificador
       t.boolean :tiene_bateria
       t.string :descripcion
+      t.string :notas
       t.boolean :empezado
       t.boolean :terminado
       t.boolean :estado

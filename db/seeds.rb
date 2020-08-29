@@ -20,16 +20,38 @@ user = User.create(
     "password_confirmation": "1234567",
   }
 )
+# ------------------- TEMPORAL -------------------
+suplidor = Suplidor.create(
+  [{
 
+    "direccion": "Casi en frente de pick and send",
+    "email": "lavegaTech@hotmail.com",
+    "estado": true,
+    "nombre": "La vega tech",
+    "telefono": "(986) 986-9869",
+
+  }]
+)
+# ------------------------------------------------
 cliente = Cliente.create(
-  {
+  [{
     "nombre": "Cliente contado",
     "apellido": nil,
     "telefono": nil,
     "direccion": "C/Padre adolfo Esq. Manuel Ubaldo Gómez No.28",
     "email": "prueba1@hotmail.com",
     "estado": true,
-  }
+  },
+   # ------------------- TEMPORAL -------------------
+   {
+    "apellido": "Saches",
+    "direccion": "Calle sanchez casa #3 calle #5",
+    "telefono": "(986) 986-9459",
+    "email": "marta@hotmail.com",
+    "estado": true,
+    "nombre": "Marta",
+  }]
+  # ------------------------------------------------
 )
 
 documentos_de_identidad = DocumentoDeIdentidad.create(
@@ -39,7 +61,13 @@ documentos_de_identidad = DocumentoDeIdentidad.create(
       "descripcion": "cedula",
       "documento": "402-1447836-4",
     },
-
+    # ------------------- TEMPORAL -------------------
+    {
+      "suplidor_id": 1,
+      "descripcion": "rnc",
+      "documento": "124-12424-1",
+    },
+  # ------------------------------------------------
   ]
 )
 
