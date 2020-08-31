@@ -240,6 +240,7 @@ ActiveRecord::Schema.define(version: 2020_07_28_115216) do
     t.boolean "empezado"
     t.boolean "terminado"
     t.boolean "estado"
+    t.boolean "entregado"
     t.datetime "fecha_cancelado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

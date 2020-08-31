@@ -12,6 +12,7 @@ class CreateTrabajos < ActiveRecord::Migration[5.2]
       t.boolean :empezado
       t.boolean :terminado
       t.boolean :estado
+      t.boolean :entregado
       t.datetime :fecha_cancelado
 
       t.timestamps

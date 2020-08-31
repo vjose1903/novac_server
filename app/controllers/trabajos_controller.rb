@@ -39,9 +39,16 @@ class TrabajosController < ApplicationController
   # POST /trabajos
   def create
     @trabajo = Trabajo.new(trabajo_params)
+    # obj = @trabajo.to_json
+    # puts obj.red
+    trabajo = Trabajo.agregarActualmente(@trabajo)
 
+    puts "---".red * 20
+    puts trabajo.to_json
+    puts "---".red * 20
+    
     if @trabajo.save
-      render json: @trabajo, status: :created, location: @trabajo
+      render json: trabajo, status: :created, location: @trabajo
     else
       render json: @trabajo.errors, status: :unprocessable_entity
     end
@@ -70,6 +77,6 @@ class TrabajosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def trabajo_params
-    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion, :notas, :empezado, :terminado, :estado)
+    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion, :notas, :empezado, :entregado, :terminado, :estado, :fecha_cancelado, :actualmente)
   end
 end
