@@ -5,7 +5,7 @@ class Trabajo < ApplicationRecord
 
   def self.filtrarTrabajo(arg)
     arg = arg === " " ? "" : arg
-    select_ = "SELECT t.cliente_id,t.descripcion, t.empezado, t.notas, t.estado, t.fecha_cancelado, t.id, t.identificador, t.terminado, t.tiene_bateria, t.tipo_trabajo,
+    select_ = "SELECT t.cliente_id,t.descripcion, t.notas, t.estado, t.estado_actual, t.fecha_cancelado, t.id, t.identificador, t.tiene_bateria, t.tipo_trabajo,
     CASE 
       WHEN t.tipo_trabajo = 'reparacion' THEN 'Reparación'
       WHEN t.tipo_trabajo = 'desbloqueo'THEN 'Desbloqueo'
@@ -16,32 +16,36 @@ class Trabajo < ApplicationRecord
               inner join marcas ma on t.marca_id = ma.id
               inner join modelos mo on t.modelo_id = mo.id
               left join documentos_de_identidad doc on doc.cliente_id = t.cliente_id "
-    where_ = "where lower(t.identificador || ' ' || t.descripcion || ' ' || t.tipo_trabajo || ' ' || c.nombre || ' ' || c.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%') AND t.estado = true"
 
-    query = "#{select_} #{from_} #{joins_} #{where_}"
+    where_ = "where lower(t.identificador || ' ' || t.descripcion || ' ' || t.tipo_trabajo || ' ' || c.nombre || ' ' || c.apellido || ' ' || coalesce(doc.documento, '') ) like lower('%#{arg}%') and t.estado_actual >= 0 or ( t.estado_actual = -1 and DATE_PART('day',current_timestamp - t.fecha_cancelado) < 1) AND t.estado = true"
+    order_ = "ORDER BY t.id ASC"
+
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
     my_query(query)
   end
 
   # =====================================================================================================================
 
-  def self.agregarActualmente(trabajo)
-    work = trabajo.attributes
-    if trabajo["cancelado"]
-      work[:actualmente] = { estado: "Cancelado", color: "bg-red", id: -1 }
+  def self.agregarActualmente(trabajo, manual = false)
+    if manual
+      work = trabajo
     else
-      if trabajo["entregado"]
-        work[:actualmente] = { estado: "Entregado", color: "bg-white", id: 3 }
-      else
-        if !trabajo["empezado"] && !trabajo["terminado"]
-          work[:actualmente] = { estado: "En espera", color: "bg-grey", id: 0 }
-        elsif trabajo["empezado"] && !trabajo["terminado"]
-          work[:actualmente] = { estado: "Empezado", color: "bg-yellow", id: 1 }
-        elsif trabajo["empezado"] && trabajo["terminado"]
-          work[:actualmente] = { estado: "Terminado", color: "bg-green", id: 2 }
-        end
-      end
+      work = trabajo.attributes
     end
+
+    if work["estado_actual"] == -1
+      work["actualmente"] = { estado: "Cancelado", color: "bg-red", id: -1 }
+    elsif work["estado_actual"] == 0
+      work["actualmente"] = { estado: "En espera", color: "bg-grey", id: 0 }
+    elsif work["estado_actual"] == 1
+      work["actualmente"] = { estado: "Empezado", color: "bg-yellow", id: 1 }
+    elsif work["estado_actual"] == 2
+      work["actualmente"] = { estado: "Terminado", color: "bg-green", id: 2 }
+    elsif work["estado_actual"] == 3
+      work["actualmente"] = { estado: "Entregado", color: "bg-white", id: 3 }
+    end
+
     puts work.to_json.blue
     return work
   end
@@ -55,21 +59,7 @@ class Trabajo < ApplicationRecord
       work["cliente"] = { id: work["cliente_id"], nombre: work["cliente_nombre"], apellido: work["cliente_apellido"],
                          documento_de_identidad: { id: work["cliente_doc_id"], documento: work["cliente_doc_documento"], descripcion: work["cliente_doc_descripcion"] } }
 
-      if work["cancelado"]
-        work["actualmente"] = { estado: "Cancelado", color: "bg-red", id: -1 }
-      else
-        if work["entregado"]
-          work["actualmente"] = { estado: "Entregado", color: "bg-white", id: 3 }
-        else
-          if !work["empezado"] && !work["terminado"]
-            work["actualmente"] = { estado: "En espera", color: "bg-grey", id: 0 }
-          elsif work["empezado"] && !work["terminado"]
-            work["actualmente"] = { estado: "Empezado", color: "bg-yellow", id: 1 }
-          elsif work["empezado"] && work["terminado"]
-            work["actualmente"] = { estado: "Terminado", color: "bg-green", id: 2 }
-          end
-        end
-      end
+      work = Trabajo.agregarActualmente(work, true)
 
       work.delete("marca_descripcion")
 
@@ -90,8 +80,8 @@ class Trabajo < ApplicationRecord
     work = Trabajo.find_by_id(trabajo["id"])
 
     obj_cancel = {
-      'estado': false,
-      'fecha_cancelado': trabajo["fecha_cancelado"],
+      'estado_actual': -1,
+      'fecha_cancelado': DateTime.now,
     }
 
     if work.update(obj_cancel)
@@ -108,8 +98,9 @@ class Trabajo < ApplicationRecord
     work = Trabajo.find_by_id(trabajo["id"])
 
     obj_reactivate = {
-      'estado': false,
-      'fecha_reactivado': trabajo["fecha_reactivado"],
+      'estado_actual': 0,
+      'fecha_cancelado': nil,
+      'fecha_reactivado': DateTime.now,
     }
 
     if work.update(obj_reactivate)
@@ -125,21 +116,14 @@ class Trabajo < ApplicationRecord
   def self.cambiar_estado_trabajo(trabajo)
     work = Trabajo.find_by_id(trabajo["id"])
 
-    obj = {}
+    obj = { estado_actual: trabajo["num"] }
 
-    obj["empezado"] = false
-    obj["terminado"] = false
-    obj["entregado"] = false
     msg = ""
     if trabajo["num"] == 1
-      obj["empezado"] = true
       msg = "Trabajo empezado."
     elsif trabajo["num"] == 2
-      obj["terminado"] = true
-      obj["empezado"] = true
       msg = "Trabajo terminado."
     elsif trabajo["num"] == 3
-      obj["entregado"] = true
       msg = "Trabajo entregado."
     else
       msg = "Trabajo en espera."

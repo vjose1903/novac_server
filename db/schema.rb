@@ -237,10 +237,8 @@ ActiveRecord::Schema.define(version: 2020_07_28_115216) do
     t.boolean "tiene_bateria"
     t.string "descripcion"
     t.string "notas"
-    t.boolean "empezado"
-    t.boolean "terminado"
+    t.integer "estado_actual"
     t.boolean "estado"
-    t.boolean "entregado"
     t.datetime "fecha_cancelado"
     t.datetime "fecha_reactivado"
     t.datetime "created_at", null: false
