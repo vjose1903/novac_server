@@ -46,11 +46,46 @@ class TrabajosController < ApplicationController
     puts "---".red * 20
     puts trabajo.to_json
     puts "---".red * 20
-    
+
     if @trabajo.save
       render json: trabajo, status: :created, location: @trabajo
     else
       render json: @trabajo.errors, status: :unprocessable_entity
+    end
+  end
+
+  # cancelarTrabajo
+  def cancelarTrabajo
+    respuesta = Trabajo.cancelar_trabajo(params)
+
+    if respuesta[:error] == false
+      render json: respuesta[:obj], status: 200
+    else
+      render json: { error: respuesta[:msg], msg: "Error cancelando trabajo." }, status: :unprocessable_entity
+    end
+  end
+
+  # reactivarTrabajo
+  def reactivarTrabajo
+    respuesta = Trabajo.reactivar_trabajo(params)
+
+    if respuesta[:error] == false
+      render json: respuesta[:obj], status: 200
+    else
+      render json: { error: respuesta[:msg], msg: "Error reactivando trabajo." }, status: :unprocessable_entity
+    end
+  end
+
+  # cambiarEstadoTrabajo
+  def cambiarEstadoTrabajo
+    respuesta = Trabajo.cambiar_estado_trabajo(params)
+
+    if respuesta[:error] == false
+      obj_respuesta = Trabajo.agregarActualmente(respuesta[:obj])
+
+      render json: { data: obj_respuesta, msg: respuesta[:msg] }, status: 200
+    else
+      render json: { error: respuesta[:msg], msg: "Error cambiando estado trabajo." }, status: :unprocessable_entity
     end
   end
 
@@ -77,6 +112,7 @@ class TrabajosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def trabajo_params
-    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion, :notas, :empezado, :entregado, :terminado, :estado, :fecha_cancelado, :actualmente)
+    params.require(:trabajo).permit(:cliente_id, :tipo_trabajo, :marca_id, :modelo_id, :identificador, :tiene_bateria, :descripcion, :notas, :empezado,
+                                    :entregado, :terminado, :estado, :fecha_cancelado, :fecha_reactivado)
   end
 end

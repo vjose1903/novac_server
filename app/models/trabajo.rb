@@ -28,23 +28,26 @@ class Trabajo < ApplicationRecord
   def self.agregarActualmente(trabajo)
     work = trabajo.attributes
     if trabajo["cancelado"]
-      work[:actualmente] = { estado: "Cancelado", color: "red", id: -1 }
+      work[:actualmente] = { estado: "Cancelado", color: "bg-red", id: -1 }
     else
       if trabajo["entregado"]
-        work[:actualmente] = { estado: "Entregado", color: "white", id: 3 }
+        work[:actualmente] = { estado: "Entregado", color: "bg-white", id: 3 }
       else
         if !trabajo["empezado"] && !trabajo["terminado"]
-          work[:actualmente] = { estado: "En espera", color: "grey", id: 0 }
+          work[:actualmente] = { estado: "En espera", color: "bg-grey", id: 0 }
         elsif trabajo["empezado"] && !trabajo["terminado"]
-          work[:actualmente] = { estado: "Empezado", color: "yellow", id: 1 }
+          work[:actualmente] = { estado: "Empezado", color: "bg-yellow", id: 1 }
         elsif trabajo["empezado"] && trabajo["terminado"]
-          work[:actualmente] = { estado: "Terminado", color: "green", id: 2 }
+          work[:actualmente] = { estado: "Terminado", color: "bg-green", id: 2 }
         end
       end
     end
     puts work.to_json.blue
     return work
   end
+
+  # =====================================================================================================================
+
   def self.parsearTrabajosFiltro(trabajos)
     trabajos.each do |work|
       work["marca"] = { id: work["marca_id"], descripcion: work["marca_descripcion"] }
@@ -53,17 +56,17 @@ class Trabajo < ApplicationRecord
                          documento_de_identidad: { id: work["cliente_doc_id"], documento: work["cliente_doc_documento"], descripcion: work["cliente_doc_descripcion"] } }
 
       if work["cancelado"]
-        work["actualmente"] = { estado: "Cancelado", color: "red", id: -1 }
+        work["actualmente"] = { estado: "Cancelado", color: "bg-red", id: -1 }
       else
         if work["entregado"]
-          work["actualmente"] = { estado: "Entregado", color: "white", id: 3 }
+          work["actualmente"] = { estado: "Entregado", color: "bg-white", id: 3 }
         else
           if !work["empezado"] && !work["terminado"]
-            work["actualmente"] = { estado: "En espera", color: "grey", id: 0 }
+            work["actualmente"] = { estado: "En espera", color: "bg-grey", id: 0 }
           elsif work["empezado"] && !work["terminado"]
-            work["actualmente"] = { estado: "Empezado", color: "yellow", id: 1 }
+            work["actualmente"] = { estado: "Empezado", color: "bg-yellow", id: 1 }
           elsif work["empezado"] && work["terminado"]
-            work["actualmente"] = { estado: "Terminado", color: "green", id: 2 }
+            work["actualmente"] = { estado: "Terminado", color: "bg-green", id: 2 }
           end
         end
       end
@@ -80,5 +83,74 @@ class Trabajo < ApplicationRecord
     end
 
     return trabajos
+  end
+
+  # =====================================================================================================================
+  def self.cancelar_trabajo(trabajo)
+    work = Trabajo.find_by_id(trabajo["id"])
+
+    obj_cancel = {
+      'estado': false,
+      'fecha_cancelado': trabajo["fecha_cancelado"],
+    }
+
+    if work.update(obj_cancel)
+      res = { obj: work, error: false, msg: "", status: 200 }
+    else
+      res = { obj: "", error: true, msg: work.errors, status: :unprocessable_entity }
+    end
+
+    return res
+  end
+
+  # =====================================================================================================================
+  def self.reactivar_trabajo(trabajo)
+    work = Trabajo.find_by_id(trabajo["id"])
+
+    obj_reactivate = {
+      'estado': false,
+      'fecha_reactivado': trabajo["fecha_reactivado"],
+    }
+
+    if work.update(obj_reactivate)
+      res = { obj: work, error: false, msg: "", status: 200 }
+    else
+      res = { obj: "", error: true, msg: work.errors, status: :unprocessable_entity }
+    end
+
+    return res
+  end
+
+  # =====================================================================================================================
+  def self.cambiar_estado_trabajo(trabajo)
+    work = Trabajo.find_by_id(trabajo["id"])
+
+    obj = {}
+
+    obj["empezado"] = false
+    obj["terminado"] = false
+    obj["entregado"] = false
+    msg = ""
+    if trabajo["num"] == 1
+      obj["empezado"] = true
+      msg = "Trabajo empezado."
+    elsif trabajo["num"] == 2
+      obj["terminado"] = true
+      obj["empezado"] = true
+      msg = "Trabajo terminado."
+    elsif trabajo["num"] == 3
+      obj["entregado"] = true
+      msg = "Trabajo entregado."
+    else
+      msg = "Trabajo en espera."
+    end
+
+    if work.update(obj)
+      res = { obj: work, error: false, msg: msg, status: 200 }
+    else
+      res = { obj: "", error: true, msg: work.errors, status: :unprocessable_entity }
+    end
+
+    return res
   end
 end

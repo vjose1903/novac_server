@@ -31,6 +31,9 @@ Rails.application.routes.draw do
 
   # trabajos
   get "trabajos/filtro/:arg" => "trabajos#getTrabajosFiltrados"
+  patch "trabajos/estado/cancelar" => "trabajos#cancelarTrabajo"
+  patch "trabajos/estado/reactivar" => "trabajos#reactivarTrabajo"
+  patch "trabajos/estado/cambiar" => "trabajos#cambiarEstadoTrabajo"
 
   # marcas
   get "marcas/filtro/:arg" => "marcas#getMarcasFiltradas"

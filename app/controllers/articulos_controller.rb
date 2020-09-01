@@ -147,7 +147,7 @@ class ArticulosController < ApplicationController
       if seguir[:error] == false
         render json: @articulo, status: :created, location: @articulo
       else
-        return render json: { error: seguir[:msg], msg: "error creando historico" }, status: :unprocessable_entity
+        render json: { error: seguir[:msg], msg: "error creando historico" }, status: :unprocessable_entity
       end
     else
       render json: lastArticulo.errors, status: :unprocessable_entity
