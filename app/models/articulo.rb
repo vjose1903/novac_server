@@ -14,7 +14,7 @@ class Articulo < ApplicationRecord
 
   accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
 
-  validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
+  validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }
 
   # =====================================================================================================================
   def self.filtrarArticulo(arg)
@@ -30,7 +30,7 @@ class Articulo < ApplicationRecord
               inner join suplidores s on a.suplidor_id = s.id
               left join documentos_de_identidad doc on s.id = doc.suplidor_id
               inner join marcas ma on a.marca_id = ma.id"
-    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion|| ' ' ||a.nombre ) like lower('%#{arg}%') AND a.estado = true"
+    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion|| ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 

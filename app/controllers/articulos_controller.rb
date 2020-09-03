@@ -108,6 +108,7 @@ class ArticulosController < ApplicationController
   def create
     Articulo.transaction do
       @usuario_id = params["user_id"]
+      # params["articulo"] = params
 
       @articulo = Articulo.new(articulo_params)
 
