@@ -100,6 +100,35 @@ class Articulo < ApplicationRecord
   end
 
   # =====================================================================================================================
+  def self.agruparDesagruparFiltro(buscando, array, page, per_page)
+    res = nil
+    is_array = true
+    if buscando.numeric?
+      if array.length == 1
+        res = array[0]
+        is_array = false
+      else
+        res = array.to_a.my_paginate(page, per_page)
+      end
+    else
+      res = array.to_a.my_paginate(page, per_page)
+    end
+
+    if is_array
+      res[:data].each do |arti|
+        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+        arti["contenido"] = calcularContenidos(arti["contenido_articulos"], arti)
+        arti["cantidades"] = calcularCantidades(arti["contenido_articulos"], arti)
+      end
+    else
+      res["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: res["id"] })
+      res["contenido"] = calcularContenidos(res["contenido_articulos"], res)
+      res["cantidades"] = calcularCantidades(res["contenido_articulos"], res)
+    end
+
+    return res
+  end
+  # =====================================================================================================================
 
   def self.get_articulo_by_name_o_by_codigo(tipo, nombre)
     select_ = "SELECT *"
@@ -129,8 +158,8 @@ class Articulo < ApplicationRecord
 
     objeto["descripcion"] = objeto["descripcion"]
     objeto["contenido_articulos"] = objeto["contenido_articulos"]
-    objeto["contenido"] = calcularContenidosHistorico(objeto["contenido_articulos"], objeto)
-    objeto["cantidades"] = calcularCantidadesHistorico(objeto["contenido_articulos"], objeto)
+    objeto["contenido"] = calcularContenidos(objeto["contenido_articulos"], objeto)
+    objeto["cantidades"] = calcularCantidades(objeto["contenido_articulos"], objeto)
     # if objeto["is_combo"]
     #   objeto["formulas_productos_terminados"] = objeto["formulas_productos_terminados"]
     # end
@@ -142,7 +171,7 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.calcularCantidadesHistorico(contenido, articulo)
+  def self.calcularCantidades(contenido, articulo)
     existencia = articulo["existencia"]
     if contenido == nil
       contenido = articulo["contenido_articulos"]
@@ -174,5 +203,39 @@ class Articulo < ApplicationRecord
     end
 
     return cantidades
+  end
+
+  # =====================================================================================================================
+
+  def self.calcularContenidos(contenido, articulo)
+    puts " ------------------- inicio calcularContenidos -------------------"
+    contenidos = {}
+
+    if contenido.length == 0
+      contenidos[articulo["medida"]] = 1
+    elsif contenido.length == 1
+      contenidos[articulo["medida"]] = contenido[0]["cantidad"]
+      contenidos[contenido[0]["medida"]] = 1
+    else
+      cantPrincipal = 1
+      cantHijo = 1
+      cantPadre = 1
+
+      contenido.each do |conte|
+        cantPrincipal *= conte["cantidad"]
+        if conte["referencia"] != nil
+          cantPadre = conte["cantidad"]
+        end
+      end
+
+      contenidos[articulo["medida"]] = cantPrincipal
+      contenidos[contenido[0]["medida"]] = cantPadre
+      contenidos[contenido[1]["medida"]] = cantHijo
+    end
+
+    puts " ------------------- fin calcularContenidos -------------------"
+    puts " "
+    puts " "
+    return contenidos
   end
 end

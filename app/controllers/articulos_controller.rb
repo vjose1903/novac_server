@@ -26,14 +26,13 @@ class ArticulosController < ApplicationController
     res = []
 
     if paginado
-      res = articulos_.to_a.my_paginate(page, per_page)
-      res[:data].each do |arti|
-        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-      end
+      res = Articulo.agruparDesagruparFiltro(arg, articulos_, page, per_page)
     else
       res = articulos_
       res.each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+        arti["contenido"] = calcularContenidos(arti["contenido_articulos"], arti)
+        arti["cantidades"] = calcularCantidades(arti["contenido_articulos"], arti)
       end
     end
 
