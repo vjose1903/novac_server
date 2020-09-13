@@ -173,20 +173,26 @@ class Articulo < ApplicationRecord
 
   def self.calcularCantidades(contenido, articulo)
     existencia = articulo["existencia"]
+
     if contenido == nil
       contenido = articulo["contenido_articulos"]
     end
-
+    puts "existencia =>".yellow, " #{existencia.to_json}"
+    puts "contenido =>".red, " #{contenido.to_json}"
+    puts "articulo =>".green, " #{articulo.to_json}"
     if existencia == nil
       existencia = 0
     end
     cantidades = {}
 
+    puts "contenido.length =>".yellow, " #{contenido.length.to_json}"
+    puts "contenido[0] =>".red, " #{contenido[0].to_json}"
+
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1
-      cantidades[articulo["medida"]] = (existencia / contenido[0]["cantidad"])
-      cantidades[contenido[0]["medida"]] = existencia
+      cantidades[articulo["medida"]] = existencia
+      cantidades[contenido[0]["medida"]] = (existencia * contenido[0]["cantidad"])
     else
       maxCant = 1
       cantPadre = 1
@@ -201,7 +207,7 @@ class Articulo < ApplicationRecord
       cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
       cantidades[contenido[1]["medida"]] = existencia
     end
-
+    puts "cantidades =>".blue, " #{cantidades.to_json}"
     return cantidades
   end
 
