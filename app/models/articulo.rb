@@ -185,7 +185,7 @@ class Articulo < ApplicationRecord
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1
-      cantidades[articulo["medida"]] = (existencia / contenido[0]["cantidad"])
+      cantidades[articulo["medida"]] = (existencia.to_f / contenido[0]["cantidad"])
       cantidades[contenido[0]["medida"]] = existencia
     else
       maxCant = 1
