@@ -31,8 +31,8 @@ class ArticulosController < ApplicationController
       res = articulos_
       res.each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-        arti["contenido"] = calcularContenidos(arti["contenido_articulos"], arti)
-        arti["cantidades"] = calcularCantidades(arti["contenido_articulos"], arti)
+        arti["contenido"] = Articulo.calcularContenidos(arti["contenido_articulos"], arti)
+        arti["cantidades"] = Articulo.calcularCantidades(arti["contenido_articulos"], arti)
       end
     end
 
@@ -189,9 +189,7 @@ class ArticulosController < ApplicationController
         if @articulo.update(newArticulo)
           articulo_params["contenido_articulos_attributes"].each do |contenido|
             content = ContenidoArticulo.find_by_id(contenido["id"])
-
             contenidoCompleto = ContenidoArticulo.where({ articulo_id: @articulo["id"] })
-
             newContenido = {
               "costo": contenido["costo"],
               "precio": contenido["precio"],
@@ -228,6 +226,9 @@ class ArticulosController < ApplicationController
 
           @obj["id"] = @articulo["id"]
           @obj["codigo"] = @articulo["codigo"]
+
+          @obj["contenido"] = Articulo.calcularContenidos(@obj["contenido_articulos_attributes"], @obj)
+          @obj["cantidades"] = Articulo.calcularCantidades(@obj["contenido_articulos_attributes"], @obj)
 
           render json: @obj, status: 200
         else
