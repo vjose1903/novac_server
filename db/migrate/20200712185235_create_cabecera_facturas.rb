@@ -16,6 +16,7 @@ class CreateCabeceraFacturas < ActiveRecord::Migration[5.2]
       t.boolean :estado
       t.boolean :is_nota
       t.date :fecha_vencimiento
+      t.date :fecha_facturacion
       t.string :forma_pago
       t.string :condicion
       t.string :noCliente_nombre

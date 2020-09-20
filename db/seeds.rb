@@ -260,3 +260,4 @@ secuencia_factura = SecuenciaFactura.create(
 
   ]
 )
+

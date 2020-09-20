@@ -30,7 +30,7 @@ class Articulo < ApplicationRecord
               inner join suplidores s on a.suplidor_id = s.id
               left join documentos_de_identidad doc on s.id = doc.suplidor_id
               inner join marcas ma on a.marca_id = ma.id"
-    where_ = "where  lower(ma.descripcion|| ' '|| m.descripcion|| ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
+    where_ = "where  lower(ma.descripcion|| ' ' || m.descripcion || ' ' || a.nombre || ' ' || a.codigo || ' ' ||  coalesce(a.identificador, '') ) like lower('%#{arg}%') AND a.estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 

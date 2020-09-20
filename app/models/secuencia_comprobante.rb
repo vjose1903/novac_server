@@ -3,8 +3,20 @@ class SecuenciaComprobante < ApplicationRecord
     puts " -------------- Inicio get_paquete_rnc_by_estado -------------- "
 
     tipoFac = TipoFactura.find_by_id(tipo_factura_id)
+
     if tipoFac["referencia"] == "00" || tipoFac["referencia"] == 0
-      return { :error => false, :msg => "factura sin comprobante no necesitan paquetes", :body => { fecha_valida: nil }, :status => 200 }
+      @secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(tipo_factura_id)
+      secuencia_factura = @secuencia_factura
+
+      secuencia_factura["is_paquete"] = false
+
+      return { :error => false, :msg => "factura sin comprobante no necesitan paquetes", :body => secuencia_factura, :status => 200 }
+    elsif tipoFac["referencia"] == "02" || tipoFac["referencia"] == 2
+      @secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(tipo_factura_id)
+      secuencia_factura = @secuencia_factura.attributes
+      secuencia_factura["is_paquete"] = false
+
+      return { :error => false, :msg => "factura de consumo no necesitan paquetes", :body => secuencia_factura, :status => 200 }
     else
       select_ = "select *"
       from_ = "from secuencia_comprobantes"
@@ -12,6 +24,7 @@ class SecuenciaComprobante < ApplicationRecord
       order_ = "ORDER BY created_at ASC LIMIT 1"
       query = "#{select_} #{from_} #{where_} #{order_}"
       paquete = my_query(query)[0]
+      paquete["is_paquete"] = true
 
       if paquete == [] || paquete == nil
         existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
@@ -41,6 +54,7 @@ class SecuenciaComprobante < ApplicationRecord
         order_ = "ORDER BY created_at ASC LIMIT 1"
         newQuery = "#{select_} #{from_} #{where_} #{order_}"
         nuevoPaquete = my_query(newQuery)[0]
+        nuevoPaquete["is_paquete"] = true
 
         if nuevoPaquete == [] || nuevoPaquete == nil
           puts " -------------- fin get_paquete_rnc_by_estado -------------- "
@@ -104,7 +118,7 @@ class SecuenciaComprobante < ApplicationRecord
     puts " -------------- inicio aumentar_secuencia_comprobante -------------- "
     paquete = SecuenciaComprobante.find_by_id(paquete_id)
 
-    sigue = true
+    sigue = { error: false, msg: "" }
 
     if paquete["secuencia"] == paquete["hasta"]
       nuevoPac = get_paquetes_por_activar(paquete["tipo_factura_id"])
@@ -112,14 +126,14 @@ class SecuenciaComprobante < ApplicationRecord
       if nuevoPac[:continuar]
         newPac = SecuenciaComprobante.find_by_id(nuevoPac[:body]["id"])
         unless newPac.update({ estado: true })
-          sigue = false
+          sigue = { error: true, msg: newPac.errors }
         end
       end
 
       paquete.update({ estado: false, usado: true })
     else
       unless paquete.update({ secuencia: paquete[:secuencia] + 1 })
-        sigue = false
+        sigue = { error: true, msg: paquete.errors }
       end
     end
     puts " -------------- fin aumentar_secuencia_comprobante -------------- "
@@ -169,6 +183,7 @@ class SecuenciaComprobante < ApplicationRecord
     order_ = "ORDER BY created_at ASC LIMIT 1"
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquete = my_query(query)[0]
+    paquete["is_paquete"] = true
 
     if paquete == [] || paquete == nil
       puts " -------------- fin ver_si_existen_paquetes_posteriores -------------- "

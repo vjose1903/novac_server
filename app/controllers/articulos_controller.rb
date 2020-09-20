@@ -20,7 +20,7 @@ class ArticulosController < ApplicationController
     paginado = params["paginado"] === "true" ? true : false
 
     articulos = Articulo.filtrarArticulo(arg)
-
+    puts articulos.to_json
     articulos_ = Articulo.parsearArticulosFiltro(articulos)
 
     res = []

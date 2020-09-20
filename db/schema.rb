@@ -59,6 +59,7 @@ ActiveRecord::Schema.define(version: 2020_07_28_115216) do
     t.boolean "estado"
     t.boolean "is_nota"
     t.date "fecha_vencimiento"
+    t.date "fecha_facturacion"
     t.string "forma_pago"
     t.string "condicion"
     t.string "noCliente_nombre"
@@ -113,12 +114,17 @@ ActiveRecord::Schema.define(version: 2020_07_28_115216) do
   create_table "detalle_facturas", force: :cascade do |t|
     t.bigint "cabecera_factura_id"
     t.bigint "articulo_id"
-    t.integer "cantidad"
+    t.string "unidad"
+    t.float "itbis"
+    t.float "cantidad"
+    t.integer "cantidad_en_unidades"
     t.float "total"
     t.float "precio"
     t.float "costo"
     t.integer "retirado"
     t.integer "retirado_en_venta"
+    t.float "descuento_valor"
+    t.float "descuento_porciento"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
@@ -206,6 +212,20 @@ ActiveRecord::Schema.define(version: 2020_07_28_115216) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["marca_id"], name: "index_modelos_on_marca_id"
+  end
+
+  create_table "secuencia_comprobantes", force: :cascade do |t|
+    t.bigint "tipo_factura_id"
+    t.integer "secuencia"
+    t.integer "desde"
+    t.integer "hasta"
+    t.datetime "fecha_compra"
+    t.datetime "fecha_valida"
+    t.boolean "estado"
+    t.boolean "usado"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
   end
 
   create_table "secuencia_facturas", force: :cascade do |t|
@@ -319,6 +339,7 @@ ActiveRecord::Schema.define(version: 2020_07_28_115216) do
   add_foreign_key "historico_articulos", "tipo_articulos"
   add_foreign_key "historico_articulos", "users"
   add_foreign_key "modelos", "marcas"
+  add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
   add_foreign_key "trabajos", "clientes"
   add_foreign_key "trabajos", "marcas"
