@@ -17,7 +17,6 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
 
   create_table "articulos", force: :cascade do |t|
     t.bigint "imagen_id"
-    t.bigint "suplidor_id"
     t.bigint "tipo_articulo_id"
     t.string "nombre"
     t.float "costo_principal"
@@ -37,7 +36,6 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["imagen_id"], name: "index_articulos_on_imagen_id"
-    t.index ["suplidor_id"], name: "index_articulos_on_suplidor_id"
     t.index ["tipo_articulo_id"], name: "index_articulos_on_tipo_articulo_id"
   end
 
@@ -380,7 +378,6 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
   end
 
   add_foreign_key "articulos", "imagenes"
-  add_foreign_key "articulos", "suplidores"
   add_foreign_key "articulos", "tipo_articulos"
   add_foreign_key "cabecera_conduces", "clientes"
   add_foreign_key "cabecera_conduces", "users"

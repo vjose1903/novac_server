@@ -20,9 +20,6 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
   def self.filtrarArticulo(arg)
     arg = arg === " " ? "" : arg
-    # inner join suplidores s on a.suplidor_id = s.id
-    # left join documentos_de_identidad doc on s.id = doc.suplidor_id
-    # || ' ' || s.nombre || ' ' || coalesce(doc.documento, '')
 
     select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
                 img.file_name as file_name, img.base_64 as base_64, img.path as path "
@@ -30,14 +27,48 @@ class Articulo < ApplicationRecord
     from_ = "FROM articulos a"
     joins_ = "inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
               left join imagenes img on img.id = a.imagen_id"
-    where_ = "where  lower(ta.descripcion || ' ' || a.nombre ) like lower('%#{arg}%') AND a.estado = true"
+    where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
     order_ = "ORDER BY a.id ASC"
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
     my_query(query)
   end
+  # =====================================================================================================================
+  def self.agruparDesagruparFiltro(buscando, array, page, per_page)
+    res = nil
+    is_array = true
+    if buscando.numeric?
+      if array.length == 1
+        res = array[0]
+        is_array = false
+      else
+        res = array.to_a.my_paginate(page, per_page)
+      end
+    else
+      res = array.to_a.my_paginate(page, per_page)
+    end
 
+    if is_array
+      res[:data].each do |arti|
+        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+        if arti["is_combo"]
+          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+        end
+        arti["contenido"] = calcularContenidos(arti["contenido_articulos"], arti)
+        arti["cantidades"] = calcularCantidades(arti["contenido_articulos"], arti)
+      end
+    else
+      res["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: res["id"] })
+      if res["is_combo"]
+        res["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: res["id"] })
+      end
+      res["contenido"] = calcularContenidos(res["contenido_articulos"], res)
+      res["cantidades"] = calcularCantidades(res["contenido_articulos"], res)
+    end
+
+    return res
+  end
   # =====================================================================================================================
   def self.parsearArticulosFiltro(articulos)
     articulos.each do |arti|
@@ -60,7 +91,7 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
   def self.get_articulo_by_name_o_by_codigo(tipo, nombre)
-    select_ = "SELECT id, tipo_articulo_id, nombre, costo_principal, precio_principal, existencia, codigo, fecha_ingreso, medida, is_detallable, created_at, updated_at, imagen_id, aviso_existencia, suplidor_id, medida_alerta, calcular_itbis, estado, is_combo, otros_costos"
+    select_ = "SELECT id, tipo_articulo_id, nombre, costo_principal, precio_principal, existencia, codigo, fecha_ingreso, medida, is_detallable, created_at, updated_at, imagen_id, aviso_existencia, medida_alerta, calcular_itbis, estado, is_combo, otros_costos"
     from_ = "FROM articulos a"
     where_ = ""
 

@@ -127,7 +127,8 @@ class CabeceraFacturasController < ApplicationController
 
         @cabecera_factura = CabeceraFactura.new(att)
 
-        # return render json: { msg: "pruebas", body: @cabecera_factura }
+        puts @cabecera_factura.to_json
+        return render json: { msg: "pruebas", body: @cabecera_factura }
 
         unless @cabecera_factura.save
           # render json: @cabecera_factura, status: :created, location: @cabecera_factura

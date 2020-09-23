@@ -20,6 +20,7 @@ class CreateMantenimientoArticulos < ActiveRecord::Migration[5.2]
       t.float :ant_precioHijo
       t.integer :ant_cantidadHijo
       t.string :ant_medidaAlerta
+      t.string :vendido_en
 
       t.integer :ant_idPadre
       t.integer :ant_idHijo

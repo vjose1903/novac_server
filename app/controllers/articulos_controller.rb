@@ -81,29 +81,56 @@ class ArticulosController < ApplicationController
     paginado = params["paginado"] === "true" ? true : false
 
     articulos = Articulo.filtrarArticulo(arg)
-
+    puts articulos.to_json
     articulos_ = Articulo.parsearArticulosFiltro(articulos)
 
     res = []
 
     if paginado
-      res = articulos_.to_a.my_paginate(page, per_page)
-      res[:data].each do |arti|
-        if arti["is_combo"]
-          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-        end
-      end
+      res = Articulo.agruparDesagruparFiltro(arg, articulos_, page, per_page)
     else
       res = articulos_
       res.each do |arti|
-        if arti["is_combo"]
-          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-        end
+        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+        arti["contenido"] = Articulo.calcularContenidos(arti["contenido_articulos"], arti)
+        arti["cantidades"] = Articulo.calcularCantidades(arti["contenido_articulos"], arti)
       end
     end
 
     render json: res
   end
+
+  # def getArticulosFiltrados
+  #   arg = params["arg"]
+
+  #   page = params["page"]
+  #   per_page = params["per_page"]
+  #   paginado = params["paginado"] === "true" ? true : false
+
+  #   articulos = Articulo.filtrarArticulo(arg)
+
+  #   articulos_ = Articulo.parsearArticulosFiltro(articulos)
+
+  #   res = []
+
+  #   if paginado
+  #     res = articulos_.to_a.my_paginate(page, per_page)
+  #     res[:data].each do |arti|
+  #       if arti["is_combo"]
+  #         arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+  #       end
+  #     end
+  #   else
+  #     res = articulos_
+  #     res.each do |arti|
+  #       if arti["is_combo"]
+  #         arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
+  #       end
+  #     end
+  #   end
+
+  #   render json: res
+  # end
 
   # GET /articulos/1
   def show
@@ -171,9 +198,9 @@ class ArticulosController < ApplicationController
       if articulo_params["existencia"] == @ant_articulo["existencia"]
         seguir = addHistorico(@ant_articulo)
       else
-        seguir = true
+        seguir = { error: true, msg: "" }
       end
-      if seguir == true
+      if !seguir[:error]
         newArticulo = {
           "tipo_articulo_id": articulo_params["tipo_articulo_id"],
           "nombre": articulo_params["nombre"],
@@ -183,11 +210,11 @@ class ArticulosController < ApplicationController
           "imagen_id": articulo_params["imagen_id"],
           "medida": articulo_params["medida"],
           "is_detallable": articulo_params["is_detallable"],
-          "suplidor_id": articulo_params["suplidor_id"],
           "medida_alerta": articulo_params["medida_alerta"],
           "aviso_existencia": articulo_params["aviso_existencia"],
           "otros_costos": articulo_params["otros_costos"],
           "calcular_itbis": articulo_params["calcular_itbis"],
+          "vendido_en": articulo_params["vendido_en"],
           "codigo": @articulo["codigo"],
         }
 
@@ -276,8 +303,7 @@ class ArticulosController < ApplicationController
           return render json: @articulo.errors, status: 400
         end
       else
-        1
-        return render json: { error: @articulo.errors, msg: "error creando historico" }, status: 400
+        return render json: { error: seguir[:msg], msg: "error creando historico" }, status: seguir[:status]
       end
     end
   end
@@ -290,7 +316,6 @@ class ArticulosController < ApplicationController
              "ant_nombre": anterior["nombre"],
              "ant_tipoArticuloId": anterior["tipo_articulo_id"],
              "ant_tipoArticulo": anterior["descripcion"],
-             "ant_suplidor": anterior["suplidor_id"],
              "ant_medida": anterior["medida"],
              "ant_medidaAlerta": anterior["medida_alerta"],
              "ant_costoP": anterior["costo_principal"],
@@ -299,6 +324,7 @@ class ArticulosController < ApplicationController
              "ant_isDetallable": anterior["is_detallable"],
              "ant_calcularItbis": anterior["calcular_itbis"],
              "ant_isCombo": anterior["is_combo"],
+             #  "vendido_en": anterior["vendido_en"],
              "ant_otrosCostos": anterior["otros_costos"] }
 
       anterior["contenido_articulos"].to_a.each do |contenido|
@@ -393,8 +419,8 @@ class ArticulosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def articulo_params
-    params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable, :suplidor_id,
-                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos,
+    params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable,
+                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos, :vendido_en,
                                      imagen_attributes: [:file_name, :base_64, :path],
                                      contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis, :secuencia],
                                      formulas_productos_terminados_attributes: [:articulo_id, :cantidad, :costo, :_destroy, :articulo_combo, :id, :precio])

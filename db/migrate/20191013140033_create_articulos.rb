@@ -2,7 +2,6 @@ class CreateArticulos < ActiveRecord::Migration[5.2]
   def change
     create_table :articulos do |t|
       t.references :imagen, foreign_key: true
-      t.references :suplidor, foreign_key: true
       t.references :tipo_articulo, foreign_key: true
       t.string :nombre
       t.float :costo_principal
