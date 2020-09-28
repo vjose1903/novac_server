@@ -128,7 +128,7 @@ class CabeceraFacturasController < ApplicationController
         @cabecera_factura = CabeceraFactura.new(att)
 
         puts @cabecera_factura.to_json
-        return render json: { msg: "pruebas", body: @cabecera_factura }
+        # return render json: { msg: "pruebas", body: cabecera }
 
         unless @cabecera_factura.save
           # render json: @cabecera_factura, status: :created, location: @cabecera_factura
@@ -177,6 +177,7 @@ class CabeceraFacturasController < ApplicationController
 
     begin
       obj = objeto.attributes
+      obj["detalle_facturas"] = objeto.detalle_facturas.to_a
     rescue
       obj = objeto
     end
@@ -189,7 +190,7 @@ class CabeceraFacturasController < ApplicationController
     arrayDetalle.each do |detalleF|
       objD = {}
 
-      condicionDetalle = ContenidoArticulo.get_condicion_contenido_by_id(detalleF["articulo_id"])
+      contenidoArticulo = ContenidoArticulo.where({ articulo_id: detalleF["articulo_id"] })
 
       articuloSelect = Articulo.find_by_id(detalleF["articulo_id"])
       tipoArticulo = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
@@ -206,7 +207,6 @@ class CabeceraFacturasController < ApplicationController
 
       tipoArticuloD = tipoArticulo["descripcion"]
 
-      contenidoCantidad = 0
       precio = 0
       costo_calculado = 0
 
@@ -224,16 +224,15 @@ class CabeceraFacturasController < ApplicationController
       if unidad[0] == "Quintal" || unidad[0] == "Caja"
         costo_calculado = costoPrincipal
       elsif unidad[0] == "Saco"
-        condicionDetalle.each do |condi|
+        contenidoArticulo.each do |condi|
           if condi["medida"] == "Libra"
             costoC = (unidad[2].to_f * condi["costo"])
             costo_calculado = costoC.to_d.truncate(2).to_f
           end
         end
       else unidad[0] == "Paquete" || unidad[0] == "Libra"
-        condicionDetalle.each do |condi|
+        contenidoArticulo.each do |condi|
         if condi["medida"] == unidad[0]
-          contenidoCantidad = condi["cantidad"]
           precio = condi["precio"]
           costo_calculado = condi["costo"]
         end
@@ -298,6 +297,12 @@ class CabeceraFacturasController < ApplicationController
       obj["vendedor"] = vendedor
     end
 
+    # if obj["vendedor_id"]
+    #   vendedor_ = User.get_vendedor_by_id(objeto["vendedor_id"])[0]
+    #   vendedor = "#{vendedor_["nombre"]} #{vendedor_["apellido"]}"
+    #   obj["vendedor"] = vendedor
+    # end
+
     obj["notas"] = CabeceraFactura.where({ aplicada_a: objeto["numero_comprobante"] })
 
     obj["cliente"] = cliente
@@ -347,31 +352,39 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def update_secuencia
-    CabeceraFactura.transaction do
-      if params[:FACTURA_DE] == 14
-        # --------- COMPRA ---------
+    # @cabecera_factura.transaction do
+    if params[:FACTURA_DE] == 14
+      # --------- COMPRA ---------
 
+      unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
+        render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
+      else
+        cabecera = parsearData(@cabecera_factura)
+        render json: cabecera, status: :created, location: @cabecera_factura
+      end
+    else
+      # --------- VENTA / NOTA ---------
+      actualizando = { :error => false, :msg => "", :status => 200 }
+      if @actual_paquete_comprobante["is_paquete"]
+        puts "ES UN PAQUETE !!!!!!".red
+        actualizando = SecuenciaComprobante.aumentar_secuencia_comprobante(@actual_paquete_comprobante["id"])
+      end
+
+      unless actualizando["error"]
         unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
-          render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
+          render json: { msg: "Error actualizando la tabla de secuencia de Factura Venta", error: @actual_secuencia_factura.errors }, status: :unprocessable_entity
+          raise ActiveRecord::Rollback
         else
           cabecera = parsearData(@cabecera_factura)
           render json: cabecera, status: :created, location: @cabecera_factura
         end
       else
-        # --------- VENTA / NOTA ---------
-        actualizando = SecuenciaComprobante.aumentar_secuencia_comprobante(@actual_secuencia_comprobante["id"])
-        unless actualizando
-          render json: { msg: "Error actualizando la tabla de secuencia de comprobante Venta" }, status: :unprocessable_entity
-        else
-          unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
-            render json: { msg: "Error actualizando la tabla de secuencia de Factura Venta" }, status: :unprocessable_entity
-          else
-            cabecera = parsearData(@cabecera_factura)
-            render json: cabecera, status: :created, location: @cabecera_factura
-          end
-        end
+        render json: { msg: actualizando["msg"] }, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
       end
     end
+    # end
+
   end
 
   def movimientos_de_inventario(accion, articulo, unidad, cantidad)
@@ -472,12 +485,12 @@ class CabeceraFacturasController < ApplicationController
   def find_secuencia
     if params["tipo"] == "venta" || params["is_nota"]
       @factura_aplicada_id = params[:factura_id]
-      @actual_secuencia_comprobante = SecuenciaComprobante.get_paquete_rnc_by_estado(params[:tipo_factura_id], true)
-      if @actual_secuencia_comprobante[:error]
-        return render :json => @actual_secuencia_comprobante, status: @actual_secuencia_comprobante[:status]
+      @actual_paquete_comprobante = SecuenciaComprobante.get_paquete_rnc_by_estado(params[:tipo_factura_id], true)
+      if @actual_paquete_comprobante[:error]
+        return render :json => @actual_paquete_comprobante, status: @actual_paquete_comprobante[:status]
       end
-      @actual_secuencia_comprobante = @actual_secuencia_comprobante[:body]
-      @next_secuencia_comprobante = @actual_secuencia_comprobante["secuencia"]
+      @actual_paquete_comprobante = @actual_paquete_comprobante[:body]
+      @next_secuencia_comprobante = @actual_paquete_comprobante["secuencia"]
     end
 
     @tipoFactura = TipoFactura.find_by_id(params[:tipo_factura_id])

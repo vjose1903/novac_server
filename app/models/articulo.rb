@@ -73,6 +73,7 @@ class Articulo < ApplicationRecord
   def self.parsearArticulosFiltro(articulos)
     articulos.each do |arti|
       arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
+      arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
       arti["descripcion"] = arti["tipo_articulo_descripcion"]
 
       arti["imagen"] = { file_name: arti["file_name"], base_64: arti["base_64"], path: arti["path"] }
@@ -87,22 +88,6 @@ class Articulo < ApplicationRecord
     end
 
     return articulos
-  end
-
-  # =====================================================================================================================
-  def self.get_articulo_by_name_o_by_codigo(tipo, nombre)
-    select_ = "SELECT id, tipo_articulo_id, nombre, costo_principal, precio_principal, existencia, codigo, fecha_ingreso, medida, is_detallable, created_at, updated_at, imagen_id, aviso_existencia, medida_alerta, calcular_itbis, estado, is_combo, otros_costos"
-    from_ = "FROM articulos a"
-    where_ = ""
-
-    if (tipo == "nombre")
-      where_ = " WHERE lower(#{tipo}) like lower('#{nombre}%') AND estado = true"
-    else
-      where_ = " WHERE #{tipo} like '#{nombre}' AND estado = true"
-    end
-
-    query = "#{select_} #{from_} #{where_}"
-    return my_query(query)
   end
 
   # =====================================================================================================================
@@ -138,6 +123,11 @@ class Articulo < ApplicationRecord
     rescue
       att = objeto
     end
+    puts "@@@@@".red * 20
+    puts att.to_json
+    puts "@@@@@".red * 20
+    att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: att["id"] })
+    att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: att["id"] })
     tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
     att["descripcion"] = tipoArt["descripcion"]
     return att
@@ -149,8 +139,12 @@ class Articulo < ApplicationRecord
 
     objeto["descripcion"] = objeto["descripcion"]
     objeto["contenido_articulos"] = objeto["contenido_articulos"]
-    objeto["contenido"] = calcularContenidosHistorico(objeto["contenido_articulos"], objeto)
-    objeto["cantidades"] = calcularCantidadesHistorico(objeto["contenido_articulos"], objeto)
+
+    objeto["contenido"] = calcularContenidos(objeto["contenido_articulos"], objeto)
+    objeto["cantidades"] = calcularCantidades(objeto["contenido_articulos"], objeto)
+
+    # objeto["contenido"] = calcularContenidosHistorico(objeto["contenido_articulos"], objeto)
+    # objeto["cantidades"] = calcularCantidadesHistorico(objeto["contenido_articulos"], objeto)
     # if objeto["is_combo"]
     #   objeto["formulas_productos_terminados"] = objeto["formulas_productos_terminados"]
     # end
@@ -164,6 +158,8 @@ class Articulo < ApplicationRecord
 
   def self.calcularContenidos(contenido, articulo)
     puts " ------------------- inicio calcularContenidos -------------------"
+    puts "contenido".red, contenido.to_json
+    puts "articulo".red, articulo.to_json
     contenidos = {}
 
     if contenido.length == 0

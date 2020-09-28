@@ -76,7 +76,7 @@ class MantenimientoArticulosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def mantenimiento_articulo_params
-    params.require(:mantenimiento_articulo).permit(:articulo_id, :user_id, :ant_medidaAlerta, :ant_nombre, :ant_tipoArticulo, :ant_suplidor, :ant_medida, :ant_costoP, :ant_precioP, :ant_alertaExistencia, :ant_isDetallable, :ant_tipoArticuloId, :ant_medidaPadre,
+    params.require(:mantenimiento_articulo).permit(:articulo_id, :user_id, :ant_medidaAlerta, :ant_nombre, :ant_suplidor, :ant_medida, :ant_costoP, :ant_precioP, :ant_alertaExistencia, :ant_isDetallable, :ant_tipoArticuloId, :ant_medidaPadre,
                                                    :ant_costoPadre, :ant_precioPadre, :ant_cantidadPadre, :ant_medidaHijo, :ant_costoHijo, :ant_precioHijo, :ant_cantidadHijo, :ant_idPadre, :ant_idHijo, :ant_referenciaPadre, :secuencia,
                                                    :ant_referenciaHijo, :ant_calcularItbis, :ant_isCombo)
   end

@@ -133,10 +133,11 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["updated_at"] = articulo["updated_at"]
     articuloHistorico["imagen_id"] = articulo["imagen_id"]
     articuloHistorico["aviso_existencia"] = historico["ant_alertaExistencia"]
-    articuloHistorico["suplidor_id"] = historico["ant_suplidor"]
     articuloHistorico["medida_alerta"] = historico["ant_medidaAlerta"]
     articuloHistorico["calcular_itbis"] = historico["ant_calcularItbis"]
     articuloHistorico["is_combo"] = historico["ant_isCombo"]
+    articuloHistorico["otros_costos"] = historico["ant_otrosCostos"]
+    articuloHistorico["vendido_en"] = historico["vendido_en"]
 
     contents = []
     contenidoArticulo.each do |contenido|
@@ -174,7 +175,8 @@ class MantenimientoArticulo < ApplicationRecord
       formulas.each do |f|
         obj = { "articulo_combo": f["articulo_combo"],
                "cantidad": f["cantidad"],
-               "costo": f["costo"] }
+               "costo": f["costo"],
+               "precio": f["precio"] }
       end
       articuloHistorico["formulas_productos_terminados"] = fomulaS
     end

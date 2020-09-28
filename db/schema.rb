@@ -227,6 +227,7 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.float "ant_precioHijo"
     t.integer "ant_cantidadHijo"
     t.string "ant_medidaAlerta"
+    t.string "vendido_en"
     t.integer "ant_idPadre"
     t.integer "ant_idHijo"
     t.integer "ant_referenciaPadre"

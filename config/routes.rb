@@ -24,13 +24,12 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
 
   # articulos
-  get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados"
+  get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados" #
   get "articulosF" => "articulos#getArticulosFormateados"
   get "historico/:id" => "contenido_articulos#getCondicionContenidoById"
-  get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getAllArticulosByDate"
-  patch "articulos/delete/:id" => "articulos#deleteArticulo"
-  get "condicionContenido" => "contenido_articulos#getCondicionContenido"
-  get "condicionContenido/:id" => "contenido_articulos#getCondicionContenidoById"
+  get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getAllArticulosByDate" #
+  patch "articulos/delete/:id" => "articulos#deleteArticulo" #
+  get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
   get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
 
   # suplidores

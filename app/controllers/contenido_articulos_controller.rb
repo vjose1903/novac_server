@@ -13,16 +13,6 @@ class ContenidoArticulosController < ApplicationController
     render json: @contenido_articulo
   end
 
-  def getCondicionContenido
-    @condicionContendio = ContenidoArticulo.get_condicion_contenido
-    render json: @condicionContendio
-  end
-
-  def getCondicionContenidoById
-    @condicionContendio = ContenidoArticulo.get_condicion_contenido_by_id(params[:id])
-    render json: @condicionContendio
-  end
-
   # POST /contenido_articulos
   def create
     @contenido_articulo = ContenidoArticulo.new(contenido_articulo_params)
