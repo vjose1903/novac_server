@@ -150,40 +150,58 @@ class ArticulosController < ApplicationController
         }
 
         if @articulo.update(newArticulo)
+          contenidosAdd = []
           articulo_params["contenido_articulos_attributes"].each do |contenido|
-            content = ContenidoArticulo.find_by_id(contenido["id"])
-            contenidoCompleto = ContenidoArticulo.where({ articulo_id: @articulo["id"] })
+            contentido = ContenidoArticulo.find_by_id(contenido["id"])
+            # contenidoCompleto = ContenidoArticulo.where({ articulo_id: @articulo["id"] })
 
-            newContenido = {
-              "costo": contenido["costo"],
-              "precio": contenido["precio"],
-              "cantidad": contenido["cantidad"],
-              "medida": contenido["medida"],
-              "condicion": contenido["condicion"],
-              "calcular_itbis": contenido["calcular_itbis"],
-            }
+            if contentido == [] || contentido == nil
+              contentido["articulo_id"] = @articulo["id"]
+              contentido = ContenidoArticulo.new
+            end
+            contentido.costo = contenido["costo"]
+            contentido.precio = contenido["precio"]
+            contentido.cantidad = contenido["cantidad"]
+            contentido.medida = contenido["medida"]
+            contentido.condicion = contenido["condicion"]
+            contentido.calcular_itbis = contenido["calcular_itbis"]
 
-            if contenidoCompleto == [] || contenidoCompleto == nil
-              newContenido["articulo_id"] = @articulo["id"]
-              new_contenido = ContenidoArticulo.new(newContenido)
-              if new_contenido.save
-                unless @articulo.contenido_articulos.length <= 1
-                  firstContenido = @articulo.contenido_articulos.first
+            contenidosAdd.push contentido
+            # if new_contenido.save
+            #   unless @articulo.contenido_articulos.length <= 1
+            #     firstContenido = @articulo.contenido_articulos.first
 
-                  lastContenido = @articulo.contenido_articulos.last
+            #     lastContenido = @articulo.contenido_articulos.last
 
-                  unless lastContenido.update({ referencia: firstContenido.id })
-                    render json: lastContenido.errors, status: :unprocessable_entity
-                  end
-                end
-              else
-                return render json: new_contenido.errors, status: :unprocessable_entity
-              end
-            else
-              unless content.update(newContenido)
-                return render json: { error: content.errors, msg: "Error editando contenido de articulo" }, status: :unprocessable_entity
+            #     unless lastContenido.update({ referencia: firstContenido.id })
+            #       render json: lastContenido.errors, status: :unprocessable_entity
+            #     end
+            #   end
+            # else
+            #   return render json: new_contenido.errors, status: :unprocessable_entity
+            # end
+            # else
+            #   unless content.update(newContenido)
+            #     return render json: { error: content.errors, msg: "Error editando contenido de articulo" }, status: :unprocessable_entity
+            #   end
+
+          end
+          @articulo.contenido_articulos = contenidosAdd
+
+          seguirConteido = @articulo.save!
+
+          if seguirConteido
+            unless @articulo.contenido_articulos.length <= 1
+              firstContenido = @articulo.contenido_articulos.first
+
+              lastContenido = @articulo.contenido_articulos.last
+
+              unless lastContenido.update({ referencia: firstContenido.id })
+                render json: lastContenido.errors, status: :unprocessable_entity
               end
             end
+          else
+            return render json: seguirConteido.errors, status: :unprocessable_entity
           end
 
           @obj = articulo_params
@@ -193,34 +211,25 @@ class ArticulosController < ApplicationController
 
           if articulo_params["is_combo"]
             seguirFormula = true
+            articulosAdd = []
             articulo_params["formulas_productos_terminados_attributes"].each do |articulo_formula|
-              form = FormulasProductosTerminado.find_by_id(articulo_formula["id"])
-              formulaObj = {
-                "articulo_id": @articulo["id"],
-                "articulo_combo": articulo_formula["articulo_combo"],
-                "cantidad": articulo_formula["cantidad"],
-                "costo": articulo_formula["costo"],
-                "precio": articulo_formula["precio"],
-              }
+              formula_ingrediente = FormulasProductosTerminado.find_by_id(articulo_formula["id"])
 
-              if form == nil
-                new_formula = FormulasProductosTerminado.new(formulaObj)
-
-                FormulasProductosTerminado.transaction do
-                  unless new_formula.save
-                    seguirFormula = false
-                    return render json: { error: new_formula.errors, msg: "Error agregando formula de articulo" }, status: 400
-                  end
-                end
-              else
-                FormulasProductosTerminado.transaction do
-                  unless form.update(formulaObj)
-                    seguirFormula = false
-                    return render json: { error: form.errors, msg: "Error editando formula de articulo" }, status: 400
-                  end
-                end
+              if formula_ingrediente == nil
+                formula_ingrediente = FormulasProductosTerminado.new
               end
+
+              formula_ingrediente.articulo_id = @articulo["id"]
+              formula_ingrediente.articulo_combo = articulo_formula["articulo_combo"]
+              formula_ingrediente.cantidad = articulo_formula["cantidad"]
+              formula_ingrediente.costo = articulo_formula["costo"]
+              formula_ingrediente.precio = articulo_formula["precio"]
+
+              articulosAdd.push formula_ingrediente
             end
+            @articulo.formulas_productos_terminados = articulosAdd
+
+            seguirFormula = @articulo.save!
 
             if seguirFormula
               render json: @obj

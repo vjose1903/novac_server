@@ -5,7 +5,7 @@ class SecuenciaComprobante < ApplicationRecord
     tipoFac = TipoFactura.find_by_id(tipo_factura_id)
     if tipoFac["referencia"] == "00" || tipoFac["referencia"] == 0
       @secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(tipo_factura_id)
-      secuencia_factura = @secuencia_factura
+      secuencia_factura = @secuencia_factura.attributes
 
       secuencia_factura["is_paquete"] = false
 
@@ -23,7 +23,8 @@ class SecuenciaComprobante < ApplicationRecord
       order_ = "ORDER BY created_at ASC LIMIT 1"
       query = "#{select_} #{from_} #{where_} #{order_}"
       paquete = my_query(query)[0]
-      paquete["is_paquete"] = true
+      puts "paquete".red, paquete.to_json
+      # paquete["is_paquete"] = true
 
       if paquete == [] || paquete == nil
         existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
@@ -162,12 +163,12 @@ class SecuenciaComprobante < ApplicationRecord
     where_ = "where estado = false AND usado = true AND tipo_factura_id = #{tipo_factura_id}"
     query = "#{select_} #{from_} #{where_}"
     paquete = my_query(query)[0]
-    paquete["is_paquete"] = true
 
     if paquete == [] || paquete == nil
       puts " -------------- fin ver_si_existen_paquetes_previos -------------- "
       return false
     else
+      paquete["is_paquete"] = true
       puts " -------------- fin ver_si_existen_paquetes_previos -------------- "
       return true
     end

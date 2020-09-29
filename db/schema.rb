@@ -180,7 +180,6 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.bigint "articulo_id"
     t.float "cantidad"
     t.float "costo"
-    t.integer "secuencia"
     t.integer "articulo_combo"
     t.float "precio"
     t.datetime "created_at", null: false
@@ -211,8 +210,6 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.bigint "articulo_id"
     t.bigint "user_id"
     t.string "ant_nombre"
-    t.string "ant_tipoArticulo"
-    t.integer "ant_suplidor"
     t.string "ant_medida"
     t.float "ant_costoP"
     t.float "ant_precioP"
