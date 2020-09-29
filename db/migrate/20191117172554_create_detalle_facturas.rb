@@ -6,6 +6,7 @@ class CreateDetalleFacturas < ActiveRecord::Migration[5.2]
       t.string :unidad
       t.float :total
       t.float :cantidad
+      t.integer :cantidad_en_unidades
       t.float :total
       t.float :itbis
       t.float :precio

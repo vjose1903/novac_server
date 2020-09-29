@@ -278,3 +278,27 @@ secuencia_factura = SecuenciaFactura.create(
 
   ]
 )
+
+secuencia = SecuenciaComprobante.create([
+
+  {
+    "tipo_factura_id": 1,
+    "secuencia": 1,
+    "desde": 1,
+    "hasta": 9223372036854775807,
+    "fecha_compra": Time.now,
+    "fecha_valida": nil,
+    "estado": true,
+    "usado": false,
+  },
+  {
+    "tipo_factura_id": 3,
+    "secuencia": 1,
+    "desde": 1,
+    "hasta": 9223372036854775807,
+    "fecha_compra": Time.now,
+    "fecha_valida": nil,
+    "estado": true,
+    "usado": false,
+  },
+])

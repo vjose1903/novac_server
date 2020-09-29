@@ -136,6 +136,7 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.string "unidad"
     t.float "total"
     t.float "cantidad"
+    t.integer "cantidad_en_unidades"
     t.float "itbis"
     t.float "precio"
     t.float "costo"
@@ -281,9 +282,9 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
 
   create_table "secuencia_comprobantes", force: :cascade do |t|
     t.bigint "tipo_factura_id"
-    t.integer "secuencia"
-    t.integer "desde"
-    t.integer "hasta"
+    t.bigint "secuencia"
+    t.bigint "desde"
+    t.bigint "hasta"
     t.datetime "fecha_compra"
     t.datetime "fecha_valida"
     t.boolean "estado"

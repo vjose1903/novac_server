@@ -152,27 +152,27 @@ class CabeceraFacturasController < ApplicationController
     return DateTime.parse(date.to_s)
   end
 
-  def makeContenidoArticulo(contenido)
-    contents = []
-    contenido.each do |con|
-      conte = {}
-      conte["id"] = con["id"]
-      conte["articulo_id"] = con["articulo_id"]
-      conte["referencia"] = con["referencia"]
-      conte["costo"] = con["costo"]
-      conte["precio"] = con["precio"]
-      conte["cantidad"] = con["cantidad"]
-      conte["calcular_itbis"] = con["calcular_itbis"]
-      conte["condicion"] = con["condicion"]
-      conte["medida"] = con["medida"]
-      conte["created_at"] = con["created_at"]
-      conte["updated_at"] = con["updated_at"]
-      contents.push(conte)
-    end
-    return contents
-  end
+  # def makeContenidoArticulo(contenido)
+  #   contents = []
+  #   contenido.each do |con|
+  #     conte = {}
+  #     conte["id"] = con["id"]
+  #     conte["articulo_id"] = con["articulo_id"]
+  #     conte["referencia"] = con["referencia"]
+  #     conte["costo"] = con["costo"]
+  #     conte["precio"] = con["precio"]
+  #     conte["cantidad"] = con["cantidad"]
+  #     conte["calcular_itbis"] = con["calcular_itbis"]
+  #     conte["condicion"] = con["condicion"]
+  #     conte["medida"] = con["medida"]
+  #     conte["created_at"] = con["created_at"]
+  #     conte["updated_at"] = con["updated_at"]
+  #     contents.push(conte)
+  #   end
+  #   return contents
+  # end
 
-  def parsearData(objeto)
+  def parsearData(objeto, movimiento_inventario = false)
     puts "--------------- inicio parsearData ---------------"
 
     begin
@@ -248,22 +248,25 @@ class CabeceraFacturasController < ApplicationController
       objD["descuento_porciento"] = detalleF["descuento_porciento"]
       objD["itbis"] = detalleF["itbis"]
       objD["cantidad"] = detalleF["cantidad"]
+      objD["cantidad_en_unidades"] = detalleF["cantidad_en_unidades"]
       objD["tipo"] = tipoArticuloD
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
 
-      # unless objeto["adelantada"]
-      #   unless @actual_secuencia_factura == nil
-      #     factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
+      unless objeto["adelantada"]
+        if movimiento_inventario
+          unless @actual_secuencia_factura == nil
+            factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
 
-      #     if articuloSelect["contenido_articulos"] == nil
-      #       array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(doc["articulo_id"])
-      #       articuloSelect["contenido_articulos"] = array_contenido
-      #     end
+            if articuloSelect["contenido_articulos"] == nil
+              array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(articuloSelect["id"])
+              articuloSelect["contenido_articulos"] = array_contenido
+            end
 
-      #     movimientos_de_inventario(factura_tipo, articuloSelect, unidad, objD["cantidad"])
-      #   end
-      # end
+            movimientos_de_inventario(factura_tipo, articuloSelect, objD["cantidad_en_unidades"])
+          end
+        end
+      end
 
       detalleFacturas.push(objD)
     end
@@ -279,32 +282,37 @@ class CabeceraFacturasController < ApplicationController
     obj["detalle_facturas"] = detalleFacturas
 
     cliente = {}
+    suplidor = {}
 
-    if objeto["cliente_id"] || objeto["is_nota"]
+    if !objeto["cliente_id"].nil? || objeto["is_nota"]
       cli = Cliente.find_by_id(obj["cliente_id"])
       cliente["nombre"] = "#{cli["nombre"]} #{cli["apellido"]}".titleize
       cliente["direccion"] = cli["direccion"]
       cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
     else
-      cliente["nombre"] = objeto["NoCliente_nombre"]
-      cliente["direccion"] = objeto["NoCliente_direccion"]
-      cliente["rnc"] = nil
+      if !objeto["NoCliente_nombre"].nil?
+        cliente["nombre"] = objeto["NoCliente_nombre"]
+        cliente["direccion"] = objeto["NoCliente_direccion"]
+        cliente["rnc"] = nil
+      end
     end
 
-    if obj["vendedor_id"]
+    if !obj["vendedor_id"].nil?
       vendedor_ = User.get_vendedor_by_id(objeto["vendedor_id"])[0]
       vendedor = "#{vendedor_["nombre"]} #{vendedor_["apellido"]}"
       obj["vendedor"] = vendedor
     end
 
-    # if obj["vendedor_id"]
-    #   vendedor_ = User.get_vendedor_by_id(objeto["vendedor_id"])[0]
-    #   vendedor = "#{vendedor_["nombre"]} #{vendedor_["apellido"]}"
-    #   obj["vendedor"] = vendedor
-    # end
+    if !obj["suplidor_id"].nil?
+      supli = Suplidor.find_by_id(obj["suplidor_id"])
+      suplidor["nombre"] = "#{supli["nombre"]}".titleize
+      suplidor["direccion"] = supli["direccion"]
+      suplidor["rnc"] = DocumentoDeIdentidad.where({ principal: true, suplidor_id: supli["id"] })[0]["documento"]
+    end
 
     obj["notas"] = CabeceraFactura.where({ aplicada_a: objeto["numero_comprobante"] })
 
+    obj["suplidor"] = suplidor
     obj["cliente"] = cliente
     obj["tiene_nota"] = objeto["tiene_nota"]
 
@@ -359,7 +367,7 @@ class CabeceraFacturasController < ApplicationController
       unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
         render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
       else
-        cabecera = parsearData(@cabecera_factura)
+        cabecera = parsearData(@cabecera_factura, true)
         render json: cabecera, status: :created, location: @cabecera_factura
       end
     else
@@ -375,7 +383,7 @@ class CabeceraFacturasController < ApplicationController
           render json: { msg: "Error actualizando la tabla de secuencia de Factura Venta", error: @actual_secuencia_factura.errors }, status: :unprocessable_entity
           raise ActiveRecord::Rollback
         else
-          cabecera = parsearData(@cabecera_factura)
+          cabecera = parsearData(@cabecera_factura, true)
           render json: cabecera, status: :created, location: @cabecera_factura
         end
       else
@@ -387,98 +395,101 @@ class CabeceraFacturasController < ApplicationController
 
   end
 
-  def movimientos_de_inventario(accion, articulo, unidad, cantidad)
-    medida = unidad[0]
-    cantSacos = 0
-    cantSacos = unidad[2].to_f
+  def movimientos_de_inventario(accion, articulo, cantidad_en_unidades)
+    # medida = unidad[0]
+    # cantSacos = 0
+    # cantSacos = unidad[2].to_f
 
-    if cantidad == nil
-      cantidad = 0
-    end
+    # if cantidad == nil
+    #   cantidad = 0
+    # end
 
-    cantPrincipal = 1
-    cantPadre = 0
-    cantHijo = 1
-    maxCant = 1
+    # cantPrincipal = 1
+    # cantPadre = 0
+    # cantHijo = 1
+    # maxCant = 1
 
-    if medida === "Saco"
-      medida = "Libra"
-    end
+    # if medida === "Saco"
+    #   medida = "Libra"
+    # end
 
-    medidaEs = ""
-    if medida == articulo["medida"]
-      medidaEs = "principal"
-    end
+    # medidaEs = ""
+    # if medida == articulo["medida"]
+    #   medidaEs = "principal"
+    # end
 
-    if articulo["contenido_articulos"].length === 0
-      cantPrincipal = 1
-    else
-      articulo["contenido_articulos"].each do |contenido|
-        cantPrincipal = contenido["cantidad"] * cantPrincipal
-        if contenido["condicion"] == "hijo"
-          cantPadre = contenido["cantidad"]
-        end
-        if contenido["condicion"] == "padre"
-          if contenido["medida"] == "Libra" || contenido["medida"] == "Unidad"
-            cantPadre = 1
-          end
+    # if articulo["contenido_articulos"].length === 0
+    #   cantPrincipal = 1
+    # else
+    #   articulo["contenido_articulos"].each do |contenido|
+    #     cantPrincipal = contenido["cantidad"] * cantPrincipal
+    #     if contenido["condicion"] == "hijo"
+    #       cantPadre = contenido["cantidad"]
+    #     end
+    #     if contenido["condicion"] == "padre"
+    #       if contenido["medida"] == "Libra" || contenido["medida"] == "Unidad"
+    #         cantPadre = 1
+    #       end
 
-          if medida == contenido["medida"]
-            medidaEs = "padre"
-          end
-        else
-          if medida == contenido["medida"]
-            medidaEs = "hijo"
-          end
-        end
-      end
-    end
+    #       if medida == contenido["medida"]
+    #         medidaEs = "padre"
+    #       end
+    #     else
+    #       if medida == contenido["medida"]
+    #         medidaEs = "hijo"
+    #       end
+    #     end
+    #   end
+    # end
 
-    if medidaEs == "principal"
-      maxCant = cantPrincipal
-    elsif medidaEs == "padre"
-      maxCant = cantPadre
-    else
-      maxCant = cantHijo
-    end
+    # if medidaEs == "principal"
+    #   maxCant = cantPrincipal
+    # elsif medidaEs == "padre"
+    #   maxCant = cantPadre
+    # else
+    #   maxCant = cantHijo
+    # end
 
-    if cantSacos > 0 && medida == "Libra"
-      maxCant = cantSacos.to_f
-    end
+    # if cantSacos > 0 && medida == "Libra"
+    #   maxCant = cantSacos.to_f
+    # end
 
-    puts "cantPrincipal #{cantPrincipal}"
-    puts "cantPadre #{cantPadre}"
-    puts "cantHijo #{cantHijo}"
-    puts ""
-    puts "cantidad #{cantidad}"
-    puts "medidaEs #{medidaEs}"
+    # puts "cantPrincipal #{cantPrincipal}"
+    # puts "cantPadre #{cantPadre}"
+    # puts "cantHijo #{cantHijo}"
+    # puts ""
+    # puts "cantidad #{cantidad}"
+    # puts "medidaEs #{medidaEs}"
 
-    cant = (maxCant * cantidad)
-
+    # cant = (maxCant * cantidad)
     if accion == 13
       # --------- VENTA ---------
-      puts " estas vendiendo #{cant} "
       movimiento = Articulo.find_by_id(articulo["id"])
-      mov = (movimiento["existencia"] - cant)
-      if movimiento.update({ existencia: mov })
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-        puts "::::                                  ::::"
-        puts "::::        VENTA EXITOSA             ::::"
-        puts "::::                                  ::::"
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-      end
+      mov = (movimiento["existencia"] - cantidad_en_unidades)
+
+      puts " estas vendiendo #{cantidad_en_unidades} "
+      puts " inventario queda en  #{mov} "
+      # if movimiento.update({ existencia: mov })
+      #   puts "::::::::::::::::::::::::::::::::::::::::::"
+      #   puts "::::                                  ::::"
+      #   puts "::::        VENTA EXITOSA             ::::"
+      #   puts "::::                                  ::::"
+      #   puts "::::::::::::::::::::::::::::::::::::::::::"
+      # end
     else
       # --------- COMPRA ---------
-      puts " estas comprando #{cant} "
       movimiento = Articulo.find_by_id(articulo["id"])
-      mov = (movimiento["existencia"] + cant)
-      if movimiento.update({ existencia: mov })
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-        puts "::::                                  ::::"
-        puts "::::         COMPRA EXITOSA           ::::"
-        puts "::::                                  ::::"
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-      end
+      mov = (movimiento["existencia"] + cantidad_en_unidades)
+
+      puts " estas vendiendo #{cantidad_en_unidades} "
+      puts " inventario queda en  #{mov} "
+      # if movimiento.update({ existencia: mov })
+      #   puts "::::::::::::::::::::::::::::::::::::::::::"
+      #   puts "::::                                  ::::"
+      #   puts "::::         COMPRA EXITOSA           ::::"
+      #   puts "::::                                  ::::"
+      #   puts "::::::::::::::::::::::::::::::::::::::::::"
+      # end
     end
   end
 
@@ -547,6 +558,7 @@ class CabeceraFacturasController < ApplicationController
   def cabecera_factura_params
     params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_facturacion, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
                                              :pagada, :vendedor_id, :balance, :devuelta, :adelantada, :is_nota, :aplicada_a, :tiene_nota,
-                                             detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado, :retirado_en_venta])
+                                             detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
+                                                                           :retirado_en_venta, :cantidad_en_unidades])
   end
 end
