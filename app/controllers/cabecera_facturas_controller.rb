@@ -61,6 +61,8 @@ class CabeceraFacturasController < ApplicationController
 
     cabecera = []
     cabe.each do |factura|
+      @tipoFactura = TipoFactura.find_by_id(factura["tipo_factura_id"])
+
       cabecera.push(parsearData(factura))
     end
     # cabecera = parsearData(cabe)

@@ -46,7 +46,10 @@ class Cliente < ApplicationRecord
     cliente = Cliente.find_by_id(id)
 
     puts "cliente".red, cliente.to_json
-    balance = cliente["balance"] == nil ? 0 : cliente["balance"]
+    balance = 0
+    if !cliente["balance"].nil?
+      balance = cliente["balance"]
+    end
 
     if operacion == "+"
       sumatoria = balance + totalFactura.to_f
