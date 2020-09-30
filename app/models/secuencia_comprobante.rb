@@ -23,8 +23,7 @@ class SecuenciaComprobante < ApplicationRecord
     order_ = "ORDER BY created_at ASC LIMIT 1"
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquete = my_query(query)[0]
-    puts "paquete".red, paquete.to_json
-    # paquete["is_paquete"] = true
+    paquete["is_paquete"] = true
 
     if paquete == [] || paquete == nil
       existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)

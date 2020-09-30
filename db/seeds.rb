@@ -52,16 +52,7 @@ cliente = Cliente.create([
     "sexo": nil,
     "limite_credito": nil,
   },
-  {
-    "imagen_id": nil,
-    "nombre": "Juan",
-    "apellido": "Perez",
-    "telefono": "(131) 351-5134",
-    "direccion": "Por ahi en las carolinas",
-    "sexo": "m",
-    "limite_credito": 200000,
-    "estado": true,
-  },
+  { "nombre": "Juan", "estado": true, "apellido": "Perez", "limite_credito": 30, "telefono": "(131) 351-5134", "direccion": "Por ahi en las carolinas", "sexo": "M", "maximo_credito": 20000, "vendedor_id": 2 },
 ])
 
 # "vendedor_id": 2,

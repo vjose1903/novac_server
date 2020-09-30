@@ -18,8 +18,10 @@ class Articulo < ApplicationRecord
     return my_query("SELECT a.id, a.nombre, ta.descripcion as tipo_articulo, a.costo_principal, a.precio_principal, a.existencia, a.codigo, a.fecha_ingreso, a.medida, a.is_detallable, ca.*, a.created_at, a.updated_at from articulos a INNER JOIN tipo_articulos ta on a.tipo_articulo_id = ta.id INNER JOIN contenido_articulos ca on ca.articulo_id = a.id")
   end
   # =====================================================================================================================
-  def self.filtrarArticulo(arg)
+  def self.filtrarArticulo(arg, is_compra)
     arg = arg === " " ? "" : arg
+
+    puts "is_compra ".yellow, is_compra
 
     select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
                 img.file_name as file_name, img.base_64 as base_64, img.path as path "
@@ -27,7 +29,11 @@ class Articulo < ApplicationRecord
     from_ = "FROM articulos a"
     joins_ = "inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
               left join imagenes img on img.id = a.imagen_id"
-    where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
+    if is_compra
+      where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id != 3"
+    else
+      where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true "
+    end
     order_ = "ORDER BY a.id ASC"
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"

@@ -41,8 +41,9 @@ class ArticulosController < ApplicationController
     page = params["page"]
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
+    is_compra = params["is_compra"] === "true" ? true : false
 
-    articulos = Articulo.filtrarArticulo(arg)
+    articulos = Articulo.filtrarArticulo(arg, is_compra)
     articulos_ = Articulo.parsearArticulosFiltro(articulos)
 
     res = []
