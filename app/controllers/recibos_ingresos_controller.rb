@@ -29,20 +29,24 @@ class RecibosIngresosController < ApplicationController
 
           if resultCliente[:error]
             render json: resultCliente, :status => resultCliente[:status]
-            break
+            raise ActiveRecord::Rollback
           else
             continuar = CabeceraFactura.payFacturas(recibos_ingreso_params)
             unless continuar[:error]
               respuesta = @recibos_ingreso
-              # respuesta["newBalance"] = resultCliente[:balance]
+
+              respuesta.cliente.balance = resultCliente[:balance]
+              puts respuesta.to_json.yellow
               render json: respuesta, status: :created, location: @recibos_ingreso
             else
               render json: continuar[:msg], status: :unprocessable_entity
+              raise ActiveRecord::Rollback
             end
           end
         end
       else
         render json: @recibos_ingreso.errors, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
       end
     end
   end

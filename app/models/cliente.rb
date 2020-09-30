@@ -40,17 +40,14 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.CalculateBalanceCLiente(id, totalFactura, operacion)
-    puts "id".red, id
-    puts "totalFactura".yellow, totalFactura
-    puts "operacion".green, operacion
     cliente = Cliente.find_by_id(id)
 
-    puts "cliente".red, cliente.to_json
     balance = 0
     if !cliente["balance"].nil?
       balance = cliente["balance"]
     end
 
+    sumatoria = 0
     if operacion == "+"
       sumatoria = balance + totalFactura.to_f
     else

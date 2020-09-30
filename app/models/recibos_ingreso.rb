@@ -10,6 +10,7 @@ class RecibosIngreso < ApplicationRecord
   attribute :user
   attribute :cliente
   attribute :tipo_recibo
+  attribute :detalle_recibos
 
   def self.find_secuencia
     actual_secuencia_recibo = SecuenciaIngreso.all.last
@@ -20,8 +21,8 @@ class RecibosIngreso < ApplicationRecord
       next_secuencia_recibo = actual_secuencia_recibo["secuencia"] + 1
     end
 
-    numero_comprobante = ("%05d" % next_secuencia_recibo)
-
-    return numero_comprobante
+    numero_secuencia = ("%05d" % next_secuencia_recibo)
+    puts "numero_secuencia !!!!!!! ".red, numero_secuencia
+    return numero_secuencia
   end
 end
