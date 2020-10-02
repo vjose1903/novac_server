@@ -13,7 +13,8 @@ while getopts $OPTIONS opt; do
     m)
         echo "la opcion -m"
 
-        rake db:migrate RAILS_ENV=production
+        rake db:migrate 
+        # rake db:migrate RAILS_ENV=production
         ;;
     s)
         echo "la opcion -s"

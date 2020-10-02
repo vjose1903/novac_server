@@ -41,7 +41,7 @@ class RecibosIngreso < ApplicationRecord
       objD = detalle.attributes
       factura = CabeceraFactura.find_by_id(detalle["cabecera_factura_id"])
 
-      objD["balance_factura"] = factura["balance"]
+      objD["total_factura"] = factura["total_factura"]
       detalles.push(objD)
     end
 

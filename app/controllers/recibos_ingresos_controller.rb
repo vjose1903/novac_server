@@ -7,7 +7,7 @@ class RecibosIngresosController < ApplicationController
     recibos_ingresos = []
 
     @recibos_ingresos.each do |detalle|
-      recibos_ingresos = RecibosIngreso.parsearData(detalle)
+      recibos_ingresos.push(RecibosIngreso.parsearData(detalle))
     end
 
     render json: recibos_ingresos
@@ -28,6 +28,37 @@ class RecibosIngresosController < ApplicationController
         unless SecuenciaIngreso.last.update({ secuencia: @recibos_ingreso.numero_recibo })
           render json: SecuenciaIngreso.last.errors, status: :unprocessable_entity
         else
+          detalles = []
+          @recibos_ingreso.detalle_recibos.each_with_index do |d, idx|
+            detalle = DetalleRecibo.find_by_id(d["id"])
+
+            if detalle == [] || detalle == nil
+              detalle.cabecera_factura_id = d["cabecera_factura_id"]
+              detalle = DetalleRecibo.new
+            end
+            calculo_cabecera = CabeceraFactura.calculateBalanceFactura(detalle["cabecera_factura_id"], detalle["deposito"], (idx + 1))
+
+            if calculo_cabecera[:error]
+              render json: { msg: calculo_cabecera[:msg] }, status: :unprocessable_entity
+              raise ActiveRecord::Rollback
+            end
+
+            detalle.balance_anterior_factura = calculo_cabecera[:balance_anterior]
+            detalle.balance_factura = calculo_cabecera[:balance]
+            detalle.pago_total = detalle["pago_total"]
+            detalle.deposito = detalle["deposito"]
+            detalle.descripcion = detalle["descripcion"]
+            detalle.pago_a_tiempo = detalle["pago_a_tiempo"]
+
+            detalles.push detalle
+          end
+
+          # puts detalles.to_json
+          # render json: { msg: "pruebas" }, :status => :unprocessable_entity
+          # raise ActiveRecord::Rollback
+
+          @recibos_ingreso.detalle_recibos = detalles
+
           id = @recibos_ingreso.cliente_id
           total = @recibos_ingreso.total
           resultCliente = Cliente.CalculateBalanceCLiente(id, total, "-")
@@ -83,6 +114,6 @@ class RecibosIngresosController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def recibos_ingreso_params
     params.fetch(:recibos_ingreso).permit(:user_id, :cliente_id, :total, :forma_pago, :tipo_recibo_id, :devuelta,
-                                          detalle_recibos_attributes: [:recibos_ingreso_id, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo])
+                                          detalle_recibos_attributes: [:recibos_ingreso_id, :balance_anterior_factura, :balance_factura, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo])
   end
 end

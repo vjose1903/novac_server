@@ -140,13 +140,34 @@ class CabeceraFactura < ApplicationRecord
     end
   end
   # =====================================================================================================================
+  def self.calculateBalanceFactura(id, montoRecibido, num_fila)
+    puts " -------------- Inicio ReCalculateBalanceFactura -------------- "
+
+    factura = CabeceraFactura.find_by_id(id)
+
+    balance = factura["balance"]
+
+    sumatoria = 0
+
+    if montoRecibido.to_f > balance
+      return { :error => true, :msg => "El monto ingresado para la factura: #{factura.numero_comprobante}, es mayor al balance de la factura", :status => 400 }
+    else
+      sumatoria = balance - montoRecibido.to_f
+    end
+    puts "balance #{balance}".red
+    puts "montoRecibido #{montoRecibido}".yellow
+    puts "sumatoria #{sumatoria}".blue
+
+    sumatoria = sumatoria.to_d.truncate(2).to_f
+
+    return { :error => false, :balance => sumatoria, :balance_anterior => balance }
+  end
+  # =====================================================================================================================
   def self.ReCalculateBalanceFactura(id, totalFactura, operacion)
     puts " -------------- Inicio ReCalculateBalanceFactura -------------- "
 
     factura = CabeceraFactura.find_by_id(id)
-    puts "-----".blue * 15
-    puts "factura" + factura.to_json
-    puts "-----".blue * 15
+
     balance = factura["balance"]
 
     if operacion == "+"
