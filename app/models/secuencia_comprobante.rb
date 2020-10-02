@@ -3,28 +3,16 @@ class SecuenciaComprobante < ApplicationRecord
     puts " -------------- Inicio get_paquete_rnc_by_estado -------------- "
 
     tipoFac = TipoFactura.find_by_id(tipo_factura_id)
-    # if tipoFac["referencia"] == "00" || tipoFac["referencia"] == 0
-    #   @secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(tipo_factura_id)
-    #   secuencia_factura = @secuencia_factura.attributes
 
-    #   secuencia_factura["is_paquete"] = false
-
-    #   return { :error => false, :msg => "factura sin comprobante no necesitan paquetes", :body => secuencia_factura, :status => 200 }
-    # elsif tipoFac["referencia"] == "02" || tipoFac["referencia"] == 2
-    #   @secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(tipo_factura_id)
-    #   secuencia_factura = @secuencia_factura.attributes
-    #   secuencia_factura["is_paquete"] = false
-
-    #   return { :error => false, :msg => "factura de consumo no necesitan paquetes", :body => secuencia_factura, :status => 200 }
-    # else
-    select_ = "select *"
+    select_ = "select *, true as is_paquete"
     from_ = "from secuencia_comprobantes"
     where_ = "where estado = #{estado} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
     order_ = "ORDER BY created_at ASC LIMIT 1"
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquete = my_query(query)[0]
-    paquete["is_paquete"] = true
-
+    puts "///////".red * 20
+    puts paquete
+    puts "///////".red * 20
     if paquete == [] || paquete == nil
       existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
       if existen_siguientes[:bool]
@@ -47,13 +35,12 @@ class SecuenciaComprobante < ApplicationRecord
       return { :error => false, :msg => "Ultimo comprobante de este paquete", :body => paquete, :status => 200 }
       #
     elsif paquete["secuencia"] > paquete["hasta"]
-      select_ = "select *"
+      select_ = "select *, true as is_paquete"
       from_ = "from secuencia_comprobantes"
       where_ = "where estado = #{false} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
       order_ = "ORDER BY created_at ASC LIMIT 1"
       newQuery = "#{select_} #{from_} #{where_} #{order_}"
       nuevoPaquete = my_query(newQuery)[0]
-      nuevoPaquete["is_paquete"] = true
 
       if nuevoPaquete == [] || nuevoPaquete == nil
         puts " -------------- fin get_paquete_rnc_by_estado -------------- "
@@ -156,7 +143,7 @@ class SecuenciaComprobante < ApplicationRecord
   # ============================================================================================================================================================
   def self.ver_si_existen_paquetes_previos(tipo_factura_id)
     puts " -------------- inicio ver_si_existen_paquetes_previos -------------- "
-    select_ = "select *"
+    select_ = "select *, true as is_paquete"
     from_ = "from secuencia_comprobantes"
     where_ = "where estado = false AND usado = true AND tipo_factura_id = #{tipo_factura_id}"
     query = "#{select_} #{from_} #{where_}"
@@ -166,7 +153,6 @@ class SecuenciaComprobante < ApplicationRecord
       puts " -------------- fin ver_si_existen_paquetes_previos -------------- "
       return false
     else
-      paquete["is_paquete"] = true
       puts " -------------- fin ver_si_existen_paquetes_previos -------------- "
       return true
     end

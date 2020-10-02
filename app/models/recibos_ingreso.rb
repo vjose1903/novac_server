@@ -25,4 +25,28 @@ class RecibosIngreso < ApplicationRecord
     puts "numero_secuencia !!!!!!! ".red, numero_secuencia
     return numero_secuencia
   end
+
+  def self.parsearData(data)
+    begin
+      obj = data.attributes
+      obj["detalle_recibos"] = data.detalle_recibos.to_a
+      obj["cliente"] = data.cliente
+      obj["user"] = data.user
+    rescue
+      obj = data
+    end
+
+    detalles = []
+    obj["detalle_recibos"].each do |detalle|
+      objD = detalle.attributes
+      factura = CabeceraFactura.find_by_id(detalle["cabecera_factura_id"])
+
+      objD["balance_factura"] = factura["balance"]
+      detalles.push(objD)
+    end
+
+    obj["detalle_recibos"] = detalles
+
+    return obj
+  end
 end

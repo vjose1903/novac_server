@@ -4,8 +4,13 @@ class RecibosIngresosController < ApplicationController
   # GET /recibos_ingresos
   def index
     @recibos_ingresos = RecibosIngreso.all
+    recibos_ingresos = []
 
-    render json: @recibos_ingresos
+    @recibos_ingresos.each do |detalle|
+      recibos_ingresos = RecibosIngreso.parsearData(detalle)
+    end
+
+    render json: recibos_ingresos
   end
 
   # GET /recibos_ingresos/1
@@ -36,8 +41,11 @@ class RecibosIngresosController < ApplicationController
               respuesta = @recibos_ingreso
 
               respuesta.cliente.balance = resultCliente[:balance]
-              puts respuesta.to_json.yellow
-              render json: respuesta, status: :created, location: @recibos_ingreso
+
+              res = RecibosIngreso.parsearData(respuesta)
+
+              puts res.to_json.yellow
+              render json: res, status: :created, location: @recibos_ingreso
             else
               render json: continuar[:msg], status: :unprocessable_entity
               raise ActiveRecord::Rollback
