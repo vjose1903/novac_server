@@ -31,34 +31,26 @@ class HistoricoProduccionsController < ApplicationController
       # return render json: obj, status: :unprocessable_entity
 
       if @historico_produccion.save
-        res = true
-
         params["ingredientes"].each do |ingrediente|
           articulo = Articulo.find_by_id(ingrediente["articulo_id"])
           mov = (articulo["existencia"] - ingrediente["cantidad"])
           unless articulo.update({ existencia: mov })
-            res = false
-            s
             render json: articulo.errors, status: :unprocessable_entity
+            raise ActiveRecord::Rollback
           end
         end
 
         productoTerminado = Articulo.find_by_id(params["articulo_id"])
         movProd = (productoTerminado["existencia"] + params["cantidad"])
         unless productoTerminado.update({ existencia: movProd })
-          res = false
-          s
           render json: productoTerminado.errors, status: :unprocessable_entity
+          raise ActiveRecord::Rollback
         end
 
-        if res
-          render json: @historico_produccion, status: :created, location: @historico_produccion
-        else
-          render json: @historico_produccion.errors, status: :unprocessable_entity
-        end
+        render json: @historico_produccion, status: :created, location: @historico_produccion
       else
         render json: @historico_produccion.errors, status: :unprocessable_entity
-        #Ex:- :default =>''
+        raise ActiveRecord::Rollback
       end
     end
   end

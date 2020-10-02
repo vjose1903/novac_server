@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_02_041211) do
+ActiveRecord::Schema.define(version: 2020_06_23_130726) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -153,14 +153,14 @@ ActiveRecord::Schema.define(version: 2020_10_02_041211) do
   create_table "detalle_recibos", force: :cascade do |t|
     t.bigint "recibos_ingreso_id"
     t.bigint "cabecera_factura_id"
+    t.float "balance_factura"
+    t.float "balance_anterior_factura"
     t.boolean "pago_total"
     t.float "deposito"
     t.string "descripcion"
     t.boolean "pago_a_tiempo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.float "balance_factura"
-    t.float "balance_anterior_factura"
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end

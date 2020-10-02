@@ -13,6 +13,45 @@ class ArticulosController < ApplicationController
     render json: @articulos
   end
 
+  def getIngredientesFormula
+    id = params["id"]
+    articulo = Articulo.find_by_id(id)
+    formula = FormulasProductosTerminado.where({ articulo_id: articulo.id })
+
+    ingredientes = []
+
+    formula.each do |f|
+      articulo_ingrediente = Articulo.find_by_id(f.articulo_combo)
+
+      ingredientes.push({
+        articulo_id: articulo_ingrediente.id,
+        nombre: articulo_ingrediente.nombre,
+        cantidad: f.cantidad,
+        existencia: Articulo.calcularCantidades(articulo_ingrediente["contenido_articulos"], articulo_ingrediente),
+        contenido: Articulo.calcularContenidos(articulo_ingrediente["contenido_articulos"], articulo_ingrediente),
+      })
+    end
+
+    render json: ingredientes
+    # aArticulos = []
+    # articulos.each do |arti|
+    #   obj = {}
+    #   obj["nombre"] = arti["nombre"]
+    #   obj["id"] = arti["id"]
+
+    #   if arti["medida"] == "Quintal"
+    #     obj["costo"] = arti.contenido_articulos[0]["costo"]
+    #     obj["precio"] = arti.contenido_articulos[0]["precio"]
+    #   elsif arti["medida"] == "Libra"
+    #     obj["costo"] = arti["costo_principal"]
+    #     obj["precio"] = arti["precio_principal"]
+    #   end
+
+    #   aArticulos.push(obj)
+    # end
+    # render json: aArticulos
+  end
+
   def getMateriasPrimas
     articulos = Articulo.where({ tipo_articulo_id: 2 })
 

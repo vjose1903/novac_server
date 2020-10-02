@@ -23,6 +23,9 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
 
+  # produccion
+  get "articulos/ingredientes/:id" => "articulos#getIngredientesFormula" #
+
   # articulos
   get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados" #
   get "articulosF" => "articulos#getArticulosFormateados"
