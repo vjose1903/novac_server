@@ -22,16 +22,14 @@ class RecibosIngresosController < ApplicationController
   def create
     RecibosIngreso.transaction do
       @recibos_ingreso = RecibosIngreso.new(recibos_ingreso_params)
+
       @recibos_ingreso.numero_recibo = RecibosIngreso.find_secuencia
 
-      if @recibos_ingreso.save
+      if @recibos_ingreso.save!
         unless SecuenciaIngreso.last.update({ secuencia: @recibos_ingreso.numero_recibo })
           render json: SecuenciaIngreso.last.errors, status: :unprocessable_entity
         else
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
-          # puts detalles.to_json
-          # render json: { msg: "pruebas" }, :status => :unprocessable_entity
-          # raise ActiveRecord::Rollback
 
           @recibos_ingreso.detalle_recibos = detalles
 

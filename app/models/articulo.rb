@@ -61,16 +61,16 @@ class Articulo < ApplicationRecord
         if arti["is_combo"]
           arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
         end
-        arti["contenido"] = calcularContenidos(arti["contenido_articulos"], arti)
-        arti["cantidades"] = calcularCantidades(arti["contenido_articulos"], arti)
+        arti["contenido"] = calcularContenidos(arti)
+        arti["cantidades"] = calcularCantidades(arti)
       end
     else
       res["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: res["id"] })
       if res["is_combo"]
         res["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: res["id"] })
       end
-      res["contenido"] = calcularContenidos(res["contenido_articulos"], res)
-      res["cantidades"] = calcularCantidades(res["contenido_articulos"], res)
+      res["contenido"] = calcularContenidos(res)
+      res["cantidades"] = calcularCantidades(res)
     end
 
     return res
@@ -84,8 +84,8 @@ class Articulo < ApplicationRecord
 
       arti["imagen"] = { file_name: arti["file_name"], base_64: arti["base_64"], path: arti["path"] }
 
-      arti["contenido"] = calcularContenidosHistorico(arti["contenido_articulos"], arti)
-      arti["cantidades"] = calcularCantidadesHistorico(arti["contenido_articulos"], arti)
+      arti["contenido"] = calcularContenidosHistorico(arti)
+      arti["cantidades"] = calcularCantidadesHistorico(arti)
 
       arti.delete("tipo_articulo_descripcion")
       arti.delete("path")
@@ -146,11 +146,11 @@ class Articulo < ApplicationRecord
     objeto["descripcion"] = objeto["descripcion"]
     objeto["contenido_articulos"] = objeto["contenido_articulos"]
 
-    objeto["contenido"] = calcularContenidos(objeto["contenido_articulos"], objeto)
-    objeto["cantidades"] = calcularCantidades(objeto["contenido_articulos"], objeto)
+    objeto["contenido"] = calcularContenidos(objeto)
+    objeto["cantidades"] = calcularCantidades(objeto)
 
-    # objeto["contenido"] = calcularContenidosHistorico(objeto["contenido_articulos"], objeto)
-    # objeto["cantidades"] = calcularCantidadesHistorico(objeto["contenido_articulos"], objeto)
+    # objeto["contenido"] = calcularContenidosHistorico( objeto)
+    # objeto["cantidades"] = calcularCantidadesHistorico( objeto)
     # if objeto["is_combo"]
     #   objeto["formulas_productos_terminados"] = objeto["formulas_productos_terminados"]
     # end
@@ -162,10 +162,15 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.calcularContenidos(contenido, articulo)
+  def self.calcularContenidos(articulo)
     puts " ------------------- inicio calcularContenidos -------------------"
-    puts "contenido".red, contenido.to_json
     puts "articulo".red, articulo.to_json
+
+    begin
+      contenido = articulo.contenido_articulos
+    rescue
+      contenido = articulo["contenido_articulos"]
+    end
     contenidos = {}
 
     if contenido.length == 0
@@ -196,8 +201,15 @@ class Articulo < ApplicationRecord
     return contenidos
   end
 
-  def self.calcularContenidosHistorico(contenido, articulo)
+  def self.calcularContenidosHistorico(articulo)
     puts " ------------------- inicio calcularContenidosHistorico -------------------"
+
+    begin
+      contenido = articulo.contenido_articulos
+    rescue
+      contenido = articulo["contenido_articulos"]
+    end
+
     contenidos = {}
     if contenido.length == 0
       contenidos[articulo["medida"]] = 1
@@ -229,11 +241,17 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.calcularCantidades(contenido, articulo)
+  def self.calcularCantidades(articulo)
     existencia = articulo["existencia"]
-    if contenido == nil
+
+    begin
+      contenido = articulo.contenido_articulos
+    rescue
       contenido = articulo["contenido_articulos"]
     end
+
+    puts "contenido".red, contenido.to_json
+    puts "articulo".yellow, articulo.to_json
 
     if existencia == nil
       existencia = 0
@@ -263,9 +281,12 @@ class Articulo < ApplicationRecord
     return cantidades
   end
 
-  def self.calcularCantidadesHistorico(contenido, articulo)
+  def self.calcularCantidadesHistorico(articulo)
     existencia = articulo["existencia"]
-    if contenido == nil
+
+    begin
+      contenido = articulo.contenido_articulos
+    rescue
       contenido = articulo["contenido_articulos"]
     end
 

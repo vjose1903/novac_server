@@ -13,43 +13,45 @@ class ArticulosController < ApplicationController
     render json: @articulos
   end
 
+  def checkIfExcede
+    id = params["id"]
+    cantidad = params["cantidad"]
+    articulo = Articulo.find_by_id(id)
+    puts "cantidad ".yellow, cantidad
+    puts "articulo.existencia ".yellow, articulo.existencia
+
+    if articulo.existencia.to_f < cantidad.to_f
+      res = true
+    else
+      res = false
+    end
+    render json: { excede: res }
+  end
+
   def getIngredientesFormula
     id = params["id"]
     articulo = Articulo.find_by_id(id)
-    formula = FormulasProductosTerminado.where({ articulo_id: articulo.id })
+    if articulo.nil?
+      render json: { msg: "El articulo buscado no esta creado" }, status: 400
+    elsif articulo.tipo_articulo_id != 3
+      render json: { msg: "El tipo de articulo buscado no es un producto terminado" }, status: 400
+    else
+      formula = FormulasProductosTerminado.where({ articulo_id: articulo.id })
+      ingredientes = []
 
-    ingredientes = []
-
-    formula.each do |f|
-      articulo_ingrediente = Articulo.find_by_id(f.articulo_combo)
-
-      ingredientes.push({
-        articulo_id: articulo_ingrediente.id,
-        nombre: articulo_ingrediente.nombre,
-        cantidad: f.cantidad,
-        existencia: Articulo.calcularCantidades(articulo_ingrediente["contenido_articulos"], articulo_ingrediente),
-        contenido: Articulo.calcularContenidos(articulo_ingrediente["contenido_articulos"], articulo_ingrediente),
-      })
+      formula.each do |f|
+        articulo_ingrediente = Articulo.find_by_id(f.articulo_combo)
+        puts articulo_ingrediente.to_json.yellow
+        ingredientes.push({
+          articulo_id: articulo_ingrediente.id,
+          nombre: articulo_ingrediente.nombre,
+          cantidad: f.cantidad,
+          existencia: Articulo.calcularCantidades(articulo_ingrediente),
+          contenido: Articulo.calcularContenidos(articulo_ingrediente),
+        })
+      end
+      render json: ingredientes
     end
-
-    render json: ingredientes
-    # aArticulos = []
-    # articulos.each do |arti|
-    #   obj = {}
-    #   obj["nombre"] = arti["nombre"]
-    #   obj["id"] = arti["id"]
-
-    #   if arti["medida"] == "Quintal"
-    #     obj["costo"] = arti.contenido_articulos[0]["costo"]
-    #     obj["precio"] = arti.contenido_articulos[0]["precio"]
-    #   elsif arti["medida"] == "Libra"
-    #     obj["costo"] = arti["costo_principal"]
-    #     obj["precio"] = arti["precio_principal"]
-    #   end
-
-    #   aArticulos.push(obj)
-    # end
-    # render json: aArticulos
   end
 
   def getMateriasPrimas
@@ -74,6 +76,17 @@ class ArticulosController < ApplicationController
     render json: aArticulos
   end
 
+  def getProductosTerminados
+    articulos = Articulo.where({ tipo_articulo_id: 3 })
+    puts articulos.to_json.red
+
+    aArticulos = []
+    articulos.each do |arti|
+      aArticulos.push(Articulo.parseal(arti))
+    end
+    render json: aArticulos
+  end
+
   def getArticulosFiltrados
     arg = params["arg"]
 
@@ -93,8 +106,8 @@ class ArticulosController < ApplicationController
       res = articulos_
       res.each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-        arti["contenido"] = Articulo.calcularContenidos(arti["contenido_articulos"], arti)
-        arti["cantidades"] = Articulo.calcularCantidades(arti["contenido_articulos"], arti)
+        arti["contenido"] = Articulo.calcularContenidos(arti)
+        arti["cantidades"] = Articulo.calcularCantidades(arti)
       end
     end
 
@@ -193,12 +206,12 @@ class ArticulosController < ApplicationController
           contenidosAdd = []
           articulo_params["contenido_articulos_attributes"].each do |contenido|
             contentido = ContenidoArticulo.find_by_id(contenido["id"])
-            # contenidoCompleto = ContenidoArticulo.where({ articulo_id: @articulo["id"] })
 
             if contentido == [] || contentido == nil
               contentido["articulo_id"] = @articulo["id"]
               contentido = ContenidoArticulo.new
             end
+
             contentido.costo = contenido["costo"]
             contentido.precio = contenido["precio"]
             contentido.cantidad = contenido["cantidad"]
@@ -207,30 +220,10 @@ class ArticulosController < ApplicationController
             contentido.calcular_itbis = contenido["calcular_itbis"]
 
             contenidosAdd.push contentido
-            # if new_contenido.save
-            #   unless @articulo.contenido_articulos.length <= 1
-            #     firstContenido = @articulo.contenido_articulos.first
-
-            #     lastContenido = @articulo.contenido_articulos.last
-
-            #     unless lastContenido.update({ referencia: firstContenido.id })
-            #       render json: lastContenido.errors, status: :unprocessable_entity
-            #     end
-            #   end
-            # else
-            #   return render json: new_contenido.errors, status: :unprocessable_entity
-            # end
-            # else
-            #   unless content.update(newContenido)
-            #     return render json: { error: content.errors, msg: "Error editando contenido de articulo" }, status: :unprocessable_entity
-            #   end
-
           end
           @articulo.contenido_articulos = contenidosAdd
 
-          seguirConteido = @articulo.save!
-
-          if seguirConteido
+          if @articulo.save!
             unless @articulo.contenido_articulos.length <= 1
               firstContenido = @articulo.contenido_articulos.first
 
@@ -241,7 +234,7 @@ class ArticulosController < ApplicationController
               end
             end
           else
-            return render json: seguirConteido.errors, status: :unprocessable_entity
+            return render json: @articulo.errors, status: :unprocessable_entity
           end
 
           @obj = articulo_params
@@ -269,9 +262,7 @@ class ArticulosController < ApplicationController
             end
             @articulo.formulas_productos_terminados = articulosAdd
 
-            seguirFormula = @articulo.save!
-
-            if seguirFormula
+            if @articulo.save!
               render json: @obj
             else
               return render json: { msg: "Error editando formula de articulo, << luego del seguir >>" }, status: 400

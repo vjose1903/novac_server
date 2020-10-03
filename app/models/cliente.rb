@@ -9,6 +9,10 @@ class Cliente < ApplicationRecord
   accepts_nested_attributes_for :imagen
   accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
 
+  def init
+    self.balance = 0 unless self.balance
+  end
+
   # =========================================================================================================================================================
 
   def self.filtrarCliente(arg)

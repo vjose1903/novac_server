@@ -27,12 +27,14 @@ Rails.application.routes.draw do
   get "articulos/ingredientes/:id" => "articulos#getIngredientesFormula" #
 
   # articulos
+  get "articulos/check_excede/:id" => "articulos#checkIfExcede" #
   get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados" #
   get "articulosF" => "articulos#getArticulosFormateados"
   get "historico/:id" => "contenido_articulos#getCondicionContenidoById"
   get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getAllArticulosByDate" #
   patch "articulos/delete/:id" => "articulos#deleteArticulo" #
   get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
+  get "articulos/custom/productos_terminados" => "articulos#getProductosTerminados" #
   get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
 
   # suplidores
