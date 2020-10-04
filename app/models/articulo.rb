@@ -176,8 +176,15 @@ class Articulo < ApplicationRecord
     if contenido.length == 0
       contenidos[articulo["medida"]] = 1
     elsif contenido.length == 1
-      contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-      contenidos[contenido[0]["medida"]] = 1
+      if articulo["vendido_en"] == "Saco"
+        contenidos["Saco_100"] = 100
+        contenidos["Saco_50"] = 50
+        contenidos["Saco_25"] = 25
+        contenidos[contenido[0]["medida"]] = 1
+      else
+        contenidos[articulo["medida"]] = contenido[0]["cantidad"]
+        contenidos[contenido[0]["medida"]] = 1
+      end
     else
       cantPrincipal = 1
       cantHijo = 1

@@ -58,11 +58,11 @@ class CabeceraFacturasController < ApplicationController
 
   def getFacturasByClienteIdAndEstado
     cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada])
+    puts "cabe ".yellow + "#{cabe.to_json}".white
 
     cabecera = []
     cabe.each do |factura|
-      @tipoFactura = TipoFactura.find_by_id(factura["tipo_factura_id"])
-
+      puts "@tipoFactura ".red + "#{@tipoFactura.to_json}".white
       cabecera.push(parsearData(factura))
     end
     # cabecera = parsearData(cabe)
@@ -155,26 +155,6 @@ class CabeceraFacturasController < ApplicationController
     return DateTime.parse(date.to_s)
   end
 
-  # def makeContenidoArticulo(contenido)
-  #   contents = []
-  #   contenido.each do |con|
-  #     conte = {}
-  #     conte["id"] = con["id"]
-  #     conte["articulo_id"] = con["articulo_id"]
-  #     conte["referencia"] = con["referencia"]
-  #     conte["costo"] = con["costo"]
-  #     conte["precio"] = con["precio"]
-  #     conte["cantidad"] = con["cantidad"]
-  #     conte["calcular_itbis"] = con["calcular_itbis"]
-  #     conte["condicion"] = con["condicion"]
-  #     conte["medida"] = con["medida"]
-  #     conte["created_at"] = con["created_at"]
-  #     conte["updated_at"] = con["updated_at"]
-  #     contents.push(conte)
-  #   end
-  #   return contents
-  # end
-
   def parsearData(objeto, movimiento_inventario = false)
     puts "--------------- inicio parsearData ---------------"
 
@@ -184,6 +164,8 @@ class CabeceraFacturasController < ApplicationController
     rescue
       obj = objeto
     end
+
+    @tipoFactura = TipoFactura.find_by_id(obj["tipo_factura_id"])
 
     puts "#{obj}".red
 
@@ -266,8 +248,9 @@ class CabeceraFacturasController < ApplicationController
               array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(articuloSelect["id"])
               articuloSelect["contenido_articulos"] = array_contenido
             end
-
-            movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"])
+            if factura_tipo != 4 || factura_tipo != "4"
+              movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"])
+            end
           end
         end
       end
@@ -433,7 +416,10 @@ class CabeceraFacturasController < ApplicationController
     else
       # --------- COMPRA ---------
       movimiento = Articulo.find_by_id(articulo["id"])
+      puts "movimiento ".red + "#{movimiento.to_json}".white
+      puts "cantidad_en_unidades ".yellow + "#{cantidad_en_unidades.to_json}".white
       mov = (movimiento["existencia"] + cantidad_en_unidades)
+      puts "mov ".red + "#{mov}".white
 
       puts " estas comprando #{cantidad_en_unidades} "
       puts " inventario queda en  #{mov} "
@@ -460,12 +446,10 @@ class CabeceraFacturasController < ApplicationController
 
     @tipoFactura = TipoFactura.find_by_id(params[:tipo_factura_id])
 
-    if params["tipo"] == "venta"
+    if params["tipo"] == "venta" || params["is_nota"]
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:tipo_factura_id])
     elsif params["tipo"] == "compra"
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:FACTURA_DE])
-      # else
-      #   @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:tipo_factura_id])
     end
 
     @next_secuencia_factura = @actual_secuencia_factura["secuencia"] + 1

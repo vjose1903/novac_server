@@ -13,6 +13,14 @@ class ArticulosController < ApplicationController
     render json: @articulos
   end
 
+  def getContenidos
+    id = params["id"]
+    articulo = Articulo.find_by_id(id)
+    contenido = Articulo.calcularContenidos(articulo)
+
+    render json: contenido
+  end
+
   def checkIfExcede
     id = params["id"]
     cantidad = params["cantidad"]
@@ -41,7 +49,6 @@ class ArticulosController < ApplicationController
 
       formula.each do |f|
         articulo_ingrediente = Articulo.find_by_id(f.articulo_combo)
-        puts articulo_ingrediente.to_json.yellow
         ingredientes.push({
           articulo_id: articulo_ingrediente.id,
           nombre: articulo_ingrediente.nombre,
