@@ -7,6 +7,7 @@ class CreateMovimientosInventarios < ActiveRecord::Migration[5.2]
       t.string :accion
       t.string :motivo
       t.string :medida
+      # t.string :tipo_salida
       t.timestamps
     end
   end

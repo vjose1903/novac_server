@@ -15,6 +15,7 @@ rails g migration AddBalanceFacturaToDetalleRecibo balance_factura:float
 
 rails g migration AddTieneNotaToCabeceraFactura tiene_nota:boolean
 rails g migration AddRetiradoToDetalleFactura retirado:integer
+rails g migration AddTipoSalidaToMovimientoInventario tipo_salida:string
 
 rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer 
 rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer 

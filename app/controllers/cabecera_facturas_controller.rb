@@ -3,6 +3,7 @@ include ActionView::Helpers::NumberHelper
 class CabeceraFacturasController < ApplicationController
   before_action :set_cabecera_factura, only: [:show, :update, :destroy]
   before_action :find_secuencia, only: [:create]
+  before_action :find_user, only: [:create]
 
   # GET /cabecera_facturas
   def index
@@ -291,8 +292,7 @@ class CabeceraFacturasController < ApplicationController
     end
 
     if !obj["user_id"].nil?
-      usuario_ = User.find_by_id(objeto["user_id"])
-      usuario = "#{usuario_["nombre"]} ".titleize + "#{usuario_["apellido"]}".titleize
+      usuario = "#{@usuario_["nombre"]} ".titleize + "#{@usuario_["apellido"]}".titleize
       obj["usuario"] = usuario
     end
 
@@ -416,21 +416,38 @@ class CabeceraFacturasController < ApplicationController
     else
       # --------- COMPRA ---------
       movimiento = Articulo.find_by_id(articulo["id"])
-      puts "movimiento ".red + "#{movimiento.to_json}".white
-      puts "cantidad_en_unidades ".yellow + "#{cantidad_en_unidades.to_json}".white
       mov = (movimiento["existencia"] + cantidad_en_unidades)
-      puts "mov ".red + "#{mov}".white
 
-      puts " estas comprando #{cantidad_en_unidades} "
-      puts " inventario queda en  #{mov} "
-      if movimiento.update({ existencia: mov })
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-        puts "::::                                  ::::"
-        puts "::::         COMPRA EXITOSA           ::::"
-        puts "::::                                  ::::"
-        puts "::::::::::::::::::::::::::::::::::::::::::"
+      fecha_fact = @cabecera_factura.fecha_facturacion.strftime("%d/%m/%Y")
+
+      obj = {
+        user_id: @usuario_["id"],
+        articulo_id: articulo["id"],
+        cantidad: cantidad_en_unidades,
+        accion: "entrada",
+        motivo: "Compra de mercancia en la factura con el ncf: " + @numero_comprobante + " de la fecha " + fecha_fact,
+        medida: "Unidades",
+        tipo_salida: nil,
+      }
+
+      movimientos_inventario = MovimientosInventario.new(obj)
+
+      if movimientos_inventario.save!
+        if movimiento.update({ existencia: mov })
+          puts "::::::::::::::::::::::::::::::::::::::::::"
+          puts "::::                                  ::::"
+          puts "::::         COMPRA EXITOSA           ::::"
+          puts "::::                                  ::::"
+          puts "::::::::::::::::::::::::::::::::::::::::::"
+        end
+      else
+        return render json: movimientos_inventario.errors, status: :unprocessable_entity
       end
     end
+  end
+
+  def find_user
+    @usuario_ = User.find_by_id(params["user_id"])
   end
 
   def find_secuencia

@@ -28,9 +28,6 @@ class MovimientosInventariosController < ApplicationController
 
       MovimientosInventario.movimientos_de_inventario(m["accion"], articulo_, m["medida"], m["cantidad"])
 
-      articulo_ = Articulo.find_by_id(m["articulo_id"])
-      articulo_ = Articulo.parseal(articulo_)
-
       obj = {
         movimientosinventario: @movimientos_inventario,
         articulo: articulo_,
@@ -67,6 +64,6 @@ class MovimientosInventariosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def movimientos_inventario_params
-    params.fetch(:movimientos_inventario).permit(:user_id, :articulo_id, :cantidad, :accion, :motivo, :medida)
+    params.fetch(:movimientos_inventario).permit(:user_id, :articulo_id, :cantidad, :accion, :motivo, :medida, :tipo_salida)
   end
 end
