@@ -133,7 +133,7 @@ class CabeceraFacturasController < ApplicationController
 
         puts @cabecera_factura.to_json
         # return render json: { msg: "pruebas", body: cabecera }
-
+        # raise ActiveRecord::Rollback
         unless @cabecera_factura.save
           # render json: @cabecera_factura, status: :created, location: @cabecera_factura
           render json: @cabecera_factura.errors, status: :unprocessable_entity

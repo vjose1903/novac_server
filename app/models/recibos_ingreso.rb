@@ -25,6 +25,7 @@ class RecibosIngreso < ApplicationRecord
     puts "numero_secuencia !!!!!!! ".red, numero_secuencia
     return numero_secuencia
   end
+  # ========================================================================================================================
 
   def self.parsearData(data)
     begin

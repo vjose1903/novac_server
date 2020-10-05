@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_04_235033) do
+ActiveRecord::Schema.define(version: 2020_10_05_184106) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,6 +45,7 @@ ActiveRecord::Schema.define(version: 2020_10_04_235033) do
     t.integer "numero_conduce"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "fecha_conduce"
     t.index ["cliente_id"], name: "index_cabecera_conduces_on_cliente_id"
     t.index ["user_id"], name: "index_cabecera_conduces_on_user_id"
   end
@@ -121,10 +122,11 @@ ActiveRecord::Schema.define(version: 2020_10_04_235033) do
     t.bigint "cabecera_conduce_id"
     t.bigint "detalle_factura_id"
     t.bigint "articulo_id"
-    t.integer "cantidad"
+    t.float "cantidad"
     t.string "unidad"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "cantidad_en_unidades"
     t.index ["articulo_id"], name: "index_detalle_conduces_on_articulo_id"
     t.index ["cabecera_conduce_id"], name: "index_detalle_conduces_on_cabecera_conduce_id"
     t.index ["detalle_factura_id"], name: "index_detalle_conduces_on_detalle_factura_id"
