@@ -8,6 +8,7 @@ class CreateRecibosIngresos < ActiveRecord::Migration[5.2]
       t.string :forma_pago
       t.integer :numero_recibo
       t.float :devuelta
+      t.datetime :fecha_equivalente
 
       t.timestamps
     end

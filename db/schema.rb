@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_05_184106) do
+ActiveRecord::Schema.define(version: 2020_06_23_130726) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -43,9 +43,9 @@ ActiveRecord::Schema.define(version: 2020_10_05_184106) do
     t.bigint "user_id"
     t.bigint "cliente_id"
     t.integer "numero_conduce"
+    t.datetime "fecha_equivalente"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.datetime "fecha_conduce"
     t.index ["cliente_id"], name: "index_cabecera_conduces_on_cliente_id"
     t.index ["user_id"], name: "index_cabecera_conduces_on_user_id"
   end
@@ -55,9 +55,9 @@ ActiveRecord::Schema.define(version: 2020_10_05_184106) do
     t.bigint "suplidor_id"
     t.bigint "cliente_id"
     t.bigint "user_id"
-    t.datetime "fecha_facturacion"
-    t.date "fecha_vencimiento"
-    t.date "fecha_valida"
+    t.datetime "fecha_equivalente"
+    t.datetime "fecha_vencimiento"
+    t.datetime "fecha_valida"
     t.string "numero_comprobante"
     t.integer "numero_factura"
     t.string "condicion"
@@ -76,7 +76,9 @@ ActiveRecord::Schema.define(version: 2020_10_05_184106) do
     t.float "balance"
     t.float "devuelta"
     t.boolean "adelantada"
+    t.boolean "is_completada"
     t.boolean "is_nota"
+    t.boolean "is_viaje"
     t.boolean "tiene_nota"
     t.string "aplicada_a"
     t.datetime "created_at", null: false
@@ -123,10 +125,10 @@ ActiveRecord::Schema.define(version: 2020_10_05_184106) do
     t.bigint "detalle_factura_id"
     t.bigint "articulo_id"
     t.float "cantidad"
+    t.integer "cantidad_en_unidades"
     t.string "unidad"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "cantidad_en_unidades"
     t.index ["articulo_id"], name: "index_detalle_conduces_on_articulo_id"
     t.index ["cabecera_conduce_id"], name: "index_detalle_conduces_on_cabecera_conduce_id"
     t.index ["detalle_factura_id"], name: "index_detalle_conduces_on_detalle_factura_id"
@@ -263,9 +265,9 @@ ActiveRecord::Schema.define(version: 2020_10_05_184106) do
     t.string "accion"
     t.string "motivo"
     t.string "medida"
+    t.string "tipo_salida"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "tipo_salida"
     t.index ["articulo_id"], name: "index_movimientos_inventarios_on_articulo_id"
     t.index ["user_id"], name: "index_movimientos_inventarios_on_user_id"
   end
@@ -278,6 +280,7 @@ ActiveRecord::Schema.define(version: 2020_10_05_184106) do
     t.string "forma_pago"
     t.integer "numero_recibo"
     t.float "devuelta"
+    t.datetime "fecha_equivalente"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"

@@ -5,9 +5,9 @@ class CreateCabeceraFacturas < ActiveRecord::Migration[5.2]
       t.references :suplidor, foreign_key: true
       t.references :cliente, foreign_key: true
       t.references :user, foreign_key: true
-      t.timestamp :fecha_facturacion
-      t.date :fecha_vencimiento
-      t.date :fecha_valida
+      t.datetime :fecha_equivalente
+      t.datetime :fecha_vencimiento
+      t.datetime :fecha_valida
       t.string :numero_comprobante
       t.integer :numero_factura
       t.string :condicion
@@ -25,8 +25,10 @@ class CreateCabeceraFacturas < ActiveRecord::Migration[5.2]
       t.integer :vendedor_id
       t.float :balance
       t.float :devuelta
-      t.boolean :adelantada
+      t.boolean :is_adelantada
+      t.boolean :is_completada
       t.boolean :is_nota
+      t.boolean :is_viaje
       t.boolean :tiene_nota
       t.string :aplicada_a
 

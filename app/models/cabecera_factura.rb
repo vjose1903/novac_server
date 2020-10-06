@@ -12,11 +12,11 @@ class CabeceraFactura < ApplicationRecord
   attribute :detalle_facturas
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
-  def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id, adelantada)
+  def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id, is_adelantada)
     puts "campo ".red + "#{campo}"
     puts "valor ".green + "#{valor}"
 
-    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_facturacion, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
     CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
     from_ = "FROM cabecera_facturas ca"
     joins_ = "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
@@ -25,15 +25,15 @@ class CabeceraFactura < ApplicationRecord
 
     if tipo_factura_id == 0 || tipo_factura_id == "0"
       if campo == "numero_comprobante"
-        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and adelantada = #{adelantada}"
+        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and is_adelantada = #{is_adelantada}"
       else
-        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and adelantada = #{adelantada}"
+        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and is_adelantada = #{is_adelantada}"
       end
     else
       if campo == "numero_comprobante"
-        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and adelantada = #{adelantada}"
+        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
       else
-        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and adelantada = #{adelantada}"
+        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
       end
     end
 
@@ -43,7 +43,7 @@ class CabeceraFactura < ApplicationRecord
   end
   # ===================================================================================================================================================
   def self.get_facturas_by_cliente_id_and_estado(cliente_id, pagada)
-    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_facturacion, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
     CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
     from_ = "FROM cabecera_facturas ca"
     joins_ =
@@ -56,7 +56,7 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
 
   def self.get_facturas_by_cliente_id(cliente_id)
-    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_facturacion, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
     CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
     from_ = "FROM cabecera_facturas ca"
     joins_ =

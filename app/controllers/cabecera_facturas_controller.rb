@@ -26,7 +26,7 @@ class CabeceraFacturasController < ApplicationController
     campoNum = params[:campo]
     valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
     tipo_factura_id = params[:tipo_factura_id]
-    adelantada = params[:adelantada]
+    is_adelantada = params[:is_adelantada]
 
     campo = ""
     if campoNum == "1"
@@ -41,7 +41,7 @@ class CabeceraFacturasController < ApplicationController
     elsif campoNum == "4"
     end
 
-    cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, adelantada)
+    cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
 
     puts "=-=".yellow * 20
     puts cabe.to_json
@@ -125,7 +125,7 @@ class CabeceraFacturasController < ApplicationController
         render json: resultAgregarNota
         break
       else
-        att["fecha_facturacion"] = att["fecha_facturacion"] ? att["fecha_facturacion"] : DateTime.now
+        att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
         att["numero_comprobante"] = @numero_comprobante.upcase
         att["numero_factura"] = @numero_factura
 
@@ -184,7 +184,7 @@ class CabeceraFacturasController < ApplicationController
       continuar = compareDateFactura(articuloSelect)
 
       unless continuar
-        articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_facturacion"], articuloSelect["id"])
+        articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])
         articuloSelect = articuloSelect[0]
       end
 
@@ -239,7 +239,7 @@ class CabeceraFacturasController < ApplicationController
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
 
-      unless objeto["adelantada"]
+      unless objeto["is_adelantada"]
         if movimiento_inventario
           unless @actual_secuencia_factura == nil
             puts "@actual_secuencia_factura " + @actual_secuencia_factura.to_json
@@ -320,7 +320,7 @@ class CabeceraFacturasController < ApplicationController
 
         detalle_recibo["numero_recibo"] = recibo["numero_recibo"]
         detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
-        detalle_recibo["recibo_created_at"] = recibo["created_at"]
+        detalle_recibo["recibo_created_at"] = recibo["fecha_equivalente"]
         detalle_recibo
       end
     end
@@ -418,7 +418,7 @@ class CabeceraFacturasController < ApplicationController
       movimiento = Articulo.find_by_id(articulo["id"])
       mov = (movimiento["existencia"] + cantidad_en_unidades)
 
-      fecha_fact = @cabecera_factura.fecha_facturacion.strftime("%d/%m/%Y")
+      fecha_fact = @cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
 
       obj = {
         user_id: @usuario_["id"],
@@ -511,8 +511,9 @@ class CabeceraFacturasController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def cabecera_factura_params
-    params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_facturacion, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
-                                             :pagada, :vendedor_id, :balance, :devuelta, :adelantada, :is_nota, :aplicada_a, :tiene_nota,
+    params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_equivalente, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
+                                             :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :aplicada_a, :tiene_nota,
+                                             :is_completada, :is_viaje,
                                              detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
                                                                            :retirado_en_venta, :cantidad_en_unidades])
   end

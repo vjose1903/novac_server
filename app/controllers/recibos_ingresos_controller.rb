@@ -21,8 +21,9 @@ class RecibosIngresosController < ApplicationController
   # POST /recibos_ingresos
   def create
     RecibosIngreso.transaction do
-      @recibos_ingreso = RecibosIngreso.new(recibos_ingreso_params)
-
+      att = recibos_ingreso_params
+      @recibos_ingreso = RecibosIngreso.new(att)
+      @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
       @recibos_ingreso.numero_recibo = RecibosIngreso.find_secuencia
 
       if @recibos_ingreso.save!
@@ -92,7 +93,7 @@ class RecibosIngresosController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def recibos_ingreso_params
-    params.fetch(:recibos_ingreso).permit(:user_id, :cliente_id, :total, :forma_pago, :tipo_recibo_id, :devuelta,
+    params.fetch(:recibos_ingreso).permit(:user_id, :cliente_id, :total, :forma_pago, :tipo_recibo_id, :devuelta, :fecha_equivalente,
                                           detalle_recibos_attributes: [:recibos_ingreso_id, :balance_anterior_factura, :balance_factura, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo])
   end
 end

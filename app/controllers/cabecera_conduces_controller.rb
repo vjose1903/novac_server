@@ -20,8 +20,10 @@ class CabeceraConducesController < ApplicationController
   # POST /cabecera_conduces
   def create
     CabeceraConduce.transaction do
-      @cabecera_conduce = CabeceraConduce.new(cabecera_conduce_params)
+      att = cabecera_conduce_params
+      @cabecera_conduce = CabeceraConduce.new(att)
       @cabecera_conduce.numero_conduce = SecuenciaFactura.find_secuencia(15)
+      @cabecera_conduce.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
       # puts @cabecera_conduce.detalle_conduces_attributes
       if @cabecera_conduce.save
         updateSecuencias
@@ -71,7 +73,7 @@ class CabeceraConducesController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def cabecera_conduce_params
-    params.require(:cabecera_conduce).permit(:user_id, :cliente_id, :numero_conduce, :fecha_conduce,
+    params.require(:cabecera_conduce).permit(:user_id, :cliente_id, :numero_conduce, :fecha_equivalente,
                                              detalle_conduces_attributes: [:cabecera_conduce_id, :detalle_factura_id, :articulo_id, :cantidad, :cantidad_en_unidades, :unidad])
   end
 end
