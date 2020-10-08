@@ -10,6 +10,9 @@ rails g scaffold cabecera_factura user:references forma_pago:string numero_factu
 rails g scaffold detalle_factura cabecera_factura:references oferta:references cantidad:integer total:float precio:float
 rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
 
+rails g scaffold produccion user:references numero:integer fecha_equivalente:datetime
+rails g scaffold detalle_produccion produccion:references articulo:references cantidad:float cantidad_en_unidades:integer medida:string
+
 rails g migration AddBalanceFacturaToDetalleRecibo balance_factura:float
 
 

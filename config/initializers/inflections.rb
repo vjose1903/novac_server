@@ -20,4 +20,6 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "vendedor", "vendedores"
   inflect.irregular "documento_de_identidad", "documentos_de_identidad"
   inflect.irregular "suplidor", "suplidores"
+  inflect.irregular "produccion", "producciones"
+  inflect.irregular "detalle_produccion", "detalles_produccion"
 end

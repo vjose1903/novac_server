@@ -57,9 +57,47 @@ class CabeceraFacturasController < ApplicationController
     render json: cabecera
   end
 
+  def getViajesSinCompletar
+    arg = params["arg"]
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
+    cabe_pendientes = CabeceraFactura.where({ is_viaje: true, fecha_completada: nil })
+    cabe_completadas_hoy = CabeceraFactura.where({ is_viaje: true, fecha_completada: DateTime.now.beginning_of_day..DateTime.now.end_of_day })
+
+    cabeceras_temp = []
+    cabe_pendientes.each do |factura|
+      @usuario_ = User.find_by_id(factura["user_id"])
+      cabeceras_temp.push(parsearData(factura))
+    end
+
+    cabe_completadas_hoy.each do |factura|
+      @usuario_ = User.find_by_id(factura["user_id"])
+      cabeceras_temp.push(parsearData(factura))
+    end
+
+    res_cabecera = []
+
+    if paginado
+      res_cabecera = cabeceras_temp.to_a.my_paginate(page, per_page)
+
+      # res_cabecera[:data].each do |factura|
+      #   @usuario_ = User.find_by_id(factura["user_id"])
+      #   res_cabecera.push(parsearData(factura))
+      # end
+
+      # cabecera = cabe.each do |factura|
+      #   @usuario_ = User.find_by_id(factura["user_id"])
+      #   res_cabecera.push(parsearData(factura))
+      # end
+    end
+
+    render json: res_cabecera
+  end
+
   def getFacturasByClienteIdAndEstado
     cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada])
-    puts "cabe ".yellow + "#{cabe.to_json}".white
 
     cabecera = []
     cabe.each do |factura|
@@ -74,12 +112,6 @@ class CabeceraFacturasController < ApplicationController
   def create
     CabeceraFactura.transaction do
       att = cabecera_factura_params
-
-      puts "=====" * 15
-      puts " " * 25 + "cabecera factura"
-      puts "=====" * 15
-      puts :json => att
-      puts "=====" * 15
 
       resultCliente = { :error => false }
       resultBalanceFact = { :error => false }
@@ -162,6 +194,11 @@ class CabeceraFacturasController < ApplicationController
     begin
       obj = objeto.attributes
       obj["detalle_facturas"] = objeto.detalle_facturas.to_a
+
+      obj["user"] = objeto.user
+      obj["cliente"] = objeto.cliente
+      obj["suplidor"] = objeto.suplidor
+      obj["tipo_factura"] = objeto.tipo_factura
     rescue
       obj = objeto
     end
@@ -416,6 +453,8 @@ class CabeceraFacturasController < ApplicationController
     else
       # --------- COMPRA ---------
       movimiento = Articulo.find_by_id(articulo["id"])
+      puts "movimiento['existencia']".red + "#{movimiento["existencia"]}".white
+      puts "cantidad_en_unidades".red + "#{cantidad_en_unidades}".white
       mov = (movimiento["existencia"] + cantidad_en_unidades)
 
       fecha_fact = @cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")

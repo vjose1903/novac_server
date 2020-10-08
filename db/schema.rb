@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_23_130726) do
+ActiveRecord::Schema.define(version: 2020_10_06_190449) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -58,6 +58,7 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.datetime "fecha_equivalente"
     t.datetime "fecha_vencimiento"
     t.datetime "fecha_valida"
+    t.datetime "fecha_completada"
     t.string "numero_comprobante"
     t.integer "numero_factura"
     t.string "condicion"
@@ -75,8 +76,7 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.integer "vendedor_id"
     t.float "balance"
     t.float "devuelta"
-    t.boolean "adelantada"
-    t.boolean "is_completada"
+    t.boolean "is_adelantada"
     t.boolean "is_nota"
     t.boolean "is_viaje"
     t.boolean "tiene_nota"
@@ -169,6 +169,18 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
 
+  create_table "detalles_produccion", force: :cascade do |t|
+    t.bigint "produccion_id"
+    t.bigint "articulo_id"
+    t.float "cantidad"
+    t.integer "cantidad_en_unidades"
+    t.string "medida"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["articulo_id"], name: "index_detalles_produccion_on_articulo_id"
+    t.index ["produccion_id"], name: "index_detalles_produccion_on_produccion_id"
+  end
+
   create_table "documentos_de_identidad", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "cliente_id"
@@ -194,15 +206,15 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
   end
 
-  create_table "historico_produccions", force: :cascade do |t|
+  create_table "historico_producciones", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "articulo_id"
     t.float "cantidad"
     t.string "medida"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["articulo_id"], name: "index_historico_produccions_on_articulo_id"
-    t.index ["user_id"], name: "index_historico_produccions_on_user_id"
+    t.index ["articulo_id"], name: "index_historico_producciones_on_articulo_id"
+    t.index ["user_id"], name: "index_historico_producciones_on_user_id"
   end
 
   create_table "imagenes", force: :cascade do |t|
@@ -270,6 +282,15 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
     t.datetime "updated_at", null: false
     t.index ["articulo_id"], name: "index_movimientos_inventarios_on_articulo_id"
     t.index ["user_id"], name: "index_movimientos_inventarios_on_user_id"
+  end
+
+  create_table "producciones", force: :cascade do |t|
+    t.bigint "user_id"
+    t.integer "numero"
+    t.datetime "fecha_equivalente"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_producciones_on_user_id"
   end
 
   create_table "recibos_ingresos", force: :cascade do |t|
@@ -401,16 +422,19 @@ ActiveRecord::Schema.define(version: 2020_06_23_130726) do
   add_foreign_key "detalle_facturas", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "recibos_ingresos"
+  add_foreign_key "detalles_produccion", "articulos"
+  add_foreign_key "detalles_produccion", "producciones"
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
   add_foreign_key "formulas_productos_terminados", "articulos"
-  add_foreign_key "historico_produccions", "articulos"
-  add_foreign_key "historico_produccions", "users"
+  add_foreign_key "historico_producciones", "articulos"
+  add_foreign_key "historico_producciones", "users"
   add_foreign_key "mantenimiento_articulos", "articulos"
   add_foreign_key "mantenimiento_articulos", "users"
   add_foreign_key "movimientos_inventarios", "articulos"
   add_foreign_key "movimientos_inventarios", "users"
+  add_foreign_key "producciones", "users"
   add_foreign_key "recibos_ingresos", "clientes"
   add_foreign_key "recibos_ingresos", "tipo_recibos"
   add_foreign_key "recibos_ingresos", "users"

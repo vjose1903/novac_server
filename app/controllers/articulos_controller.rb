@@ -25,8 +25,6 @@ class ArticulosController < ApplicationController
     id = params["id"]
     cantidad = params["cantidad"]
     articulo = Articulo.find_by_id(id)
-    puts "cantidad ".yellow, cantidad
-    puts "articulo.existencia ".yellow, articulo.existencia
 
     if articulo.existencia.to_f < cantidad.to_f
       res = true

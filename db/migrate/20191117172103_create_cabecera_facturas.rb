@@ -8,6 +8,7 @@ class CreateCabeceraFacturas < ActiveRecord::Migration[5.2]
       t.datetime :fecha_equivalente
       t.datetime :fecha_vencimiento
       t.datetime :fecha_valida
+      t.datetime :fecha_completada
       t.string :numero_comprobante
       t.integer :numero_factura
       t.string :condicion
@@ -26,7 +27,6 @@ class CreateCabeceraFacturas < ActiveRecord::Migration[5.2]
       t.float :balance
       t.float :devuelta
       t.boolean :is_adelantada
-      t.boolean :is_completada
       t.boolean :is_nota
       t.boolean :is_viaje
       t.boolean :tiene_nota

@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :detalles_produccion
+  resources :producciones
   resources :detalle_conduces
   resources :cabecera_conduces
   resources :secuencia_comprobantes
@@ -61,6 +63,7 @@ Rails.application.routes.draw do
   get "cabecera_facturas/cliente/:id" => "cabecera_facturas#getFacturasByClienteId"
   get "cabecera_facturas/params/:campo/:valor/:tipo_factura_id/:is_adelantada" => "cabecera_facturas#getFacturasByParams"
   post "cabecera_facturas/anular_factura/:id" => "cabecera_facturas#cancelarFactura"
+  get "cabecera_facturas/custom/viajes/:estado" => "cabecera_facturas#getViajesSinCompletar"
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
                                         sessions: "devise_token_auth/sessions",

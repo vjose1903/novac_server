@@ -12,16 +12,6 @@ class HistoricoProduccionsController < ApplicationController
     render json: @historico_produccion
   end
 
-  def parseal(objeto)
-    att = objeto.attributes
-    articuloSelect = Articulo.find_by_id(objeto["articulo_id"])
-    responsableProd = User.find_by_id(objeto["user_id"])
-
-    att["articulo"] = "#{articuloSelect["nombre"]}"
-    att["usuario"] = "#{responsableProd["nombre"]} #{responsableProd["apellido"]}"
-    return att
-  end
-
   # POST /historico_produccions
   def create
     ActiveRecord::Base.transaction do
