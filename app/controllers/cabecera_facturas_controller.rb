@@ -50,7 +50,10 @@ class CabeceraFacturasController < ApplicationController
     cabecera = []
 
     cabe.each do |factura|
-      cabecera.push(parsearData(factura))
+      @usuario_ = User.find_by_id(factura["user_id"])
+      cabecera_parsed = parsearData(factura, false, is_adelantada)
+
+      cabecera.push(cabecera_parsed) unless cabecera_parsed.nil?
     end
     puts "/////".red * 20
     puts cabecera.to_json
@@ -188,7 +191,7 @@ class CabeceraFacturasController < ApplicationController
     return DateTime.parse(date.to_s)
   end
 
-  def parsearData(objeto, movimiento_inventario = false)
+  def parsearData(objeto, movimiento_inventario = false, is_adelantada = false)
     puts "--------------- inicio parsearData ---------------"
 
     begin
@@ -205,11 +208,9 @@ class CabeceraFacturasController < ApplicationController
 
     @tipoFactura = TipoFactura.find_by_id(obj["tipo_factura_id"])
 
-    puts "#{obj}".red
-
     arrayDetalle = DetalleFactura.where({ cabecera_factura_id: obj["id"] })
     detalleFacturas = []
-
+    contador_retirado = 0
     arrayDetalle.each do |detalleF|
       objD = {}
 
@@ -279,7 +280,6 @@ class CabeceraFacturasController < ApplicationController
       unless objeto["is_adelantada"]
         if movimiento_inventario
           unless @actual_secuencia_factura == nil
-            puts "@actual_secuencia_factura " + @actual_secuencia_factura.to_json
             factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
 
             if articuloSelect["contenido_articulos"] == nil
@@ -293,15 +293,12 @@ class CabeceraFacturasController < ApplicationController
         end
       end
 
+      if is_adelantada && (objD["retirado"] < objD["cantidad_en_unidades"])
+        contador_retirado += 1
+      end
+
       detalleFacturas.push(objD)
     end
-
-    puts detalleFacturas.to_json.blue
-
-    puts "*" * 20
-    puts obj["detalle_facturas"].to_json
-
-    puts obj
 
     obj["detalle_facturas"] = []
     obj["detalle_facturas"] = detalleFacturas
@@ -367,7 +364,12 @@ class CabeceraFacturasController < ApplicationController
     puts "--------------- fin parsearData ---------------"
     puts ""
     puts ""
-    return obj
+
+    if !is_adelantada || (is_adelantada && contador_retirado > 0)
+      return obj
+    else
+      return nil
+    end
   end
 
   # def calcularPrecioCantSacos(unidad, precio, tipo, cantidad)
@@ -430,11 +432,11 @@ class CabeceraFacturasController < ApplicationController
   def movimientos_de_inventario(articulo, cantidad_en_unidades)
     if params[:FACTURA_DE] == 13
       # --------- VENTA ---------
-      movimiento = Articulo.find_by_id(articulo["id"])
-      puts "movimiento['existencia']".blue, movimiento["existencia"]
+      articulo = Articulo.find_by_id(articulo["id"])
+      puts "articulo['existencia']".blue, articulo["existencia"]
       puts "cantidad_en_unidades".green, cantidad_en_unidades
 
-      mov = (movimiento["existencia"] - cantidad_en_unidades)
+      mov = (articulo["existencia"] - cantidad_en_unidades)
 
       puts " estas vendiendo #{cantidad_en_unidades} "
       puts " inventario queda en  #{mov} "
@@ -443,19 +445,22 @@ class CabeceraFacturasController < ApplicationController
         render json: { msg: mensaje }, status: :unprocessable_entity
         raise ActiveRecord::Rollback
       end
-      if movimiento.update({ existencia: mov })
+      if articulo.update({ existencia: mov })
         puts "::::::::::::::::::::::::::::::::::::::::::"
         puts "::::                                  ::::"
         puts "::::        VENTA EXITOSA             ::::"
         puts "::::                                  ::::"
         puts "::::::::::::::::::::::::::::::::::::::::::"
+      else
+        render json: articulo.errors, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
       end
     else
       # --------- COMPRA ---------
-      movimiento = Articulo.find_by_id(articulo["id"])
-      puts "movimiento['existencia']".red + "#{movimiento["existencia"]}".white
+      articulo = Articulo.find_by_id(articulo["id"])
+      puts "articulo['existencia']".red + "#{articulo["existencia"]}".white
       puts "cantidad_en_unidades".red + "#{cantidad_en_unidades}".white
-      mov = (movimiento["existencia"] + cantidad_en_unidades)
+      mov = (articulo["existencia"] + cantidad_en_unidades)
 
       fecha_fact = @cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
 
@@ -472,12 +477,15 @@ class CabeceraFacturasController < ApplicationController
       movimientos_inventario = MovimientosInventario.new(obj)
 
       if movimientos_inventario.save!
-        if movimiento.update({ existencia: mov })
+        if articulo.update({ existencia: mov })
           puts "::::::::::::::::::::::::::::::::::::::::::"
           puts "::::                                  ::::"
           puts "::::         COMPRA EXITOSA           ::::"
           puts "::::                                  ::::"
           puts "::::::::::::::::::::::::::::::::::::::::::"
+        else
+          render json: articulo.errors, status: :unprocessable_entity
+          raise ActiveRecord::Rollback
         end
       else
         return render json: movimientos_inventario.errors, status: :unprocessable_entity

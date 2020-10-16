@@ -137,9 +137,7 @@ module DeviseTokenAuth
         success: true,
         data: resource_data(resource_json: @resource.token_validation_response),
       }
-      # datos[:data][:configuration] = Configuracion.all.limit(1)[0]
-      # datos[:data][:permisos] = User.getPermisos(datos[:data]['id'])
-      puts "session inicianda datos => ", :json => datos
+
       render json: datos
     end
 
