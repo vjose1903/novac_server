@@ -6,7 +6,7 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-user = User.create(
+users =
   [
     {
       "nombre": "Mari",
@@ -39,9 +39,14 @@ user = User.create(
     },
   # ------------------------------------------------
   ]
-)
 
-cliente = Cliente.create([
+users.each do |user|
+  if User.find_by_usuario(user.usuario).nil?
+    User.create(user)
+  end
+end
+
+clientes = [
 
   {
     "imagen_id": nil,
@@ -53,233 +58,178 @@ cliente = Cliente.create([
     "limite_credito": nil,
   },
   { "nombre": "Juan", "estado": true, "apellido": "Perez", "limite_credito": 30, "telefono": "(131) 351-5134", "direccion": "Por ahi en las carolinas", "sexo": "M", "maximo_credito": 20000, "vendedor_id": 2 },
-])
+]
 
-# "vendedor_id": 2,
+clientes.each do |client|
+  if Cliente.find_by_nombre(client.nombre).nil?
+    Cliente.create(client)
+  end
+end
+
 # borrar -----------------------------------------
-suplidor = Suplidor.create(
+suplidores = [
   {
     "nombre": "animal Farm",
     "telefono": "(834) 614-5613",
     "direccion": "Por ahi en santo domingo",
     "email": "animal@hotmail.com",
     "estado": true,
-  }
-)
+  },
+]
+
+suplidores.each do |supli|
+  if Suplidor.find_by_nombre(supli.nombre).nil?
+    Suplidor.create(supli)
+  end
+end
 # ------------------------------------------------
-documento_de_identidad = DocumentoDeIdentidad.create(
-  [
-    {
-      "user_id": 1,
-      "descripcion": "cedula",
-      "documento": "402-1463928-4",
-      "principal": "true",
-    },
-    {
-      "descripcion": "cedula",
-      "documento": " ",
-      "principal": true,
-      "cliente_id": 1,
-    },
-    # borrar -----------------------------------------
-    {
-      "user_id": 2,
-      "descripcion": "cedula",
-      "documento": "531-3138481-3",
-      "principal": true,
-    },
-    {
-      "cliente_id": 2,
-      "descripcion": "cedula",
-      "documento": "531-3138481-2",
-      "principal": true,
-    },
-    {
-      "descripcion": "rnc",
-      "suplidor_id": 1,
-      "documento": "047-65135-1",
-      "principal": true,
-    },
-  # ------------------------------------------------
-  ]
-)
+documentos_de_identidad = [
+  {
+    "user_id": 1,
+    "descripcion": "cedula",
+    "documento": "402-1463928-4",
+    "principal": "true",
+  },
+  {
+    "descripcion": "cedula",
+    "documento": " ",
+    "principal": true,
+    "cliente_id": 1,
+  },
+  # borrar -----------------------------------------
+  {
+    "user_id": 2,
+    "descripcion": "cedula",
+    "documento": "531-3138481-3",
+    "principal": true,
+  },
+  {
+    "cliente_id": 2,
+    "descripcion": "cedula",
+    "documento": "531-3138481-2",
+    "principal": true,
+  },
+  {
+    "descripcion": "rnc",
+    "suplidor_id": 1,
+    "documento": "047-65135-1",
+    "principal": true,
+  },
+# ------------------------------------------------
+]
 
-tipo_articulo = TipoArticulo.create(
-  [
-    {
-      "descripcion": "Veterinaria",
-    },
-    {
-      "descripcion": "Materia prima",
-    },
-    {
-      "descripcion": "Producto terminado",
-    },
-    {
-      "descripcion": "Otros",
-    },
-  ]
-)
+documentos_de_identidad.each do |doc|
+  if DocumentoDeIdentidad.find_by_documento(doc.documento).nil?
+    DocumentoDeIdentidad.create(doc)
+  end
+end
 
-tipo_factura = TipoFactura.create(
-  [
-    {
-      "referencia": "00",
-      "descripcion": "Factura sin comprobante",
-    },
-    {
-      "referencia": "01",
-      "descripcion": "Factura con valor fiscal",
-    },
-    {
-      "referencia": "02",
-      "descripcion": "Factura de consumo",
-    },
-    {
-      "referencia": "03",
-      "descripcion": "Nota de debito",
-    },
-    {
-      "referencia": "04",
-      "descripcion": "Nota de credito",
-    },
-    {
-      "referencia": "11",
-      "descripcion": "Comprobante de compras",
-    },
-    {
-      "referencia": "12",
-      "descripcion": "Registro de unico ingreso",
-    },
-    {
-      "referencia": "13",
-      "descripcion": "Comprobante para gastos menores",
-    },
-    {
-      "referencia": "14",
-      "descripcion": "Comprobante de regimen especiales",
-    },
-    {
-      "referencia": "15",
-      "descripcion": "Comprobante gubernamental",
-    },
-    {
-      "referencia": "16",
-      "descripcion": "Comprobante para exportaciones",
-    },
-    {
-      "referencia": "17",
-      "descripcion": "Comprobantes para pago al exterior",
-    },
-    {
-      "referencia": nil,
-      "descripcion": "Venta",
-    },
-    {
-      "referencia": nil,
-      "descripcion": "Compra",
-    },
-    {
-      "referencia": nil,
-      "descripcion": "Conduce",
-    },
-    {
-      "referencia": nil,
-      "descripcion": "Produccion",
-    },
-  ]
-)
-tipo_recibo = TipoRecibo.create(
-  [
-    {
-      "descripcion": "compra_adelantada",
-    },
-    {
-      "descripcion": "Pago factura",
-    },
-  ]
-)
-secuencia_ingresos = SecuenciaIngreso.create(
-  [
-    {
-      "tipo_recibo_id": 1,
-      "secuencia": 0,
-    },
-  ]
-)
+tipos_articulo = [
+  {
+    "descripcion": "Veterinaria",
+  },
+  {
+    "descripcion": "Materia prima",
+  },
+  {
+    "descripcion": "Producto terminado",
+  },
+  {
+    "descripcion": "Otros",
+  },
+]
 
-secuencia_factura = SecuenciaFactura.create(
-  [
-    {
-      "tipo_factura_id": 1,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 2,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 3,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 4,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 5,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 6,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 7,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 8,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 9,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 10,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 11,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 12,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 13,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 14,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 15,
-      "secuencia": 0,
-    },
-    {
-      "tipo_factura_id": 16,
-      "secuencia": 0,
-    },
+tipos_articulo.each do |supli|
+  if TipoArticulo.find_by_descripcion(supli.descripcion).nil?
+    TipoArticulo.create(supli)
+  end
+end
 
-  ]
-)
+tipos_factura = [
+  {
+    "referencia": "00",
+    "descripcion": "Factura sin comprobante",
+  },
+  {
+    "referencia": "01",
+    "descripcion": "Factura con valor fiscal",
+  },
+  {
+    "referencia": "02",
+    "descripcion": "Factura de consumo",
+  },
+  {
+    "referencia": "03",
+    "descripcion": "Nota de debito",
+  },
+  {
+    "referencia": "04",
+    "descripcion": "Nota de credito",
+  },
+  {
+    "referencia": "11",
+    "descripcion": "Comprobante de compras",
+  },
+  {
+    "referencia": "12",
+    "descripcion": "Registro de unico ingreso",
+  },
+  {
+    "referencia": "13",
+    "descripcion": "Comprobante para gastos menores",
+  },
+  {
+    "referencia": "14",
+    "descripcion": "Comprobante de regimen especiales",
+  },
+  {
+    "referencia": "15",
+    "descripcion": "Comprobante gubernamental",
+  },
+  {
+    "referencia": "16",
+    "descripcion": "Comprobante para exportaciones",
+  },
+  {
+    "referencia": "17",
+    "descripcion": "Comprobantes para pago al exterior",
+  },
+  {
+    "referencia": nil,
+    "descripcion": "Venta",
+  },
+  {
+    "referencia": nil,
+    "descripcion": "Compra",
+  },
+  {
+    "referencia": nil,
+    "descripcion": "Conduce",
+  },
+  {
+    "referencia": nil,
+    "descripcion": "Produccion",
+  },
+  {
+    "referencia": nil,
+    "descripcion": "Recibo_ingreso",
+  },
+]
 
-secuencia = SecuenciaComprobante.create([
+tipos_factura.each do |tipo_fac|
+  if TipoFactura.find_by_descripcion(tipo_fac.descripcion).nil?
+    tipo = TipoFactura.create(tipo_fac)
 
+    SecuenciaFactura.create(
+      {
+        "tipo_factura_id": tipo.id,
+        "secuencia": 0,
+      }
+    )
+  end
+end
+
+secuencias = [
   {
     "tipo_factura_id": 1,
     "secuencia": 1,
@@ -300,4 +250,10 @@ secuencia = SecuenciaComprobante.create([
     "estado": true,
     "usado": false,
   },
-])
+]
+
+secuencias.each do |secuencia|
+  if SecuenciaComprobante.find_by_tipo_factura_id(secuencia.tipo_factura_id).nil?
+    SecuenciaComprobante.create(secuencia)
+  end
+end

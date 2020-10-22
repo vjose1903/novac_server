@@ -1,5 +1,5 @@
 class RecibosIngreso < ApplicationRecord
-  belongs_to :tipo_recibo
+  belongs_to :tipo_factura
   belongs_to :user
   belongs_to :cliente
 
@@ -9,11 +9,11 @@ class RecibosIngreso < ApplicationRecord
 
   attribute :user
   attribute :cliente
-  attribute :tipo_recibo
+  attribute :tipo_factura
   attribute :detalle_recibos
 
   def self.find_secuencia
-    actual_secuencia_recibo = SecuenciaIngreso.all.last
+    actual_secuencia_recibo = SecuenciaFactura.find_by_tipo_factura_id(17)
 
     if actual_secuencia_recibo == [] || actual_secuencia_recibo == nil
       next_secuencia_recibo = 1
