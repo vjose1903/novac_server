@@ -14,6 +14,7 @@ echo "opciones => ${opt}"
 
 setNivel() {
   echo "setNivel ... ${PRODUCTION}"
+
   if [ "$PRODUCTION" == "yes" ]; then
     export RAILS_ENV=production
     export RAILS_SERVE_STATIC_FILES=true
@@ -21,6 +22,8 @@ setNivel() {
   else
     export RAILS_ENV=development
   fi
+  echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
+  echo " "
 }
 
 setRake() {
@@ -34,9 +37,13 @@ setRake() {
       rake db:$RAKE
     fi
   fi
+  echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
+  echo " "
 }
 
 while getopts $OPTIONS opt; do
+  echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
+  echo " "
   echo "opciones => ${opt}"
   case "${opt}" in
   r)
