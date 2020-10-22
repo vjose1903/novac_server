@@ -1,31 +1,75 @@
-OPTIONS="rcms"
-while getopts $OPTIONS opt; do
-    echo "opciones => ${opt}"
-    case "${opt}" in
-    r)
-        echo "la opcion -r"
-        rake RAILS_ENV=development db:drop db:create db:migrate db:seed
-        ;;
-    c)
-        echo "la opcion -c"
-        rails c
-        ;;
-    m)
-        echo "la opcion -m"
+#!/bin/bash
 
-        rake db:migrate 
-        # rake db:migrate RAILS_ENV=production
-        ;;
-    s)
-        echo "la opcion -s"
-        rails s -b 0.0.0.0
-        ;;
-    p)
-        echo "la opcion -p"
-        rails s -b 0.0.0.0 -e production
-        ;;
-    *)
-        exit 2
-        ;;
-    esac
+export CONTABILIDAD_BACKEND_PORT="5432"
+export CONTABILIDAD_BACKEND_HOST="localhost"
+export CONTABILIDAD_BACKEND_USERNAME="postgres"
+export CONTABILIDAD_BACKEND_PASSWORD="Vasquez1903"
+
+OPTIONS="rcsmpl"
+PRODUCTION='no'
+RAKE='no'
+
+echo "opciones => ${getopts}"
+echo "opciones => ${opt}"
+
+setNivel() {
+  echo "setNivel ... ${PRODUCTION}"
+  if [ "$PRODUCTION" == "yes" ]; then
+    export RAILS_ENV=production
+    export RAILS_SERVE_STATIC_FILES=true
+    export DISABLE_DATABASE_ENVIRONMENT_CHECK=1
+  else
+    export RAILS_ENV=development
+  fi
+}
+
+setRake() {
+  echo "setRake ... ${RAKE}"
+  if [ "$RAKE" != "no" ]; then
+    rails db:environment:set
+
+    if [ "$RAKE" == "all" ]; then
+      rake db:drop db:create db:migrate db:seed
+    else
+      rake db:$RAKE
+    fi
+  fi
+}
+
+while getopts $OPTIONS opt; do
+  echo "opciones => ${opt}"
+  case "${opt}" in
+  r)
+    echo "la opcion -r"
+    rails db:environment:set
+    RAKE="all"
+    setRake
+    ;;
+  c)
+    echo "la opcion -c"
+    rails c
+    ;;
+  s)
+    echo "la opcion -s"
+    rails s -b 0.0.0.0
+    ;;
+  m)
+    echo "la opcion -m"
+    RAKE="all"
+    setRake
+    ;;
+  l)
+    echo "la opcion -l"
+    RAKE="seed"
+    setRake
+    ;;
+  p)
+    echo "la opcion -p"
+    PRODUCTION="yes"
+    setNivel
+    ;;
+  *)
+    exit 2
+    ;;
+  esac
 done
