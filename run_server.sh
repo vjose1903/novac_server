@@ -1,13 +1,13 @@
 #!/bin/bash
 
-export CONTABILIDAD_BACKEND_PORT="5432"
-export CONTABILIDAD_BACKEND_HOST="localhost"
-export CONTABILIDAD_BACKEND_USERNAME="postgres"
-export CONTABILIDAD_BACKEND_PASSWORD="Vasquez1903"
+export BACKEND_PORT="5432"
+export BACKEND_HOST="localhost"
+export BACKEND_USERNAME="postgres"
+export BACKEND_PASSWORD="Vasquez1903"
 
 OPTIONS="rcsmpl"
-PRODUCTION='no'
-RAKE='no'
+PRODUCTION="no"
+RAKE="no"
 
 echo "opciones => ${getopts}"
 echo "opciones => ${opt}"
@@ -51,29 +51,35 @@ while getopts $OPTIONS opt; do
     rails db:environment:set
     RAKE="all"
     setRake
+
     ;;
   c)
     echo "la opcion -c"
     rails c
+
     ;;
   s)
     echo "la opcion -s"
     rails s -b 0.0.0.0
+
     ;;
   m)
     echo "la opcion -m"
     RAKE="all"
     setRake
+
     ;;
   l)
     echo "la opcion -l"
     RAKE="seed"
     setRake
+
     ;;
   p)
     echo "la opcion -p"
     PRODUCTION="yes"
     setNivel
+
     ;;
   *)
     exit 2
