@@ -41,7 +41,7 @@ users =
   ]
 
 users.each do |user|
-  if User.find_by_usuario(user.usuario).nil?
+  if User.find_by_usuario(user["usuario"]).nil?
     User.create(user)
   end
 end
@@ -61,7 +61,7 @@ clientes = [
 ]
 
 clientes.each do |client|
-  if Cliente.find_by_nombre(client.nombre).nil?
+  if Cliente.find_by_nombre(client["nombre"]).nil?
     Cliente.create(client)
   end
 end
@@ -78,7 +78,7 @@ suplidores = [
 ]
 
 suplidores.each do |supli|
-  if Suplidor.find_by_nombre(supli.nombre).nil?
+  if Suplidor.find_by_nombre(supli["nombre"]).nil?
     Suplidor.create(supli)
   end
 end
@@ -119,7 +119,7 @@ documentos_de_identidad = [
 ]
 
 documentos_de_identidad.each do |doc|
-  if DocumentoDeIdentidad.find_by_documento(doc.documento).nil?
+  if DocumentoDeIdentidad.find_by_documento(doc["documento"]).nil?
     DocumentoDeIdentidad.create(doc)
   end
 end
@@ -140,7 +140,7 @@ tipos_articulo = [
 ]
 
 tipos_articulo.each do |supli|
-  if TipoArticulo.find_by_descripcion(supli.descripcion).nil?
+  if TipoArticulo.find_by_descripcion(supli["descripcion"]).nil?
     TipoArticulo.create(supli)
   end
 end
@@ -217,7 +217,7 @@ tipos_factura = [
 ]
 
 tipos_factura.each do |tipo_fac|
-  if TipoFactura.find_by_descripcion(tipo_fac.descripcion).nil?
+  if TipoFactura.find_by_descripcion(tipo_fac["descripcion"]).nil?
     tipo = TipoFactura.create(tipo_fac)
 
     SecuenciaFactura.create(
@@ -253,7 +253,7 @@ secuencias = [
 ]
 
 secuencias.each do |secuencia|
-  if SecuenciaComprobante.find_by_tipo_factura_id(secuencia.tipo_factura_id).nil?
+  if SecuenciaComprobante.find_by_tipo_factura_id(secuencia["tipo_factura_id"]).nil?
     SecuenciaComprobante.create(secuencia)
   end
 end

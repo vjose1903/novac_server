@@ -65,7 +65,7 @@ while getopts $OPTIONS opt; do
     ;;
   m)
     echo "la opcion -m"
-    RAKE="all"
+    RAKE="migrate"
     setRake
 
     ;;
