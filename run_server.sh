@@ -15,7 +15,7 @@ echo "opciones => ${opt}"
 setNivel() {
   echo "setNivel ... ${PRODUCTION}"
 
-  if [ "$PRODUCTION" == "yes" ]; then
+  if [ "${PRODUCTION}" == "yes" ]; then
     export RAILS_ENV=production
     export RAILS_SERVE_STATIC_FILES=true
     export DISABLE_DATABASE_ENVIRONMENT_CHECK=1
@@ -28,10 +28,10 @@ setNivel() {
 
 setRake() {
   echo "setRake ... ${RAKE}"
-  if [ "$RAKE" != "no" ]; then
+  if [ "${RAKE}" != "no" ]; then
     rails db:environment:set
 
-    if [ "$RAKE" == "all" ]; then
+    if [ "${RAKE}" == "all" ]; then
       rake db:drop db:create db:migrate db:seed
     else
       rake db:$RAKE
