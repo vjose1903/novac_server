@@ -48,6 +48,7 @@ while getopts $OPTIONS opt; do
   case "${opt}" in
   r)
     echo "la opcion -r"
+   
     rails db:environment:set
     RAKE="all"
     setRake
@@ -60,7 +61,7 @@ while getopts $OPTIONS opt; do
     ;;
   s)
     echo "la opcion -s"
-    rails s -b 0.0.0.0
+    rails s -b 0.0.0.0 &
 
     ;;
   m)
