@@ -13,7 +13,7 @@ echo "opciones => ${getopts}"
 echo "opciones => ${opt}"
 
 setNivel() {
-  echo "setNivel ... ${PRODUCTION}"
+  echo "setNivel ==> ${PRODUCTION}"
 
   if [ "${PRODUCTION}" == "yes" ]; then
     export RAILS_ENV=production
@@ -27,7 +27,7 @@ setNivel() {
 }
 
 setRake() {
-  echo "setRake ... ${RAKE}"
+  echo "setRake ==> ${RAKE}"
   if [ "${RAKE}" != "no" ]; then
     rails db:environment:set
 
