@@ -48,7 +48,7 @@ while getopts $OPTIONS opt; do
   case "${opt}" in
   r)
     echo "la opcion -r"
-   
+
     rails db:environment:set
     RAKE="all"
     setRake

@@ -326,6 +326,7 @@ class CabeceraFacturasController < ApplicationController
     end
 
     if !obj["user_id"].nil?
+      puts "#{@usuario_}".red
       usuario = "#{@usuario_["nombre"]} ".titleize + "#{@usuario_["apellido"]}".titleize
       obj["usuario"] = usuario
     end
