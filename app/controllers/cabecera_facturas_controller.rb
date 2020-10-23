@@ -317,7 +317,7 @@ class CabeceraFacturasController < ApplicationController
     end
 
     if !obj["user_id"].nil?
-      my_print_log(":::::::::::: #{@usuario_}".red)
+      my_print_log(":::::::::::: #{@usuario_.to_json}".red)
       usuario = "#{@usuario_["nombre"]} ".titleize + "#{@usuario_["apellido"]}".titleize
       obj["usuario"] = usuario
     end
