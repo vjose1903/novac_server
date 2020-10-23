@@ -10,6 +10,7 @@ class CabeceraFacturasController < ApplicationController
     # @cabecera_facturas = CabeceraFactura.all
     @cabecera_facturas = []
     CabeceraFactura.all.each do |factura|
+      @usuario_ = User.find_by_id(factura["user_id"])
       @cabecera_facturas.push(parsearData(factura))
     end
 
@@ -18,6 +19,7 @@ class CabeceraFacturasController < ApplicationController
 
   # GET /cabecera_facturas/1
   def show
+    @usuario_ = User.find_by_id(@cabecera_factura["user_id"])
     cabecera = parsearData(@cabecera_factura)
     render json: cabecera
   end
