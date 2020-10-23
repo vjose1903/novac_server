@@ -361,7 +361,9 @@ class CabeceraFacturasController < ApplicationController
     puts "--------------- fin parsearData ---------------"
     puts ""
     puts ""
-
+    my_print_log("obj ==> #{obj}".yellow)
+    my_print_log("is_adelantada ==> #{is_adelantada}".yellow)
+    my_print_log("contador_retirado ==> #{contador_retirado}".yellow)
     if !is_adelantada || (is_adelantada && contador_retirado > 0)
       return obj
     else
