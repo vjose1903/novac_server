@@ -104,6 +104,7 @@ class CabeceraFacturasController < ApplicationController
 
     cabecera = []
     cabe.each do |factura|
+      @usuario_ = User.find_by_id(factura["user_id"])
       puts "@tipoFactura ".red + "#{@tipoFactura.to_json}".white
       cabecera.push(parsearData(factura))
     end

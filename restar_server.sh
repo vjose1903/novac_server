@@ -1,0 +1,1 @@
+ssh vjose1903@admservidor.ddns.net "sh updateBackend.sh"
