@@ -58,9 +58,11 @@ class CabeceraFacturasController < ApplicationController
       @usuario_ = User.find_by_id(factura["user_id"])
       cabecera_parsed = parsearData(factura, false, is_adelantada)
 
+      my_print_log("cabecera_parsed  ==> #{cabecera_parsed}".green)
       cabecera.push(cabecera_parsed) unless cabecera_parsed.nil?
     end
     puts "/////".red * 20
+    my_print_log("cabecera  ==> #{cabecera}".green)
     puts cabecera.to_json
     render json: cabecera
   end
