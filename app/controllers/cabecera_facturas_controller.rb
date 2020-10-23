@@ -95,7 +95,7 @@ class CabeceraFacturasController < ApplicationController
     cabecera = []
     cabe.each do |factura|
       @usuario_ = User.find_by_id(factura["user_id"])
-      puts "@tipoFactura ".red + "#{@tipoFactura.to_json}".white
+      my_print_log("@tipoFactura ".red + "#{@tipoFactura.to_json}".white)
       cabecera.push(parsearData(factura))
     end
     # cabecera = parsearData(cabe)
@@ -317,7 +317,7 @@ class CabeceraFacturasController < ApplicationController
     end
 
     if !obj["user_id"].nil?
-      puts ":::::::::::: #{@usuario_}".red
+      my_print_log(":::::::::::: #{@usuario_}".red)
       usuario = "#{@usuario_["nombre"]} ".titleize + "#{@usuario_["apellido"]}".titleize
       obj["usuario"] = usuario
     end
