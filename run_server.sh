@@ -4,8 +4,9 @@ export BACKEND_PORT="5432"
 export BACKEND_HOST="localhost"
 export BACKEND_USERNAME="postgres"
 export BACKEND_PASSWORD="Vasquez1903"
+export RAILS_SHOW_LOG=false
 
-OPTIONS="rcsmpl"
+OPTIONS="rcsmpld"
 PRODUCTION="no"
 RAKE="no"
 
@@ -74,6 +75,11 @@ while getopts $OPTIONS opt; do
     echo "la opcion -l"
     RAKE="seed"
     setRake
+
+    ;;
+  d)
+    echo "la opcion -d"
+    export RAILS_SHOW_LOG=true
 
     ;;
   p)

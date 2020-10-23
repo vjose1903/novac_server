@@ -44,3 +44,13 @@ class Array
     return { data: itemsTem, total_registros: items.length, total_paginas: total_pag }
   end
 end
+
+def my_print_log(*args)
+  is_show = ENV.fetch("RAILS_SHOW_LOG") { false }
+  Rails.logger.info " ↳".red + " => (#{caller_locations.first})"
+  if ActiveRecord::Type::Boolean.new.cast(is_show)
+    args.each do |arg|
+      Rails.logger.info arg
+    end
+  end
+end

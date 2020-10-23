@@ -84,16 +84,6 @@ class CabeceraFacturasController < ApplicationController
 
     if paginado
       res_cabecera = cabeceras_temp.to_a.my_paginate(page, per_page)
-
-      # res_cabecera[:data].each do |factura|
-      #   @usuario_ = User.find_by_id(factura["user_id"])
-      #   res_cabecera.push(parsearData(factura))
-      # end
-
-      # cabecera = cabe.each do |factura|
-      #   @usuario_ = User.find_by_id(factura["user_id"])
-      #   res_cabecera.push(parsearData(factura))
-      # end
     end
 
     render json: res_cabecera
