@@ -43,6 +43,9 @@ class CabeceraFacturasController < ApplicationController
     elsif campoNum == "4"
     end
 
+    my_print_log("campo  ==> #{campo}".green)
+    my_print_log("valor_des  ==> #{valor_des}".green)
+
     cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
 
     puts "=-=".yellow * 20
