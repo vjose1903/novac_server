@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :cuadre_cajas
   resources :detalles_produccion
   resources :producciones
   resources :detalle_conduces

@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  total_general: 1.5
+  total_venta_credito: 1.5
+  total_venta_contado: 1.5
+  total_recibo_ingreso: 1.5
+  total_anterior: 1.5
+
+two:
+  user: two
+  total_general: 1.5
+  total_venta_credito: 1.5
+  total_venta_contado: 1.5
+  total_recibo_ingreso: 1.5
+  total_anterior: 1.5
