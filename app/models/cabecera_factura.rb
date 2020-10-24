@@ -89,7 +89,7 @@ class CabeceraFactura < ApplicationRecord
 
       if f["pago_total"]
         if f["deposito"] == factura_a_pagar["balance"]
-          unless factura_a_pagar.update({ balance: 0, pagada: true })
+          unless factura_a_pagar.update({ balance: 0, pagada: true, fecha_completada: DateTime.now })
             res = { error: true, msg: factura_a_pagar.errors }
             return res
           end
@@ -113,7 +113,7 @@ class CabeceraFactura < ApplicationRecord
         end
 
         if f["deposito"] == balance
-          unless factura_a_pagar.update({ balance: newBalance, pagada: true })
+          unless factura_a_pagar.update({ balance: newBalance, pagada: true, fecha_completada: DateTime.now })
             res = { error: true, msg: factura_a_pagar.errors }
             return res
           end
@@ -140,12 +140,44 @@ class CabeceraFactura < ApplicationRecord
     end
   end
   # =====================================================================================================================
+
+  def self.recalcularMonto(factura)
+    monto_editado_por_notas = 0
+    notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] })
+
+    notas.each do |nota|
+      if nota["tipo_factura_id"] === 5
+        monto_editado_por_notas = monto_editado_por_notas - nota["total_factura"].abs
+      elsif nota["tipo_factura_id"] === 4
+        monto_editado_por_notas = monto_editado_por_notas + nota["total_factura"].abs
+      end
+    end
+
+    obj = {
+      balance: factura["balance"] + monto_editado_por_notas,
+      total_facturado: factura["total_facturado"] + monto_editado_por_notas,
+    }
+    return obj
+  end
+
+  # =====================================================================================================================
   def self.calculateBalanceFactura(id, montoRecibido, num_fila)
-    puts " -------------- Inicio ReCalculateBalanceFactura -------------- "
+    puts " -------------- Inicio CalculateBalanceFactura -------------- "
 
     factura = CabeceraFactura.find_by_id(id)
+    my_print_log("factura #{factura.to_json}".red)
 
     balance = factura["balance"]
+
+    total_facturado = factura["total_factura"]
+
+    if factura.tiene_nota
+      total_facturado = recalcularMonto(factura)
+    end
+
+    my_print_log("balance #{balance}".red)
+    my_print_log("montoRecibido #{montoRecibido}".yellow)
+    my_print_log("montoRecibido.to_f #{montoRecibido.to_f}".green)
 
     sumatoria = 0
 
@@ -154,14 +186,13 @@ class CabeceraFactura < ApplicationRecord
     else
       sumatoria = balance - montoRecibido.to_f
     end
-    puts "balance #{balance}".red
-    puts "montoRecibido #{montoRecibido}".yellow
-    puts "sumatoria #{sumatoria}".blue
+    my_print_log("sumatoria #{sumatoria}".blue)
 
     sumatoria = sumatoria.to_d.truncate(2).to_f
 
     return { :error => false, :balance => sumatoria, :balance_anterior => balance }
   end
+
   # =====================================================================================================================
   def self.ReCalculateBalanceFactura(id, totalFactura, operacion)
     puts " -------------- Inicio ReCalculateBalanceFactura -------------- "

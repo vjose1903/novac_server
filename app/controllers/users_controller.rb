@@ -13,9 +13,11 @@ class UsersController < ApplicationController
     render json: @usuarios
   end
 
-  def getVendedores
+  def getUserByRole
     @usuarios = []
-    User.get_vendedores.each do |user|
+    role_ = params["role"]
+    vendedores = User.where({ estado: true, role: role_ })
+    vendedores.each do |user|
       @usuarios.push(parsealUser(user))
     end
     render json: @usuarios
@@ -95,7 +97,6 @@ class UsersController < ApplicationController
       end
       object["documentos_de_identidad"] = docs
     end
-
     return object
   end
 
