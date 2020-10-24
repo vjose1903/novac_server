@@ -28,7 +28,7 @@ class CabeceraFacturasController < ApplicationController
     campoNum = params[:campo]
     valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
     tipo_factura_id = params[:tipo_factura_id]
-    is_adelantada = params[:is_adelantada]
+    is_adelantada = params[:is_adelantada].to_boolean
 
     campo = ""
     if campoNum == "1"
@@ -364,11 +364,15 @@ class CabeceraFacturasController < ApplicationController
     puts ""
     puts ""
     my_print_log("obj ==> #{obj}".yellow)
-    my_print_log("is_adelantada ==> #{is_adelantada}".yellow)
+    my_print_log("is_adelantada ==> #{is_adelantada == "true"}".yellow)
     my_print_log("contador_retirado ==> #{contador_retirado}".yellow)
+    my_print_log("tipo de dato ==> #{is_adelantada.class}".red)
+
     if !is_adelantada || (is_adelantada && contador_retirado > 0)
+      my_print_log("si tiene datos".blue)
       return obj
     else
+      my_print_log("no tiene datos".blue)
       return nil
     end
   end

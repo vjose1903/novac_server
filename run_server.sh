@@ -62,7 +62,7 @@ while getopts $OPTIONS opt; do
     ;;
   s)
     echo "la opcion -s"
-    rails s -b 0.0.0.0 &
+    rails s -b 0.0.0.0
 
     ;;
   m)

@@ -13,6 +13,10 @@ class String
     return true if self =~ /\A\d+\Z/
     true if Float(self) rescue false
   end
+
+  def to_boolean
+    ActiveRecord::Type::Boolean.new.cast(self)
+  end
 end
 
 class Array
