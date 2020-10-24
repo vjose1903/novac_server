@@ -46,6 +46,11 @@ class RecibosIngreso < ApplicationRecord
       detalles.push(objD)
     end
 
+    if data.chofer
+      chofer_ = User.find_by_id(data.chofer)
+    end
+
+    obj["chofer"] = chofer_
     obj["detalle_recibos"] = detalles
 
     return obj

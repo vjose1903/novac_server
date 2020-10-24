@@ -55,7 +55,7 @@ Rails.application.routes.draw do
 
   # usuarios
   get "users" => "users#getUsers"
-  get "users/vendedores" => "users#getVendedores"
+  get "users/by_role/:role" => "users#getUserByRole"
   get "users/:id" => "users#getUserById"
   get "users/filtro/:arg" => "users#getUsuariosFiltrados"
 

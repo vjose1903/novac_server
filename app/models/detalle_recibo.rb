@@ -13,10 +13,27 @@ class DetalleRecibo < ApplicationRecord
         detalle.cabecera_factura_id = d["cabecera_factura_id"]
         detalle = DetalleRecibo.new
       end
+
+      factura = CabeceraFactura.find_by_id(d["cabecera_factura_id"])
+
+      if factura.condicion != "Contado"
+        id = factura.cliente_id
+        total = detalle.deposito
+        resultCliente = Cliente.CalculateBalanceCLiente(id, total, "-")
+
+        if resultCliente[:error]
+          my_print_log("resultCliente ==>", resultCliente)
+
+          return [{ error: true, msg: resultCliente[:msg], status: :unprocessable_entity }]
+          raise ActiveRecord::Rollback
+        end
+      end
+
       calculo_cabecera = CabeceraFactura.calculateBalanceFactura(detalle["cabecera_factura_id"], detalle["deposito"], (idx + 1))
+      my_print_log("calculo_cabecera ==>", calculo_cabecera)
 
       if calculo_cabecera[:error]
-        render json: { msg: calculo_cabecera[:msg] }, status: :unprocessable_entity
+        return [{ error: true, msg: calculo_cabecera[:msg], status: :unprocessable_entity }]
         raise ActiveRecord::Rollback
       end
 

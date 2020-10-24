@@ -115,7 +115,7 @@ class CabeceraFacturasController < ApplicationController
       att = cabecera_factura_params
 
       resultCliente = { :error => false }
-      resultBalanceFact = { :error => false }
+
       resultAgregarNota = { :error => false }
 
       if att["condicion"] == "Crédito" && att["tipo"] == "venta"
@@ -125,34 +125,17 @@ class CabeceraFacturasController < ApplicationController
       # NOTA DE CREDITO
       if att["is_nota"] && att["tipo_factura_id"] == 5
         resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
-        # resultBalanceFact = CabeceraFactura.ReCalculateBalanceFactura(@factura_aplicada_id, att["total_factura"].to_f.abs, "+")
         resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id)
       end
 
       # NOTA DE DEBITO
       if att["is_nota"] && att["tipo_factura_id"] == 4
         resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
-        # resultBalanceFact = CabeceraFactura.ReCalculateBalanceFactura(@factura_aplicada_id, att["total_factura"].to_f.abs, "+")
         resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id)
       end
 
-      puts ">>>>>" * 15
-      puts "result Balance".red
-      puts ">>>>>" * 15
-      puts :json => resultBalanceFact
-      puts ">>>>>" * 15
-
-      puts ">>>>>" * 15
-      puts "result cliente".yellow
-      puts ">>>>>" * 15
-      puts :json => resultCliente
-      puts ">>>>>" * 15
-
       if resultCliente[:error]
         render json: resultCliente
-        break
-      elsif resultBalanceFact[:error]
-        render json: resultBalanceFact
         break
       elsif resultAgregarNota[:error]
         render json: resultAgregarNota
@@ -161,6 +144,7 @@ class CabeceraFacturasController < ApplicationController
         att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
         att["numero_comprobante"] = @numero_comprobante.upcase
         att["numero_factura"] = @numero_factura
+        att["fecha_completada"] = att["condicion"] === "Contado" ? att["fecha_equivalente"] : nil
 
         @cabecera_factura = CabeceraFactura.new(att)
 

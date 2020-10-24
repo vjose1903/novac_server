@@ -27,10 +27,18 @@ class RecibosIngresosController < ApplicationController
       @recibos_ingreso.numero_recibo = RecibosIngreso.find_secuencia
 
       if @recibos_ingreso.save!
-        unless SecuenciaIngreso.last.update({ secuencia: @recibos_ingreso.numero_recibo })
-          render json: SecuenciaIngreso.last.errors, status: :unprocessable_entity
+        actual_secuencia_recibo = SecuenciaFactura.find_by_tipo_factura_id(17)
+
+        unless actual_secuencia_recibo.update({ secuencia: @recibos_ingreso.numero_recibo })
+          render json: actual_secuencia_recibo.errors, status: :unprocessable_entity
         else
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
+          my_print_log("typeof ===> ", detalles.class)
+
+          if detalles[0][:error]
+            render json: { msg: detalles[:msg], error: detalles.errors }, :status => :unprocessable_entity
+            raise ActiveRecord::Rollback
+          end
 
           @recibos_ingreso.detalle_recibos = detalles
 
@@ -39,28 +47,19 @@ class RecibosIngresosController < ApplicationController
             raise ActiveRecord::Rollback
           end
 
-          id = @recibos_ingreso.cliente_id
-          total = @recibos_ingreso.total
-          resultCliente = Cliente.CalculateBalanceCLiente(id, total, "-")
+          continuar = CabeceraFactura.payFacturas(recibos_ingreso_params)
+          unless continuar[:error]
+            respuesta = @recibos_ingreso
 
-          if resultCliente[:error]
-            render json: resultCliente, :status => resultCliente[:status]
-            raise ActiveRecord::Rollback
+            respuesta.cliente.balance = Cliente.find_by_id(@recibos_ingreso.cliente_id).balance
+
+            res = RecibosIngreso.parsearData(respuesta)
+
+            puts res.to_json.yellow
+            render json: res, status: :created, location: @recibos_ingreso
           else
-            continuar = CabeceraFactura.payFacturas(recibos_ingreso_params)
-            unless continuar[:error]
-              respuesta = @recibos_ingreso
-
-              respuesta.cliente.balance = resultCliente[:balance]
-
-              res = RecibosIngreso.parsearData(respuesta)
-
-              puts res.to_json.yellow
-              render json: res, status: :created, location: @recibos_ingreso
-            else
-              render json: continuar[:msg], status: :unprocessable_entity
-              raise ActiveRecord::Rollback
-            end
+            render json: continuar[:msg], status: :unprocessable_entity
+            raise ActiveRecord::Rollback
           end
         end
       else
