@@ -3,9 +3,10 @@ class CuadreCajasController < ApplicationController
 
   # GET /cuadre_cajas
   def index
-    @cuadre_cajas = CuadreCaja.all
+    # @cuadre_cajas = CuadreCaja.all
 
-    render json: @cuadre_cajas
+    # render json: @cuadre_cajas
+    render json: CuadreCaja.makecuadre
   end
 
   # GET /cuadre_cajas/1
@@ -39,13 +40,14 @@ class CuadreCajasController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_cuadre_caja
-      @cuadre_caja = CuadreCaja.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def cuadre_caja_params
-      params.require(:cuadre_caja).permit(:user_id, :total_general, :total_venta_credito, :total_venta_contado, :total_recibo_ingreso, :total_anterior)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_cuadre_caja
+    @cuadre_caja = CuadreCaja.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def cuadre_caja_params
+    params.require(:cuadre_caja).permit(:user_id, :total_general, :total_venta_credito, :total_venta_contado, :total_recibo_ingreso, :total_anterior)
+  end
 end

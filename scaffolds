@@ -13,6 +13,8 @@ rails g scaffold peticion_personalizada user:references tipo_agencia:references 
 rails g scaffold produccion user:references numero:integer fecha_equivalente:datetime
 rails g scaffold detalle_produccion produccion:references articulo:references cantidad:float cantidad_en_unidades:integer medida:string
 
+rails g scaffold cuadre_caja user:references total_general:float total_venta_credito:float total_venta_contado:float total_recibo_ingreso:float  total_anterior:float
+
 rails g migration AddBalanceFacturaToDetalleRecibo balance_factura:float
 
 
