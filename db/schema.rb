@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_06_190449) do
+ActiveRecord::Schema.define(version: 2020_10_24_105524) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -118,6 +118,18 @@ ActiveRecord::Schema.define(version: 2020_10_06_190449) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["articulo_id"], name: "index_contenido_articulos_on_articulo_id"
+  end
+
+  create_table "cuadre_cajas", force: :cascade do |t|
+    t.bigint "user_id"
+    t.float "total_general"
+    t.float "total_venta_credito"
+    t.float "total_venta_contado"
+    t.float "total_recibo_ingreso"
+    t.float "total_anterior"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
 
   create_table "detalle_conduces", force: :cascade do |t|
@@ -295,9 +307,10 @@ ActiveRecord::Schema.define(version: 2020_10_06_190449) do
 
   create_table "recibos_ingresos", force: :cascade do |t|
     t.bigint "user_id"
-    t.bigint "tipo_recibo_id"
+    t.bigint "tipo_factura_id"
     t.bigint "cliente_id"
     t.float "total"
+    t.integer "chofer"
     t.string "forma_pago"
     t.integer "numero_recibo"
     t.float "devuelta"
@@ -305,7 +318,7 @@ ActiveRecord::Schema.define(version: 2020_10_06_190449) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"
-    t.index ["tipo_recibo_id"], name: "index_recibos_ingresos_on_tipo_recibo_id"
+    t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"
   end
 
@@ -331,14 +344,6 @@ ActiveRecord::Schema.define(version: 2020_10_06_190449) do
     t.index ["tipo_factura_id"], name: "index_secuencia_facturas_on_tipo_factura_id"
   end
 
-  create_table "secuencia_ingresos", force: :cascade do |t|
-    t.bigint "tipo_recibo_id"
-    t.integer "secuencia"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["tipo_recibo_id"], name: "index_secuencia_ingresos_on_tipo_recibo_id"
-  end
-
   create_table "suplidores", force: :cascade do |t|
     t.string "nombre"
     t.string "telefono"
@@ -358,12 +363,6 @@ ActiveRecord::Schema.define(version: 2020_10_06_190449) do
   create_table "tipo_facturas", force: :cascade do |t|
     t.string "referencia"
     t.string "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "tipo_recibos", force: :cascade do |t|
-    t.text "descripcion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -415,6 +414,7 @@ ActiveRecord::Schema.define(version: 2020_10_06_190449) do
   add_foreign_key "cabecera_facturas", "users"
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "contenido_articulos", "articulos"
+  add_foreign_key "cuadre_cajas", "users"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"
@@ -436,10 +436,9 @@ ActiveRecord::Schema.define(version: 2020_10_06_190449) do
   add_foreign_key "movimientos_inventarios", "users"
   add_foreign_key "producciones", "users"
   add_foreign_key "recibos_ingresos", "clientes"
-  add_foreign_key "recibos_ingresos", "tipo_recibos"
+  add_foreign_key "recibos_ingresos", "tipo_facturas"
   add_foreign_key "recibos_ingresos", "users"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
-  add_foreign_key "secuencia_ingresos", "tipo_recibos"
   add_foreign_key "users", "imagenes"
 end

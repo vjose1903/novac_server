@@ -7,6 +7,7 @@ class CreateCuadreCajas < ActiveRecord::Migration[5.2]
       t.float :total_venta_contado
       t.float :total_recibo_ingreso
       t.float :total_anterior
+      t.integer :numero_reporte
 
       t.timestamps
     end

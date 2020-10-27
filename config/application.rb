@@ -34,12 +34,5 @@ module ServerRa
     config.middleware.use ActionDispatch::Flash
     config.active_record.default_timezone = :local
     config.api_only = true
-
-    config.middleware.insert_before 0, Rack::Cors do
-      allow do
-        origins "*"
-        resource "*", headers: :any, methods: :any
-      end
-    end
   end
 end

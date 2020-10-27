@@ -375,7 +375,7 @@ class CabeceraFacturasController < ApplicationController
     res = CabeceraFactura.anular_factura(params[:id])
 
     if res
-      render json: { msg: "Factura anulada correctamente", status: 200 }, status: 200
+      render json: { msg: "Factura anulada correctamente" }, status: 200
     else
       render json: { msg: "Error anulando factura" }, status: :unprocessable_entity
     end
@@ -499,11 +499,20 @@ class CabeceraFacturasController < ApplicationController
 
     @tipoFactura = TipoFactura.find_by_id(params[:tipo_factura_id])
 
+    puts "params['tipo'] ---> ".yellow + "#{params["tipo"]}"
+
+    puts "params ---> " + "#{params}"
+
+    puts "params[:tipo_factura_id] ---> ".blue + "#{params[:tipo_factura_id]}"
+
+    puts "params[:FACTURA_DE] ---> ".green + "#{params[:FACTURA_DE]}"
+
     if params["tipo"] == "venta" || params["is_nota"]
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:tipo_factura_id])
     elsif params["tipo"] == "compra"
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:FACTURA_DE])
     end
+    puts "actual_secuencia_factura ---> ".red + "#{@actual_secuencia_factura.to_json}"
 
     @next_secuencia_factura = @actual_secuencia_factura["secuencia"] + 1
 

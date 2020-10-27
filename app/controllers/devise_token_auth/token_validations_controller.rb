@@ -9,7 +9,7 @@ module DeviseTokenAuth
       # @resource will have been set by set_user_by_token concern
       if @resource
         puts "prueba token_validations => ", :json => @resource
-        if @resource[:estado] == 'I'
+        if @resource[:estado] == "I"
           user = remove_instance_variable(:@resource) if @resource
           client_id = remove_instance_variable(:@client_id) if @client_id
           remove_instance_variable(:@token) if @token
@@ -21,7 +21,7 @@ module DeviseTokenAuth
             yield user if block_given?
 
             # render_destroy_success
-            return render json: {msg: "Usuario desactivado, favor de comunicarse con el administrador del sistema." }, status: 401
+            return render json: { msg: "Usuario desactivado, favor de comunicarse con el administrador del sistema." }, status: 401
           end
         else
           yield @resource if block_given?
@@ -35,9 +35,9 @@ module DeviseTokenAuth
     protected
 
     def render_validate_token_success
-      datos =  {
+      datos = {
         success: true,
-        data: resource_data(resource_json: @resource.token_validation_response)
+        data: resource_data(resource_json: @resource.token_validation_response),
       }
       # datos[:data][:configuration] = Configuracion.all.limit(1)[0]
       # datos[:data][:permisos] = User.getPermisos(datos[:data]['id'])
@@ -45,7 +45,8 @@ module DeviseTokenAuth
     end
 
     def render_validate_token_error
-      render_error(401, I18n.t('devise_token_auth.token_validations.invalid'))
+      # render_error(401, I18n.t('devise_token_auth.token_validations.invalid'))
+      render json: { msg: "Token invalido!" }, status: 200
     end
   end
 end

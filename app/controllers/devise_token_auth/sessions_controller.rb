@@ -63,7 +63,8 @@ module DeviseTokenAuth
           return render_create_error_bad_credentials
           # return render json: {msg: "Los datos no son correctos P" }, status: 401
         end
-        @client_id, @token = @resource.create_token
+        # @client_id,
+        @token = @resource.create_token
         @resource.save
 
         sign_in(:user, @resource, store: false, bypass: false)
