@@ -6,7 +6,10 @@ class CuadreCajasController < ApplicationController
     # @cuadre_cajas = CuadreCaja.all
 
     # render json: @cuadre_cajas
-    render json: CuadreCaja.makecuadre
+
+    cuadre_caja = CuadreCaja.makecuadre(current_user)
+
+    render json: cuadre_caja, status: cuadre_caja[:status]
   end
 
   # GET /cuadre_cajas/1
