@@ -69,6 +69,12 @@ class RecibosIngresosController < ApplicationController
     end
   end
 
+  def revertirIngreso
+    id_ = params["id"]
+    last_recibo = RecibosIngreso.get_last_recibo_of_cabecera_factura(id_)[0]
+    render json: last_recibo
+  end
+
   # PATCH/PUT /recibos_ingresos/1
   def update
     if @recibos_ingreso.update(recibos_ingreso_params)

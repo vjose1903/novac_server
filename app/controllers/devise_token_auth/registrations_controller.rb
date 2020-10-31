@@ -29,8 +29,9 @@ module DeviseTokenAuth
         return render_create_error_missing_confirm_success_url
       end
 
-      # if whitelist is set, validate redirect_url against whitelist
-      return render_create_error_redirect_url_not_allowed if blacklisted_redirect_url?
+      # puts "blacklisted_redirect_url? => #{blacklisted_redirect_url? @resource}".green
+      # # if whitelist is set, validate redirect_url against whitelist
+      # return render_create_error_redirect_url_not_allowed if blacklisted_redirect_url?
 
       begin
         # override email confirmation, must be sent manually from ctrl
@@ -75,20 +76,34 @@ module DeviseTokenAuth
       # puts "=====".red * 20
 
       @resource = User.find_by_id(params[:id])
+      oldDocuments = params["documentos_de_identidad_attributes"]
 
-      oldDocuments = DocumentoDeIdentidad.get_documentos_by_user_id(params[:id])
-
-      if oldDocuments.length > 0
-        oldDocuments.each do |doc|
-          documento = DocumentoDeIdentidad.find_by_id(doc["id"])
-          if documento.delete()
-            puts "ELIMINADO"
-          end
-        end
+      aNewDocumentos = []
+      oldDocuments.each do |doc|
+        puts "doc ==> #{doc}".red
+        find = DocumentoDeIdentidad.where("documento = '#{doc["documento"]}' and user_id != #{@resource.id}")
+        puts "find ==> #{find.length}".red
+        return render json: { "msg": "Documento de identidad ya esta registrado" }, status: 409 if find.length > 0
+        aNewDocumentos.push(DocumentoDeIdentidad.new({
+          "descripcion" => doc["descripcion"], "documento" => doc["documento"], "principal" => doc["principal"],
+        }))
       end
 
+      @resource.documentos_de_identidad = aNewDocumentos
+
+      # oldDocuments = DocumentoDeIdentidad.get_documentos_by_user_id(params[:id])
+
+      # if oldDocuments.length > 0
+      #   oldDocuments.each do |doc|
+      #     documento = DocumentoDeIdentidad.find_by_id(doc["id"])
+      #     if documento.delete()
+      #       puts "ELIMINADO"
+      #     end
+      #   end
+      # end
+
       if @resource
-        if @resource.send(resource_update_method, account_update_params)
+        if @resource.send(resource_update_method, account_update_params.except(:documentos_de_identidad_attributes))
           yield @resource if block_given?
           render_update_success
         else
@@ -122,7 +137,7 @@ module DeviseTokenAuth
     def build_resource
       @resource = resource_class.new(sign_up_params)
       @resource.provider = provider
-
+      puts "build_resource => #{@resource.to_json}".blue
       # honor devise configuration for case_insensitive_keys
       if resource_class.case_insensitive_keys.include?(:email)
         @resource.email = sign_up_params[:email].try(:downcase)

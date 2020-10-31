@@ -11,7 +11,20 @@ class RecibosIngreso < ApplicationRecord
   attribute :cliente
   attribute :tipo_factura
   attribute :detalle_recibos
+  # ===================================================================================================================================================
+  def self.get_last_recibo_of_cabecera_factura(id_cabecera)
+    select_ = "SELECT recibos_ingreso_id, ri.cliente_id as cliente_id"
+    from_ = "FROM detalle_recibos dr"
+    joins_ = "inner join recibos_ingresos ri on ri.id = dr.cabecera_factura_id"
+    where_ = "WHERE cabecera_factura_id=#{id_cabecera}"
+    order_ = "ORDER BY dr.created_at DESC"
+    limit_ = "LIMIT 1"
 
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
+    return my_query(query)
+  end
+
+  # ===================================================================================================================================================
   def self.find_secuencia
     actual_secuencia_recibo = SecuenciaFactura.find_by_tipo_factura_id(17)
 

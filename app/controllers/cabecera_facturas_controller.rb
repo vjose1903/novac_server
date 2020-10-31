@@ -144,7 +144,7 @@ class CabeceraFacturasController < ApplicationController
         att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
         att["numero_comprobante"] = @numero_comprobante.upcase
         att["numero_factura"] = @numero_factura
-        att["fecha_completada"] = att["condicion"] === "Contado" ? att["fecha_equivalente"] : nil
+        att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
 
         @cabecera_factura = CabeceraFactura.new(att)
 

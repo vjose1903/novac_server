@@ -49,7 +49,7 @@ class CabeceraFactura < ApplicationRecord
     joins_ =
       "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
     inner join users u on ca.user_id = u.id"
-    where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta'"
+    where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta' and is_viaje=false"
     query = "#{select_} #{from_} #{joins_} #{where_}"
     return my_query(query)
   end

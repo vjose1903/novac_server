@@ -29,8 +29,16 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
 
 development:
-  <<: *default
   database: ADM_development
+  adapter: postgresql
+  encoding: unicode
+  # host: admservidor.ddns.net
+  host: localhost
+  username: postgres
+  password: Vasquez1903
+  port: 5432
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
@@ -58,9 +66,9 @@ development:
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
-test:
-  <<: *default
-  database: ADM_test
+# test:
+#   <<: *default
+#   database: ADM_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

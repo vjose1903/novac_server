@@ -26,6 +26,9 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
 
+  # recibos de ingresos
+  get "recibos_ingresos/revertir/:id" => "recibos_ingresos#revertirIngreso" #
+
   # produccion
   get "articulos/ingredientes/:id" => "articulos#getIngredientesFormula" #
 

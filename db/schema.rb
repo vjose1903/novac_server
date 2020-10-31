@@ -127,6 +127,7 @@ ActiveRecord::Schema.define(version: 2020_10_24_105524) do
     t.float "total_venta_contado"
     t.float "total_recibo_ingreso"
     t.float "total_anterior"
+    t.integer "numero_reporte"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"

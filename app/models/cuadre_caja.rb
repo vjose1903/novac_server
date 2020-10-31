@@ -5,7 +5,7 @@ class CuadreCaja < ApplicationRecord
     ventas_contado_total_facturado_ = CabeceraFactura.where(
       { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
         'fecha_completada': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
-        tipo: "venta", condicion: "Contado", forma_pago: "Efectivo" }
+        tipo: "venta", condicion: "Contado", forma_pago: "Efectivo", is_viaje: false }
 
     ).sum(:total_factura)
 
