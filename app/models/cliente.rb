@@ -55,11 +55,11 @@ class Cliente < ApplicationRecord
     if operacion == "+"
       sumatoria = balance + totalFactura.to_f
     else
-      if totalFactura.to_f > balance
-        return { :error => true, :msg => "El monto ingresado es mayor al balance del cliente", :status => 400 }
-      else
-        sumatoria = balance - totalFactura.to_f
-      end
+      # if totalFactura.to_f > balance
+      #   return { :error => true, :msg => "El monto ingresado es mayor al balance del cliente", :status => 400 }
+      # else
+      sumatoria = balance - totalFactura.to_f
+      # end
     end
     sumatoria = sumatoria.to_d.truncate(2).to_f
 

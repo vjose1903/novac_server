@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_24_105524) do
+ActiveRecord::Schema.define(version: 2020_11_01_145203) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -83,6 +83,7 @@ ActiveRecord::Schema.define(version: 2020_10_24_105524) do
     t.string "aplicada_a"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "fecha_viaje"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
@@ -178,6 +179,7 @@ ActiveRecord::Schema.define(version: 2020_10_24_105524) do
     t.boolean "pago_a_tiempo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_ultimo"
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end

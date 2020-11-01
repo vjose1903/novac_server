@@ -24,6 +24,8 @@ rails g migration AddTipoSalidaToMovimientoInventario tipo_salida:string
 rails g migration AddFechaConduceToCabeceraConduce fecha_conduce:datetime
 rails g migration ChangeCantidadToBeFloatInDetalleConduce
 rails g migration AddCantidadEnUnidadesToDetalleConduce cantidad_en_unidades:integer
+rails g migration AddFechaViajesToCabeceraFacturas fecha_viaje:datetime
+rails g migration AddIsUltimoToDetalleRecibo is_ultimo:boolean
 
 
 

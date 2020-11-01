@@ -43,27 +43,16 @@ class CabeceraFacturasController < ApplicationController
     elsif campoNum == "4"
     end
 
-    my_print_log("campo  ==> #{campo}".green)
-    my_print_log("valor_des  ==> #{valor_des}".green)
-
     cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
-
-    puts "=-=".yellow * 20
-    puts cabe.to_json
-    puts "=-=".yellow * 20
 
     cabecera = []
 
     cabe.each do |factura|
       @usuario_ = User.find_by_id(factura["user_id"])
       cabecera_parsed = parsearData(factura, false, is_adelantada)
-
-      my_print_log("cabecera_parsed  ==> #{cabecera_parsed}".green)
       cabecera.push(cabecera_parsed) unless cabecera_parsed.nil?
     end
-    puts "/////".red * 20
-    my_print_log("cabecera  ==> #{cabecera}".green)
-    puts cabecera.to_json
+
     render json: cabecera
   end
 
@@ -73,16 +62,14 @@ class CabeceraFacturasController < ApplicationController
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
-    cabe_pendientes = CabeceraFactura.where({ is_viaje: true, fecha_completada: nil })
-    cabe_completadas_hoy = CabeceraFactura.where({ is_viaje: true, fecha_completada: DateTime.now.beginning_of_day..DateTime.now.end_of_day })
+    cabe_pendientes = CabeceraFactura.where({ is_viaje: true, fecha_completada: nil }).to_a
+    cabe_completadas_hoy = CabeceraFactura.where({ is_viaje: true, fecha_completada: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).to_a
+
+    cabe_pendientes.concat cabe_completadas_hoy
 
     cabeceras_temp = []
-    cabe_pendientes.each do |factura|
-      @usuario_ = User.find_by_id(factura["user_id"])
-      cabeceras_temp.push(parsearData(factura))
-    end
 
-    cabe_completadas_hoy.each do |factura|
+    cabe_pendientes.each do |factura|
       @usuario_ = User.find_by_id(factura["user_id"])
       cabeceras_temp.push(parsearData(factura))
     end
@@ -92,20 +79,22 @@ class CabeceraFacturasController < ApplicationController
     if paginado
       res_cabecera = cabeceras_temp.to_a.my_paginate(page, per_page)
     end
-
     render json: res_cabecera
   end
 
   def getFacturasByClienteIdAndEstado
-    cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada])
+    cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada]).to_a
+    cabe_viajes_contado_deviendo = CabeceraFactura.where({ is_viaje: true, condicion: "Contado" }).where.not(balance: 0).to_a
+
+    cabe.concat cabe_viajes_contado_deviendo
 
     cabecera = []
     cabe.each do |factura|
       @usuario_ = User.find_by_id(factura["user_id"])
-      my_print_log("@tipoFactura ".red + "#{@tipoFactura.to_json}".white)
+
       cabecera.push(parsearData(factura))
     end
-    # cabecera = parsearData(cabe)
+
     render json: cabecera
   end
 
@@ -118,7 +107,7 @@ class CabeceraFacturasController < ApplicationController
 
       resultAgregarNota = { :error => false }
 
-      if att["condicion"] == "Crédito" && att["tipo"] == "venta"
+      if att["condicion"] == "Crédito" && att["tipo"] == "venta" || att["is_viaje"]
         resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"], "+")
       end
 
@@ -135,11 +124,11 @@ class CabeceraFacturasController < ApplicationController
       end
 
       if resultCliente[:error]
-        render json: resultCliente
-        break
+        render json: resultCliente, status: 400
+        raise ActiveRecord::Rollback
       elsif resultAgregarNota[:error]
-        render json: resultAgregarNota
-        break
+        render json: resultAgregarNota, status: 400
+        raise ActiveRecord::Rollback
       else
         att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
         att["numero_comprobante"] = @numero_comprobante.upcase
@@ -326,6 +315,10 @@ class CabeceraFacturasController < ApplicationController
     obj["cliente"] = cliente
     obj["tipo_factura"] = @tipoFactura.descripcion.titleize
     obj["tiene_nota"] = objeto["tiene_nota"]
+    obj["is_viaje"] = objeto["is_viaje"]
+    obj["fecha_equivalente"] = objeto["fecha_equivalente"]
+    obj["fecha_completada"] = objeto["fecha_completada"]
+    obj["fecha_viaje"] = objeto["fecha_viaje"]
 
     pago_ = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] }).as_json
     pago_parseo = []
@@ -558,7 +551,7 @@ class CabeceraFacturasController < ApplicationController
   def cabecera_factura_params
     params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_equivalente, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
                                              :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :aplicada_a, :tiene_nota,
-                                             :is_completada, :is_viaje,
+                                             :is_completada, :is_viaje, :fecha_viaje,
                                              detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
                                                                            :retirado_en_venta, :cantidad_en_unidades])
   end

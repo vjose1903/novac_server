@@ -16,8 +16,10 @@ class CabeceraFactura < ApplicationRecord
     puts "campo ".red + "#{campo}"
     puts "valor ".green + "#{valor}"
 
-    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
-    CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento,
+    fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, 
+    ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a,
+    ca.tiene_nota,ca.is_viaje,ca.fecha_completada, ca.fecha_viaje, CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
     from_ = "FROM cabecera_facturas ca"
     joins_ = "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
     inner join users u on ca.user_id = u.id"
@@ -43,28 +45,16 @@ class CabeceraFactura < ApplicationRecord
   end
   # ===================================================================================================================================================
   def self.get_facturas_by_cliente_id_and_estado(cliente_id, pagada)
-    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
-    CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
+    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, 
+    fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, 
+    ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a, 
+    ca.tiene_nota,ca.is_viaje,ca.fecha_completada, ca.fecha_viaje , CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
     from_ = "FROM cabecera_facturas ca"
     joins_ =
       "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
     inner join users u on ca.user_id = u.id"
-    where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta' and is_viaje=false"
+    where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta' and condicion='Crédito'"
     query = "#{select_} #{from_} #{joins_} #{where_}"
-    return my_query(query)
-  end
-  # ===================================================================================================================================================
-
-  def self.get_facturas_by_cliente_id(cliente_id)
-    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a, ca.tiene_nota,
-    CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
-    from_ = "FROM cabecera_facturas ca"
-    joins_ =
-      "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
-    inner join users u on ca.user_id = u.id"
-    where_ = " WHERE cliente_id=#{cliente_id} and tipo='venta'"
-    query = "#{select_} #{from_} #{joins_} #{where_}"
-
     return my_query(query)
   end
 

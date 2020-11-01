@@ -16,14 +16,12 @@ class DetalleRecibo < ApplicationRecord
 
       factura = CabeceraFactura.find_by_id(d["cabecera_factura_id"])
 
-      if factura.condicion != "Contado"
+      if factura.balance > 0
         id = factura.cliente_id
         total = detalle.deposito
         resultCliente = Cliente.CalculateBalanceCLiente(id, total, "-")
 
         if resultCliente[:error]
-          my_print_log("resultCliente ==>", resultCliente)
-
           return [{ error: true, msg: resultCliente[:msg], status: :unprocessable_entity }]
           raise ActiveRecord::Rollback
         end
@@ -43,6 +41,7 @@ class DetalleRecibo < ApplicationRecord
       detalle.deposito = detalle["deposito"]
       detalle.descripcion = detalle["descripcion"]
       detalle.pago_a_tiempo = detalle["pago_a_tiempo"]
+      detalle["is_ultimo"] = true
 
       detalles.push detalle
     end

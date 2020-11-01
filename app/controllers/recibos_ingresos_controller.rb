@@ -1,5 +1,6 @@
 class RecibosIngresosController < ApplicationController
   before_action :set_recibos_ingreso, only: [:show, :update, :destroy]
+  before_action :set_last_recibo_no_ultimo, only: [:create]
 
   # GET /recibos_ingresos
   def index
@@ -18,6 +19,20 @@ class RecibosIngresosController < ApplicationController
     render json: @recibos_ingreso
   end
 
+  def set_last_recibo_no_ultimo
+    params["detalle_recibos_attributes"].each_with_index do |d, idx|
+      last_pago_info = RecibosIngreso.get_last_recibo_of_cabecera_factura(d["cabecera_factura_id"])[0]
+
+      if last_pago_info
+        ultimo_pago = DetalleRecibo.find_by_id(last_pago_info["id"])
+
+        unless ultimo_pago.update({ is_ultimo: false })
+          return [{ error: true, msg: ultimo_pago.errors, status: :unprocessable_entity }]
+        end
+      end
+    end
+  end
+
   # POST /recibos_ingresos
   def create
     RecibosIngreso.transaction do
@@ -33,7 +48,6 @@ class RecibosIngresosController < ApplicationController
           render json: actual_secuencia_recibo.errors, status: :unprocessable_entity
         else
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
-          my_print_log("typeof ===> ", detalles.class)
 
           if detalles[0][:error]
             render json: { msg: detalles[:msg], error: detalles.errors }, :status => :unprocessable_entity
@@ -55,7 +69,6 @@ class RecibosIngresosController < ApplicationController
 
             res = RecibosIngreso.parsearData(respuesta)
 
-            puts res.to_json.yellow
             render json: res, status: :created, location: @recibos_ingreso
           else
             render json: continuar[:msg], status: :unprocessable_entity
@@ -70,9 +83,51 @@ class RecibosIngresosController < ApplicationController
   end
 
   def revertirIngreso
-    id_ = params["id"]
-    last_recibo = RecibosIngreso.get_last_recibo_of_cabecera_factura(id_)[0]
-    render json: last_recibo
+    RecibosIngreso.transaction do
+      id_ = params["id"]
+      last_recibo_info = RecibosIngreso.get_last_recibo_of_cabecera_factura(id_)[0]
+
+      if last_recibo_info["is_ultimo"]
+        last_recibo = RecibosIngreso.find_by_id(last_recibo_info["recibos_ingreso_id"])
+        puts last_recibo.to_json
+
+        last_recibo.detalle_recibos.each do |detalle|
+          resultFactura = CabeceraFactura.find_by_id(detalle["cabecera_factura_id"])
+
+          obj = { balance: detalle["balance_anterior_factura"] }
+
+          if resultFactura.fecha_completada
+            obj["fecha_completada"] = nil
+          end
+
+          if resultFactura.pagada
+            obj["pagada"] = false
+          end
+
+          puts obj.to_json
+          unless resultFactura.update(obj)
+            render json: resultFactura.errors, status: 400
+            raise ActiveRecord::Rollback
+          end
+
+          resultCliente = Cliente.CalculateBalanceCLiente(last_recibo["cliente_id"], detalle["deposito"], "+")
+
+          if resultCliente[:error]
+            render json: resultCliente, status: 400
+            raise ActiveRecord::Rollback
+          end
+        end
+
+        unless last_recibo.destroy
+          render json: last_recibo.errors, status: 400
+          raise ActiveRecord::Rollback
+        end
+
+        render json: { msg: "Ultima transacción revertica correctamente." }, status: 200
+      else
+        render json: { msg: "No se puede revertir esta transacción" }, status: 400
+      end
+    end
   end
 
   # PATCH/PUT /recibos_ingresos/1
