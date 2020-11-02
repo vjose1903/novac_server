@@ -12,6 +12,20 @@ class CabeceraFactura < ApplicationRecord
   attribute :detalle_facturas
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
+  def self.calculateNextDay
+    tomorrow = (DateTime.current + 1.days).strftime("%a")
+
+    next_date = ""
+    if tomorrow.downcase === "sun"
+      next_date = (DateTime.current + 2.days).strftime("%Y-%m-%d")
+    else
+      next_date = (DateTime.current + 1.days).strftime("%Y-%m-%d")
+    end
+
+    return DateTime.parse("#{next_date}T12:00:00").in_time_zone
+  end
+
+  # ===================================================================================================================================================
   def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id, is_adelantada)
     puts "campo ".red + "#{campo}"
     puts "valor ".green + "#{valor}"

@@ -130,10 +130,18 @@ class CabeceraFacturasController < ApplicationController
         render json: resultAgregarNota, status: 400
         raise ActiveRecord::Rollback
       else
-        att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
+        today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day })
+
+        if today_cuadre.nil?
+          att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
+          att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
+        else
+          att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : CabeceraFactura.calculateNextDay
+          att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
+        end
+
         att["numero_comprobante"] = @numero_comprobante.upcase
         att["numero_factura"] = @numero_factura
-        att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
 
         @cabecera_factura = CabeceraFactura.new(att)
 
