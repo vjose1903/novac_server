@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :incidencias
+  resources :incidencia
+  resources :vehiculos
   resources :cuadre_cajas
   resources :detalles_produccion
   resources :producciones

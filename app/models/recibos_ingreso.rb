@@ -2,11 +2,13 @@ class RecibosIngreso < ApplicationRecord
   belongs_to :tipo_factura
   belongs_to :user
   belongs_to :cliente
+  belongs_to :vehiculo, optional: true
 
   has_many :detalle_recibos, dependent: :destroy
   attribute :detalle_recibos
   accepts_nested_attributes_for :detalle_recibos, :allow_destroy => true
 
+  attribute :vehiculo
   attribute :user
   attribute :cliente
   attribute :tipo_factura

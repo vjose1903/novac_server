@@ -93,7 +93,8 @@ production:
   database: ADM_production
   adapter: postgresql
   encoding: unicode
-  host: admservidor.ddns.net
+  # host: admservidor.ddns.net
+  host: localhost
   username: postgres
   password: Vasquez1903
   port: 5432

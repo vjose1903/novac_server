@@ -1,0 +1,2 @@
+class Incidencia < ApplicationRecord
+end

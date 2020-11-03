@@ -9,6 +9,9 @@ rails g scaffold oferta_favorita user:references oferta:references
 rails g scaffold cabecera_factura user:references forma_pago:string numero_factura:integer total_factura:float pagada:boolean balance:float
 rails g scaffold detalle_factura cabecera_factura:references oferta:references cantidad:integer total:float precio:float
 rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
+rails g scaffold vehiculo user:references marca:string modelo:string cantidad_viajes:integer
+rails g scaffold incidencia referencia:integer descripcion:string
+
 
 rails g scaffold produccion user:references numero:integer fecha_equivalente:datetime
 rails g scaffold detalle_produccion produccion:references articulo:references cantidad:float cantidad_en_unidades:integer medida:string
@@ -26,6 +29,7 @@ rails g migration ChangeCantidadToBeFloatInDetalleConduce
 rails g migration AddCantidadEnUnidadesToDetalleConduce cantidad_en_unidades:integer
 rails g migration AddFechaViajesToCabeceraFacturas fecha_viaje:datetime
 rails g migration AddIsUltimoToDetalleRecibo is_ultimo:boolean
+
 
 
 

@@ -22,4 +22,5 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "suplidor", "suplidores"
   inflect.irregular "produccion", "producciones"
   inflect.irregular "detalle_produccion", "detalles_produccion"
+  inflect.irregular "incidencia", "incidencias"
 end

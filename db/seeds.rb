@@ -22,6 +22,20 @@ users =
       "estado": true,
       "imagen_id": nil,
     },
+    {
+      "nombre": "ADM",
+      "usuario": "adm01",
+      "apellido": " ",
+      "sexo": "m",
+      "telefono": "(809) 573-0060",
+      "email": "admagroindustrialsrl@gmail.com",
+      "fecha_nacimiento": "2020-01-01",
+      "role": "V",
+      "password": "1234567",
+      "password_confirmation": "1234567",
+      "estado": true,
+      "imagen_id": nil,
+    },
   ]
 
 users.each do |user|

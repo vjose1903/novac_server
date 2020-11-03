@@ -37,7 +37,16 @@ class RecibosIngresosController < ApplicationController
   def create
     RecibosIngreso.transaction do
       att = recibos_ingreso_params
+
+      existe_incidencia = false
+      if params["incidencia"]
+        @incidencia = Incidencia.new(att["incidencia"])
+        existe_incidencia = true
+      end
+
+      att.except(:incidencia)
       @recibos_ingreso = RecibosIngreso.new(att)
+
       @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
       @recibos_ingreso.numero_recibo = RecibosIngreso.find_secuencia
 
@@ -47,6 +56,19 @@ class RecibosIngresosController < ApplicationController
         unless actual_secuencia_recibo.update({ secuencia: @recibos_ingreso.numero_recibo })
           render json: actual_secuencia_recibo.errors, status: :unprocessable_entity
         else
+          if existe_incidencia
+            # incidencia_ = Incidencia.find_by_id(@incidencia["id"])
+            # if incidencia_
+            #   unless incidencia_.save!
+            #     render json: incidencia_.errors, status: :unprocessable_entity
+            #   end
+            # else
+            unless @incidencia.save!
+              render json: @incidencia.errors, status: :unprocessable_entity
+            end
+            # end
+          end
+
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
 
           if detalles[0][:error]
@@ -152,6 +174,7 @@ class RecibosIngresosController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def recibos_ingreso_params
     params.fetch(:recibos_ingreso).permit(:user_id, :cliente_id, :chofer, :total, :forma_pago, :tipo_factura_id, :devuelta, :fecha_equivalente,
+                                          :vehiculo_id, :incidencia,
                                           detalle_recibos_attributes: [:recibos_ingreso_id, :balance_anterior_factura, :balance_factura, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo])
   end
 end
