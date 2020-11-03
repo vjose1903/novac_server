@@ -5,7 +5,7 @@ class CreateCabeceraFacturas < ActiveRecord::Migration[5.2]
       t.references :suplidor, foreign_key: true
       t.references :cliente, foreign_key: true
       t.references :user, foreign_key: true
-      # t.datetime :fecha_viaje
+      t.datetime :fecha_viaje
       t.datetime :fecha_equivalente
       t.datetime :fecha_vencimiento
       t.datetime :fecha_valida
