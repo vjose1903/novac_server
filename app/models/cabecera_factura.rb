@@ -27,9 +27,6 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id, is_adelantada)
-    puts "campo ".red + "#{campo}"
-    puts "valor ".green + "#{valor}"
-
     select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento,
     fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, 
     ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a,
@@ -134,7 +131,6 @@ class CabeceraFactura < ApplicationRecord
 
   # =====================================================================================================================
   def self.anular_factura(id)
-    puts "ANTES DE ENTRAR EN LA FUNCION QUE CAMBIA EL ESTADO".yellow
     peticion = my_query("UPDATE cabecera_facturas SET estado=#{false} WHERE id=#{id}")
 
     if peticion

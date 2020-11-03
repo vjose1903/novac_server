@@ -19,9 +19,15 @@ class MantenimientoArticulosController < ApplicationController
     render json: mante
   end
 
+  def getOneArticuloByDate
+    articulos = MantenimientoArticulo.get_one_articulo_by_date(params[:date], params[:articulo_id])
+
+    render json: articulos
+  end
+
   def getAllArticulosByDate
     articulos = []
-    articulos = MantenimientoArticulo.get_all_articulos_by_date(params[:date], params[:articulo_id])
+    articulos = MantenimientoArticulo.get_all_articulos_by_date(params[:date])
 
     render json: articulos
   end

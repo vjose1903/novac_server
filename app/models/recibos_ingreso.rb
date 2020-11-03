@@ -35,7 +35,7 @@ class RecibosIngreso < ApplicationRecord
     end
 
     numero_secuencia = ("%05d" % next_secuencia_recibo)
-    puts "numero_secuencia !!!!!!! ".red, numero_secuencia
+
     return numero_secuencia
   end
   # ========================================================================================================================

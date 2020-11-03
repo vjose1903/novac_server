@@ -6,8 +6,9 @@ class ArticulosController < ApplicationController
     # @articulos = Articulo.all
     @articulos = []
     Articulo.all.each do |articulo|
+      articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])
       if articulo["estado"] == true
-        @articulos.push(Articulo.parseal(articulo))
+        @articulos.push(Articulo.parseal(articuloSelect))
       end
     end
     render json: @articulos
@@ -83,7 +84,6 @@ class ArticulosController < ApplicationController
 
   def getProductosTerminados
     articulos = Articulo.where({ tipo_articulo_id: 3 })
-    puts articulos.to_json.red
 
     aArticulos = []
     articulos.each do |arti|
@@ -94,15 +94,24 @@ class ArticulosController < ApplicationController
 
   def getArticulosFiltrados
     arg = params["arg"]
-
     page = params["page"]
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
     is_compra = params["is_compra"] === "true" ? true : false
+    fecha = params["fecha"]
     tipo = params["tipo"]
 
+    articulos_ = []
     articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
-    articulos_ = Articulo.parsearArticulosFiltro(articulos)
+
+    articulos.each do |item|
+      articulo = MantenimientoArticulo.get_one_articulo_by_date(fecha, item["id"])
+      articulos_.push(articulo[0])
+    end
+
+    # articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
+
+    # articulos_ = Articulo.parsearArticulosFiltro(articulos)
 
     res = []
 

@@ -30,8 +30,8 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
-    puts " -------------- Inicio get_one_articulo_by_date -------------- "
     fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
+
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
 
@@ -40,26 +40,12 @@ class MantenimientoArticulo < ApplicationRecord
     if hist.rows == []
       histM = get_historico_by_date_mayor(fechaConHora, articulo_id)
       if histM.rows == []
-        puts "    no se ha modifico".red
-
         historico.push(Articulo.parseal(articulo))
       else
-        puts "    no se modifico antes de la fecha introducida".red
-        puts "====".yellow * 30
-        puts articulo_id
-        puts "////" * 30
-        puts histM.to_json
-        puts "====".yellow * 30
         articulo = crearArticuloHistorico(histM[0], articulo)
         historico.push(Articulo.parsealHistorico(articulo))
       end
     else
-      puts "====".blue * 30
-      puts "    Buscando en las fechas menores".red
-      puts articulo_id
-      puts "////" * 30
-      puts hist.to_json
-      puts "====".blue * 30
       articulo = crearArticuloHistorico(hist[0], articulo)
       historico.push(Articulo.parsealHistorico(articulo))
     end
@@ -70,35 +56,21 @@ class MantenimientoArticulo < ApplicationRecord
     return historico
   end
   # ============================================================================================================================================================
-  def self.get_all_articulos_by_date(date, articulo_id)
+  def self.get_all_articulos_by_date(date)
     historico = []
-    puts date.to_s
+
     Articulo.all.each do |articulo|
       hist = get_historico_by_date_menor(date, articulo["id"])
 
       if hist.rows == []
         histM = get_historico_by_date_mayor(date, articulo["id"])
         if histM.rows == []
-          puts "    no se ha modifico".red
-
           historico.push(Articulo.parseal(articulo))
         else
-          puts "    no se modifico antes de la fecha introducida".red
-          puts "====".yellow * 30
-          puts articulo["id"]
-          puts "////" * 30
-          puts histM.to_json
-          puts "====".yellow * 30
           articulo = crearArticuloHistorico(histM[0], articulo)
           historico.push(Articulo.parsealHistorico(articulo))
         end
       else
-        puts "====".blue * 30
-        puts "    Buscando en las fechas menores".red
-        puts articulo["id"]
-        puts "////" * 30
-        puts hist.to_json
-        puts "====".blue * 30
         articulo = crearArticuloHistorico(hist[0], articulo)
         historico.push(Articulo.parsealHistorico(articulo))
       end
@@ -110,13 +82,6 @@ class MantenimientoArticulo < ApplicationRecord
   def self.crearArticuloHistorico(historico, articulo)
     puts " -------------- inicio crearArticuloHistorico -------------- "
     contenidoArticulo = articulo.contenido_articulos
-    puts "=====".green * 20
-    puts contenidoArticulo.to_json
-    puts "=====".green * 20
-
-    puts "=====".red * 20
-    puts articulo.to_json
-    puts "=====".red * 20
 
     articuloHistorico = {}
     articuloHistorico["id"] = articulo["id"]
@@ -186,9 +151,6 @@ class MantenimientoArticulo < ApplicationRecord
       articuloHistorico["descripcion"] = des["descripcion"]
     end
 
-    puts "=========".blue * 20
-    puts :json => articuloHistorico
-    puts "=========".blue * 20
     puts " -------------- fin crearArticuloHistorico -------------- "
     puts " "
     puts " "

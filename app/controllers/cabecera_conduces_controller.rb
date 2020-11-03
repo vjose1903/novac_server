@@ -25,7 +25,6 @@ class CabeceraConducesController < ApplicationController
       @cabecera_conduce.numero_conduce = SecuenciaFactura.find_secuencia(15)
       @cabecera_conduce.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
 
-      # puts @cabecera_conduce.detalle_conduces_attributes
       if @cabecera_conduce.save
         procesosDetalle
         updateSecuencias
@@ -37,15 +36,12 @@ class CabeceraConducesController < ApplicationController
 
   def procesosDetalle
     params["detalle_conduces_attributes"].each do |detalle_conduce|
-      puts "detalle_conduce ".red + "#{detalle_conduce.to_json}"
       if detalle_conduce["detalle_factura_id"]
         detalleFactAdelantada = DetalleFactura.find_by_id(detalle_conduce["detalle_factura_id"])
         factAdelantada = CabeceraFactura.find_by_id(detalleFactAdelantada["cabecera_factura_id"])
 
-        puts "detalleFactAdelantada ANTES---> ".green + "#{detalleFactAdelantada.to_json}"
         if factAdelantada["is_adelantada"]
           detalleFactAdelantada.retirado = detalleFactAdelantada.retirado + detalle_conduce["cantidad_en_unidades"]
-          puts "detalleFactAdelantada DESPUES---> ".red + "#{detalleFactAdelantada.to_json}"
 
           unless detalleFactAdelantada.save!
             render json: detalleFactAdelantada.errors, status: :unprocessable_entity
@@ -56,13 +52,8 @@ class CabeceraConducesController < ApplicationController
 
       articulo = Articulo.find_by_id(detalle_conduce["articulo_id"])
 
-      puts "articulo['existencia']".blue, articulo["existencia"]
-      puts " detalle_conduce['cantidad_en_unidades']".green, detalle_conduce["cantidad_en_unidades"]
-
       mov = (articulo["existencia"] - detalle_conduce["cantidad_en_unidades"])
 
-      puts " estas vendiendo #{detalle_conduce["cantidad_en_unidades"]} "
-      puts " inventario queda en  #{mov} "
       if mov < 0
         mensaje = "Cantidad introducida para el articulo #{articulo.nombre.titleize}  ahora excede la cantidad disponible en inventario. "
         render json: { msg: mensaje }, status: :unprocessable_entity
@@ -79,7 +70,6 @@ class CabeceraConducesController < ApplicationController
   # PATCH/PUT /cabecera_conduces/1
   def updateSecuencias
     secuencia_comprobante = SecuenciaFactura.find_by_id(15)
-    puts secuencia_comprobante.to_json.red
 
     actual = secuencia_comprobante.secuencia
     secuencia_comprobante.secuencia = actual + 1

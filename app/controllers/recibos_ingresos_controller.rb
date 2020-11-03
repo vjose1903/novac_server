@@ -89,7 +89,6 @@ class RecibosIngresosController < ApplicationController
 
       if last_recibo_info["is_ultimo"]
         last_recibo = RecibosIngreso.find_by_id(last_recibo_info["recibos_ingreso_id"])
-        puts last_recibo.to_json
 
         last_recibo.detalle_recibos.each do |detalle|
           resultFactura = CabeceraFactura.find_by_id(detalle["cabecera_factura_id"])
@@ -104,7 +103,6 @@ class RecibosIngresosController < ApplicationController
             obj["pagada"] = false
           end
 
-          puts obj.to_json
           unless resultFactura.update(obj)
             render json: resultFactura.errors, status: 400
             raise ActiveRecord::Rollback

@@ -71,18 +71,13 @@ module DeviseTokenAuth
     end
 
     def update
-      # puts "=====".red * 20
-      # puts "update usuario => ", :json => params
-      # puts "=====".red * 20
-
       @resource = User.find_by_id(params[:id])
       oldDocuments = params["documentos_de_identidad_attributes"]
 
       aNewDocumentos = []
       oldDocuments.each do |doc|
-        puts "doc ==> #{doc}".red
         find = DocumentoDeIdentidad.where("documento = '#{doc["documento"]}' and user_id != #{@resource.id}")
-        puts "find ==> #{find.length}".red
+
         return render json: { "msg": "Documento de identidad ya esta registrado" }, status: 409 if find.length > 0
         aNewDocumentos.push(DocumentoDeIdentidad.new({
           "descripcion" => doc["descripcion"], "documento" => doc["documento"], "principal" => doc["principal"],
@@ -137,7 +132,7 @@ module DeviseTokenAuth
     def build_resource
       @resource = resource_class.new(sign_up_params)
       @resource.provider = provider
-      puts "build_resource => #{@resource.to_json}".blue
+
       # honor devise configuration for case_insensitive_keys
       if resource_class.case_insensitive_keys.include?(:email)
         @resource.email = sign_up_params[:email].try(:downcase)

@@ -145,7 +145,6 @@ class CabeceraFacturasController < ApplicationController
 
         @cabecera_factura = CabeceraFactura.new(att)
 
-        puts @cabecera_factura.to_json
         # return render json: { msg: "pruebas", body: cabecera }
         # raise ActiveRecord::Rollback
         unless @cabecera_factura.save
@@ -396,9 +395,8 @@ class CabeceraFacturasController < ApplicationController
     else
       # --------- VENTA / NOTA ---------
       actualizando = { :error => false, :msg => "", :status => 200 }
-      puts "@actual_paquete_comprobante".yellow, @actual_paquete_comprobante.to_json
+
       if @actual_paquete_comprobante["is_paquete"]
-        puts "ES UN PAQUETE !!!!!!".red
         actualizando = SecuenciaComprobante.aumentar_secuencia_comprobante(@actual_paquete_comprobante["id"])
       end
 
@@ -423,13 +421,9 @@ class CabeceraFacturasController < ApplicationController
     if params[:FACTURA_DE] == 13
       # --------- VENTA ---------
       articulo = Articulo.find_by_id(articulo["id"])
-      puts "articulo['existencia']".blue, articulo["existencia"]
-      puts "cantidad_en_unidades".green, cantidad_en_unidades
 
       mov = (articulo["existencia"] - cantidad_en_unidades)
 
-      puts " estas vendiendo #{cantidad_en_unidades} "
-      puts " inventario queda en  #{mov} "
       if mov < 0
         mensaje = "Cantidad introducida para el articulo #{articulo.nombre.titleize}  ahora excede la cantidad disponible en inventario. "
         render json: { msg: mensaje }, status: :unprocessable_entity
@@ -448,8 +442,7 @@ class CabeceraFacturasController < ApplicationController
     else
       # --------- COMPRA ---------
       articulo = Articulo.find_by_id(articulo["id"])
-      puts "articulo['existencia']".red + "#{articulo["existencia"]}".white
-      puts "cantidad_en_unidades".red + "#{cantidad_en_unidades}".white
+
       mov = (articulo["existencia"] + cantidad_en_unidades)
 
       fecha_fact = @cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
@@ -500,20 +493,11 @@ class CabeceraFacturasController < ApplicationController
 
     @tipoFactura = TipoFactura.find_by_id(params[:tipo_factura_id])
 
-    puts "params['tipo'] ---> ".yellow + "#{params["tipo"]}"
-
-    puts "params ---> " + "#{params}"
-
-    puts "params[:tipo_factura_id] ---> ".blue + "#{params[:tipo_factura_id]}"
-
-    puts "params[:FACTURA_DE] ---> ".green + "#{params[:FACTURA_DE]}"
-
     if params["tipo"] == "venta" || params["is_nota"]
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:tipo_factura_id])
     elsif params["tipo"] == "compra"
       @actual_secuencia_factura = SecuenciaFactura.find_by_tipo_factura_id(params[:FACTURA_DE])
     end
-    puts "actual_secuencia_factura ---> ".red + "#{@actual_secuencia_factura.to_json}"
 
     @next_secuencia_factura = @actual_secuencia_factura["secuencia"] + 1
 

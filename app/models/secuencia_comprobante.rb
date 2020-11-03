@@ -10,9 +10,7 @@ class SecuenciaComprobante < ApplicationRecord
     order_ = "ORDER BY created_at ASC LIMIT 1"
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquete = my_query(query)[0]
-    puts "///////".red * 20
-    puts paquete
-    puts "///////".red * 20
+
     if paquete == [] || paquete == nil
       existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
       if existen_siguientes[:bool]
@@ -61,7 +59,6 @@ class SecuenciaComprobante < ApplicationRecord
 
   def self.filtrar_ncf(arg)
     puts " -------------- Inicio filtrar_ncf -------------- "
-    puts "######## #{arg}".blue
 
     arg = arg === " " ? "" : arg
 
@@ -188,8 +185,6 @@ class SecuenciaComprobante < ApplicationRecord
     order_ = "ORDER BY created_at ASC"
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquetes_registrados = my_query(query)
-
-    puts paquetes_registrados
 
     paquetes_registrados.each do |paquete|
       if paquete_ingresando["desde"] <= paquete["hasta"]

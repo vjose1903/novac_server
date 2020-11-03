@@ -47,22 +47,14 @@ class MovimientosInventario < ApplicationRecord
       maxCant = cantHijo
     end
 
-    puts "cantPrincipal #{cantPrincipal}"
-    puts "cantPadre #{cantPadre}"
-    puts "cantHijo #{cantHijo}"
-    puts ""
-    puts "cantidad #{cantidad}"
-    puts "medidaEs #{medidaEs}"
-
     cant = (maxCant * cantidad)
 
     if accion == "salida"
       # --------- SALIDA ---------
-      puts " estas sacando #{cant} "
-      puts "actual en inventario #{articulo["existencia"]} "
+
       movimiento = Articulo.find_by_id(articulo["id"])
       mov = (movimiento["existencia"] - cant)
-      puts "movimiento #{mov} "
+
       if movimiento.update({ existencia: mov })
         puts "::::::::::::::::::::::::::::::::::::::::::"
         puts "::::                                  ::::"
@@ -73,11 +65,8 @@ class MovimientosInventario < ApplicationRecord
       end
     else
       # --------- ENTRADA ---------
-      puts " estas entrando #{cant} "
-      puts "actual en inventario #{articulo["existencia"]} "
       movimiento = Articulo.find_by_id(articulo["id"])
       mov = (movimiento["existencia"] + cant)
-      puts "movimiento #{mov} "
 
       if movimiento.update({ existencia: mov })
         puts "::::::::::::::::::::::::::::::::::::::::::"

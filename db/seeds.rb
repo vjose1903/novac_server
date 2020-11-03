@@ -22,22 +22,6 @@ users =
       "estado": true,
       "imagen_id": nil,
     },
-    # borrar -----------------------------------------
-    {
-      "nombre": "Alberto",
-      "usuario": "alberto",
-      "apellido": "santos",
-      "sexo": "m",
-      "telefono": "(131) 351-5131",
-      "email": "alberto@hotmail.com",
-      "fecha_nacimiento": "1990-02-02T04:00:00.000Z",
-      "password": "1234567",
-      "password_confirmation": "1234567",
-      "role": "V",
-      "imagen_id": nil,
-      "estado": true,
-    },
-  # ------------------------------------------------
   ]
 
 users.each do |user|
@@ -66,23 +50,6 @@ clientes.each do |client|
   end
 end
 
-# borrar -----------------------------------------
-suplidores = [
-  {
-    "nombre": "animal Farm",
-    "telefono": "(834) 614-5613",
-    "direccion": "Por ahi en santo domingo",
-    "email": "animal@hotmail.com",
-    "estado": true,
-  },
-]
-
-suplidores.each do |supli|
-  if Suplidor.find_by_nombre(supli["nombre"]).nil?
-    Suplidor.create(supli)
-  end
-end
-# ------------------------------------------------
 documentos_de_identidad = [
   {
     "user_id": 1,
@@ -96,26 +63,7 @@ documentos_de_identidad = [
     "principal": true,
     "cliente_id": 1,
   },
-  # borrar -----------------------------------------
-  {
-    "user_id": 2,
-    "descripcion": "cedula",
-    "documento": "531-3138481-3",
-    "principal": true,
-  },
-  {
-    "cliente_id": 2,
-    "descripcion": "cedula",
-    "documento": "531-3138481-2",
-    "principal": true,
-  },
-  {
-    "descripcion": "rnc",
-    "suplidor_id": 1,
-    "documento": "047-65135-1",
-    "principal": true,
-  },
-# ------------------------------------------------
+
 ]
 
 documentos_de_identidad.each do |doc|

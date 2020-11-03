@@ -44,7 +44,6 @@ class CuadreCaja < ApplicationRecord
         return { :error => false, :msg => "Cuadre realizado correctamente", :body => obj, :status => 200 }
       end
     else
-      puts "entrooo".yellow
       return { :error => true, :msg => "El cuadre de hoy ya fue realizado", :body => {}, :status => 400 }
     end
   end

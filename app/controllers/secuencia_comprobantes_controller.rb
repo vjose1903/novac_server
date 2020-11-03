@@ -15,14 +15,7 @@ class SecuenciaComprobantesController < ApplicationController
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
-    puts "page --> #{page}"
-    puts "per_page --> #{per_page}"
-    puts "paginado --> #{paginado}"
-    puts "arg --> #{arg}"
-
     ncf_ = SecuenciaComprobante.filtrar_ncf(arg)
-
-    puts "ncf_ --> #{ncf_.to_json}"
 
     res = []
 
@@ -45,7 +38,7 @@ class SecuenciaComprobantesController < ApplicationController
     @secuencia_comprobante = SecuenciaComprobante.new(secuencia_comprobante_params)
 
     sigue = SecuenciaComprobante.validar_rango(@secuencia_comprobante["tipo_factura_id"], @secuencia_comprobante)
-    puts sigue.to_json.red
+
     if sigue[:error]
       return render :json => sigue, status: sigue[:status]
     end

@@ -12,7 +12,7 @@ class CabeceraConduce < ApplicationRecord
   # ========================================================================================================================
   def self.parsearData(objeto)
     puts "--------------- inicio parsearData ---------------"
-    puts objeto.to_json.yellow
+
     begin
       obj = objeto.attributes
       obj["cliente"] = objeto.cliente

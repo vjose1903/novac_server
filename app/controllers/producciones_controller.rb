@@ -34,8 +34,6 @@ class ProduccionesController < ApplicationController
 
             cantidad_calculada = cantidadFormula * producto_en_produccion["cantidad_en_unidades"]
 
-            puts " --- #{articulo_ingrediente["nombre"]} ".red + "quitando #{cantidad_calculada} libras"
-
             mov = (articulo_ingrediente["existencia"] - cantidad_calculada)
             unless articulo_ingrediente.update({ existencia: mov })
               render json: articulo_ingrediente.errors, status: :unprocessable_entity
@@ -62,7 +60,7 @@ class ProduccionesController < ApplicationController
 
   def updateSecuencias
     secuencia_produccion = SecuenciaFactura.find_by_id(16)
-    puts "secuencia_produccion ".blue + "#{secuencia_produccion}"
+
     actual = secuencia_produccion["secuencia"]
     secuencia_produccion["secuencia"] = actual + 1
 

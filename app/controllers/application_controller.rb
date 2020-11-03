@@ -11,7 +11,6 @@ class ApplicationController < ActionController::API
   protected
 
   def validateUserIsLogging!
-    puts "====== PARAMS ====> ".red + "#{params}"
     unless user_signed_in?
       render json: { error: "Debe de estar autenticado para realizar esta accion." }, status: Rack::Utils::SYMBOL_TO_STATUS_CODE[:unauthorized]
       # render json: { error: "Debe de estar autenticado para realizar esta accion." }, status: 403

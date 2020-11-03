@@ -67,7 +67,7 @@ class ClientesController < ApplicationController
         arti["documentos_de_identidad"] = DocumentoDeIdentidad.where({ cliente_id: cliente["id"] })
       end
     end
-    puts "#{res.to_json}".green
+
     render json: res
   end
 
@@ -108,13 +108,10 @@ class ClientesController < ApplicationController
   # PATCH/PUT /clientes/1
   def update
     oldDocuments = DocumentoDeIdentidad.get_documentos_by_cliente_id(params[:id])
-    puts "=====".red * 20
-    puts oldDocuments
-    puts "=====".red * 20
+
     oldDocuments.each do |doc|
       documento = DocumentoDeIdentidad.find_by_id(doc["id"])
       if documento.delete()
-        puts "ELIMINADO"
       end
     end
     if @cliente.update(cliente_params)

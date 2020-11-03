@@ -37,7 +37,8 @@ Rails.application.routes.draw do
   get "articulos/check_excede/:id" => "articulos#checkIfExcede" #
   get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados" #
   get "articulosF" => "articulos#getArticulosFormateados"
-  get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getAllArticulosByDate" #
+  get "articulos/historico/:date" => "mantenimiento_articulos#getAllArticulosByDate" #
+  get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getOneArticuloByDate" #
   patch "articulos/delete/:id" => "articulos#deleteArticulo" #
   get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
   get "articulos/custom/productos_terminados" => "articulos#getProductosTerminados" #

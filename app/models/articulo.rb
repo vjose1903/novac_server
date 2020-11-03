@@ -21,8 +21,9 @@ class Articulo < ApplicationRecord
   def self.filtrarArticulo(arg, is_compra, tipo)
     arg = arg === " " ? "" : arg
 
-    select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
-                img.file_name as file_name, img.base_64 as base_64, img.path as path "
+    # select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
+    #             img.file_name as file_name, img.base_64 as base_64, img.path as path "
+    select_ = "SELECT a.id"
 
     from_ = "FROM articulos a"
     joins_ = "inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
@@ -60,7 +61,7 @@ class Articulo < ApplicationRecord
     end
 
     if is_array
-      res[:data].each do |arti|
+      res[:data].to_a.each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
         if arti["is_combo"]
           arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
@@ -133,9 +134,7 @@ class Articulo < ApplicationRecord
     rescue
       att = objeto
     end
-    puts "@@@@@".red * 20
-    puts att.to_json
-    puts "@@@@@".red * 20
+
     att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: att["id"] })
     att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: att["id"] })
     tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
@@ -168,7 +167,6 @@ class Articulo < ApplicationRecord
 
   def self.calcularContenidos(articulo)
     puts " ------------------- inicio calcularContenidos -------------------"
-    puts "articulo".red, articulo.to_json
 
     begin
       contenido = articulo.contenido_articulos
@@ -261,9 +259,6 @@ class Articulo < ApplicationRecord
     rescue
       contenido = articulo["contenido_articulos"]
     end
-
-    puts "contenido".red, contenido.to_json
-    puts "articulo".yellow, articulo.to_json
 
     if existencia == nil
       existencia = 0

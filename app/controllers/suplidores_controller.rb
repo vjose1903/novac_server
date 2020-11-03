@@ -95,7 +95,6 @@ class SuplidoresController < ApplicationController
 
     object["documentos_de_identidad"] = []
     unless documentos.rows == []
-      puts " ------ LLENO ------"
       documentos.each do |doc|
         obj = {}
         obj["descripcion"] = doc["descripcion"]
@@ -132,13 +131,10 @@ class SuplidoresController < ApplicationController
   # PATCH/PUT /suplidores/1
   def update
     oldDocuments = DocumentoDeIdentidad.get_documentos_by_suplidor_id(params[:id])
-    puts "=====".red * 20
-    puts oldDocuments
-    puts "=====".red * 20
+
     oldDocuments.each do |doc|
       documento = DocumentoDeIdentidad.find_by_id(doc["id"])
       if documento.delete()
-        puts "ELIMINADO"
       end
     end
 

@@ -9,7 +9,7 @@ class CreateDetalleRecibos < ActiveRecord::Migration[5.2]
       t.float :deposito
       t.string :descripcion
       t.boolean :pago_a_tiempo
-      # t.boolean :is_ultimo
+      t.boolean :is_ultimo
       t.timestamps
     end
   end

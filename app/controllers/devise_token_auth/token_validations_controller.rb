@@ -8,7 +8,6 @@ module DeviseTokenAuth
     def validate_token
       # @resource will have been set by set_user_by_token concern
       if @resource
-        puts "prueba token_validations => ", :json => @resource
         if @resource[:estado] == "I"
           user = remove_instance_variable(:@resource) if @resource
           client_id = remove_instance_variable(:@client_id) if @client_id
