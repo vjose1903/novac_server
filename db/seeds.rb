@@ -26,7 +26,7 @@ users =
       "nombre": "ADM",
       "usuario": "adm01",
       "apellido": " ",
-      "sexo": "m",
+      "sexo": "i",
       "telefono": "(809) 573-0060",
       "email": "admagroindustrialsrl@gmail.com",
       "fecha_nacimiento": "2020-01-01",
@@ -55,7 +55,6 @@ clientes = [
     "sexo": nil,
     "limite_credito": nil,
   },
-  { "nombre": "Juan", "estado": true, "apellido": "Perez", "limite_credito": 30, "telefono": "(131) 351-5134", "direccion": "Por ahi en las carolinas", "sexo": "M", "maximo_credito": 20000, "vendedor_id": 2 },
 ]
 
 clientes.each do |client|

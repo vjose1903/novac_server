@@ -39,7 +39,7 @@ class User < ApplicationRecord
 
     select_ = "SELECT u.id, u.uid, u.sign_in_count, u.nombre, u.usuario, u.apellido, u.sexo, u.telefono, u.email, u.fecha_nacimiento, u.role, u.created_at, u.updated_at, u.estado"
     from_ = "FROM users u "
-    where_ = "where lower(u.nombre || ' ' || u.apellido ) like lower('%#{arg}%') AND estado = true"
+    where_ = "where lower(u.nombre || ' ' || u.apellido ) like lower('%#{arg}%') AND estado = true AND sexo != 'i'"
     order_ = "ORDER BY u.id ASC"
 
     query = "#{select_} #{from_} #{where_} #{order_}"

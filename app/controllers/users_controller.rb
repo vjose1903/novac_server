@@ -8,7 +8,9 @@ class UsersController < ApplicationController
   def getUsers
     @usuarios = []
     User.get_users.each do |user|
-      @usuarios.push(parsealUser(user))
+      if user.sexo != "i"
+        @usuarios.push(parsealUser(user))
+      end
     end
     render json: @usuarios
   end

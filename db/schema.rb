@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_01_145203) do
+ActiveRecord::Schema.define(version: 2020_11_03_112406) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -55,6 +55,7 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
     t.bigint "suplidor_id"
     t.bigint "cliente_id"
     t.bigint "user_id"
+    t.datetime "fecha_viaje"
     t.datetime "fecha_equivalente"
     t.datetime "fecha_vencimiento"
     t.datetime "fecha_valida"
@@ -83,7 +84,6 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
     t.string "aplicada_a"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.datetime "fecha_viaje"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
@@ -177,9 +177,9 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
     t.float "deposito"
     t.string "descripcion"
     t.boolean "pago_a_tiempo"
+    t.boolean "is_ultimo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "is_ultimo"
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
@@ -236,6 +236,13 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
     t.string "file_name"
     t.string "base_64"
     t.string "path"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "incidencias", force: :cascade do |t|
+    t.integer "referencia"
+    t.string "descripcion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -312,10 +319,12 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
     t.bigint "user_id"
     t.bigint "tipo_factura_id"
     t.bigint "cliente_id"
+    t.bigint "vehiculo_id"
     t.float "total"
     t.integer "chofer"
     t.string "forma_pago"
     t.integer "numero_recibo"
+    t.integer "incidencia"
     t.float "devuelta"
     t.datetime "fecha_equivalente"
     t.datetime "created_at", null: false
@@ -323,6 +332,7 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"
+    t.index ["vehiculo_id"], name: "index_recibos_ingresos_on_vehiculo_id"
   end
 
   create_table "secuencia_comprobantes", force: :cascade do |t|
@@ -407,6 +417,16 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
 
+  create_table "vehiculos", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "marca"
+    t.string "modelo"
+    t.integer "cantidad_viajes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_vehiculos_on_user_id"
+  end
+
   add_foreign_key "articulos", "imagenes"
   add_foreign_key "articulos", "tipo_articulos"
   add_foreign_key "cabecera_conduces", "clientes"
@@ -441,7 +461,9 @@ ActiveRecord::Schema.define(version: 2020_11_01_145203) do
   add_foreign_key "recibos_ingresos", "clientes"
   add_foreign_key "recibos_ingresos", "tipo_facturas"
   add_foreign_key "recibos_ingresos", "users"
+  add_foreign_key "recibos_ingresos", "vehiculos"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
   add_foreign_key "users", "imagenes"
+  add_foreign_key "vehiculos", "users"
 end
