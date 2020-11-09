@@ -2,9 +2,9 @@ class CuadreCaja < ApplicationRecord
   belongs_to :user
 
   def self.makecuadre(current_user)
-    today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day })
-
-    if today_cuadre.nil?
+    today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).to_a
+    puts "( #{today_cuadre.nil?} )".red
+    if today_cuadre.empty?
       ventas_contado_total_facturado_ = CabeceraFactura.where(
         { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
           'fecha_completada': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
@@ -26,6 +26,9 @@ class CuadreCaja < ApplicationRecord
 
       obj = {
         user_id: current_user.id,
+        usuario: current_user.nombre.titleize + " " + current_user.apellido.titleize,
+        fecha_equivalente: DateTime.now,
+
         total_general: (ventas_contado_total_facturado_ + recibos_ingresos_).round(2),
         total_venta_credito: ventas_credito_,
         total_venta_contado: ventas_contado_total_facturado_,
@@ -44,7 +47,20 @@ class CuadreCaja < ApplicationRecord
         return { :error => false, :msg => "Cuadre realizado correctamente", :body => obj, :status => 200 }
       end
     else
-      return { :error => true, :msg => "El cuadre de hoy ya fue realizado", :body => {}, :status => 400 }
+      obj = {
+        user_id: current_user.id,
+        usuario: current_user.nombre.titleize + " " + current_user.apellido.titleize,
+        fecha_equivalente: DateTime.now,
+
+        total_general: today_cuadre[0]["total_general"],
+        total_venta_credito: today_cuadre[0]["total_venta_credito"],
+        total_venta_contado: today_cuadre[0]["total_venta_contado"],
+        total_recibo_ingreso: today_cuadre[0]["total_recibo_ingreso"],
+        total_anterior: today_cuadre[0]["total_anterior"],
+        numero_reporte: today_cuadre[0]["numero_reporte"],
+        reimprimir: true,
+      }
+      return { :error => false, :msg => "Cuadre buscado correctamente", :body => obj, :status => 200 }
     end
   end
 
