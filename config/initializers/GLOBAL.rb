@@ -19,6 +19,20 @@ class String
   end
 end
 
+def parsearDateTimeUTC(dateTime)
+  return dateTime.getlocal.strftime("%Y-%m-%d") + " " + dateTime.getlocal.strftime("%H:%M:%S")
+end
+
+def parsearHora(dateTime, lUtc = true)
+  # hora = Time.parse(DateTime.parse("#{Time.now.strftime("%Y-%m-%d")} #{hour.to_time}").to_s)
+  hora = Time.parse(DateTime.parse("#{dateTime}").to_s)
+  hora = hora.utc if lUtc
+  hora = hora.getlocal if !lUtc
+
+  puts "#{hora}".red
+  return hora
+end
+
 class Array
   def my_paginate(page, per_page)
     itemsTem = []

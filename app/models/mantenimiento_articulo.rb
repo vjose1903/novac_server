@@ -37,17 +37,21 @@ class MantenimientoArticulo < ApplicationRecord
 
     hist = get_historico_by_date_menor(fechaConHora, articulo_id)
 
-    if hist.rows == []
-      histM = get_historico_by_date_mayor(fechaConHora, articulo_id)
-      if histM.rows == []
-        historico.push(Articulo.parseal(articulo))
+    if fechaConHora > parsearDateTimeUTC(articulo["updated_at"])
+      historico.push(Articulo.parseal(articulo))
+    else
+      if hist.rows == []
+        histM = get_historico_by_date_mayor(fechaConHora, articulo_id)
+        if histM.rows == []
+          historico.push(Articulo.parseal(articulo))
+        else
+          articulo = crearArticuloHistorico(histM[0], articulo)
+          historico.push(Articulo.parsealHistorico(articulo))
+        end
       else
-        articulo = crearArticuloHistorico(histM[0], articulo)
+        articulo = crearArticuloHistorico(hist[0], articulo)
         historico.push(Articulo.parsealHistorico(articulo))
       end
-    else
-      articulo = crearArticuloHistorico(hist[0], articulo)
-      historico.push(Articulo.parsealHistorico(articulo))
     end
 
     puts " -------------- fin get_one_articulo_by_date -------------- "
@@ -62,17 +66,21 @@ class MantenimientoArticulo < ApplicationRecord
     Articulo.all.each do |articulo|
       hist = get_historico_by_date_menor(date, articulo["id"])
 
-      if hist.rows == []
-        histM = get_historico_by_date_mayor(date, articulo["id"])
-        if histM.rows == []
-          historico.push(Articulo.parseal(articulo))
+      if fechaConHora > parsearDateTimeUTC(articulo["updated_at"])
+        historico.push(Articulo.parseal(articulo))
+      else
+        if hist.rows == []
+          histM = get_historico_by_date_mayor(date, articulo["id"])
+          if histM.rows == []
+            historico.push(Articulo.parseal(articulo))
+          else
+            articulo = crearArticuloHistorico(histM[0], articulo)
+            historico.push(Articulo.parsealHistorico(articulo))
+          end
         else
-          articulo = crearArticuloHistorico(histM[0], articulo)
+          articulo = crearArticuloHistorico(hist[0], articulo)
           historico.push(Articulo.parsealHistorico(articulo))
         end
-      else
-        articulo = crearArticuloHistorico(hist[0], articulo)
-        historico.push(Articulo.parsealHistorico(articulo))
       end
     end
     return historico

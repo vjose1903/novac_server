@@ -137,6 +137,7 @@ class Articulo < ApplicationRecord
 
     att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: att["id"] })
     att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: att["id"] })
+
     tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
     att["descripcion"] = tipoArt["descripcion"]
     return att

@@ -106,6 +106,7 @@ class ArticulosController < ApplicationController
 
     articulos.each do |item|
       articulo = MantenimientoArticulo.get_one_articulo_by_date(fecha, item["id"])
+
       articulos_.push(articulo[0])
     end
 
