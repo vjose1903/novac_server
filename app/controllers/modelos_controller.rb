@@ -3,15 +3,65 @@ class ModelosController < ApplicationController
 
   # GET /modelos
   def index
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
     @modelos = Modelo.all
 
-    render json: @modelos
+    res = []
+
+    if paginado
+      res = @modelos.to_a.my_paginate(page, per_page)
+    else
+      res = @modelos
+    end
+
+    render json: res
   end
 
   # GET /modelos/1
   def show
     render json: @modelo
   end
+
+  def getModelosPorMarca
+    marca = params["marca"]
+    modelos = Modelo.where({ marca_id: marca })
+
+    render json: modelos
+  end
+
+  def getModelosFiltrados
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
+    modelos = Modelo.filtrarModelo(arg)
+
+    modelos_ = Modelo.parsearModelosFiltro(modelos)
+
+    res = []
+
+    if paginado
+      res = modelos.to_a.my_paginate(page, per_page)
+    else
+      res = modelos
+    end
+
+    render json: res
+  end
+
+
+  def getModelosPorMarca
+    marca = params["marca"]
+    modelos = Modelo.where({ marca_id: marca })
+
+    render json: modelos
+  end
+
 
   # POST /modelos
   def create
@@ -39,13 +89,14 @@ class ModelosController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_modelo
-      @modelo = Modelo.find(params[:id])
-    end
 
-    # Only allow a trusted parameter "white list" through.
-    def modelo_params
-      params.require(:modelo).permit(:marca_id, :descripcion)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_modelo
+    @modelo = Modelo.find(params[:id])
+  end
+
+  # Only allow a trusted parameter "white list" through.
+  def modelo_params
+    params.require(:modelo).permit(:marca_id, :descripcion)
+  end
 end

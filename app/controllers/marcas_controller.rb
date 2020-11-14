@@ -8,6 +8,26 @@ class MarcasController < ApplicationController
     render json: @marcas
   end
 
+  def getMarcasFiltradas
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
+    marcas = Marca.filtrarMarcas(arg)
+
+    res = []
+
+    if paginado
+      res = marcas.to_a.my_paginate(page, per_page)
+    else
+      res = marcas
+    end
+
+    render json: res
+  end
+
   # GET /marcas/1
   def show
     render json: @marca
