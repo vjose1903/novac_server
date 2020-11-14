@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_03_112406) do
+ActiveRecord::Schema.define(version: 2020_11_14_114313) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -292,6 +292,20 @@ ActiveRecord::Schema.define(version: 2020_11_03_112406) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "marcas", force: :cascade do |t|
+    t.string "descripcion"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "modelos", force: :cascade do |t|
+    t.bigint "marca_id"
+    t.string "descripcion"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["marca_id"], name: "index_modelos_on_marca_id"
+  end
+
   create_table "movimientos_inventarios", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "articulo_id"
@@ -346,6 +360,7 @@ ActiveRecord::Schema.define(version: 2020_11_03_112406) do
     t.boolean "usado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "referencia"
     t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
   end
 
@@ -455,6 +470,7 @@ ActiveRecord::Schema.define(version: 2020_11_03_112406) do
   add_foreign_key "historico_producciones", "users"
   add_foreign_key "mantenimiento_articulos", "articulos"
   add_foreign_key "mantenimiento_articulos", "users"
+  add_foreign_key "modelos", "marcas"
   add_foreign_key "movimientos_inventarios", "articulos"
   add_foreign_key "movimientos_inventarios", "users"
   add_foreign_key "producciones", "users"

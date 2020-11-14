@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :modelos
+  resources :marcas
   resources :incidencias
   resources :incidencia
   resources :vehiculos

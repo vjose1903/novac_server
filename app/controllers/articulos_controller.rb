@@ -110,10 +110,6 @@ class ArticulosController < ApplicationController
       articulos_.push(articulo[0])
     end
 
-    # articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
-
-    # articulos_ = Articulo.parsearArticulosFiltro(articulos)
-
     res = []
 
     if paginado

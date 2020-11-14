@@ -78,6 +78,6 @@ class SecuenciaComprobantesController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def secuencia_comprobante_params
-    params.fetch(:secuencia_comprobante).permit(:tipo_factura_id, :secuencia, :desde, :hasta, :fecha_compra, :fecha_valida, :estado, :usado)
+    params.fetch(:secuencia_comprobante).permit(:tipo_factura_id, :secuencia, :referencia, :desde, :hasta, :fecha_compra, :fecha_valida, :estado, :usado)
   end
 end

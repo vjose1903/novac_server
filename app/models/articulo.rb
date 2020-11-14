@@ -80,26 +80,6 @@ class Articulo < ApplicationRecord
 
     return res
   end
-  # =====================================================================================================================
-  def self.parsearArticulosFiltro(articulos)
-    articulos.each do |arti|
-      arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-      arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-      arti["descripcion"] = arti["tipo_articulo_descripcion"]
-
-      arti["imagen"] = { file_name: arti["file_name"], base_64: arti["base_64"], path: arti["path"] }
-
-      arti["contenido"] = calcularContenidosHistorico(arti)
-      arti["cantidades"] = calcularCantidadesHistorico(arti)
-
-      arti.delete("tipo_articulo_descripcion")
-      arti.delete("path")
-      arti.delete("base_64")
-      arti.delete("file_name")
-    end
-
-    return articulos
-  end
 
   # =====================================================================================================================
   def self.delete_articulo(id)
@@ -153,11 +133,6 @@ class Articulo < ApplicationRecord
     objeto["contenido"] = calcularContenidos(objeto)
     objeto["cantidades"] = calcularCantidades(objeto)
 
-    # objeto["contenido"] = calcularContenidosHistorico( objeto)
-    # objeto["cantidades"] = calcularCantidadesHistorico( objeto)
-    # if objeto["is_combo"]
-    #   objeto["formulas_productos_terminados"] = objeto["formulas_productos_terminados"]
-    # end
     puts "--------------------- fin parsealHistorico ---------------------"
     puts " "
     puts " "
@@ -179,7 +154,7 @@ class Articulo < ApplicationRecord
     if contenido.length == 0
       contenidos[articulo["medida"]] = 1
     elsif contenido.length == 1
-      if articulo["vendido_en"] == "Saco"
+      if articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
         contenidos[articulo["medida"]] = contenido[0]["cantidad"]
         contenidos["Saco_100"] = 100
         contenidos["Saco_50"] = 50
@@ -212,44 +187,6 @@ class Articulo < ApplicationRecord
     return contenidos
   end
 
-  def self.calcularContenidosHistorico(articulo)
-    puts " ------------------- inicio calcularContenidosHistorico -------------------"
-
-    begin
-      contenido = articulo.contenido_articulos
-    rescue
-      contenido = articulo["contenido_articulos"]
-    end
-
-    contenidos = {}
-    if contenido.length == 0
-      contenidos[articulo["medida"]] = 1
-    elsif contenido.length == 1
-      contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-      contenidos[contenido[0]["medida"]] = 1
-    else
-      cantPrincipal = 1
-      cantHijo = 1
-      cantPadre = 1
-
-      contenido.each do |conte|
-        cantPrincipal *= conte["cantidad"]
-        if conte["referencia"] != nil
-          cantPadre = conte["cantidad"]
-        end
-      end
-
-      contenidos[articulo["medida"]] = cantPrincipal
-      contenidos[contenido[0]["medida"]] = cantPadre
-      contenidos[contenido[1]["medida"]] = cantHijo
-    end
-
-    puts " ------------------- fin calcularContenidosHistorico -------------------"
-    puts " "
-    puts " "
-    return contenidos
-  end
-
   # =====================================================================================================================
 
   def self.calcularCantidades(articulo)
@@ -264,43 +201,7 @@ class Articulo < ApplicationRecord
     if existencia == nil
       existencia = 0
     end
-    cantidades = {}
 
-    if contenido.length == 0
-      cantidades[articulo["medida"]] = existencia
-    elsif contenido.length == 1
-      cantidades[articulo["medida"]] = (existencia / contenido[0]["cantidad"])
-      cantidades[contenido[0]["medida"]] = existencia
-    else
-      maxCant = 1
-      cantPadre = 1
-      contenido.each do |conte|
-        maxCant = conte["cantidad"] * maxCant
-        if conte["condicion"] == "hijo"
-          cantPadre = conte["cantidad"]
-        end
-      end
-
-      cantidades[articulo["medida"]] = (existencia / maxCant)
-      cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
-      cantidades[contenido[1]["medida"]] = existencia
-    end
-
-    return cantidades
-  end
-
-  def self.calcularCantidadesHistorico(articulo)
-    existencia = articulo["existencia"]
-
-    begin
-      contenido = articulo.contenido_articulos
-    rescue
-      contenido = articulo["contenido_articulos"]
-    end
-
-    if existencia == nil
-      existencia = 0
-    end
     cantidades = {}
 
     if contenido.length == 0

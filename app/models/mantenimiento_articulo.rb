@@ -30,15 +30,20 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
+    puts "date ==> ".red + "#{date}"
     fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
+    puts "fechaConHora ==> ".green + "#{fechaConHora}"
 
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
 
     hist = get_historico_by_date_menor(fechaConHora, articulo_id)
+    puts "==> #{fechaConHora > parsearDateTimeUTC(articulo["updated_at"])}".red
 
-    if fechaConHora > parsearDateTimeUTC(articulo["updated_at"])
+    if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])
+      puts articulo.to_json.green
       historico.push(Articulo.parseal(articulo))
+      puts historico.to_json
     else
       if hist.rows == []
         histM = get_historico_by_date_mayor(fechaConHora, articulo_id)
@@ -66,7 +71,7 @@ class MantenimientoArticulo < ApplicationRecord
     Articulo.all.each do |articulo|
       hist = get_historico_by_date_menor(date, articulo["id"])
 
-      if fechaConHora > parsearDateTimeUTC(articulo["updated_at"])
+      if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])
         historico.push(Articulo.parseal(articulo))
       else
         if hist.rows == []

@@ -100,9 +100,9 @@ tipos_articulo = [
   },
 ]
 
-tipos_articulo.each do |supli|
-  if TipoArticulo.find_by_descripcion(supli["descripcion"]).nil?
-    TipoArticulo.create(supli)
+tipos_articulo.each do |tipo|
+  if TipoArticulo.find_by_descripcion(tipo["descripcion"]).nil?
+    TipoArticulo.create(tipo)
   end
 end
 
