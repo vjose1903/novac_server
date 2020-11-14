@@ -218,3 +218,28 @@ secuencias.each do |secuencia|
     SecuenciaComprobante.create(secuencia)
   end
 end
+
+marcas = [
+  {
+    "descripcion": "Daihatsu"    
+  },
+]
+
+marcas.each do |marca|
+  if Marca.find_by_descripcion(marca["descripcion"]).nil?
+    Marca.create(marca)
+  end
+end
+
+modelos = [
+  {
+    "marca_id": 1,    
+    "descripcion": "Delta"    
+  },
+]
+
+modelos.each do |modelo|
+  if Modelo.find_by_descripcion(modelo["descripcion"]).nil?
+    Modelo.create(modelo)
+  end
+end
