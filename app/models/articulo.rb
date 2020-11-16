@@ -204,6 +204,8 @@ class Articulo < ApplicationRecord
 
     cantidades = {}
 
+    puts "ARTICULO ".red + "#{articulo}"
+
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1
