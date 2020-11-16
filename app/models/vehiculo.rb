@@ -1,3 +1,59 @@
 class Vehiculo < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true
+
+  def init
+    self.cantidad_viajes = 0 unless self.cantidad_viajes
+  end
+  # ==========================================================================================
+  
+  def self.filtrarVehiculo(arg)
+    arg = arg === " " ? "" : arg
+    select_ = "SELECT v.*"
+    from_ = "FROM vehiculos v "
+    joins_ = "left join users u on v.user_id = u.id"
+    where_ = "where  lower(coalesce(u.nombre, '') || ' ' || coalesce(u.apellido, '') || ' ' || v.marca || ' ' || v.modelo || ' ' || coalesce(v.nombre_no_empleado, '') || ' ' || coalesce(v.apellido_no_empleado, '')) like lower('%#{arg}%')"
+
+    query = "#{select_} #{from_} #{joins_} #{where_}"
+
+    my_query(query)
+  end
+  # ==========================================================================================
+  def self.parsearClientes(clientes)
+    clientes.each do |cliente|
+      cliente["nombre"] = cliente["nombre"].capitalize
+      cliente["apellido"] = cliente["apellido"].capitalize
+      cliente["vendedor"] = { nombre: "#{cliente["vendedor_nombre"].capitalize if cliente["vendedor_nombre"]} #{cliente["vendedor_apellido"].capitalize if cliente["vendedor_apellido"]}", id: cliente["vendedor_id"] }
+      
+      cliente.delete("vendedor_nombre")
+      cliente.delete("vendedor_apellido")
+    end
+    
+    return clientes
+  end
+  def self.parsear(vehiculos)
+    puts "--------------- INICIO parsear ---------------"
+    vehiculos.each do |vehiculo|
+      
+      puts "vehiculo ==>".red + "#{vehiculo.to_json}"
+      usuario={}
+      if !vehiculo["user_id"].nil? 
+        user = User.find_by_id(vehiculo["user_id"])
+        usuario["nombre"] = "#{user["nombre"]}".titleize 
+        usuario["apellido"] =  "#{user["apellido"]}".titleize
+        usuario["telefono"] = user["telefono"]
+
+      else
+        if !vehiculo["nombre_no_empleado"].nil?
+          usuario["nombre"] = vehiculo["nombre_no_empleado"]
+          usuario["apellido"] = vehiculo["apellido_no_empleado"]
+          usuario["telefono"] = vehiculo["telefono_no_empleado"]
+        end
+      end
+      vehiculo['propietario']=usuario
+    end
+
+    puts "--------------- FIN parsear ---------------"
+    return vehiculos
+  end
+  # ==========================================================================================
 end

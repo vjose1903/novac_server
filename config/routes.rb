@@ -32,12 +32,15 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
 
 
-    # marcas
-    get "marcas/filtro/:arg" => "marcas#getMarcasFiltradas"
-    
-    # modelos
-    get "modelos/por_marca/:marca" => "modelos#getModelosPorMarca"
-    get "modelos/filtro/:arg" => "modelos#getModelosFiltrados"
+  # vehiculos
+  get "vehiculos/filtro/:arg" => "vehiculos#getVehiculosFiltrados"
+  
+  # marcas
+  get "marcas/filtro/:arg" => "marcas#getMarcasFiltradas"
+  
+  # modelos
+  get "modelos/por_marca/:marca" => "modelos#getModelosPorMarca"
+  get "modelos/filtro/:arg" => "modelos#getModelosFiltrados"
 
   # recibos de ingresos
   get "recibos_ingresos/revertir/:id" => "recibos_ingresos#revertirIngreso" #
@@ -74,6 +77,7 @@ Rails.application.routes.draw do
   get "users/by_role/:role" => "users#getUserByRole"
   get "users/:id" => "users#getUserById"
   get "users/filtro/:arg" => "users#getUsuariosFiltrados"
+  get "users/custom/names" => "users#getUsersNames"
 
   # cabecera facturas
   get "cabecera_facturas/cliente/:id/pagada/:pagada" => "cabecera_facturas#getFacturasByClienteIdAndEstado"

@@ -32,6 +32,8 @@ rails g migration AddCantidadEnUnidadesToDetalleConduce cantidad_en_unidades:int
 rails g migration AddFechaViajesToCabeceraFacturas fecha_viaje:datetime
 rails g migration AddIsUltimoToDetalleRecibo is_ultimo:boolean
 rails g migration AddReferenciaToSecuenciaComprobante referencia:string
+rails g migration AddCamposToVehiculo nombre_no_empleado:string apellido_no_empleado:string telefono_no_empleado:string
+rails g migration AddAnioToVehiculo anio:string 
 
 
 

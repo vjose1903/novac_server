@@ -70,11 +70,20 @@ class RecibosIngresosController < ApplicationController
           end
 
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
-
+          
           if detalles[0][:error]
             render json: { msg: detalles[:msg], error: detalles.errors }, :status => :unprocessable_entity
             raise ActiveRecord::Rollback
           end
+          
+          if params["vehiculo_id"]
+            vehiculo = Vehiculo.find_by_id(params["vehiculo_id"])
+
+            unless vehiculo.update({ cantidad_viajes: vehiculo.cantidad_viajes + 1 })
+              render json: vehiculo.errors, status: :unprocessable_entity
+            end
+          end
+
 
           @recibos_ingreso.detalle_recibos = detalles
 
@@ -137,7 +146,16 @@ class RecibosIngresosController < ApplicationController
             raise ActiveRecord::Rollback
           end
         end
-
+        
+        if last_recibo["vehiculo_id"]
+          vehiculo = Vehiculo.find_by_id(last_recibo["vehiculo_id"])
+          
+          unless vehiculo.update({ cantidad_viajes: vehiculo.cantidad_viajes - 1 })
+            render json: vehiculo.errors, status: :unprocessable_entity
+            raise ActiveRecord::Rollback
+          end
+        end
+        
         unless last_recibo.destroy
           render json: last_recibo.errors, status: 400
           raise ActiveRecord::Rollback

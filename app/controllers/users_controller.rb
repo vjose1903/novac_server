@@ -5,6 +5,17 @@ class String
 end
 
 class UsersController < ApplicationController
+
+  def getUsersNames
+    @usuarios = []
+    User.all.each do |user|
+      if user.sexo != "i"
+        @usuarios.push({ id: user.id, nombre: "#{user["nombre"]}".titleize , apellido: "#{user["apellido"]}".titleize , telefono: user["telefono"] })
+      end
+    end
+    render json: @usuarios
+  end
+
   def getUsers
     @usuarios = []
     User.get_users.each do |user|

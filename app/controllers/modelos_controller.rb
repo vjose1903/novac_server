@@ -55,12 +55,6 @@ class ModelosController < ApplicationController
   end
 
 
-  def getModelosPorMarca
-    marca = params["marca"]
-    modelos = Modelo.where({ marca_id: marca })
-
-    render json: modelos
-  end
 
 
   # POST /modelos

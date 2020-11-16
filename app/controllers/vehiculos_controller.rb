@@ -13,9 +13,36 @@ class VehiculosController < ApplicationController
     render json: @vehiculo
   end
 
+  
+  def getVehiculosFiltrados
+    
+    arg = params["arg"]
+
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+
+    vehiculos_ = Vehiculo.filtrarVehiculo(arg)
+puts "a ver => " + "#{vehiculos_.to_json}"
+    vehiculos = Vehiculo.parsear(vehiculos_)
+
+    res = []
+
+    if paginado
+      res = vehiculos.to_a.my_paginate(page, per_page)
+    else
+      res = vehiculos
+    end
+
+
+    render json: res
+  end
+
   # POST /vehiculos
   def create
+    
     @vehiculo = Vehiculo.new(vehiculo_params)
+    @vehiculo.cantidad_viajes =0
 
     if @vehiculo.save
       render json: @vehiculo, status: :created, location: @vehiculo
@@ -23,6 +50,7 @@ class VehiculosController < ApplicationController
       render json: @vehiculo.errors, status: :unprocessable_entity
     end
   end
+
 
   # PATCH/PUT /vehiculos/1
   def update
@@ -46,6 +74,7 @@ class VehiculosController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def vehiculo_params
-      params.require(:vehiculo).permit(:user_id, :marca, :modelo, :cantidad_viajes)
+      params.require(:vehiculo).permit(:user_id, :marca, :modelo, :anio, :cantidad_viajes, :nombre_no_empleado, :apellido_no_empleado, :telefono_no_empleado
+      )
     end
 end
