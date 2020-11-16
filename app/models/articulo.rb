@@ -204,7 +204,7 @@ class Articulo < ApplicationRecord
 
     cantidades = {}
 
-    puts "ARTICULO ".red + "#{articulo}"
+    my_prin_log("ARTICULO ".red + "#{articulo}")
 
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
