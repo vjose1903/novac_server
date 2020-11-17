@@ -287,11 +287,13 @@ class CabeceraFacturasController < ApplicationController
     if !objeto["cliente_id"].nil? || objeto["is_nota"]
       cli = Cliente.find_by_id(obj["cliente_id"])
       cliente["nombre"] = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
+      cliente["telefono"] = cli["telefono"]
       cliente["direccion"] = cli["direccion"]
       cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
     else
       if !objeto["NoCliente_nombre"].nil?
         cliente["nombre"] = objeto["NoCliente_nombre"]
+        cliente["telefono"] = nil
         cliente["direccion"] = objeto["NoCliente_direccion"]
         cliente["rnc"] = nil
       end

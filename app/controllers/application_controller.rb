@@ -4,16 +4,16 @@ class ApplicationController < ActionController::API
   # protect_from_forgery with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  if ENV["RAILS_ENV"] != "development"
+  # if ENV["RAILS_ENV"] != "development"
     before_action :validateUserIsLogging!, unless: :devise_controller?
-  end
+  # end
 
   protected
 
   def validateUserIsLogging!
+    puts "------- VALIDANDO TOKEN -------".red
     unless user_signed_in?
-      render json: { error: "Debe de estar autenticado para realizar esta accion." }, status: Rack::Utils::SYMBOL_TO_STATUS_CODE[:unauthorized]
-      # render json: { error: "Debe de estar autenticado para realizar esta accion." }, status: 403
+      render json: { msg: "Para realizar esta accion debe de iniciar sesión." }, status: Rack::Utils::SYMBOL_TO_STATUS_CODE[:unauthorized]
     end
   end
 

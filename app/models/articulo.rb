@@ -204,12 +204,6 @@ class Articulo < ApplicationRecord
 
     cantidades = {}
 
-    puts "ARTICULO ".red + "#{articulo.to_json}"
-    puts "contenido ".yellow + "#{contenido.to_json}"
-
-    my_print_log("ARTICULO ".red + "#{articulo}")
-    my_print_log("contenido ".yellow + "#{contenido}")
-
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1
