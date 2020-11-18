@@ -85,6 +85,8 @@ Rails.application.routes.draw do
   get "cabecera_facturas/params/:campo/:valor/:tipo_factura_id/:is_adelantada" => "cabecera_facturas#getFacturasByParams"
   post "cabecera_facturas/anular_factura/:id" => "cabecera_facturas#cancelarFactura"
   get "cabecera_facturas/custom/viajes/:estado" => "cabecera_facturas#getViajesSinCompletar"
+  patch "cabecera_facturas/custom/update/:id" => "cabecera_facturas#updateFacturaById"
+  get "cabecera_facturas/custom/canUpdate/:id" => "cabecera_facturas#verificateCanUpdateById"
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
                                         sessions: "devise_token_auth/sessions",

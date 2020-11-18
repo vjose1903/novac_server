@@ -23,6 +23,18 @@ class CabeceraFacturasController < ApplicationController
     cabecera = parsearData(@cabecera_factura)
     render json: cabecera
   end
+  
+  def updateFacturaById
+    id = params[:id]
+    CabeceraFactura.updateFactura(id)
+    render json: {}
+  end
+  
+
+  def verificateCanUpdateById
+    id = params[:id]
+    render json: CabeceraFactura.verificateCanUpdate(id)
+  end
 
   def getFacturasByParams
     campoNum = params[:campo]
@@ -132,7 +144,7 @@ class CabeceraFacturasController < ApplicationController
       else
         today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day })
 
-        if today_cuadre.nil?
+        if today_cuadre.empty?
           att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
           att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
         else

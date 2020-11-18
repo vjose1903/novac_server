@@ -63,6 +63,15 @@ class Array
   end
 end
 
+
+def comparar_fecha(fecha1, fecha2, operador)
+  f1 = Date.parse(fecha1).strftime("%F")
+  f2 = Date.parse(fecha2).strftime("%F")
+  res = eval("'#{f1}' #{operador} '#{f2}'")
+  return res
+end
+
+
 def my_print_log(*args)
   is_show = ENV.fetch("RAILS_SHOW_LOG") { false }
 

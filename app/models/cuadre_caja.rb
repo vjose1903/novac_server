@@ -3,7 +3,7 @@ class CuadreCaja < ApplicationRecord
 
   def self.makecuadre(current_user)
     today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).to_a
-    puts "( #{today_cuadre.nil?} )".red
+
     if today_cuadre.empty?
       ventas_contado_total_facturado_ = CabeceraFactura.where(
         { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,

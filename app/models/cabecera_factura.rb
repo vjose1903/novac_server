@@ -70,6 +70,73 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ====================================================================================================
+  def self.verificateCanUpdate(id)
+    factura = CabeceraFactura.find_by_id(id)
+    
+    if factura
+      
+      can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
+      unless can_update
+        can_update = comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
+      end
+      
+      if can_update      
+        # ver si la factura tiene algun pago.
+        pago_ = DetalleRecibo.where({ cabecera_factura_id: id }).as_json
+        if pago_.length > 0
+          return {status: false}
+        end
+        
+        # ver si la factura tiene alguna nota de credito.
+        notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] }).as_json
+        if notas.length > 0
+          return {status: false}
+        end
+      else
+        return {status: false}
+      end
+
+      return {status: true}
+
+    else      
+      return {status: false}
+    end
+  end
+  # ====================================================================================================
+  def self.updateFactura(id, newFactura={})
+
+    puts " "
+    puts "++++++++".red * 20 
+    factura_original = CabeceraFactura.find_by_id(id)
+    puts "factura anterior => ".red + "#{factura_original.to_json}"
+
+    puts "prueba => ".blue + "#{factura_original[:condicion]}"
+    
+    puts "++++++++".red * 20 
+    puts " "
+    if factura_original[:condicion]=="Crédito"
+      resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura0], "-")
+
+      if resultCliente[:error]
+        render json: resultCliente, status: 400
+        raise ActiveRecord::Rollback
+      end
+    end
+    
+    detalles = DetalleFactura.where({ cabecera_factura_id: id })
+    puts " "
+    puts "++++++++".yellow * 20 
+    puts "contendio anterior => ".yellow + "#{detalles.to_json}"
+    puts "++++++++".yellow * 20 
+    puts " "
+
+    detalles.each do |detalle|
+
+      
+    end
+
+  end
+  # ====================================================================================================
   def self.payFacturas(facturas)
     res = { error: false, msg: "facturas actualizadas" }
     facturas["detalle_recibos_attributes"].each do |f|
