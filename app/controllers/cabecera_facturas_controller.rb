@@ -13,10 +13,10 @@ class CabeceraFacturasController < ApplicationController
       @usuario_ = User.find_by_id(factura["user_id"])
       @cabecera_facturas.push(parsearData(factura))
     end
-
+    
     render json: @cabecera_facturas
   end
-
+  
   # GET /cabecera_facturas/1
   def show
     @usuario_ = User.find_by_id(@cabecera_factura["user_id"])
@@ -25,9 +25,15 @@ class CabeceraFacturasController < ApplicationController
   end
   
   def updateFacturaById
-    id = params[:id]
-    CabeceraFactura.updateFactura(id)
-    render json: {}
+    CabeceraFactura.transaction do
+      id = params[:id]
+      respuesta = CabeceraFactura.updateFactura(id)
+      render json: respuesta, status: respuesta[:status]
+      raise ActiveRecord::Rollback
+      puts "RESPUESTA---- > ".red + "#{respuesta.to_json}"
+      render json: respuesta, status: respuesta[:status]
+      
+    end
   end
   
 

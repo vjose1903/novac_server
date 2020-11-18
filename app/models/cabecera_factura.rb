@@ -84,57 +84,77 @@ class CabeceraFactura < ApplicationRecord
         # ver si la factura tiene algun pago.
         pago_ = DetalleRecibo.where({ cabecera_factura_id: id }).as_json
         if pago_.length > 0
-          return {status: false}
+          return {status: false, msg:'La factura no puede ser editada.'}
         end
         
         # ver si la factura tiene alguna nota de credito.
         notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] }).as_json
         if notas.length > 0
-          return {status: false}
+          return {status: false, msg:'La factura no puede ser editada.'}
         end
       else
-        return {status: false}
+        return {status: false, msg:'La factura no puede ser editada.'}
       end
 
-      return {status: true}
+      return {status: true, msg:'La factura si puede ser editada.'}
 
     else      
-      return {status: false}
+      return {status: false, msg:'La factura no puede ser editada.'}
     end
   end
   # ====================================================================================================
   def self.updateFactura(id, newFactura={})
-
-    puts " "
-    puts "++++++++".red * 20 
-    factura_original = CabeceraFactura.find_by_id(id)
-    puts "factura anterior => ".red + "#{factura_original.to_json}"
-
-    puts "prueba => ".blue + "#{factura_original[:condicion]}"
-    
-    puts "++++++++".red * 20 
-    puts " "
-    if factura_original[:condicion]=="Crédito"
-      resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura0], "-")
-
-      if resultCliente[:error]
-        render json: resultCliente, status: 400
-        raise ActiveRecord::Rollback
-      end
-    end
-    
-    detalles = DetalleFactura.where({ cabecera_factura_id: id })
-    puts " "
-    puts "++++++++".yellow * 20 
-    puts "contendio anterior => ".yellow + "#{detalles.to_json}"
-    puts "++++++++".yellow * 20 
-    puts " "
-
-    detalles.each do |detalle|
-
+    CabeceraFactura.transaction do
+      validado = verificateCanUpdate(id)
+      if validado[:status] 
       
-    end
+        puts " "
+        puts "++++++++".red * 20 
+        factura_original = CabeceraFactura.find_by_id(id)
+        puts "factura anterior => ".red + "#{factura_original.to_json}"
 
+        puts "prueba => ".blue + "#{factura_original[:condicion]}"
+        
+        puts "++++++++".red * 20 
+        puts " "
+
+        if factura_original[:condicion] == "Crédito"
+          resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura0], "-")
+
+          if resultCliente[:error]
+            render json: resultCliente, status: 400
+            raise ActiveRecord::Rollback
+          end
+        end
+        
+        detalles = DetalleFactura.where({ cabecera_factura_id: id })
+        puts " "
+        puts "++++++++".yellow * 20 
+        puts "contendio anterior => ".yellow + "#{detalles.to_json}"
+        puts "++++++++".yellow * 20 
+        puts " "
+        
+        detalles.each do |detalle|
+          articulo = Articulo.find_by_id(detalle["articulo_id"])
+          mov = (articulo["existencia"] + detalle["cantidad_en_unidades"])
+          if articulo.update({ existencia: mov })
+            detalle.destroy
+          else
+            return { :error => true, :msg => "Error devolviendo la cantidad de #{articulo["nombre"]} en el inventario", :status => 400 }
+          end
+        end
+
+
+        
+        return { :error => true, :msg => 'Pruebas', :status => 200 }
+        
+
+        return { :error => false, :msg => 'La factura editada.', :status => 200 }
+      else
+        return { :error => true, :msg => validado[:msg], :status => 400 }
+      end
+
+    end
   end
   # ====================================================================================================
   def self.payFacturas(facturas)
