@@ -37,6 +37,7 @@ class MantenimientoArticulo < ApplicationRecord
     articulo = Articulo.find_by_id(articulo_id)
     my_print_log("fechaConHora ==> ".green + "#{fechaConHora}")
     my_print_log("fechaComparar ==> ".red + "#{parsearDateTimeUTC(articulo["updated_at"])}")
+    my_print_log("!!!! comparacion ==> ".red + "#{fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])}")
 
     my_print_log("articulo ==> ".blue + "#{articulo.to_json}")
     
