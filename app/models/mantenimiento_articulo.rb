@@ -36,11 +36,11 @@ class MantenimientoArticulo < ApplicationRecord
     
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
+    my_print_log("articulo ==> ".blue + "#{articulo.to_json}")
     my_print_log("fechaConHora ==> ".green + "#{fechaConHora+ ":59"}")
     my_print_log("fechaComparar ==> ".red + "#{parsearDateTimeUTC(articulo["updated_at"])}")
     my_print_log("!!!! comparacion ==> ".yellow + "#{fechaConHora + ":59" >= parsearDateTimeUTC(articulo["updated_at"])}")
 
-    my_print_log("articulo ==> ".blue + "#{articulo.to_json}")
     
     
     
