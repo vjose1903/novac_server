@@ -32,11 +32,13 @@ class MantenimientoArticulo < ApplicationRecord
   def self.get_one_articulo_by_date(date, articulo_id)
     
     fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
-
+    my_print_log("fechaConHora ==> ".green + "#{fechaConHora}")
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
-
+    my_print_log("articulo ==> ".blue + "#{articulo}")
+    
     hist = get_historico_by_date_menor(fechaConHora, articulo_id)
+    my_print_log("hist ==> ".cyan + "#{hist}")
 
     if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])      
       historico.push(Articulo.parseal(articulo))
