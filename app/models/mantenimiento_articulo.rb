@@ -32,6 +32,7 @@ class MantenimientoArticulo < ApplicationRecord
   def self.get_one_articulo_by_date(date, articulo_id)
     
     fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
+    fechaConHora = fechaConHora:":59"
     
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
