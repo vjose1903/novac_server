@@ -30,10 +30,11 @@ Rails.application.routes.draw do
   resources :articulos
   resources :tipo_articulos
   resources :secuencia_facturas
-
-
+  
+  
   # vehiculos
   get "vehiculos/filtro/:arg" => "vehiculos#getVehiculosFiltrados"
+  patch "vehiculos/delete/:id" => "vehiculos#deleteVehiculo" #
   
   # marcas
   get "marcas/filtro/:arg" => "marcas#getMarcasFiltradas"
@@ -59,11 +60,11 @@ Rails.application.routes.draw do
   get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
   get "articulos/custom/productos_terminados" => "articulos#getProductosTerminados" #
   get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
-
+  
   # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"
   get "suplidores/filtro/:arg" => "suplidores#getSuplidoresFiltrados"
-
+  
   # secuencia comprobantes
   get "paqueteNCF/:id/:estado" => "secuencia_comprobantes#getPaqueteRncByEstado"
   get "secuencia_comprobantes/filtro/:arg" => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
@@ -84,7 +85,7 @@ Rails.application.routes.draw do
   get "cabecera_facturas/cliente/:id" => "cabecera_facturas#getFacturasByClienteId"
   get "cabecera_facturas/params/:campo/:valor/:tipo_factura_id/:is_adelantada" => "cabecera_facturas#getFacturasByParams"
   post "cabecera_facturas/anular_factura/:id" => "cabecera_facturas#cancelarFactura"
-  get "cabecera_facturas/custom/viajes/:estado" => "cabecera_facturas#getViajesSinCompletar"
+  get "cabecera_facturas/custom/viajes/:estado/:arg" => "cabecera_facturas#getViajesSinCompletar"
   patch "cabecera_facturas/custom/update/:id" => "cabecera_facturas#updateFacturaById"
   get "cabecera_facturas/custom/canUpdate/:id" => "cabecera_facturas#verificateCanUpdateById"
 

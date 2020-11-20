@@ -13,7 +13,7 @@ class Suplidor < ApplicationRecord
     arg = arg === " " ? "" : arg
     select_ = "SELECT s.*"
     from_ = "FROM suplidores s "
-    where_ = "where lower(s.nombre || ' ' || s.direccion || ' ' || s.email ) like lower('%#{arg}%') AND estado = true"
+    where_ = "where lower(s.nombre || ' ' || s.direccion || ' ' || coalesce(s.email, '') ) like lower('%#{arg}%') AND estado = true"
     order_ = "ORDER BY s.id ASC"
 
     query = "#{select_} #{from_} #{where_} #{order_}"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_15_150043) do
+ActiveRecord::Schema.define(version: 2020_11_20_012445) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -361,6 +361,7 @@ ActiveRecord::Schema.define(version: 2020_11_15_150043) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "referencia"
+    t.boolean "status"
     t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
   end
 
@@ -443,6 +444,7 @@ ActiveRecord::Schema.define(version: 2020_11_15_150043) do
     t.string "apellido_no_empleado"
     t.string "telefono_no_empleado"
     t.string "anio"
+    t.boolean "estado"
     t.index ["user_id"], name: "index_vehiculos_on_user_id"
   end
 

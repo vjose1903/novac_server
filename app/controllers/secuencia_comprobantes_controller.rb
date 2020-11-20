@@ -63,10 +63,14 @@ class SecuenciaComprobantesController < ApplicationController
       render json: @secuencia_comprobante.errors, status: :unprocessable_entity
     end
   end
-
+  
   # DELETE /secuencia_comprobantes/1
   def destroy
-    @secuencia_comprobante.destroy
+    if @secuencia_comprobante.estado
+      render json: {msg:'Este paquete de comprobantes ta esta activo, no se puede eliminar.'}, status: :unprocessable_entity
+    else
+      @secuencia_comprobante.destroy
+    end
   end
 
   private

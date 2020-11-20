@@ -3,9 +3,15 @@ class VehiculosController < ApplicationController
 
   # GET /vehiculos
   def index
+    vehiculos = []
     @vehiculos = Vehiculo.all
+    @vehiculos.each do |item|
+      if item.estado
+        vehiculos.push(item)
+      end
+    end
 
-    render json: @vehiculos
+    render json: vehiculos
   end
 
   # GET /vehiculos/1
@@ -23,7 +29,7 @@ class VehiculosController < ApplicationController
     paginado = params["paginado"] === "true" ? true : false
 
     vehiculos_ = Vehiculo.filtrarVehiculo(arg)
-puts "a ver => " + "#{vehiculos_.to_json}"
+    puts "a ver => " + "#{vehiculos_.to_json}"
     vehiculos = Vehiculo.parsear(vehiculos_)
 
     res = []
@@ -66,6 +72,17 @@ puts "a ver => " + "#{vehiculos_.to_json}"
     @vehiculo.destroy
   end
 
+  def deleteVehiculo
+    vehiculo = Vehiculo.find_by_id(params[:id])
+
+    if vehiculo.update({estado: false})
+      render json: { msg: "Vehiculo borrado" }
+    else
+      render json: { msg: "error borrando vehiculo." }
+    end
+  end
+
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_vehiculo
@@ -74,7 +91,7 @@ puts "a ver => " + "#{vehiculos_.to_json}"
 
     # Only allow a trusted parameter "white list" through.
     def vehiculo_params
-      params.require(:vehiculo).permit(:user_id, :marca, :modelo, :anio, :cantidad_viajes, :nombre_no_empleado, :apellido_no_empleado, :telefono_no_empleado
+      params.require(:vehiculo).permit(:user_id, :marca, :modelo, :anio, :estado, :cantidad_viajes, :nombre_no_empleado, :apellido_no_empleado, :telefono_no_empleado
       )
     end
 end

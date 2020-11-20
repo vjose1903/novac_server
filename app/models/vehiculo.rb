@@ -4,19 +4,22 @@ class Vehiculo < ApplicationRecord
   def init
     self.cantidad_viajes = 0 unless self.cantidad_viajes
   end
-  # ==========================================================================================
+  
+  # =====================================================================================================================
+
   
   def self.filtrarVehiculo(arg)
     arg = arg === " " ? "" : arg
     select_ = "SELECT v.*"
     from_ = "FROM vehiculos v "
     joins_ = "left join users u on v.user_id = u.id"
-    where_ = "where  lower(coalesce(u.nombre, '') || ' ' || coalesce(u.apellido, '') || ' ' || v.marca || ' ' || v.modelo || ' ' || coalesce(v.nombre_no_empleado, '') || ' ' || coalesce(v.apellido_no_empleado, '')) like lower('%#{arg}%')"
+    where_ = "where  lower(coalesce(u.nombre, '') || ' ' || coalesce(u.apellido, '') || ' ' || v.marca || ' ' || v.modelo || ' ' || coalesce(v.nombre_no_empleado, '') || ' ' || coalesce(v.apellido_no_empleado, '')) like lower('%#{arg}%') AND v.estado = true"
 
     query = "#{select_} #{from_} #{joins_} #{where_}"
 
     my_query(query)
   end
+  
   # ==========================================================================================
   def self.parsearClientes(clientes)
     clientes.each do |cliente|
