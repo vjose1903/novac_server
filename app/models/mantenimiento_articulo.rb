@@ -12,7 +12,7 @@ class MantenimientoArticulo < ApplicationRecord
     select_ = "select * ,ta.descripcion as descripcion"
     from_ = "from mantenimiento_articulos ma"
     joins_ = 'inner join tipo_articulos ta on ma."ant_tipoArticuloId"= ta.id'
-    where_ = "where ma.created_at <= '#{date}:59' AND ma.articulo_id = #{articulo_id}"
+    where_ = "where ma.created_at <= '#{date}' AND ma.articulo_id = #{articulo_id}"
     query = "#{select_} #{from_} #{joins_} #{where_}"
     return my_query(query)
   end
@@ -23,7 +23,7 @@ class MantenimientoArticulo < ApplicationRecord
     select_ = "select * ,ta.descripcion as descripcion"
     from_ = "from mantenimiento_articulos ma"
     joins_ = 'inner join tipo_articulos ta on ma."ant_tipoArticuloId"= ta.id'
-    where_ = "where ma.created_at >= '#{date}:00' AND ma.articulo_id = #{articulo_id}"
+    where_ = "where ma.created_at >= '#{date}' AND ma.articulo_id = #{articulo_id}"
     query = "#{select_} #{from_} #{joins_} #{where_}"
     return my_query(query)
   end
@@ -32,27 +32,27 @@ class MantenimientoArticulo < ApplicationRecord
   def self.get_one_articulo_by_date(date, articulo_id)
     
     fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
-    fechaConHora = fechaConHora + ":59"
+    
     
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
-    my_print_log("fechaConHora ==> ".green + "#{fechaConHora}")
+    my_print_log("fechaConHora ==> ".green + "#{fechaConHora+ ":59"}")
     my_print_log("fechaComparar ==> ".red + "#{parsearDateTimeUTC(articulo["updated_at"])}")
-    my_print_log("!!!! comparacion ==> ".red + "#{fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])}")
+    my_print_log("!!!! comparacion ==> ".yellow + "#{fechaConHora + ":59" >= parsearDateTimeUTC(articulo["updated_at"])}")
 
     my_print_log("articulo ==> ".blue + "#{articulo.to_json}")
     
     
     
-    if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])      
+    if fechaConHora + ":59" >= parsearDateTimeUTC(articulo["updated_at"])      
       historico.push(Articulo.parseal(articulo))
       
     else
-      hist = get_historico_by_date_menor(fechaConHora, articulo_id)
+      hist = get_historico_by_date_menor(fechaConHora + ":59", articulo_id)
       my_print_log("hist ==> ".yellow + "#{hist.to_json}")
 
       if hist.rows == []
-        histM = get_historico_by_date_mayor(fechaConHora, articulo_id)
+        histM = get_historico_by_date_mayor(fechaConHora + ":00", articulo_id)
         if histM.rows == []
           historico.push(Articulo.parseal(articulo))
         else
@@ -75,13 +75,13 @@ class MantenimientoArticulo < ApplicationRecord
     historico = []
 
     Articulo.all.each do |articulo|
-      hist = get_historico_by_date_menor(date, articulo["id"])
+      hist = get_historico_by_date_menor(date + ":59", articulo["id"])
 
       if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])
         historico.push(Articulo.parseal(articulo))
       else
         if hist.rows == []
-          histM = get_historico_by_date_mayor(date, articulo["id"])
+          histM = get_historico_by_date_mayor(date + ":00", articulo["id"])
           if histM.rows == []
             historico.push(Articulo.parseal(articulo))
           else
