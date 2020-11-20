@@ -33,17 +33,22 @@ class MantenimientoArticulo < ApplicationRecord
     
     fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
     my_print_log("fechaConHora ==> ".green + "#{fechaConHora}")
+    my_print_log("fechaComparar ==> ".red + "#{parsearDateTimeUTC(articulo["updated_at"])}")
+
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
+
     my_print_log("articulo ==> ".blue + "#{articulo.to_json}")
     
-    hist = get_historico_by_date_menor(fechaConHora, articulo_id)
-    my_print_log("hist ==> ".cyan + "#{hist.to_json}")
-
+    
+    
     if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])      
       historico.push(Articulo.parseal(articulo))
       
     else
+      hist = get_historico_by_date_menor(fechaConHora, articulo_id)
+      my_print_log("hist ==> ".yellow + "#{hist.to_json}")
+
       if hist.rows == []
         histM = get_historico_by_date_mayor(fechaConHora, articulo_id)
         if histM.rows == []
