@@ -220,6 +220,7 @@ class ArticulosController < ApplicationController
             contentido = ContenidoArticulo.find_by_id(contenido["id"])
 
             if contentido == [] || contentido == nil
+              contentido={}
               contentido["articulo_id"] = @articulo["id"]
               contentido = ContenidoArticulo.new
             end
