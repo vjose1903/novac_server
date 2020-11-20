@@ -36,20 +36,12 @@ class MantenimientoArticulo < ApplicationRecord
     
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
-    my_print_log("articulo ==> ".blue + "#{articulo.to_json}")
-    my_print_log("fechaConHora ==> ".green + "#{fechaConHora+ ":59"}")
-    my_print_log("fechaComparar ==> ".red + "#{parsearDateTimeUTC(articulo["updated_at"])}")
-    my_print_log("!!!! comparacion ==> ".yellow + "#{fechaConHora + ":59" >= parsearDateTimeUTC(articulo["updated_at"])}")
 
-    
-    
-    
     if fechaConHora + ":59" >= parsearDateTimeUTC(articulo["updated_at"])      
       historico.push(Articulo.parseal(articulo))
       
     else
       hist = get_historico_by_date_menor(fechaConHora + ":59", articulo_id)
-      my_print_log("hist ==> ".yellow + "#{hist.to_json}")
 
       if hist.rows == []
         histM = get_historico_by_date_mayor(fechaConHora + ":00", articulo_id)
@@ -65,9 +57,6 @@ class MantenimientoArticulo < ApplicationRecord
       end
     end
 
-    puts " -------------- fin get_one_articulo_by_date -------------- "
-    puts " "
-    puts " "
     return historico
   end
   # ============================================================================================================================================================
@@ -99,7 +88,6 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.crearArticuloHistorico(historico, articulo)
-    puts " -------------- inicio crearArticuloHistorico -------------- "
     contenidoArticulo = articulo.contenido_articulos
 
     articuloHistorico = {}
@@ -170,9 +158,6 @@ class MantenimientoArticulo < ApplicationRecord
       articuloHistorico["descripcion"] = des["descripcion"]
     end
 
-    puts " -------------- fin crearArticuloHistorico -------------- "
-    puts " "
-    puts " "
     return articuloHistorico
   end
 end
