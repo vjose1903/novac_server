@@ -35,10 +35,10 @@ class MantenimientoArticulo < ApplicationRecord
     my_print_log("fechaConHora ==> ".green + "#{fechaConHora}")
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
-    my_print_log("articulo ==> ".blue + "#{articulo}")
+    my_print_log("articulo ==> ".blue + "#{articulo.to_json}")
     
     hist = get_historico_by_date_menor(fechaConHora, articulo_id)
-    my_print_log("hist ==> ".cyan + "#{hist}")
+    my_print_log("hist ==> ".cyan + "#{hist.to_json}")
 
     if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])      
       historico.push(Articulo.parseal(articulo))
