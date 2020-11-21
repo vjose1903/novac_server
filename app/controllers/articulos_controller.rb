@@ -69,7 +69,8 @@ class ArticulosController < ApplicationController
       obj["nombre"] = arti["nombre"]
       obj["id"] = arti["id"]
 
-      if arti["medida"] == "Quintal"
+
+      if arti["medida"] == "Quintal" || arti["medida"] == "Saco"
         obj["costo"] = arti.contenido_articulos[0]["costo"]
         obj["precio"] = arti.contenido_articulos[0]["precio"]
       elsif arti["medida"] == "Libra"
