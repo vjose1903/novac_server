@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_20_012445) do
+ActiveRecord::Schema.define(version: 2020_11_22_122154) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -35,6 +35,7 @@ ActiveRecord::Schema.define(version: 2020_11_20_012445) do
     t.string "vendido_en"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_materia_prima"
     t.index ["imagen_id"], name: "index_articulos_on_imagen_id"
     t.index ["tipo_articulo_id"], name: "index_articulos_on_tipo_articulo_id"
   end
@@ -277,6 +278,7 @@ ActiveRecord::Schema.define(version: 2020_11_20_012445) do
     t.integer "secuencia"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_materia_prima"
     t.index ["articulo_id"], name: "index_mantenimiento_articulos_on_articulo_id"
     t.index ["user_id"], name: "index_mantenimiento_articulos_on_user_id"
   end

@@ -35,6 +35,8 @@ rails g migration AddReferenciaToSecuenciaComprobante referencia:string
 rails g migration AddCamposToVehiculo nombre_no_empleado:string apellido_no_empleado:string telefono_no_empleado:string
 rails g migration AddAnioToVehiculo anio:string 
 rails g migration AddEstadoToVehiculo estado:boolean
+rails g migration AddIsMateriaPrimaToArticulo is_materia_prima:boolean
+rails g migration AddIsMateriaPrimaToMantenimientoArticulo is_materia_prima:boolean
 
 
 

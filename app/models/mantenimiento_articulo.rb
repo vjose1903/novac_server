@@ -112,6 +112,7 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["calcular_itbis"] = historico["ant_calcularItbis"]
     articuloHistorico["is_combo"] = historico["ant_isCombo"]
     articuloHistorico["otros_costos"] = historico["ant_otrosCostos"]
+    articuloHistorico["is_materia_prima"] = historico["is_materia_prima"]
     articuloHistorico["vendido_en"] = historico["vendido_en"]
 
     contents = []
