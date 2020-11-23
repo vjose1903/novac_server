@@ -61,7 +61,7 @@ class Articulo < ApplicationRecord
     order_ = "ORDER BY a.id ASC"
     limit_ = "LIMIT #{per_page}"
 
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
 
     my_query(query)
   end
