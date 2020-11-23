@@ -35,10 +35,6 @@ class MantenimientoArticulo < ApplicationRecord
     
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
-    my_print_log("fechaConHora ==> ".red + "#{fechaConHora}")
-    my_print_log("fecha articulo update ==> ".blue + "#{parsearDateTimeUTC(articulo["updated_at"])}")
-
-    my_print_log("articulo ==> ".yellow + "#{articulo.to_json}")
     
     if fechaConHora + ":59" >= parsearDateTimeUTC(articulo["updated_at"])      
       historico.push(Articulo.parseal(articulo))

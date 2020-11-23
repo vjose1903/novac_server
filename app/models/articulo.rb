@@ -222,8 +222,6 @@ class Articulo < ApplicationRecord
     end
 
     cantidades = {}
-    my_print_log("contenido ==> ".red + "#{contenido}")
-    my_print_log("articulo ==> ".yellow + "#{articulo}")
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1

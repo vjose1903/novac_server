@@ -252,7 +252,6 @@ class CabeceraFactura < ApplicationRecord
     puts " -------------- Inicio CalculateBalanceFactura -------------- "
 
     factura = CabeceraFactura.find_by_id(id)
-    my_print_log("factura #{factura.to_json}".red)
 
     balance = factura["balance"]
 
@@ -262,10 +261,6 @@ class CabeceraFactura < ApplicationRecord
       total_facturado = recalcularMonto(factura)
     end
 
-    my_print_log("balance #{balance}".red)
-    my_print_log("montoRecibido #{montoRecibido}".yellow)
-    my_print_log("montoRecibido.to_f #{montoRecibido.to_f}".green)
-
     sumatoria = 0
 
     if montoRecibido.to_f > balance
@@ -273,7 +268,6 @@ class CabeceraFactura < ApplicationRecord
     else
       sumatoria = balance - montoRecibido.to_f
     end
-    my_print_log("sumatoria #{sumatoria}".blue)
 
     sumatoria = sumatoria.to_d.truncate(2).to_f
 

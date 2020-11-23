@@ -74,7 +74,6 @@ end
 
 def my_print_log(*args)
   is_show = ENV.fetch("RAILS_SHOW_LOG") { false }
-
   Rails.logger.info " ↳ my_print_log ->> #{is_show} ".cyan + " => (#{caller_locations.first})"
   if ActiveRecord::Type::Boolean.new.cast(is_show)
     args.each do |arg|

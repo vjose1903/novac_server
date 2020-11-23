@@ -324,7 +324,6 @@ class CabeceraFacturasController < ApplicationController
     end
 
     if !obj["user_id"].nil?
-      my_print_log(":::::::::::: #{@usuario_.to_json}".red)
       usuario = "#{@usuario_["nombre"]} ".titleize + "#{@usuario_["apellido"]}".titleize
       obj["usuario"] = usuario
     end
@@ -367,16 +366,11 @@ class CabeceraFacturasController < ApplicationController
     puts "--------------- fin parsearData ---------------"
     puts ""
     puts ""
-    my_print_log("obj ==> #{obj}".yellow)
-    my_print_log("is_adelantada ==> #{is_adelantada == "true"}".yellow)
-    my_print_log("contador_retirado ==> #{contador_retirado}".yellow)
-    my_print_log("tipo de dato ==> #{is_adelantada.class}".red)
+    
 
     if !is_adelantada || (is_adelantada && contador_retirado > 0)
-      my_print_log("si tiene datos".blue)
       return obj
     else
-      my_print_log("no tiene datos".blue)
       return nil
     end
   end
