@@ -22,7 +22,7 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.countClientes()
+  def self.countArticulos()
     arg = arg === " " ? "" : arg
      
     select_ = "SELECT count(id)"
@@ -97,6 +97,8 @@ class Articulo < ApplicationRecord
       res["contenido"] = calcularContenidos(res)
       res["cantidades"] = calcularCantidades(res)
     end
+
+    res["total_registros"] = countArticulos().count
 
     return res
   end

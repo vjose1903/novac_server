@@ -110,8 +110,8 @@ class ArticulosController < ApplicationController
     render json: aArticulos
   end
 
-  def getCountClientes
-    cantidad = Articulo.countClientes
+  def getcountArticulos
+    cantidad = Articulo.countArticulos
 
     render json: cantidad[0]
   end
