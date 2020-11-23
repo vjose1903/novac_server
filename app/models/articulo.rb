@@ -37,7 +37,7 @@ class Articulo < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.filtrarArticulo(arg, is_compra, tipo)
+  def self.filtrarArticulo(arg, is_compra, tipo, per_page)
     arg = arg === " " ? "" : arg
 
     # select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
@@ -59,6 +59,7 @@ class Articulo < ApplicationRecord
     end
 
     order_ = "ORDER BY a.id ASC"
+    limit_ = "LIMIT #{per_page}"
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 

@@ -23,11 +23,6 @@ class ArticulosController < ApplicationController
     costo = articulo.costo_principal
     precio = articulo.precio_principal
 
-    puts articulo.to_json
-
-    puts "costo ==> ".red + "#{costo}"
-    puts "precio ==> ".yellow + "#{precio}"
-
     obj={
       id: articulo.id
     }
@@ -142,7 +137,7 @@ class ArticulosController < ApplicationController
     tipo = params["tipo"]
 
     articulos_ = []
-    articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
+    articulos = Articulo.filtrarArticulo(arg, is_compra, tipo, per_page)
 
     articulos.each do |item|
       articulo = MantenimientoArticulo.get_one_articulo_by_date(fecha, item["id"])
