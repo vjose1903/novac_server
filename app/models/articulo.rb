@@ -17,6 +17,25 @@ class Articulo < ApplicationRecord
   def self.get_articulos_formateado
     return my_query("SELECT a.id, a.nombre, ta.descripcion as tipo_articulo, a.costo_principal, a.precio_principal, a.existencia, a.codigo, a.fecha_ingreso, a.medida, a.is_detallable, ca.*, a.created_at, a.updated_at from articulos a INNER JOIN tipo_articulos ta on a.tipo_articulo_id = ta.id INNER JOIN contenido_articulos ca on ca.articulo_id = a.id")
   end
+
+
+
+  # =====================================================================================================================
+
+  def self.countClientes()
+    arg = arg === " " ? "" : arg
+     
+    select_ = "SELECT count(id)"
+    from_ = "FROM articulos "
+    joins_ = ""
+    where_ = "where estado = true"
+    order_ = ""
+
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
+
+    my_query(query)
+  end
+
   # =====================================================================================================================
   def self.filtrarArticulo(arg, is_compra, tipo)
     arg = arg === " " ? "" : arg

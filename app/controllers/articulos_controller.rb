@@ -14,10 +14,42 @@ class ArticulosController < ApplicationController
     render json: @articulos
   end
 
+  def getArticuloCosto
+    id = params["id"]
+    tipo = params["tipo"]
+    articulo = Articulo.find_by_id(id)
+
+    
+    costo = articulo.costo_principal
+    precio = articulo.precio_principal
+
+    puts articulo.to_json
+
+    puts "costo ==> ".red + "#{costo}"
+    puts "precio ==> ".yellow + "#{precio}"
+
+    obj={
+      id: articulo.id
+    }
+
+    if articulo["medida"] == "Quintal" || articulo["medida"] == "Saco"
+      obj["costo"] = articulo.contenido_articulos[0]["costo"]
+      obj["precio"] = articulo.contenido_articulos[0]["precio"]
+    elsif articulo["medida"] == "Libra"
+      obj["costo"] = articulo["costo_principal"]
+      obj["precio"] = articulo["precio_principal"]
+    end
+    
+
+    render json: obj
+  end
+
+
   def getContenidos
     id = params["id"]
     articulo = Articulo.find_by_id(id)
     contenido = Articulo.calcularContenidos(articulo)
+    
 
     render json: contenido
   end
@@ -61,7 +93,7 @@ class ArticulosController < ApplicationController
   end
 
   def getMateriasPrimas
-    articulos = Articulo.where({ tipo_articulo_id: 2 })
+    articulos = Articulo.where({ is_materia_prima: true })
 
     aArticulos = []
     articulos.each do |arti|
@@ -82,6 +114,13 @@ class ArticulosController < ApplicationController
     end
     render json: aArticulos
   end
+
+  def getCountClientes
+    cantidad = Articulo.countClientes
+
+    render json: cantidad[0]
+  end
+
 
   def getProductosTerminados
     articulos = Articulo.where({ tipo_articulo_id: 3 })
@@ -212,6 +251,7 @@ class ArticulosController < ApplicationController
           "otros_costos": articulo_params["otros_costos"],
           "calcular_itbis": articulo_params["calcular_itbis"],
           "vendido_en": articulo_params["vendido_en"],
+          "is_materia_prima": articulo_params["is_materia_prima"],
           "codigo": @articulo["codigo"],
         }
 
@@ -309,6 +349,7 @@ class ArticulosController < ApplicationController
              "ant_calcularItbis": anterior["calcular_itbis"],
              "ant_isCombo": anterior["is_combo"],
              "vendido_en": anterior["vendido_en"],
+             "is_materia_prima": anterior["is_materia_prima"],
              "ant_otrosCostos": anterior["otros_costos"] }
 
       anterior["contenido_articulos"].to_a.each do |contenido|

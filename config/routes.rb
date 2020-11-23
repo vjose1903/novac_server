@@ -60,6 +60,8 @@ Rails.application.routes.draw do
   get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
   get "articulos/custom/productos_terminados" => "articulos#getProductosTerminados" #
   get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
+  get "articulos/custom/costo/:tipo/:id" => "articulos#getArticuloCosto"
+  get "articulos/custom/cantidad_inventario" => "articulos#getCountClientes"
   
   # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"
