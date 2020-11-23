@@ -33,7 +33,7 @@ class Articulo < ApplicationRecord
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
-    my_query(query)
+    my_query(query)[0]
   end
 
   # =====================================================================================================================
@@ -98,7 +98,9 @@ class Articulo < ApplicationRecord
       res["cantidades"] = calcularCantidades(res)
     end
 
-    res["total_registros"] = countArticulos().count
+    cantidad = Articulo.countArticulos
+
+    res["total_registros"] = cantidad["count"]
 
     return res
   end
