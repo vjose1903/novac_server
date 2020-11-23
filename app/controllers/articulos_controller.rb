@@ -137,7 +137,7 @@ class ArticulosController < ApplicationController
     tipo = params["tipo"]
 
     articulos_ = []
-    articulos = Articulo.filtrarArticulo(arg, is_compra, tipo, per_page)
+    articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
 
     articulos.each do |item|
       articulo = MantenimientoArticulo.get_one_articulo_by_date(fecha, item["id"])

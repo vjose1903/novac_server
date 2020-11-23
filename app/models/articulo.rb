@@ -37,7 +37,7 @@ class Articulo < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.filtrarArticulo(arg, is_compra, tipo, per_page)
+  def self.filtrarArticulo(arg, is_compra, tipo)
     arg = arg === " " ? "" : arg
 
     # select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
@@ -59,9 +59,8 @@ class Articulo < ApplicationRecord
     end
 
     order_ = "ORDER BY a.id ASC"
-    limit_ = "LIMIT #{per_page}"
 
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
     my_query(query)
   end
@@ -98,9 +97,9 @@ class Articulo < ApplicationRecord
       res["cantidades"] = calcularCantidades(res)
     end
 
-    cantidad = Articulo.countArticulos
+    # cantidad = Articulo.countArticulos
 
-    res["total_registros"] = cantidad["count"]
+    # res["total_registros"] = cantidad["count"]
 
     return res
   end
