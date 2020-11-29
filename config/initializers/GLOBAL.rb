@@ -4,10 +4,12 @@ def desencriptarBase64(enc)
   return valor_des
 end
 
+# ---------------------------------------------------------------------------------------------------------
 def my_query(query)
   return ActiveRecord::Base.connection.exec_query(query)
 end
 
+# ---------------------------------------------------------------------------------------------------------
 class String
   def numeric?
     return true if self =~ /\A\d+\Z/
@@ -19,10 +21,12 @@ class String
   end
 end
 
+# ---------------------------------------------------------------------------------------------------------
 def parsearDateTimeUTC(dateTime)
   return dateTime.getlocal.strftime("%Y-%m-%d") + " " + dateTime.getlocal.strftime("%H:%M:%S")
 end
 
+# ---------------------------------------------------------------------------------------------------------
 def parsearHora(dateTime, lUtc = true)
   # hora = Time.parse(DateTime.parse("#{Time.now.strftime("%Y-%m-%d")} #{hour.to_time}").to_s)
   hora = Time.parse(DateTime.parse("#{dateTime}").to_s)
@@ -33,6 +37,7 @@ def parsearHora(dateTime, lUtc = true)
   return hora
 end
 
+# ---------------------------------------------------------------------------------------------------------
 class Array
   def my_paginate(page, per_page)
     itemsTem = []
@@ -63,7 +68,25 @@ class Array
   end
 end
 
+# ---------------------------------------------------------------------------------------------------------
+def hora_12(fecha)
+  hora =("%02d" % (((DateTime.parse(fecha).hour + 11) % 12) + 1))
+  minuto =("%02d" % DateTime.parse(fecha).minute)
+  return "#{hora}:#{minuto}"
+end
 
+# ---------------------------------------------------------------------------------------------------------
+def formatearFecha(fecha, tipo)
+  fecha_ = ''
+  if tipo == 1
+    fecha_ = Date.parse(fecha).strftime("%d/%m/%Y")
+  else 
+    fecha_ = "#{Date.parse(fecha).strftime("%d/%m/%Y")} - #{hora_12(fecha)}"
+  end
+  return fecha_
+end
+
+# ---------------------------------------------------------------------------------------------------------
 def comparar_fecha(fecha1, fecha2, operador)
   f1 = Date.parse(fecha1).strftime("%F")
   f2 = Date.parse(fecha2).strftime("%F")
@@ -72,6 +95,7 @@ def comparar_fecha(fecha1, fecha2, operador)
 end
 
 
+# ---------------------------------------------------------------------------------------------------------
 def my_print_log(*args)
   is_show = ENV.fetch("RAILS_SHOW_LOG") { false }
   Rails.logger.info " ↳ my_print_log ->> #{is_show} ".cyan + " => (#{caller_locations.first})"

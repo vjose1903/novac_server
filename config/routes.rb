@@ -30,8 +30,15 @@ Rails.application.routes.draw do
   resources :articulos
   resources :tipo_articulos
   resources :secuencia_facturas
+  resources :reportes
   
   
+  # reportes
+  # - VENTAS --------------------------------------------------------------
+  get "reporte/ventas/:tipo/:condicion/:desde/:hasta" => "reportes#getVentas"
+  # - CUENTAS POR COBRAR --------------------------------------------------------------
+  get "reporte/cuentas/cobrar/:tipo/:cliente_id" => "reportes#getCuentasCobrar"
+
   # vehiculos
   get "vehiculos/filtro/:arg" => "vehiculos#getVehiculosFiltrados"
   patch "vehiculos/delete/:id" => "vehiculos#deleteVehiculo" #

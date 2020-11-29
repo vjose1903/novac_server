@@ -148,7 +148,7 @@ class CabeceraFacturasController < ApplicationController
         render json: resultAgregarNota, status: 400
         raise ActiveRecord::Rollback
       else
-        today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day })
+        today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
         if today_cuadre.empty?
           att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
