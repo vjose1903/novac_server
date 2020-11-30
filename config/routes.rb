@@ -33,11 +33,11 @@ Rails.application.routes.draw do
   resources :reportes
   
   
-  # reportes
-  # - VENTAS --------------------------------------------------------------
-  get "reporte/ventas/:tipo/:condicion/:desde/:hasta" => "reportes#getVentas"
+  
+  # - REPORTES --------------------------------------------------------------
+  get "reporte/:tipo_reporte" => "reportes#getReportes"
   # - CUENTAS POR COBRAR --------------------------------------------------------------
-  get "reporte/cuentas/cobrar/:tipo/:cliente_id" => "reportes#getCuentasCobrar"
+  # get "reporte/cuentas/cobrar/:tipo/:cliente_id" => "reportes#getCuentasCobrar"
 
   # vehiculos
   get "vehiculos/filtro/:arg" => "vehiculos#getVehiculosFiltrados"
