@@ -15,7 +15,7 @@ class ReportesController < ApplicationController
 
         elsif tipo_reporte==='cuentas_cobrar'
             body = Reporte.get_cuentas_cobrar(params)
-            titulo = "Reporte de cuentas por cobrar"
+            titulo = "Reporte de cuentas por cobrar #{ params["tipo"] == '2' ? 'por cliente' : '' }"
         end
 
         mostrar_total = {
