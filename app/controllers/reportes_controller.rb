@@ -33,8 +33,7 @@ class ReportesController < ApplicationController
 
 
     # def getVentas
-    #     ventas = Reporte.get_ventas(params)
-    #     titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
+    #     ventas = Reporte.get_ventas(params) #     titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
 
     #     mostrar_total={
     #         bool: true,

@@ -66,7 +66,7 @@ class SecuenciaComprobante < ApplicationRecord
     from_ = "FROM secuencia_comprobantes sc"
     joins_ = "inner join tipo_facturas tf on sc.tipo_factura_id = tf.id"
     where_ = "where lower(tf.descripcion  || ' ' || desde || ' ' || hasta) like lower('%#{arg}%')"
-    order_ = "ORDER BY sc.id ASC"
+    order_ = "ORDER BY sc.id DESC"
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
