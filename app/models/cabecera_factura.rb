@@ -35,10 +35,16 @@ class CabeceraFactura < ApplicationRecord
     joins_ = "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
     inner join users u on ca.user_id = u.id"
     where_ = ""
-
+    limit_ = ""
+    order_ = ""
+    
     if tipo_factura_id == 0 || tipo_factura_id == "0"
       if campo == "numero_comprobante"
         where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and is_adelantada = #{is_adelantada}"
+      elsif campo == "last_20"
+        where_ = "WHERE tipo = 'venta' and is_adelantada = #{is_adelantada}"
+        limit_ = "LIMIT 20"
+        order_ = "ORDER BY ca.id DESC"
       else
         where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and is_adelantada = #{is_adelantada}"
       end
@@ -50,7 +56,7 @@ class CabeceraFactura < ApplicationRecord
       end
     end
 
-    query = "#{select_} #{from_} #{joins_} #{where_}"
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
 
     return my_query(query)
   end
@@ -146,7 +152,7 @@ class CabeceraFactura < ApplicationRecord
 
 
         
-        return { :error => true, :msg => 'Pruebas', :status => 200 }
+        return { :error => true, :msg => 'Pruebas', :status => 400 }
         
 
         return { :error => false, :msg => 'La factura editada.', :status => 200 }

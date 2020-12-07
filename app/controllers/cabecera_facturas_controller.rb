@@ -59,7 +59,13 @@ class CabeceraFacturasController < ApplicationController
       campo = "numero_factura"
       valor_des = valor_des.to_i
     elsif campoNum == "4"
+      campo = "last_20"
     end
+
+    puts "campoNum ==> ".red + "#{campoNum}"
+    puts "valor_des ==> ".red + "#{valor_des}"
+    puts "tipo_factura_id ==> ".red + "#{tipo_factura_id}"
+    puts "is_adelantada ==> ".red + "#{is_adelantada}"
 
     cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
 
