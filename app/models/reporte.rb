@@ -86,6 +86,7 @@ class Reporte < ApplicationRecord
         total_cuentas=0
         cuentas = []
         cuentas_temp.each do |cuenta|
+            
             att = cuenta.attributes
             
             att = get_antiguedad_saldo(att)

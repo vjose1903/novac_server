@@ -26,8 +26,6 @@ class CuadreCaja < ApplicationRecord
 
       obj = {
         user_id: current_user.id,
-        usuario: current_user.nombre.titleize + " " + current_user.apellido.titleize,
-        fecha_equivalente: DateTime.now,
 
         total_general: (ventas_contado_total_facturado_ + recibos_ingresos_).round(2),
         total_venta_credito: ventas_credito_,
@@ -38,13 +36,18 @@ class CuadreCaja < ApplicationRecord
       }
 
       cuadre = CuadreCaja.new(obj)
-      res = {}
+      
       CuadreCaja.transaction do
+
         unless cuadre.save!
           return { :error => true, :msg => cuadre.errors, :status => 400 }
         end
 
-        return { :error => false, :msg => "Cuadre realizado correctamente", :body => obj, :status => 200 }
+        att = cuadre.attributes
+        att['usuario']= current_user.nombre.titleize + " " + current_user.apellido.titleize
+        att['fecha_equivalente']= DateTime.now
+
+        return { :error => false, :msg => "Cuadre realizado correctamente", :body => att, :status => 200 }
       end
     else
       obj = {
