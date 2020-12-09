@@ -50,6 +50,7 @@ class CuadreCaja < ApplicationRecord
         return { :error => false, :msg => "Cuadre realizado correctamente", :body => att, :status => 200 }
       end
     else
+      puts 'entro aquiiiiii'.yellow
       obj = {
         user_id: current_user.id,
         usuario: current_user.nombre.titleize + " " + current_user.apellido.titleize,

@@ -109,24 +109,33 @@ class CabeceraFactura < ApplicationRecord
     end
   end
   # ====================================================================================================
-  def self.updateFactura(id, newFactura={})
+  def self.updateFactura(id, params={})
+
     CabeceraFactura.transaction do
       validado = verificateCanUpdate(id)
       if validado[:status] 
+
+        @factura_de = params['FACTURA_DE']
+        factura_nueva = params['cabecera_factura']
+        factura_original = CabeceraFactura.find_by_id(id)
+
+        puts "FACTURA_DE ==> #{@factura_de}".yellow
       
         puts " "
-        puts "++++++++".red * 20 
-        factura_original = CabeceraFactura.find_by_id(id)
-        puts "factura anterior => ".red + "#{factura_original.to_json}"
-
-        puts "prueba => ".blue + "#{factura_original[:condicion]}"
+        puts "++++++++".green * 20 
+        puts factura_nueva
+        puts "++++++++".green * 20 
+        puts " "
         
+        puts " "
+        puts "++++++++".red * 20 
+        puts "factura anterior => ".red + "#{factura_original.to_json}"    
         puts "++++++++".red * 20 
         puts " "
-
+        
         if factura_original[:condicion] == "Crédito"
           resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura0], "-")
-
+          
           if resultCliente[:error]
             render json: resultCliente, status: 400
             raise ActiveRecord::Rollback
@@ -149,17 +158,129 @@ class CabeceraFactura < ApplicationRecord
             return { :error => true, :msg => "Error devolviendo la cantidad de #{articulo["nombre"]} en el inventario", :status => 400 }
           end
         end
-
-
         
-        return { :error => true, :msg => 'Pruebas', :status => 400 }
         
+        
+        
+        factura_nueva['detalle_facturas_attributes'].each do |detalle|
+          
+          detalle_ = CabeceraFactura.formarDetalleFactura(detalle, factura_original['id'])
+          
+          unless detalle_.save!
+            return { :error => true, :msg => "Error editando articulo de la factura.", :status => 400 }
+          else
+            articulo    = Articulo.find_by_id(detalle["articulo_id"])
+            art         = detalle 
+            art['id']   = detalle['articulo_id']
+            
+            CabeceraFactura.movimientos_de_inventario(art, @factura_de)
+          end
+          
+        end
+        
+        
+        unless factura_original.update({
+            total_factura: factura_nueva['total_factura'],
+            itbis: factura_nueva['itbis'],
+            descuento: factura_nueva['descuento'],
+            Bruto: factura_nueva['Bruto'],
+            pagada: factura_nueva['pagada'],
+            balance: factura_nueva['balance'],
+            devuelta: factura_nueva['devuelta'],
+        })
 
-        return { :error => false, :msg => 'La factura editada.', :status => 200 }
+          return { :error => true, :msg => 'Error editando la factura', :status => 400 }
+        else
+          return { :error => false, :msg => 'Factura editada correctamente.', :status => 200 }
+        end
+        
       else
         return { :error => true, :msg => validado[:msg], :status => 400 }
       end
 
+    end
+  end
+  # ====================================================================================================
+  def self.formarDetalleFactura(detalle, fact_id)
+    detalle_ = DetalleFactura.new
+        
+    detalle_["articulo_id"]            = detalle['articulo_id'] 
+    detalle_["descuento_valor"]        = detalle['descuento_valor']
+    detalle_["cantidad_en_unidades"]   = detalle['cantidad_en_unidades']
+    detalle_["cantidad"]               = detalle['cantidad']
+    detalle_["total"]                  = detalle['total']
+    detalle_["descuento_porciento"]    = detalle['descuento_porciento']
+    detalle_["itbis"]                  = detalle['itbis']
+    detalle_["unidad"]                 = detalle['unidad']
+    detalle_["precio"]                 = detalle['precio']
+    detalle_["retirado"]               = detalle['retirado']
+    detalle_["retirado_en_venta"]      = detalle['retirado_en_venta']
+    detalle_['cabecera_factura_id']    = fact_id
+
+    return detalle_
+  end
+
+  # ====================================================================================================
+
+  def self.movimientos_de_inventario(objArticulo, factura_de)
+    if factura_de == 13
+      
+      cantidad_en_unidades = objArticulo["cantidad_en_unidades"]
+      # --------- VENTA ---------
+      articulo = Articulo.find_by_id(objArticulo["id"])
+      puts "cantidad_en_unidades ==> ".red + "#{cantidad_en_unidades}"
+      
+      mov = (articulo["existencia"] - cantidad_en_unidades)
+
+      if mov < 0
+        mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
+        render json: { msg: mensaje }, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
+      end
+      if articulo.update({ existencia: mov })
+        puts "::::::::::::::::::::::::::::::::::::::::::"
+        puts "::::                                  ::::"
+        puts "::::        VENTA EXITOSA             ::::"
+        puts "::::                                  ::::"
+        puts "::::::::::::::::::::::::::::::::::::::::::"
+      else
+        render json: articulo.errors, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
+      end
+    else
+      # --------- COMPRA ---------
+      articulo = Articulo.find_by_id(articulo["id"])
+
+      mov = (articulo["existencia"] + cantidad_en_unidades)
+
+      fecha_fact = @cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
+
+      obj = {
+        user_id: @usuario_["id"],
+        articulo_id: articulo["id"],
+        cantidad: cantidad_en_unidades,
+        accion: "entrada",
+        motivo: "Compra de mercancia en la factura con el ncf: " + @numero_comprobante + " de la fecha " + fecha_fact,
+        medida: "Unidades",
+        tipo_salida: nil,
+      }
+
+      movimientos_inventario = MovimientosInventario.new(obj)
+
+      if movimientos_inventario.save!
+        if articulo.update({ existencia: mov })
+          puts "::::::::::::::::::::::::::::::::::::::::::"
+          puts "::::                                  ::::"
+          puts "::::         COMPRA EXITOSA           ::::"
+          puts "::::                                  ::::"
+          puts "::::::::::::::::::::::::::::::::::::::::::"
+        else
+          render json: articulo.errors, status: :unprocessable_entity
+          raise ActiveRecord::Rollback
+        end
+      else
+        return render json: movimientos_inventario.errors, status: :unprocessable_entity
+      end
     end
   end
   # ====================================================================================================

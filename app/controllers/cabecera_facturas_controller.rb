@@ -27,10 +27,7 @@ class CabeceraFacturasController < ApplicationController
   def updateFacturaById
     CabeceraFactura.transaction do
       id = params[:id]
-      respuesta = CabeceraFactura.updateFactura(id)
-      render json: respuesta, status: respuesta[:status]
-      raise ActiveRecord::Rollback
-      puts "RESPUESTA---- > ".red + "#{respuesta.to_json}"
+      respuesta = CabeceraFactura.updateFactura(id, params)
       render json: respuesta, status: respuesta[:status]
       
     end
@@ -289,7 +286,8 @@ class CabeceraFacturasController < ApplicationController
               articuloSelect["contenido_articulos"] = array_contenido
             end
             if factura_tipo != 4 || factura_tipo != "4"
-              movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"])
+              articuloSelect['cantidad_en_unidades'] = objD["cantidad_en_unidades"]
+              CabeceraFactura.movimientos_de_inventario(articuloSelect, params[:FACTURA_DE])
             end
           end
         end
@@ -437,64 +435,7 @@ class CabeceraFacturasController < ApplicationController
 
   end
 
-  def movimientos_de_inventario(articulo, cantidad_en_unidades)
-    if params[:FACTURA_DE] == 13
-      # --------- VENTA ---------
-      articulo = Articulo.find_by_id(articulo["id"])
-
-      mov = (articulo["existencia"] - cantidad_en_unidades)
-
-      if mov < 0
-        mensaje = "Cantidad introducida para el articulo #{articulo.nombre.titleize}  ahora excede la cantidad disponible en inventario. "
-        render json: { msg: mensaje }, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
-      end
-      if articulo.update({ existencia: mov })
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-        puts "::::                                  ::::"
-        puts "::::        VENTA EXITOSA             ::::"
-        puts "::::                                  ::::"
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-      else
-        render json: articulo.errors, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
-      end
-    else
-      # --------- COMPRA ---------
-      articulo = Articulo.find_by_id(articulo["id"])
-
-      mov = (articulo["existencia"] + cantidad_en_unidades)
-
-      fecha_fact = @cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
-
-      obj = {
-        user_id: @usuario_["id"],
-        articulo_id: articulo["id"],
-        cantidad: cantidad_en_unidades,
-        accion: "entrada",
-        motivo: "Compra de mercancia en la factura con el ncf: " + @numero_comprobante + " de la fecha " + fecha_fact,
-        medida: "Unidades",
-        tipo_salida: nil,
-      }
-
-      movimientos_inventario = MovimientosInventario.new(obj)
-
-      if movimientos_inventario.save!
-        if articulo.update({ existencia: mov })
-          puts "::::::::::::::::::::::::::::::::::::::::::"
-          puts "::::                                  ::::"
-          puts "::::         COMPRA EXITOSA           ::::"
-          puts "::::                                  ::::"
-          puts "::::::::::::::::::::::::::::::::::::::::::"
-        else
-          render json: articulo.errors, status: :unprocessable_entity
-          raise ActiveRecord::Rollback
-        end
-      else
-        return render json: movimientos_inventario.errors, status: :unprocessable_entity
-      end
-    end
-  end
+ 
 
   def find_user
     @usuario_ = User.find_by_id(params["user_id"])
