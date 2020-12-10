@@ -170,8 +170,11 @@ class CabeceraFactura < ApplicationRecord
             articulo    = Articulo.find_by_id(detalle["articulo_id"])
             art         = detalle 
             art['id']   = detalle['articulo_id']
+
+             # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
+
             # si voy a editar una factura de compra buscar el movimiento de inventario que se genero cuando se compro la factura y borrarlo
-            CabeceraFactura.movimientos_de_inventario(art, @factura_de, 'editar_factura', factura_original, current_user)
+            CabeceraFactura.movimientos_de_inventario(art, detalle['cantidad_en_unidades'], @factura_de, 'editar_factura', factura_original, current_user)
           end
           
         end
@@ -205,7 +208,7 @@ class CabeceraFactura < ApplicationRecord
   # ====================================================================================================
   def self.formarDetalleFactura(detalle, fact_id)
     detalle_ = DetalleFactura.new
-        
+    
     detalle_["articulo_id"]            = detalle['articulo_id'] 
     detalle_["descuento_valor"]        = detalle['descuento_valor']
     detalle_["cantidad_en_unidades"]   = detalle['cantidad_en_unidades']
@@ -218,17 +221,20 @@ class CabeceraFactura < ApplicationRecord
     detalle_["retirado"]               = detalle['retirado']
     detalle_["retirado_en_venta"]      = detalle['retirado_en_venta']
     detalle_['cabecera_factura_id']    = fact_id
-
+    
     return detalle_
   end
-
+  
   # ====================================================================================================
-
-  def self.movimientos_de_inventario(objArticulo, factura_de, tipo, cabecera_factura, user_)
+  
+  def self.movimientos_de_inventario(objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_)
+    puts "TAMOP AQUIII".yellow
     articulo = Articulo.find_by_id(objArticulo["id"])
-    cantidad_en_unidades = objArticulo["cantidad_en_unidades"]
+    
     operador = factura_de == 13 ? '-' : '+' 
     mov = eval("#{articulo["existencia"]} #{operador} #{cantidad_en_unidades}")
+    puts "operador -- ".yellow +  "#{operador}"
+    puts "MOV -- ".yellow +  "#{mov}"
 
     if factura_de == 13
       # --------- VENTA ---------
@@ -257,7 +263,7 @@ class CabeceraFactura < ApplicationRecord
         return render json: movimientos_inventario.errors, status: :unprocessable_entity
       end
     end
-
+puts "VOY A CAMBIAR EXISTENCIA ".yellow
     articulo.existencia = mov
 
     if articulo.save!

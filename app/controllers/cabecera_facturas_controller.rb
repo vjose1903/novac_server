@@ -163,6 +163,7 @@ class CabeceraFacturasController < ApplicationController
 
         # return render json: { msg: "pruebas", body: cabecera }
         # raise ActiveRecord::Rollback
+        puts "@cabecera_factura===> " + "#{@cabecera_factura.to_json}"
         unless @cabecera_factura.save
           # render json: @cabecera_factura, status: :created, location: @cabecera_factura
           render json: @cabecera_factura.errors, status: :unprocessable_entity
@@ -271,18 +272,30 @@ class CabeceraFacturasController < ApplicationController
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
 
+      my_print_log( "objeto['is_adelantada'] ==> ".red + "#{objeto["is_adelantada"]}")
+      
+      
       unless objeto["is_adelantada"]
+        my_print_log( "movimiento_inventario ==> ".red + "#{movimiento_inventario}")
         if movimiento_inventario
           unless @actual_secuencia_factura == nil
+            my_print_log( "@actual_secuencia_factura ==> ".red + "#{@actual_secuencia_factura}")
             factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
 
+            my_print_log( "factura_tipo ==> ".red + "#{factura_tipo}")
+            
+            my_print_log( "articuloSelect 00 ==> ".red + "#{articuloSelect }")
             if articuloSelect["contenido_articulos"] == nil
               array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(articuloSelect["id"])
               articuloSelect["contenido_articulos"] = array_contenido
             end
+            
+            my_print_log( "articuloSelect 11 ==> ".red + "#{articuloSelect }")
+
+            my_print_log(  "FACTURA TIPO --- " + "#{factura_tipo}")
             if factura_tipo != 4 || factura_tipo != "4"
-              articuloSelect['cantidad_en_unidades'] = objD["cantidad_en_unidades"]
-              CabeceraFactura.movimientos_de_inventario(articuloSelect, params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
+             # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
+              CabeceraFactura.movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
             end
           end
         end
@@ -396,12 +409,14 @@ class CabeceraFacturasController < ApplicationController
 
   def update_secuencia
     # @cabecera_factura.transaction do
+    puts "params[:FACTURA_DE]===> " + "#{params[:FACTURA_DE]}"
     if params[:FACTURA_DE] == 14
       # --------- COMPRA ---------
-
+      puts "COMPRAAAAA===> " 
       unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
         render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
       else
+        puts " ------------------ antes de parsearData ------------------" 
         cabecera = parsearData(@cabecera_factura, true)
         render json: cabecera, status: :created, location: @cabecera_factura
       end
