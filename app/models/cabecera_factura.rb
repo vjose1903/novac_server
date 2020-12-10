@@ -107,7 +107,7 @@ class CabeceraFactura < ApplicationRecord
           return {status: false, msg:'La factura no puede ser editada.'}
         end
       else
-        return {status: false, msg:'La factura no puede ser editada, ya forma parte del ultimo cuadre de caja.'}
+        return {status: false, msg:'La factura no puede ser editada, ya forma parte de un cuadre de caja.'}
 
       end
 
