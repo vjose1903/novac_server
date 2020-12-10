@@ -37,6 +37,7 @@ rails g migration AddAnioToVehiculo anio:string
 rails g migration AddEstadoToVehiculo estado:boolean
 rails g migration AddIsMateriaPrimaToArticulo is_materia_prima:boolean
 rails g migration AddIsMateriaPrimaToMantenimientoArticulo is_materia_prima:boolean
+rails g migration AddCalcularSacoToDetalleFactura calcular_saco:boolean
 
 
 

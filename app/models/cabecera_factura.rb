@@ -13,13 +13,13 @@ class CabeceraFactura < ApplicationRecord
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
   def self.calculateNextDay
-    tomorrow = (DateTime.current + 1.days).strftime("%a")
-
+    tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime("%a")
+    
     next_date = ""
     if tomorrow.downcase === "sun"
-      next_date = (DateTime.current + 2.days).strftime("%Y-%m-%d")
+      next_date = (DateTime.now.beginning_of_day + 2.days).strftime("%Y-%m-%d")
     else
-      next_date = (DateTime.current + 1.days).strftime("%Y-%m-%d")
+      next_date = (DateTime.now.beginning_of_day + 1.days).strftime("%Y-%m-%d")
     end
 
     return DateTime.parse("#{next_date}T12:00:00").in_time_zone
@@ -79,27 +79,36 @@ class CabeceraFactura < ApplicationRecord
   def self.verificateCanUpdate(id)
     factura = CabeceraFactura.find_by_id(id)
     
+    last_cuadre = CuadreCaja.all.last
+
     if factura
-      
-      can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
-      unless can_update
-        can_update = comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
-      end
-      
-      if can_update      
-        # ver si la factura tiene algun pago.
-        pago_ = DetalleRecibo.where({ cabecera_factura_id: id }).as_json
-        if pago_.length > 0
-          return {status: false, msg:'La factura no puede ser editada.'}
+
+      if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
+
+        can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
+
+        unless can_update
+          can_update = comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
         end
         
-        # ver si la factura tiene alguna nota de credito.
-        notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] }).as_json
-        if notas.length > 0
+        if can_update      
+          # ver si la factura tiene algun pago.
+          pago_ = DetalleRecibo.where({ cabecera_factura_id: id }).as_json
+          if pago_.length > 0
+            return {status: false, msg:'La factura no puede ser editada.'}
+          end
+          
+          # ver si la factura tiene alguna nota de credito.
+          notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] }).as_json
+          if notas.length > 0
+            return {status: false, msg:'La factura no puede ser editada.'}
+          end
+        else
           return {status: false, msg:'La factura no puede ser editada.'}
         end
       else
-        return {status: false, msg:'La factura no puede ser editada.'}
+        return {status: false, msg:'La factura no puede ser editada, ya forma parte del ultimo cuadre de caja.'}
+
       end
 
       return {status: true, msg:'La factura si puede ser editada.'}
@@ -127,11 +136,7 @@ class CabeceraFactura < ApplicationRecord
         puts "++++++++".green * 20 
         puts " "
         
-        puts " "
-        puts "++++++++".red * 20 
-        puts "factura anterior => ".red + "#{factura_original.to_json}"    
-        puts "++++++++".red * 20 
-        puts " "
+        
         
         if factura_original[:condicion] == "Crédito"
           resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura0], "-")
@@ -143,11 +148,6 @@ class CabeceraFactura < ApplicationRecord
         end
         
         detalles = DetalleFactura.where({ cabecera_factura_id: id })
-        puts " "
-        puts "++++++++".yellow * 20 
-        puts "contendio anterior => ".yellow + "#{detalles.to_json}"
-        puts "++++++++".yellow * 20 
-        puts " "
         
         detalles.each do |detalle|
           articulo = Articulo.find_by_id(detalle["articulo_id"])
@@ -158,9 +158,7 @@ class CabeceraFactura < ApplicationRecord
             return { :error => true, :msg => "Error devolviendo la cantidad de #{articulo["nombre"]} en el inventario", :status => 400 }
           end
         end
-        
-        
-        
+
         
         factura_nueva['detalle_facturas_attributes'].each do |detalle|
           
@@ -172,23 +170,27 @@ class CabeceraFactura < ApplicationRecord
             articulo    = Articulo.find_by_id(detalle["articulo_id"])
             art         = detalle 
             art['id']   = detalle['articulo_id']
-            
-            CabeceraFactura.movimientos_de_inventario(art, @factura_de)
+            # si voy a editar una factura de compra buscar el movimiento de inventario que se genero cuando se compro la factura y borrarlo
+            CabeceraFactura.movimientos_de_inventario(art, @factura_de, 'editar_factura', factura_original, current_user)
           end
           
         end
         
-        
-        unless factura_original.update({
-            total_factura: factura_nueva['total_factura'],
-            itbis: factura_nueva['itbis'],
-            descuento: factura_nueva['descuento'],
-            Bruto: factura_nueva['Bruto'],
-            pagada: factura_nueva['pagada'],
-            balance: factura_nueva['balance'],
-            devuelta: factura_nueva['devuelta'],
-        })
+        puts " JUSTO ANTES DE ACTUALIZAR "
+        puts "++++++++".red * 20 
+        puts "factura anterior => ".red + "#{factura_original.to_json}"    
+        puts "++++++++".red * 20 
+        puts " "
 
+        factura_original.total_factura   = factura_nueva['total_factura']
+        factura_original.itbis           = factura_nueva['itbis']
+        factura_original.descuento       = factura_nueva['descuento']
+        factura_original.Bruto           = factura_nueva['Bruto']
+        factura_original.pagada          = factura_nueva['pagada']
+        factura_original.balance         = factura_nueva['balance']
+        factura_original.devuelta        = factura_nueva['devuelta']
+
+        unless factura_original.save!
           return { :error => true, :msg => 'Error editando la factura', :status => 400 }
         else
           return { :error => false, :msg => 'Factura editada correctamente.', :status => 200 }
@@ -222,67 +224,55 @@ class CabeceraFactura < ApplicationRecord
 
   # ====================================================================================================
 
-  def self.movimientos_de_inventario(objArticulo, factura_de)
-    if factura_de == 13
-      
-      cantidad_en_unidades = objArticulo["cantidad_en_unidades"]
-      # --------- VENTA ---------
-      articulo = Articulo.find_by_id(objArticulo["id"])
-      puts "cantidad_en_unidades ==> ".red + "#{cantidad_en_unidades}"
-      
-      mov = (articulo["existencia"] - cantidad_en_unidades)
+  def self.movimientos_de_inventario(objArticulo, factura_de, tipo, cabecera_factura, user_)
+    articulo = Articulo.find_by_id(objArticulo["id"])
+    cantidad_en_unidades = objArticulo["cantidad_en_unidades"]
+    operador = factura_de == 13 ? '-' : '+' 
+    mov = eval("#{articulo["existencia"]} #{operador} #{cantidad_en_unidades}")
 
+    if factura_de == 13
+      # --------- VENTA ---------
       if mov < 0
         mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
         render json: { msg: mensaje }, status: :unprocessable_entity
         raise ActiveRecord::Rollback
       end
-      if articulo.update({ existencia: mov })
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-        puts "::::                                  ::::"
-        puts "::::        VENTA EXITOSA             ::::"
-        puts "::::                                  ::::"
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-      else
-        render json: articulo.errors, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
-      end
     else
       # --------- COMPRA ---------
-      articulo = Articulo.find_by_id(articulo["id"])
-
-      mov = (articulo["existencia"] + cantidad_en_unidades)
-
-      fecha_fact = @cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
+      fecha_fact = cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
 
       obj = {
-        user_id: @usuario_["id"],
+        user_id: user_.id,
         articulo_id: articulo["id"],
         cantidad: cantidad_en_unidades,
         accion: "entrada",
-        motivo: "Compra de mercancia en la factura con el ncf: " + @numero_comprobante + " de la fecha " + fecha_fact,
+        motivo: "Compra de mercancia en la factura con el ncf: " + cabecera_factura['numero_comprobante'] + " de la fecha " + fecha_fact,
         medida: "Unidades",
         tipo_salida: nil,
       }
 
       movimientos_inventario = MovimientosInventario.new(obj)
 
-      if movimientos_inventario.save!
-        if articulo.update({ existencia: mov })
-          puts "::::::::::::::::::::::::::::::::::::::::::"
-          puts "::::                                  ::::"
-          puts "::::         COMPRA EXITOSA           ::::"
-          puts "::::                                  ::::"
-          puts "::::::::::::::::::::::::::::::::::::::::::"
-        else
-          render json: articulo.errors, status: :unprocessable_entity
-          raise ActiveRecord::Rollback
-        end
-      else
+      unless movimientos_inventario.save!
         return render json: movimientos_inventario.errors, status: :unprocessable_entity
       end
     end
+
+    articulo.existencia = mov
+
+    if articulo.save!
+      puts "::::::::::::::::::::::::::::::::::::::::::"
+      puts "::::                                  ::::"
+      puts "::::         #{factura_de == 13?'VENTA ' : 'COMPRA'} EXITOSA           ::::"
+      puts "::::                                  ::::"
+      puts "::::::::::::::::::::::::::::::::::::::::::"
+    else
+      render json: articulo.errors, status: :unprocessable_entity
+      raise ActiveRecord::Rollback
+    end
   end
+
+
   # ====================================================================================================
   def self.payFacturas(facturas)
     res = { error: false, msg: "facturas actualizadas" }

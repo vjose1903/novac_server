@@ -112,7 +112,6 @@ class ArticulosController < ApplicationController
 
   def getcountArticulos
     cantidad = Articulo.countArticulos
-
     render json: cantidad
   end
 
@@ -247,6 +246,7 @@ class ArticulosController < ApplicationController
           "calcular_itbis": articulo_params["calcular_itbis"],
           "vendido_en": articulo_params["vendido_en"],
           "is_materia_prima": articulo_params["is_materia_prima"],
+          "calcular_saco": articulo_params["calcular_saco"],
           "codigo": @articulo["codigo"],
         }
 
@@ -345,7 +345,8 @@ class ArticulosController < ApplicationController
              "ant_isCombo": anterior["is_combo"],
              "vendido_en": anterior["vendido_en"],
              "is_materia_prima": anterior["is_materia_prima"],
-             "ant_otrosCostos": anterior["otros_costos"] }
+             "ant_otrosCostos": anterior["otros_costos"] ,
+             "calcular_saco": anterior["calcular_saco"] }
 
       anterior["contenido_articulos"].to_a.each do |contenido|
         if contenido["referencia"]
@@ -439,7 +440,7 @@ class ArticulosController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def articulo_params
     params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable,
-                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos, :vendido_en, :is_materia_prima,
+                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos, :vendido_en, :is_materia_prima, :calcular_saco,
                                      imagen_attributes: [:file_name, :base_64, :path],
                                      contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis, :secuencia],
                                      formulas_productos_terminados_attributes: [:articulo_id, :cantidad, :costo, :_destroy, :articulo_combo, :id, :precio])

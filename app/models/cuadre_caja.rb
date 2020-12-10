@@ -26,7 +26,6 @@ class CuadreCaja < ApplicationRecord
 
       obj = {
         user_id: current_user.id,
-
         total_general: (ventas_contado_total_facturado_ + recibos_ingresos_).round(2),
         total_venta_credito: ventas_credito_,
         total_venta_contado: ventas_contado_total_facturado_,
@@ -50,7 +49,6 @@ class CuadreCaja < ApplicationRecord
         return { :error => false, :msg => "Cuadre realizado correctamente", :body => att, :status => 200 }
       end
     else
-      puts 'entro aquiiiiii'.yellow
       obj = {
         user_id: current_user.id,
         usuario: current_user.nombre.titleize + " " + current_user.apellido.titleize,

@@ -20,7 +20,7 @@ class Cliente < ApplicationRecord
     select_ = "SELECT c.* , v.nombre as vendedor_nombre, v.apellido as vendedor_apellido"
     from_ = "FROM clientes c"
     joins_ = "left join users v on c.vendedor_id = v.id"
-    where_ = "where lower(c.nombre || ' ' || c.apellido ) like lower('%#{arg}%') AND c.estado = true"
+    where_ = "where lower(c.nombre || ' ' || c.apellido) like lower('%#{arg}%') AND c.estado = true"
     order_ = "ORDER BY c.id ASC"
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"

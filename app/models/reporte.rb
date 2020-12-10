@@ -17,12 +17,8 @@ class Reporte < ApplicationRecord
     end
     # ---------------------------------------------------------------------------------------------------------
     def self.buscar_nombre_cliente(factura)
-        puts "factura ==> ".red + "#{factura}"
         cliente = ''
         if !factura["cliente_id"].nil? 
-            puts "ENTROOOO".yellow
-            puts "factura['cliente_id'] ==> ".red + "#{factura['cliente_id']}"
-            puts "factura['cliente_id'] 11 ==> ".red + "#{factura[:cliente_id]}"
             cli = Cliente.find_by_id(factura["cliente_id"])
             cliente = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
         else
@@ -31,7 +27,6 @@ class Reporte < ApplicationRecord
             end
         end
 
-        puts "cliente ==> ".green + "#{cliente}"
         return cliente
     end
     # ---------------------------------------------------------------------------------------------------------

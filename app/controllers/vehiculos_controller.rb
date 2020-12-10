@@ -29,7 +29,7 @@ class VehiculosController < ApplicationController
     paginado = params["paginado"] === "true" ? true : false
 
     vehiculos_ = Vehiculo.filtrarVehiculo(arg)
-    puts "a ver => " + "#{vehiculos_.to_json}"
+    
     vehiculos = Vehiculo.parsear(vehiculos_)
 
     res = []

@@ -59,11 +59,6 @@ class CabeceraFacturasController < ApplicationController
       campo = "last_20"
     end
 
-    puts "campoNum ==> ".red + "#{campoNum}"
-    puts "valor_des ==> ".red + "#{valor_des}"
-    puts "tipo_factura_id ==> ".red + "#{tipo_factura_id}"
-    puts "is_adelantada ==> ".red + "#{is_adelantada}"
-
     cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
 
     cabecera = []
@@ -287,7 +282,7 @@ class CabeceraFacturasController < ApplicationController
             end
             if factura_tipo != 4 || factura_tipo != "4"
               articuloSelect['cantidad_en_unidades'] = objD["cantidad_en_unidades"]
-              CabeceraFactura.movimientos_de_inventario(articuloSelect, params[:FACTURA_DE])
+              CabeceraFactura.movimientos_de_inventario(articuloSelect, params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
             end
           end
         end
