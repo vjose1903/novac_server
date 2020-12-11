@@ -225,16 +225,21 @@ class Articulo < ApplicationRecord
       existencia = 0
     end
 
+    puts "articulo ==> ".red + "#{articulo.to_json}"
+    puts "contenido.length ==> ".red + "#{contenido.length}"
+    
     cantidades = {}
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1
+      
       cantidades[articulo["medida"]] = (existencia / contenido[0]["cantidad"])
       cantidades[contenido[0]["medida"]] = existencia
     else
       maxCant = 1
       cantPadre = 1
       contenido.each do |conte|
+        puts "conte ==> ".red + "#{conte.to_json}"
         maxCant = conte["cantidad"] * maxCant
         if conte["condicion"] == "hijo"
           cantPadre = conte["cantidad"]

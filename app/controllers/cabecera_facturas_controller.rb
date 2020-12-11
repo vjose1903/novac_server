@@ -174,8 +174,8 @@ class CabeceraFacturasController < ApplicationController
     end
   end
 
-  def compareDateFactura(articulo)
-    if parsearDate(articulo["updated_at"]) != parsearDate(articulo["created_at"])
+  def articuloWasEdited(articulo)
+    if parsearDateTimeUTC(articulo["updated_at"]) != parsearDateTimeUTC(articulo["created_at"]) 
       return false
     else
       return true
@@ -189,10 +189,15 @@ class CabeceraFacturasController < ApplicationController
   def parsearData(objeto, movimiento_inventario = false, is_adelantada = false)
     puts "--------------- inicio parsearData ---------------"
 
+    puts "objeto ==> ".yellow + "#{objeto.to_json}"
+    puts "movimiento_inventario ==> ".yellow + "#{movimiento_inventario}"
+    puts "is_adelantada ==> ".yellow + "#{is_adelantada}"
+    
+    
     begin
       obj = objeto.attributes
       obj["detalle_facturas"] = objeto.detalle_facturas.to_a
-
+      
       obj["user"] = objeto.user
       obj["cliente"] = objeto.cliente
       obj["suplidor"] = objeto.suplidor
@@ -200,21 +205,29 @@ class CabeceraFacturasController < ApplicationController
     rescue
       obj = objeto
     end
-
+    
     @tipoFactura = TipoFactura.find_by_id(obj["tipo_factura_id"])
-
+    
+    puts "obj ==> ".yellow + "#{obj.to_json}"
     arrayDetalle = DetalleFactura.where({ cabecera_factura_id: obj["id"] })
     detalleFacturas = []
     contador_retirado = 0
+    
+    
     arrayDetalle.each do |detalleF|
       objD = {}
-
+      puts "detalleF ==> ".yellow + "#{detalleF.to_json}"
+      
       contenidoArticulo = ContenidoArticulo.where({ articulo_id: detalleF["articulo_id"] })
-
+      puts "contenidoArticulo ==> ".yellow + "#{contenidoArticulo.to_json}"
+      
       articuloSelect = Articulo.find_by_id(detalleF["articulo_id"])
       tipoArticulo = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
+      puts "articuloSelect ==> ".yellow + "#{articuloSelect.to_json}"
+      
+      continuar = articuloWasEdited(articuloSelect)
 
-      continuar = compareDateFactura(articuloSelect)
+      puts "continuar ==> ".yellow + "#{continuar.to_json}"
 
       unless continuar
         articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])
@@ -272,27 +285,20 @@ class CabeceraFacturasController < ApplicationController
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
 
-      my_print_log( "objeto['is_adelantada'] ==> ".red + "#{objeto["is_adelantada"]}")
       
       
       unless objeto["is_adelantada"]
-        my_print_log( "movimiento_inventario ==> ".red + "#{movimiento_inventario}")
         if movimiento_inventario
           unless @actual_secuencia_factura == nil
-            my_print_log( "@actual_secuencia_factura ==> ".red + "#{@actual_secuencia_factura}")
             factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
 
-            my_print_log( "factura_tipo ==> ".red + "#{factura_tipo}")
             
-            my_print_log( "articuloSelect 00 ==> ".red + "#{articuloSelect }")
             if articuloSelect["contenido_articulos"] == nil
               array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(articuloSelect["id"])
               articuloSelect["contenido_articulos"] = array_contenido
             end
             
-            my_print_log( "articuloSelect 11 ==> ".red + "#{articuloSelect }")
 
-            my_print_log(  "FACTURA TIPO --- " + "#{factura_tipo}")
             if factura_tipo != 4 || factura_tipo != "4"
              # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
               CabeceraFactura.movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)

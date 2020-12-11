@@ -30,20 +30,25 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
+
     
-    fechaConHora = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
+    fecha_factura = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
     
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
+    fecha_ultima_edicion = parsearDateTimeUTC(articulo["updated_at"])
+
+
     
-    if fechaConHora + ":59" >= parsearDateTimeUTC(articulo["updated_at"])      
+    
+    if fecha_factura + ":59" >= fecha_ultima_edicion
       historico.push(Articulo.parseal(articulo))
       
     else
-      hist = get_historico_by_date_menor(fechaConHora + ":59", articulo_id)
-
+      hist = get_historico_by_date_menor(fecha_factura + ":59", articulo_id)
+      
       if hist.rows == []
-        histM = get_historico_by_date_mayor(fechaConHora + ":00", articulo_id)
+        histM = get_historico_by_date_mayor(fecha_factura + ":00", articulo_id)
         if histM.rows == []
           historico.push(Articulo.parseal(articulo))
         else
@@ -87,60 +92,64 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.crearArticuloHistorico(historico, articulo)
+    
+    
     contenidoArticulo = articulo.contenido_articulos
-
+    
     articuloHistorico = {}
-    articuloHistorico["id"] = articulo["id"]
-    articuloHistorico["tipo_articulo_id"] = historico["ant_tipoArticuloId"]
-    articuloHistorico["nombre"] = historico["ant_nombre"]
-    articuloHistorico["costo_principal"] = historico["ant_costoP"]
-    articuloHistorico["precio_principal"] = historico["ant_precioP"]
-    articuloHistorico["existencia"] = articulo["existencia"]
-    articuloHistorico["codigo"] = articulo["codigo"]
-    articuloHistorico["fecha_ingreso"] = articulo["fecha_ingreso"]
-    articuloHistorico["medida"] = historico["ant_medida"]
-    articuloHistorico["is_detallable"] = historico["ant_isDetallable"]
-    articuloHistorico["created_at"] = articulo["created_at"]
-    articuloHistorico["updated_at"] = articulo["updated_at"]
-    articuloHistorico["imagen_id"] = articulo["imagen_id"]
-    articuloHistorico["aviso_existencia"] = historico["ant_alertaExistencia"]
-    articuloHistorico["medida_alerta"] = historico["ant_medidaAlerta"]
-    articuloHistorico["calcular_itbis"] = historico["ant_calcularItbis"]
-    articuloHistorico["is_combo"] = historico["ant_isCombo"]
-    articuloHistorico["otros_costos"] = historico["ant_otrosCostos"]
-    articuloHistorico["is_materia_prima"] = historico["is_materia_prima"]
-    articuloHistorico["vendido_en"] = historico["vendido_en"]
-
+    articuloHistorico["tipo_articulo_id"]       = historico["ant_tipoArticuloId"]
+    articuloHistorico["nombre"]                 = historico["ant_nombre"]
+    articuloHistorico["costo_principal"]        = historico["ant_costoP"]
+    articuloHistorico["precio_principal"]       = historico["ant_precioP"]
+    articuloHistorico["medida"]                 = historico["ant_medida"]
+    articuloHistorico["is_detallable"]          = historico["ant_isDetallable"]
+    articuloHistorico["aviso_existencia"]       = historico["ant_alertaExistencia"]
+    articuloHistorico["medida_alerta"]          = historico["ant_medidaAlerta"]
+    articuloHistorico["calcular_itbis"]         = historico["ant_calcularItbis"]
+    articuloHistorico["is_combo"]               = historico["ant_isCombo"]
+    articuloHistorico["otros_costos"]           = historico["ant_otrosCostos"]
+    articuloHistorico["is_materia_prima"]       = historico["is_materia_prima"]
+    articuloHistorico["vendido_en"]             = historico["vendido_en"]
+    articuloHistorico["id"]                     = articulo["id"]
+    articuloHistorico["existencia"]             = articulo["existencia"]
+    articuloHistorico["codigo"]                 = articulo["codigo"]
+    articuloHistorico["fecha_ingreso"]          = articulo["fecha_ingreso"]
+    articuloHistorico["created_at"]             = articulo["created_at"]
+    articuloHistorico["updated_at"]             = articulo["updated_at"]
+    articuloHistorico["imagen_id"]              = articulo["imagen_id"]
+    
     contents = []
     contenidoArticulo.each do |contenido|
       conte = {}
       if contenido["referencia"]
-        conte["id"] = contenido["id"]
-        conte["articulo_id"] = contenido["articulo_id"]
-        conte["referencia"] = contenido["referencia"]
-        conte["costo"] = historico["ant_costoHijo"]
-        conte["precio"] = historico["ant_precioHijo"]
-        conte["cantidad"] = historico["ant_cantidadHijo"]
-        conte["condicion"] = contenido["condicion"]
-        conte["medida"] = historico["ant_medidaHijo"]
-        conte["created_at"] = contenido["created_at"]
-        conte["updated_at"] = contenido["updated_at"]
+        conte["costo"]          = historico["ant_costoHijo"]
+        conte["precio"]         = historico["ant_precioHijo"]
+        conte["cantidad"]       = historico["ant_cantidadHijo"]
+        conte["medida"]         = historico["ant_medidaHijo"]
+        conte["id"]             = contenido["id"]
+        conte["referencia"]     = contenido["referencia"]
+        conte["condicion"]      = contenido["condicion"]
+        conte["articulo_id"]    = contenido["articulo_id"]
+        conte["created_at"]     = contenido["created_at"]
+        conte["updated_at"]     = contenido["updated_at"]
       else
-        conte["id"] = contenido["id"]
-        conte["articulo_id"] = contenido["articulo_id"]
-        conte["referencia"] = contenido["referencia"]
-        conte["costo"] = historico["ant_costoPadre"]
-        conte["precio"] = historico["ant_precioPadre"]
-        conte["cantidad"] = historico["ant_cantidadPadre"]
-        conte["condicion"] = contenido["condicion"]
-        conte["medida"] = historico["ant_medidaPadre"]
-        conte["created_at"] = contenido["created_at"]
-        conte["updated_at"] = contenido["updated_at"]
+        conte["costo"]          = historico["ant_costoPadre"]
+        conte["precio"]         = historico["ant_precioPadre"]
+        conte["cantidad"]       = historico["ant_cantidadPadre"]
+        conte["medida"]         = historico["ant_medidaPadre"]
+        conte["articulo_id"]    = contenido["articulo_id"]
+        conte["id"]             = contenido["id"]
+        conte["referencia"]     = contenido["referencia"]
+        conte["condicion"]      = contenido["condicion"]
+        conte["created_at"]     = contenido["created_at"]
+        conte["updated_at"]     = contenido["updated_at"]
       end
       contents.push(conte)
     end
-    articuloHistorico["contenido_articulos"] = contents
 
+
+    articuloHistorico["contenido_articulos"] = contents
+    
     if historico["ant_isCombo"]
       fomulaS = []
       formulas = MantenimientoFormula.get_mantenimiento_formulas_by_secuencia(historico["secuencia"])
