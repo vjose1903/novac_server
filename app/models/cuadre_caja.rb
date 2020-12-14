@@ -49,9 +49,12 @@ class CuadreCaja < ApplicationRecord
         return { :error => false, :msg => "Cuadre realizado correctamente", :body => att, :status => 200 }
       end
     else
+
+      user_cuadro = User.find_by_id(today_cuadre[0]["user_id"])
       obj = {
-        user_id: current_user.id,
-        usuario: current_user.nombre.titleize + " " + current_user.apellido.titleize,
+
+        user_id: today_cuadre[0]["user_id"],
+        usuario: user_cuadro.nombre.titleize + " " + user_cuadro.apellido.titleize,
         fecha_equivalente: DateTime.now,
 
         total_general: today_cuadre[0]["total_general"],
