@@ -27,7 +27,7 @@ class CabeceraFacturasController < ApplicationController
   def updateFacturaById
     CabeceraFactura.transaction do
       id = params[:id]
-      respuesta = CabeceraFactura.updateFactura(id, params)
+      respuesta = CabeceraFactura.updateFactura(id, params, current_user)
       render json: respuesta, status: respuesta[:status]
       
     end

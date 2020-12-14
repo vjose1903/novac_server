@@ -118,7 +118,7 @@ class CabeceraFactura < ApplicationRecord
     end
   end
   # ====================================================================================================
-  def self.updateFactura(id, params={})
+  def self.updateFactura(id, params={}, user_current)
 
     CabeceraFactura.transaction do
       validado = verificateCanUpdate(id)
@@ -174,7 +174,7 @@ class CabeceraFactura < ApplicationRecord
              # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
 
             # si voy a editar una factura de compra buscar el movimiento de inventario que se genero cuando se compro la factura y borrarlo
-            CabeceraFactura.movimientos_de_inventario(art, detalle['cantidad_en_unidades'], @factura_de, 'editar_factura', factura_original, current_user)
+            CabeceraFactura.movimientos_de_inventario(art, detalle['cantidad_en_unidades'], @factura_de, 'editar_factura', factura_original, user_current)
           end
           
         end
