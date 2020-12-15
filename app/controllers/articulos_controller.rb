@@ -244,12 +244,12 @@ class ArticulosController < ApplicationController
     Articulo.transaction do
       @ant_articulo = Articulo.parseal(@articulo)
      
-      check_saco = checkSacoSistema(articulo_params)
+      # check_saco = checkSacoSistema(articulo_params)
 
-      if check_saco[:error]
-        return render json: {msg: check_saco[:msg]}, status: 404
-        raise ActiveRecord::Rollback
-      end
+      # if check_saco[:error]
+      #   return render json: {msg: check_saco[:msg]}, status: 404
+      #   raise ActiveRecord::Rollback
+      # end
       
 
       if articulo_params["existencia"] == @ant_articulo["existencia"]
