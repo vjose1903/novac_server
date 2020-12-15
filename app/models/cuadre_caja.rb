@@ -19,7 +19,8 @@ class CuadreCaja < ApplicationRecord
       ).sum(:total_factura)
 
       recibos_ingresos_ = RecibosIngreso.where(
-        { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day }
+        { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
+          forma_pago: "Efectivo"}
       ).sum(:total)
 
       # CuadreCaja.find_numero_reporte
