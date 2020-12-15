@@ -47,7 +47,19 @@ class RecibosIngresosController < ApplicationController
       att.except(:incidencia)
       @recibos_ingreso = RecibosIngreso.new(att)
 
-      @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
+      
+      
+      today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+
+      
+      if today_cuadre.empty?
+        @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
+      else
+        @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : CabeceraFactura.calculateNextDay
+      end
+
+
+
       @recibos_ingreso.numero_recibo = RecibosIngreso.find_secuencia
 
       if @recibos_ingreso.save!
