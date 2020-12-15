@@ -220,10 +220,38 @@ class ArticulosController < ApplicationController
     end
   end
 
+  def checkSacoSistema(articulo_nuevo)
+    res = { :error => false, :msg => '' }
+    if @ant_articulo['nombre'] == 'Saco sistema'
+      if articulo_nuevo["nombre"] != 'Saco sistema'
+        return { :error => true, msg:'A este articulo no se le puede editar el nombre.' }
+      elsif articulo_nuevo["medida"] != 'Unidad'
+        return { :error => true, msg:'A este articulo no se le puede editar la medida en que se compra.' }
+      elsif articulo_nuevo["vendido_en"] != 'Unidad'
+        return { :error => true, msg:'A este articulo no se le puede editar la medida para vender.' }
+      elsif articulo_nuevo["tipo_articulo_id"] != 4
+        return { :error => true, msg:'A este articulo no se le puede editar el tipo de articulo.' }
+      elsif articulo_nuevo["is_materia_prima"] 
+        return { :error => true, msg:'Este articulo no se puede ser materia prima.' }
+      else 
+        return res
+      end
+    end
+  end
+
   # PATCH/PUT /articulos/1
   def update
     Articulo.transaction do
       @ant_articulo = Articulo.parseal(@articulo)
+     
+      check_saco = checkSacoSistema(articulo_params)
+
+      if check_saco[:error]
+        return render json: {msg: check_saco[:msg]}, status: 404
+        raise ActiveRecord::Rollback
+      end
+      
+
       if articulo_params["existencia"] == @ant_articulo["existencia"]
         seguir = addHistorico(@ant_articulo)
       else
@@ -279,7 +307,7 @@ class ArticulosController < ApplicationController
               lastContenido = @articulo.contenido_articulos.last
 
               unless lastContenido.update({ referencia: firstContenido.id })
-                render json: lastContenido.errors, status: :unprocessable_entity
+                return render json: lastContenido.errors, status: :unprocessable_entity
               end
             end
           else
@@ -301,11 +329,11 @@ class ArticulosController < ApplicationController
                 formula_ingrediente = FormulasProductosTerminado.new
               end
 
-              formula_ingrediente.articulo_id = @articulo["id"]
+              formula_ingrediente.articulo_id    = @articulo["id"]
               formula_ingrediente.articulo_combo = articulo_formula["articulo_combo"]
-              formula_ingrediente.cantidad = articulo_formula["cantidad"]
-              formula_ingrediente.costo = articulo_formula["costo"]
-              formula_ingrediente.precio = articulo_formula["precio"]
+              formula_ingrediente.cantidad       = articulo_formula["cantidad"]
+              formula_ingrediente.costo          = articulo_formula["costo"]
+              formula_ingrediente.precio         = articulo_formula["precio"]
 
               articulosAdd.push formula_ingrediente
             end
