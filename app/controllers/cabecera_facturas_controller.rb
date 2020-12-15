@@ -284,6 +284,8 @@ class CabeceraFacturasController < ApplicationController
       objD["tipo"] = tipoArticuloD
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
+      objD["calcular_saco"] = detalleF["calcular_saco"]
+      objD["se_calcula_saco"] = articuloSelect["calcular_saco"]
 
       
       
@@ -522,6 +524,6 @@ class CabeceraFacturasController < ApplicationController
                                              :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :aplicada_a, :tiene_nota,
                                              :is_completada, :is_viaje, :fecha_viaje,
                                              detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
-                                                                           :retirado_en_venta, :cantidad_en_unidades])
+                                                                           :retirado_en_venta, :cantidad_en_unidades, :calcular_saco])
   end
 end
