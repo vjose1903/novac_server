@@ -56,7 +56,7 @@ class CuadreCaja < ApplicationRecord
 
         user_id: today_cuadre[0]["user_id"],
         usuario: user_cuadro.nombre.titleize + " " + user_cuadro.apellido.titleize,
-        fecha_equivalente: DateTime.now,
+        fecha_equivalente: today_cuadre[0]["created_at"],
 
         total_general: today_cuadre[0]["total_general"],
         total_venta_credito: today_cuadre[0]["total_venta_credito"],

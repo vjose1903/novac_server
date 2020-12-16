@@ -100,7 +100,7 @@ class CabeceraFacturasController < ApplicationController
 
   def getFacturasByClienteIdAndEstado
     cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada]).to_a
-    cabe_viajes_contado_deviendo = CabeceraFactura.where({ is_viaje: true, condicion: "Contado" }).where.not(balance: 0).to_a
+    cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params[:id], is_viaje: true, condicion: "Contado" }).where.not(balance: 0).to_a
 
     cabe.concat cabe_viajes_contado_deviendo
 
