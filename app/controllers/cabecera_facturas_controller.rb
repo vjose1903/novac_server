@@ -325,7 +325,7 @@ class CabeceraFacturasController < ApplicationController
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
       objD["calcular_saco"] = detalleF["calcular_saco"]
-      objD["se_calcula_saco"] = checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
+      # objD["se_calcula_saco"] = checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
       
 
       
