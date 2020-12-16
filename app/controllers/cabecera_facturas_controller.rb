@@ -214,8 +214,10 @@ class CabeceraFacturasController < ApplicationController
   def checkFechaCalcularSaco(fecha, articulo)
     res = false
     
-    saco = Articulo.where({nombre:'Saco sistema'})[0]
-    if saco.id      
+    saco = Articulo.where({nombre:'Saco sistema'})
+
+    unless saco.empty?
+      saco = saco[0]
       puts saco.to_json.red
       is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
 
@@ -325,7 +327,7 @@ class CabeceraFacturasController < ApplicationController
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
       objD["calcular_saco"] = detalleF["calcular_saco"]
-      # objD["se_calcula_saco"] = checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
+      objD["se_calcula_saco"] = checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
       
 
       
