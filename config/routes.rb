@@ -39,6 +39,9 @@ Rails.application.routes.draw do
   # - CUENTAS POR COBRAR --------------------------------------------------------------
   # get "reporte/cuentas/cobrar/:tipo/:cliente_id" => "reportes#getCuentasCobrar"
 
+  # Cuadre caja
+  post "cuadre_cajas/custom/nuevo" => "cuadre_cajas#createCuadre"
+  
   # vehiculos
   get "vehiculos/filtro/:arg" => "vehiculos#getVehiculosFiltrados"
   patch "vehiculos/delete/:id" => "vehiculos#deleteVehiculo" #

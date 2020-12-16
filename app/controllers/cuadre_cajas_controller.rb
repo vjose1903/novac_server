@@ -6,10 +6,18 @@ class CuadreCajasController < ApplicationController
     # @cuadre_cajas = CuadreCaja.all
 
     # render json: @cuadre_cajas
+  end
+  
+  def createCuadre
+    CuadreCaja.transaction do
+      cuadre_caja = CuadreCaja.makecuadre(current_user)
+    
+      # raise ActiveRecord::Rollback
+      # return render json: {msg:'pruebas'}, status: 400
+    
+      render json: cuadre_caja, status: cuadre_caja[:status]
 
-    cuadre_caja = CuadreCaja.makecuadre(current_user)
-
-    render json: cuadre_caja, status: cuadre_caja[:status]
+    end
   end
 
   # GET /cuadre_cajas/1

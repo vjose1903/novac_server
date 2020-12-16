@@ -5,18 +5,30 @@ class CuadreCaja < ApplicationRecord
     today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).to_a
 
     if today_cuadre.empty?
-      ventas_contado_total_facturado_ = CabeceraFactura.where(
+      ventas_credito_total_facturado_ = 0
+      ventas_contado_total_facturado_ = 0
+      ventas_contado = CabeceraFactura.where(
         { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
           'fecha_completada': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
           tipo: "venta", condicion: "Contado", forma_pago: "Efectivo", is_viaje: false }
+      )
 
-      ).sum(:total_factura)
-
+      ventas_contado.each do |factura|
+        recalculo = CabeceraFactura.recalcularMonto(factura)        
+        ventas_contado_total_facturado_ = ventas_contado_total_facturado_ + recalculo[:total_facturado]
+      end
+      
       ventas_credito_ = CabeceraFactura.where(
-        { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
-          tipo: "venta",
-          condicion: "Crédito" }
-      ).sum(:total_factura)
+      { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
+        tipo: "venta",
+        condicion: "Crédito" }
+      )
+
+      ventas_credito_.each do |factura|
+        recalculo = CabeceraFactura.recalcularMonto(factura)        
+        ventas_credito_total_facturado_ = ventas_credito_total_facturado_ + recalculo[:total_facturado]
+      end
+      
 
       recibos_ingresos_ = RecibosIngreso.where(
         { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
@@ -28,7 +40,7 @@ class CuadreCaja < ApplicationRecord
       obj = {
         user_id: current_user.id,
         total_general: (ventas_contado_total_facturado_ + recibos_ingresos_).round(2),
-        total_venta_credito: ventas_credito_,
+        total_venta_credito: ventas_credito_total_facturado_,
         total_venta_contado: ventas_contado_total_facturado_,
         total_recibo_ingreso: recibos_ingresos_,
         total_anterior: 0,

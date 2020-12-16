@@ -19,6 +19,7 @@ class CabeceraFacturasController < ApplicationController
   
   # GET /cabecera_facturas/1
   def show
+
     @usuario_ = User.find_by_id(@cabecera_factura["user_id"])
     cabecera = parsearData(@cabecera_factura)
     render json: cabecera
@@ -40,10 +41,15 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def getFacturasByParams
+    puts "------- GETFACTURASBYPARAMS ------".yellow
     campoNum = params[:campo]
     valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
     tipo_factura_id = params[:tipo_factura_id]
     is_adelantada = params[:is_adelantada].to_boolean
+
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
 
     campo = ""
     if campoNum == "1"
@@ -56,20 +62,39 @@ class CabeceraFacturasController < ApplicationController
       campo = "numero_factura"
       valor_des = valor_des.to_i
     elsif campoNum == "4"
-      campo = "last_20"
+      campo = "last_50"
     end
 
-    cabe = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
+    facturas = []
 
-    cabecera = []
+    cabe_ = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
 
-    cabe.each do |factura|
-      @usuario_ = User.find_by_id(factura["user_id"])
-      cabecera_parsed = parsearData(factura, false, is_adelantada)
-      cabecera.push(cabecera_parsed) unless cabecera_parsed.nil?
+    puts "page --> #{page}".red
+    puts "per_page --> #{per_page}".red
+    puts "paginado --> #{paginado}".red
+    
+    if paginado
+
+      facturas = cabe_.to_a.my_paginate(page, per_page)
+
+      facturas[:data].each do |factura|
+        @usuario_ = User.find_by_id(factura["user_id"])
+        cabecera_parsed = parsearData(factura, false, is_adelantada)
+        factura = cabecera_parsed unless cabecera_parsed.nil?
+      end
+    else
+      cabe = cabe_
+
+      cabe.each do |factura|
+        @usuario_ = User.find_by_id(factura["user_id"])
+        cabecera_parsed = parsearData(factura, false, is_adelantada)
+        facturas.push(cabecera_parsed) unless cabecera_parsed.nil?
+      end
     end
 
-    render json: cabecera
+
+
+    render json: facturas
   end
 
   def getViajesSinCompletar
@@ -100,7 +125,7 @@ class CabeceraFacturasController < ApplicationController
 
   def getFacturasByClienteIdAndEstado
     cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada]).to_a
-    cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params[:id], is_viaje: true, condicion: "Contado" }).where.not(balance: 0).to_a
+    cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params[:id], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
 
     cabe.concat cabe_viajes_contado_deviendo
 
@@ -130,13 +155,13 @@ class CabeceraFacturasController < ApplicationController
       # NOTA DE CREDITO
       if att["is_nota"] && att["tipo_factura_id"] == 5
         resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
-        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id)
+        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
       end
 
       # NOTA DE DEBITO
       if att["is_nota"] && att["tipo_factura_id"] == 4
         resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
-        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id)
+        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
       end
 
       if resultCliente[:error]
@@ -184,6 +209,21 @@ class CabeceraFacturasController < ApplicationController
 
   def parsearDate(date)
     return DateTime.parse(date.to_s)
+  end
+
+  def checkFechaCalcularSaco(fecha, articulo)
+    res = false
+    
+    saco = Articulo.where({nombre:'Saco sistema'})[0]
+    if saco.id      
+      puts saco.to_json.red
+      is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
+
+      if is_correct && articulo["calcular_saco"] 
+        res = true
+      end
+    end
+    return res
   end
 
   def parsearData(objeto, movimiento_inventario = false, is_adelantada = false)
@@ -285,7 +325,8 @@ class CabeceraFacturasController < ApplicationController
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
       objD["calcular_saco"] = detalleF["calcular_saco"]
-      objD["se_calcula_saco"] = articuloSelect["calcular_saco"]
+      objD["se_calcula_saco"] = checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
+      
 
       
       
@@ -322,7 +363,8 @@ class CabeceraFacturasController < ApplicationController
     cliente = {}
     suplidor = {}
 
-    if !objeto["cliente_id"].nil? || objeto["is_nota"]
+    # if !objeto["cliente_id"].nil? || objeto["is_nota"]
+    if !objeto["cliente_id"].nil? 
       cli = Cliente.find_by_id(obj["cliente_id"])
       cliente["nombre"] = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
       cliente["telefono"] = cli["telefono"]
@@ -366,7 +408,7 @@ class CabeceraFacturasController < ApplicationController
     obj["fecha_completada"] = objeto["fecha_completada"]
     obj["fecha_viaje"] = objeto["fecha_viaje"]
 
-    pago_ = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] }).as_json
+    pago_ = DetalleRecibo.where({ cabecera_factura_id: objeto["id"] }).order('id DESC').as_json
     pago_parseo = []
 
     if pago_.length > 0

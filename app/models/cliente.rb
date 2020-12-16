@@ -44,29 +44,34 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.CalculateBalanceCLiente(id, totalFactura, operacion)
-    cliente = Cliente.find_by_id(id)
 
-    balance = 0
-    if !cliente["balance"].nil?
-      balance = cliente["balance"]
-    end
+    unless id
+      return { :error => false, :balance => 0 }
+    else  
+      cliente = Cliente.find_by_id(id)
+      balance = 0
+      if !cliente["balance"].nil?
+        balance = cliente["balance"]
+      end
 
-    sumatoria = 0
-    if operacion == "+"
-      sumatoria = balance + totalFactura.to_f
-    else
-      # if totalFactura.to_f > balance
-      #   return { :error => true, :msg => "El monto ingresado es mayor al balance del cliente", :status => 400 }
-      # else
-      sumatoria = balance - totalFactura.to_f
-      # end
-    end
-    sumatoria = sumatoria.to_d.truncate(2).to_f
+      sumatoria = 0
+      if operacion == "+"
+        sumatoria = balance + totalFactura.to_f
+      else
+        # if totalFactura.to_f > balance
+        #   return { :error => true, :msg => "El monto ingresado es mayor al balance del cliente", :status => 400 }
+        # else
+        sumatoria = balance - totalFactura.to_f
+        # end
+      end
+      sumatoria = sumatoria.to_d.truncate(2).to_f
 
-    unless cliente.update({ balance: sumatoria })
-      return { :error => true, :msg => "Error actualizanco el balance del cliente", :status => 400 }
-    else
-      return { :error => false, :balance => sumatoria }
+      unless cliente.update({ balance: sumatoria })
+        return { :error => true, :msg => "Error actualizanco el balance del cliente", :status => 400 }
+      else
+        return { :error => false, :balance => sumatoria }
+      end
+
     end
   end
 

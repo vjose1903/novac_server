@@ -41,9 +41,9 @@ class CabeceraFactura < ApplicationRecord
     if tipo_factura_id == 0 || tipo_factura_id == "0"
       if campo == "numero_comprobante"
         where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and is_adelantada = #{is_adelantada}"
-      elsif campo == "last_20"
+      elsif campo == "last_50"
         where_ = "WHERE tipo = 'venta' and is_adelantada = #{is_adelantada}"
-        limit_ = "LIMIT 20"
+        limit_ = "LIMIT 50"
         order_ = "ORDER BY ca.id DESC"
       else
         where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and is_adelantada = #{is_adelantada}"
@@ -70,7 +70,7 @@ class CabeceraFactura < ApplicationRecord
     joins_ =
       "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
     inner join users u on ca.user_id = u.id"
-    where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta' and condicion='Crédito'"
+    where_ = " WHERE cliente_id=#{cliente_id} and pagada=#{pagada} and tipo='venta' and condicion='Crédito' and ca.estado=true"
     query = "#{select_} #{from_} #{joins_} #{where_}"
     return my_query(query)
   end
@@ -363,9 +363,10 @@ puts "VOY A CAMBIAR EXISTENCIA ".yellow
       end
     end
 
+    calculo_balance = factura["balance"] + monto_editado_por_notas
     obj = {
-      balance: factura["balance"] + monto_editado_por_notas,
-      total_facturado: factura["total_facturado"] + monto_editado_por_notas,
+      balance: calculo_balance >= 1 ? calculo_balance : 0,
+      total_facturado: factura["total_factura"] + monto_editado_por_notas,
     }
     return obj
   end
@@ -398,38 +399,35 @@ puts "VOY A CAMBIAR EXISTENCIA ".yellow
   end
 
   # =====================================================================================================================
-  def self.ReCalculateBalanceFactura(id, totalFactura, operacion)
-    puts " -------------- Inicio ReCalculateBalanceFactura -------------- "
 
-    factura = CabeceraFactura.find_by_id(id)
-
-    balance = factura["balance"]
-
-    if operacion == "+"
-      sumatoria = balance + totalFactura.to_f
-    else
-      if totalFactura.to_f > balance
-        return { :error => true, :msg => "El monto ingresado es mayor al balance de la factura", :status => 400 }
-      else
-        sumatoria = balance - totalFactura.to_f
-      end
-    end
-    sumatoria = sumatoria.to_d.truncate(2).to_f
-
-    unless factura.update({ balance: sumatoria })
-      puts " -------------- fin ReCalculateBalanceFactura -------------- "
-      return { :error => true, :msg => "Error actualizanco el balance de la factura", :status => 400 }
-    else
-      puts " -------------- fin ReCalculateBalanceFactura -------------- "
-      return { :error => false, :balance => sumatoria }
-    end
-  end
   # =====================================================================================================================
-  def self.agregarNotaACabeceraFactura(id)
+  def self.agregarNotaACabeceraFactura(id, nota)
     puts " -------------- Inicio agregarNotaACabeceraFactura -------------- "
 
     factura = CabeceraFactura.find_by_id(id)
-    unless factura.update({ tiene_nota: true })
+    
+    monto_editado_por_notas = 0
+    notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] })
+    notas.each do |nota|
+      if nota["tipo_factura_id"] === 5
+        monto_editado_por_notas = monto_editado_por_notas - (nota["total_factura"].to_d).abs
+      elsif nota["tipo_factura_id"] === 4
+        monto_editado_por_notas = monto_editado_por_notas + (nota["total_factura"].to_d).abs
+      end
+    end
+
+    chequeo = factura["total_factura"] + monto_editado_por_notas
+
+    puts "CHEQUEO --> ".red + "#{chequeo}"
+    puts "NOTA['TOTAL_FACTURA'] --> ".red + "#{ (nota["total_factura"].to_d).abs }"
+    
+    if (nota["total_factura"].to_d).abs == chequeo || chequeo < 1
+      factura.estado = false
+    end
+    
+    factura.tiene_nota = true
+
+    unless factura.save!
       puts " -------------- fin agregarNotaACabeceraFactura -------------- "
       return { :error => true, :msg => "Error agregando nota la factura", :status => 400 }
     else
