@@ -221,6 +221,7 @@ class ArticulosController < ApplicationController
 
   def checkSacoSistema(articulo_nuevo)
     res = { :error => false, :msg => '' }
+
     if @ant_articulo['nombre'] == 'Saco sistema'
       if articulo_nuevo["nombre"] != 'Saco sistema'
         return { :error => true, msg:'A este articulo no se le puede editar el nombre.' }
@@ -236,6 +237,7 @@ class ArticulosController < ApplicationController
         return res
       end
     end
+    return res
   end
 
   # PATCH/PUT /articulos/1
@@ -243,12 +245,12 @@ class ArticulosController < ApplicationController
     Articulo.transaction do
       @ant_articulo = Articulo.parseal(@articulo)
      
-      # check_saco = checkSacoSistema(articulo_params)
-
-      # if check_saco[:error]
-      #   return render json: {msg: check_saco[:msg]}, status: 404
-      #   raise ActiveRecord::Rollback
-      # end
+      check_saco = checkSacoSistema(articulo_params)
+      puts 'check_saco --> '.red + "#{check_saco}"
+      if check_saco[:error]
+        return render json: {msg: check_saco[:msg]}, status: 404
+        raise ActiveRecord::Rollback
+      end
       
 
       if articulo_params["existencia"] == @ant_articulo["existencia"]
