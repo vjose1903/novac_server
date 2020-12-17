@@ -12,6 +12,25 @@ class CabeceraFactura < ApplicationRecord
   attribute :detalle_facturas
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
+  def self.getDetallesNotasByFactura(aplicadaA)
+    detalles_nota = {}
+    notas = CabeceraFactura.where({ aplicada_a: aplicadaA })
+
+    notas.each do |nota|
+      arrayDetalle = DetalleFactura.where({ cabecera_factura_id: nota["id"] })
+
+      arrayDetalle.each do |detalle|
+        unless detalles_nota[detalle.detalle_factura_nota]
+          detalles_nota[detalle.detalle_factura_nota] = 0
+        end
+
+        detalles_nota[detalle.detalle_factura_nota] += detalle.cantidad
+      end
+    end
+
+    return detalles_nota
+  end
+  # ===================================================================================================================================================
   def self.calculateNextDay
     tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime("%a")
     

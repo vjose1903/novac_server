@@ -38,6 +38,8 @@ rails g migration AddEstadoToVehiculo estado:boolean
 rails g migration AddIsMateriaPrimaToArticulo is_materia_prima:boolean
 rails g migration AddIsMateriaPrimaToMantenimientoArticulo is_materia_prima:boolean
 rails g migration AddCalcularSacoToDetalleFactura calcular_saco:boolean
+rails g migration AddCalcularSacoToMantenimientoArticulo calcular_saco:boolean
+rails g migration AddDetalleFacturaToDetalleFactura detalle_factura_nota:integer
 
 
 

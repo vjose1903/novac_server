@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_09_134003) do
+ActiveRecord::Schema.define(version: 2020_12_17_000114) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -167,6 +167,7 @@ ActiveRecord::Schema.define(version: 2020_12_09_134003) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "calcular_saco"
+    t.integer "detalle_factura_nota"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end

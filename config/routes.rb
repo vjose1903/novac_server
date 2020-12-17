@@ -92,6 +92,9 @@ Rails.application.routes.draw do
   get "users/filtro/:arg" => "users#getUsuariosFiltrados"
   get "users/custom/names" => "users#getUsersNames"
 
+  # notas 
+  get "cabecera_facturas/custom/get_cantidad_devuelto/:aplicadaA" => "cabecera_facturas#getCantidadDevuelto"
+
   # cabecera facturas
   get "cabecera_facturas/cliente/:id/pagada/:pagada" => "cabecera_facturas#getFacturasByClienteIdAndEstado"
   get "cabecera_facturas/cliente/:id" => "cabecera_facturas#getFacturasByClienteId"

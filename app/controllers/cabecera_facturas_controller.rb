@@ -8,6 +8,7 @@ class CabeceraFacturasController < ApplicationController
   # GET /cabecera_facturas
   def index
     # @cabecera_facturas = CabeceraFactura.all
+    @get_contenidos = params["get_contenidos"] == "true" ? true : false
     @cabecera_facturas = []
     CabeceraFactura.all.each do |factura|
       @usuario_ = User.find_by_id(factura["user_id"])
@@ -19,6 +20,8 @@ class CabeceraFacturasController < ApplicationController
   
   # GET /cabecera_facturas/1
   def show
+    
+    @get_contenidos = params["get_contenidos"] == "true" ? true : false
 
     @usuario_ = User.find_by_id(@cabecera_factura["user_id"])
     cabecera = parsearData(@cabecera_factura)
@@ -34,6 +37,12 @@ class CabeceraFacturasController < ApplicationController
     end
   end
   
+  
+  def getCantidadDevuelto
+    aplicadaA = params[:aplicadaA]
+    detalles = CabeceraFactura.getDetallesNotasByFactura(aplicadaA)
+    render json: detalles
+  end
 
   def verificateCanUpdateById
     id = params[:id]
@@ -286,15 +295,6 @@ class CabeceraFacturasController < ApplicationController
 
       unidad = detalleF["unidad"].split(" ")
 
-      if unidad.length > 1
-        objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
-        objD["unidad"] = "#{unidad[0]}"
-        objD["peso_saco"] = unidad[2]
-      else
-        objD["descripcion"] = "#{articuloSelect["nombre"]}"
-        objD["unidad"] = detalleF["unidad"]
-      end
-
       if unidad[0] == "Quintal" || unidad[0] == "Caja"
         costo_calculado = costoPrincipal
       elsif unidad[0] == "Saco"
@@ -328,7 +328,25 @@ class CabeceraFacturasController < ApplicationController
       objD["retirado"] = detalleF["retirado"]
       objD["calcular_saco"] = detalleF["calcular_saco"]
       objD["se_calcula_saco"] = checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
+
+      if @get_contenidos
+        objD["contenidos"] = Articulo.calcularContenidos(articuloSelect)
+      end
       
+      if unidad.length > 1
+        if objD["se_calcula_saco"]
+          
+          objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)#{objD["calcular_saco"] ? '' : '*'}"
+        else
+          objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
+        end
+        
+        objD["unidad"] = "#{unidad[0]}"
+        objD["peso_saco"] = unidad[2]
+      else
+        objD["descripcion"] = "#{articuloSelect["nombre"]}"
+        objD["unidad"] = detalleF["unidad"]
+      end
 
       
       
@@ -568,6 +586,6 @@ class CabeceraFacturasController < ApplicationController
                                              :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :aplicada_a, :tiene_nota,
                                              :is_completada, :is_viaje, :fecha_viaje,
                                              detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
-                                                                           :retirado_en_venta, :cantidad_en_unidades, :calcular_saco])
+                                                                           :retirado_en_venta, :cantidad_en_unidades, :calcular_saco, :detalle_factura_nota])
   end
 end
