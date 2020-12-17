@@ -55,7 +55,8 @@ class CabeceraFactura < ApplicationRecord
     inner join users u on ca.user_id = u.id"
     where_ = ""
     limit_ = ""
-    order_ = ""
+    
+    order_ = "ORDER BY ca.id DESC"
     
     if tipo_factura_id == 0 || tipo_factura_id == "0"
       if campo == "numero_comprobante"
@@ -63,7 +64,6 @@ class CabeceraFactura < ApplicationRecord
       elsif campo == "last_50"
         where_ = "WHERE tipo = 'venta' and is_adelantada = #{is_adelantada}"
         limit_ = "LIMIT 50"
-        order_ = "ORDER BY ca.id DESC"
       else
         where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and is_adelantada = #{is_adelantada}"
       end
