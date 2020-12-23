@@ -379,16 +379,20 @@ puts "VOY A CAMBIAR EXISTENCIA ".yellow
     puts " -------------- Inicio CalculateBalanceFactura -------------- "
 
     factura = CabeceraFactura.find_by_id(id)
-
     balance = factura["balance"]
+    my_print_log("factura==> #{factura.to_json}")
 
     total_facturado = factura["total_factura"]
 
     if factura.tiene_nota
+
       total_facturado = recalcularMonto(factura)
     end
 
+
     sumatoria = 0
+    my_print_log(" monto recibido --> #{montoRecibido}")
+    my_print_log(" balance --> #{balance}")
 
     if montoRecibido.to_f > balance
       return { :error => true, :msg => "El monto ingresado para la factura: #{factura.numero_comprobante}, es mayor al balance de la factura", :status => 400 }
