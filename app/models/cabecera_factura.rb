@@ -55,8 +55,8 @@ class CabeceraFactura < ApplicationRecord
     inner join users u on ca.user_id = u.id"
     where_ = ""
     limit_ = ""
-    
     order_ = "ORDER BY ca.id DESC"
+    
     
     if tipo_factura_id == 0 || tipo_factura_id == "0"
       if campo == "numero_comprobante"
@@ -146,16 +146,6 @@ class CabeceraFactura < ApplicationRecord
         @factura_de = params['FACTURA_DE']
         factura_nueva = params['cabecera_factura']
         factura_original = CabeceraFactura.find_by_id(id)
-
-        puts "FACTURA_DE ==> #{@factura_de}".yellow
-      
-        puts " "
-        puts "++++++++".green * 20 
-        puts factura_nueva
-        puts "++++++++".green * 20 
-        puts " "
-        
-        
         
         if factura_original[:condicion] == "Crédito"
           resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura0], "-")
@@ -197,12 +187,6 @@ class CabeceraFactura < ApplicationRecord
           end
           
         end
-        
-        puts " JUSTO ANTES DE ACTUALIZAR "
-        puts "++++++++".red * 20 
-        puts "factura anterior => ".red + "#{factura_original.to_json}"    
-        puts "++++++++".red * 20 
-        puts " "
 
         factura_original.total_factura   = factura_nueva['total_factura']
         factura_original.itbis           = factura_nueva['itbis']
