@@ -7,10 +7,13 @@ class CuadreCaja < ApplicationRecord
     if today_cuadre.empty?
       ventas_credito_total_facturado_ = 0
       ventas_contado_total_facturado_ = 0
-      ventas_contado = CabeceraFactura.where(
+
+      
+
+      ventas_contado = CabeceraFactura.where("forma_pago = 'Efectivo' OR forma_pago = 'Cheque'").where(
         { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
           'fecha_completada': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
-          tipo: "venta", condicion: "Contado", forma_pago: "Efectivo", is_viaje: false }
+          tipo: "venta", condicion: "Contado", is_viaje: false }
       )
 
       ventas_contado.each do |factura|
@@ -30,9 +33,8 @@ class CuadreCaja < ApplicationRecord
       end
       
 
-      recibos_ingresos_ = RecibosIngreso.where(
-        { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
-          forma_pago: "Efectivo"}
+      recibos_ingresos_ = RecibosIngreso.where("forma_pago = 'Efectivo' OR forma_pago = 'Cheque'").where(
+        { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day}
       ).sum(:total)
 
       # CuadreCaja.find_numero_reporte
