@@ -22,9 +22,9 @@ class Reporte < ApplicationRecord
             cli = Cliente.find_by_id(factura["cliente_id"])
             tempNom = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
             longitud= tempNom.length
-            # maximo de caracteres 45
+            # maximo de caracteres 48
 
-            cliente["nombre"] = longitud > 45 ? "#{tempNom[0, 45]}..." : tempNom
+            cliente["nombre"] = longitud > 48 ? "#{tempNom[0, 48]}..." : tempNom
 
             cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
         else
