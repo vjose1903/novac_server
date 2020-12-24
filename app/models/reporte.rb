@@ -3,12 +3,12 @@ class Reporte < ApplicationRecord
     def self.estructura_reporte(titulo, _tipo_reporte, content, total_ ,sub_titulo_ ,current_user)
         temp_Emp = current_user.nombre.titleize + " " + current_user.apellido.titleize
         longitud= temp_Emp.length
-        # maximo de caracteres 18
+        # maximo de caracteres 15
         obj= {
             titulo_reporte:titulo,
             tipo_reporte: _tipo_reporte,
             fecha: formatearFecha(DateTime.now.to_s ,2),
-            realizado_por: longitud > 18 ? "#{temp_Emp[0, 18]}..." : temp_Emp,
+            realizado_por: longitud > 15 ? "#{temp_Emp[0, 15]}..." : temp_Emp,
             mostrar_total: total_[:bool],
             total: total_[:bool] ? total_[:total] : 0,
             mostrar_sub_titulo: sub_titulo_[:bool],
