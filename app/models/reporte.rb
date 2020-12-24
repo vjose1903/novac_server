@@ -26,7 +26,7 @@ class Reporte < ApplicationRecord
             tempNom = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
             longitud= tempNom.length
 
-            cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, max_lengt]}..." : tempNom
+            cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom
             cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
         else
             if !factura["NoCliente_nombre"].nil?
@@ -100,7 +100,7 @@ class Reporte < ApplicationRecord
             end
 
             total_cuentas += att['total_factura']
-            client = buscar_cliente(att, 14)
+            client = buscar_cliente(att, 13)
 
             att['cliente_nombre'] = client['nombre']
             att['cliente_rnc'] = client['rnc']
