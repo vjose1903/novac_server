@@ -66,12 +66,17 @@ class Reporte < ApplicationRecord
             descripcion = tipo_nota.descripcion.split(" ")[2]
 
             factura['total_factura'] += nota['total_factura']
+            factura['balance'] += nota['total_factura']
             # if descripcion == 'credito'
             #     att['total_factura'] -= nota['total_factura']
             # elsif descripcion == 'contado'
             # end
         end
-        return (factura['total_factura']).round(2)
+        obj = {
+            total_factura: (factura['total_factura']).round(2),
+            balance: (factura['balance']).round(2),
+        }
+        return obj
     end
     # ---------------------------------------------------------------------------------------------------------
     
@@ -99,10 +104,14 @@ class Reporte < ApplicationRecord
             att = get_antiguedad_saldo(att)
 
             if att['tiene_nota']
-                att['total_factura'] = recalculo_por_nota(att)
+                recalculo = recalculo_por_nota(att)
+                puts "AQUI HAY NOTAAA ".yellow
+                puts "recalculo ==> ".red + "#{recalculo}"
+                att['total_factura'] = recalculo[:total_factura]
+                att['balance'] = recalculo[:balance]
             end
 
-            total_cuentas += att['total_factura']
+            total_cuentas += att['balance']
             client = buscar_cliente(att, longitud)
 
             att['cliente_nombre'] = client['nombre']
@@ -151,7 +160,10 @@ class Reporte < ApplicationRecord
             att = factura.attributes
             
             if att['tiene_nota']
-                att['total_factura'] = recalculo_por_nota(att)
+                puts "AQUI HAY NOTAAA ".yellow
+                recalculo = recalculo_por_nota(att)
+                att['total_factura'] = recalculo[:total_factura]
+                att['balance'] = recalculo[:balance]
             end
 
             total_ventas += att['total_factura']
