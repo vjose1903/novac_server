@@ -100,7 +100,7 @@ class Reporte < ApplicationRecord
             end
 
             total_cuentas += att['total_factura']
-            client = buscar_cliente(att, 12)
+            client = buscar_cliente(att, 11)
 
             att['cliente_nombre'] = client['nombre']
             att['cliente_rnc'] = client['rnc']
