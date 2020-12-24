@@ -81,6 +81,8 @@ class Reporte < ApplicationRecord
         longitud = 11 
         cuentas_temp = []
         query = {}
+        query['tipo'] = "venta"
+
         if tipo == '2'
             query['cliente_id'] = cliente_id 
             longitud = 48 
