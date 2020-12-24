@@ -16,14 +16,21 @@ class Reporte < ApplicationRecord
         return obj
     end
     # ---------------------------------------------------------------------------------------------------------
-    def self.buscar_nombre_cliente(factura)
-        cliente = ''
+    def self.buscar_cliente(factura)
+        cliente = {}
         if !factura["cliente_id"].nil? 
             cli = Cliente.find_by_id(factura["cliente_id"])
-            cliente = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
+            tempNom = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
+            longitud= tempNom.length
+            # maximo de caracteres 45
+
+            cliente["nombre"] = longitud > 45 ? "#{tempNom[0, 45]}..." : tempNom
+
+            cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
         else
             if !factura["NoCliente_nombre"].nil?
-                cliente = factura["NoCliente_nombre"]
+                cliente["nombre"] = factura["NoCliente_nombre"]
+                cliente["rnc"] = "-------------"
             end
         end
 
@@ -76,7 +83,7 @@ class Reporte < ApplicationRecord
             query['cliente_id'] = cliente_id 
         end
         
-        cuentas_temp = CabeceraFactura.where(query).where("balance >= 1")
+        cuentas_temp = CabeceraFactura.where(query).where("balance >= 1").order('id ASC')
 
         total_cuentas=0
         cuentas = []
@@ -91,12 +98,15 @@ class Reporte < ApplicationRecord
             end
 
             total_cuentas += att['total_factura']
-            att['cliente_nombre'] = buscar_nombre_cliente(att)
+            client = buscar_cliente(att)
+
+            att['cliente_nombre'] = client['nombre']
+            att['cliente_rnc'] = client['rnc']
 
             cuentas.push(att)
         end
 
-        obj = { body: cuentas, total: (total_cuentas).round(2), sub_t: "Cliente: #{ buscar_nombre_cliente(query) }"}
+        obj = { body: cuentas, total: (total_cuentas).round(2), sub_t: "Cliente: #{ buscar_cliente(query)["nombre"] }"}
         # obj = { body: cuentas, total: 0 }
 
         return obj
@@ -128,7 +138,7 @@ class Reporte < ApplicationRecord
 
         query['tipo'] = 'venta'
         query['is_nota'] = false
-        ventas_temp = CabeceraFactura.where(query)
+        ventas_temp = CabeceraFactura.where(query).order('id ASC')
         
         ventas=[]
         total_ventas=0
@@ -140,7 +150,9 @@ class Reporte < ApplicationRecord
             end
 
             total_ventas += att['total_factura']
-            att['cliente_nombre'] = buscar_nombre_cliente(att)
+            client = buscar_cliente(att)
+            att['cliente_nombre'] = client['nombre']
+            att['cliente_rnc'] = client['rnc']
             
             ventas.push(att)
         end
