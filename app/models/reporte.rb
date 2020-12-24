@@ -78,11 +78,12 @@ class Reporte < ApplicationRecord
     def self.get_cuentas_cobrar(params)
         tipo = params["tipo"]
         cliente_id = params["cliente_id"]
-        
+        longitud = 11 
         cuentas_temp = []
         query = {}
         if tipo == '2'
             query['cliente_id'] = cliente_id 
+            longitud = 48 
         end
         
         cuentas_temp = CabeceraFactura.where(query).where("balance >= 1").order('id ASC')
@@ -100,7 +101,7 @@ class Reporte < ApplicationRecord
             end
 
             total_cuentas += att['total_factura']
-            client = buscar_cliente(att, 11)
+            client = buscar_cliente(att, longitud)
 
             att['cliente_nombre'] = client['nombre']
             att['cliente_rnc'] = client['rnc']
