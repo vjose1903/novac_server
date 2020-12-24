@@ -19,15 +19,14 @@ class Reporte < ApplicationRecord
         return obj
     end
     # ---------------------------------------------------------------------------------------------------------
-    def self.buscar_cliente(factura)
+    def self.buscar_cliente(factura, max_lengt)
         cliente = {}
         if !factura["cliente_id"].nil? 
             cli = Cliente.find_by_id(factura["cliente_id"])
             tempNom = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
             longitud= tempNom.length
-            # maximo de caracteres 48
 
-            cliente["nombre"] = longitud > 48 ? "#{tempNom[0, 48]}..." : tempNom
+            cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, max_lengt]}..." : tempNom
             cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
         else
             if !factura["NoCliente_nombre"].nil?
@@ -45,6 +44,7 @@ class Reporte < ApplicationRecord
         factura['treinta_uno_to_sesenta']= "-"
         factura['sesenta_uno_to_noventa']= "-"
         factura['noventa_uno_to_more']= "-"
+
 
         if comparar_fecha( factura['fecha_equivalente'].to_s, 1.minutes.ago.to_s, '<=') && comparar_fecha( factura['fecha_equivalente'].to_s, 30.days.ago.to_s, '>=')
             factura['cero_to_treinta'] = factura['numero_comprobante']
@@ -100,7 +100,7 @@ class Reporte < ApplicationRecord
             end
 
             total_cuentas += att['total_factura']
-            client = buscar_cliente(att)
+            client = buscar_cliente(att, 14)
 
             att['cliente_nombre'] = client['nombre']
             att['cliente_rnc'] = client['rnc']
@@ -108,7 +108,7 @@ class Reporte < ApplicationRecord
             cuentas.push(att)
         end
 
-        obj = { body: cuentas, total: (total_cuentas).round(2), sub_t: "Cliente: #{ buscar_cliente(query)["nombre"] }"}
+        obj = { body: cuentas, total: (total_cuentas).round(2), sub_t: "Cliente: #{ buscar_cliente(query, 48)["nombre"] }"}
         # obj = { body: cuentas, total: 0 }
 
         return obj
@@ -152,7 +152,7 @@ class Reporte < ApplicationRecord
             end
 
             total_ventas += att['total_factura']
-            client = buscar_cliente(att)
+            client = buscar_cliente(att, 48)
             att['cliente_nombre'] = client['nombre']
             att['cliente_rnc'] = client['rnc']
             
