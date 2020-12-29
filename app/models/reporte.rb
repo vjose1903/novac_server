@@ -105,8 +105,6 @@ class Reporte < ApplicationRecord
 
             if att['tiene_nota']
                 recalculo = recalculo_por_nota(att)
-                puts "AQUI HAY NOTAAA ".yellow
-                puts "recalculo ==> ".red + "#{recalculo}"
                 att['total_factura'] = recalculo[:total_factura]
                 att['balance'] = recalculo[:balance]
             end
@@ -122,6 +120,36 @@ class Reporte < ApplicationRecord
 
         obj = { body: cuentas, total: (total_cuentas).round(2), sub_t: "Cliente: #{ buscar_cliente(query, 48)["nombre"] }"}
         # obj = { body: cuentas, total: 0 }
+
+        return obj
+        
+    end
+    
+    # ---------------------------------------------------------------------------------------------------------
+    def self.calcularCantidades(articulos)
+        array=[]
+        articulos.each do |articulo|
+            obj                       = articulo.attributes
+            obj["cantidades"]         = Articulo.calcularCantidades(articulo)
+            # cant = number_with_delimiter(obj["cantidades"][articulo['medida']] , :precision => 2, :delimiter => ",", :separator => ".")
+            
+            cant = number_with_delimiter( ("%.2f" % obj["cantidades"][articulo['medida']]).gsub(',','.'))
+            obj['cantidad_principal'] = "#{cant} #{articulo['medida']}"
+            array.push(obj)
+        end
+        return array
+    end
+
+    # ---------------------------------------------------------------------------------------------------------
+    def self.get_inventario(params)
+        inventario_temp = []
+        query={}
+        inventario_temp = Articulo.all    
+        inventario_temp = calcularCantidades(inventario_temp)
+
+        inventario = inventario_temp.sort_by! { |k| k["nombre"]}
+        cantidad_articulos = Articulo.countArticulos
+        obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos['count'] }"}
 
         return obj
 

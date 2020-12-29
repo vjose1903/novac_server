@@ -22,9 +22,7 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.countArticulos()
-    arg = arg === " " ? "" : arg
-     
+  def self.countArticulos() 
     select_ = "SELECT count(id)"
     from_ = "FROM articulos "
     joins_ = ""
@@ -49,12 +47,12 @@ class Articulo < ApplicationRecord
               left join imagenes img on img.id = a.imagen_id"
 
     if is_compra
-      where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id != 3"
+      where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id != 3"
     else
       if tipo === "todos"
-        where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
+        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
       else
-        where_ = "where  lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id = #{tipo}"
+        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id = #{tipo}"
       end
     end
 
