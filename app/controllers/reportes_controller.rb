@@ -5,8 +5,8 @@ class ReportesController < ApplicationController
     def getReportes
         tipo_reporte = params["tipo_reporte"]
 
-        muestra_total=['ventas','cuentas_cobrar']
-        muestra_sub_titulo=['inventario']
+        muestra_total=['ventas','cuentas_cobrar','recibos']
+        muestra_sub_titulo=['inventario','recibos']
         tipo = ''
 
         muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '2'
@@ -26,11 +26,19 @@ class ReportesController < ApplicationController
             else
                 tipo = 'cxc_ant'
             end
+            
         elsif tipo_reporte==='inventario'
             # ------------------- REPORTE DE INVENTARIO --------------------
             body = Reporte.get_inventario(params)
             titulo = "Reporte de inventario"
             tipo = 'inventario'
+
+        elsif tipo_reporte==='recibos'
+            # ------------------- REPORTE DE RECIBOS --------------------
+            body = Reporte.get_recibos(params)
+            titulo = "Reporte de Recibos de ingreso"
+            tipo = 'recibos'
+
             
         end
 

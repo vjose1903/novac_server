@@ -146,15 +146,66 @@ class Reporte < ApplicationRecord
         query={}
         inventario_temp = Articulo.all    
         inventario_temp = calcularCantidades(inventario_temp)
-
+        
         inventario = inventario_temp.sort_by! { |k| k["nombre"]}
         cantidad_articulos = Articulo.countArticulos
         obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos['count'] }"}
-
+        
         return obj
+        
+    end
+    
+    # ---------------------------------------------------------------------------------------------------------
 
+    def self.getInfoFactura(objeto, buscando)
+        obj={}
+        id = objeto.detalle_recibos[0].cabecera_factura_id
+        buscando.each do |target|
+            obj[target]= CabeceraFactura.find_by_id(id)[target]
+        end
+        return obj
     end
 
+    # ---------------------------------------------------------------------------------------------------------
+    def self.get_recibos(params)
+        temp = []
+        recibos = []
+        query={}
+        desde = params["desde"]
+        hasta = params["hasta"]
+        tipo_recibo = params["tipo_recibo"]
+        order = params["order"]
+
+        query['fecha_equivalente'] = desde..hasta
+        
+        if tipo_recibo == 'todos'
+            subT='Tipo de recibo: TODOS'
+            temp = RecibosIngreso.where(query).order("id #{order}")
+        else
+            if tipo_recibo == 'viajes'
+                subT='Tipo de recibo: VIAJES'
+                temp = RecibosIngreso.where(query).where.not(vehiculo_id: nil).order("id #{order}")
+            elsif tipo_recibo == 'normal'
+                subT='Tipo de recibo: NORMAL'
+                temp = RecibosIngreso.where(query).where(vehiculo_id: nil).order("id #{order}")
+            end
+        end
+
+        total_recibido = 0
+        temp.each do |recibo|
+            att = recibo.attributes
+            total_recibido += recibo['total']
+            client = buscar_cliente(att, 48)
+            att['cliente_nombre'] = client['nombre']
+            att['tipo_recibo'] = att["vehiculo_id"] ? 'Viaje' : 'Normal'
+            factura = getInfoFactura(recibo, ['numero_comprobante'])
+            att['factura'] = factura['numero_comprobante']
+            recibos.push(att)
+        end
+        
+        obj = { body: recibos, total: total_recibido, sub_t: subT}
+        
+    end
     # ---------------------------------------------------------------------------------------------------------
 
     def self.get_ventas(params)
