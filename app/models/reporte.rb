@@ -203,11 +203,99 @@ class Reporte < ApplicationRecord
             recibos.push(att)
         end
         
-        obj = { body: recibos, total: total_recibido, sub_t: subT}
+        obj = { body: recibos, tontal: total_recibido, sub_t: subT}
+        
         
     end
     # ---------------------------------------------------------------------------------------------------------
+    
+    def self.get_ventas_por_producto(params)
+        temp = []
+        ventas = []
+        fecha = params["fecha"]
+        query={}
+        
+        query['fecha_equivalente'] = (Date.parse fecha).beginning_of_day..(Date.parse fecha).end_of_day
+        query['tipo'] = 'venta'
+        query['is_nota'] = false
+        temp = CabeceraFactura.where(query).order('id ASC')
+        
+        temp.each do |factura|
+            
+            factura.detalle_facturas.each do |detalle|
+                
+                articulo = Articulo.find_by_id(detalle.articulo_id)
+                is_in_array = ventas.any? {|h| h[:id] == detalle.articulo_id}
+                se_calcula_saco = Articulo.checkFechaCalcularSaco(factura["fecha_equivalente"], articulo)
+                
+                entrar = false
+                unless is_in_array
+                    entrar = true
+                else
+                    if se_calcula_saco 
+                        if detalle.calcular_saco 
+                            index = ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == true}
+                            if index 
+                                ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                            else
+                                entrar = true
+                            end
+                        else
+                            index = ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == false}
+                            if index 
+                                ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                            else
+                                entrar = true
+                            end
+                        end     
+                    else
+                        index = ventas.index {|h| h[:id] == detalle.articulo_id}
+                        ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                    end 
+                end
+                
+                nombre = ""
+                
+                if se_calcula_saco
+                    nombre  = articulo.nombre + "#{detalle.calcular_saco ? ' Con saco': ' Sin saco'}"
+                else
+                    nombre  = articulo.nombre
+                end
 
+                if entrar
+                    ventas.push({
+                        nombre: nombre,
+                        id: articulo.id,
+                        precio: detalle.precio,
+                        cantidad_en_unidades: detalle.cantidad_en_unidades,
+                        calcular_saco: detalle.calcular_saco,
+                        medida_principal: articulo.medida,
+                        contenido: Articulo.calcularContenidos(articulo, false)
+                    })
+                end
+            end
+        end
+        
+        calcular_cantidad_ventida(ventas)
+
+
+        obj = { body: ventas, tontal: 0, sub_t: "Fecha: #{formatearFecha(fecha, 1)}" }
+        
+    end
+    
+    # ---------------------------------------------------------------------------------------------------------
+    def self.calcular_cantidad_ventida(productos)
+
+        productos.each do |producto|
+            producto[:contenido].each do |key, value|
+                puts "#{producto[:nombre]} --> ".red + "#{key} ==> #{value}"
+                puts " "
+            end
+        end
+    end
+
+    # ---------------------------------------------------------------------------------------------------------
+    
     def self.get_ventas(params)
 
         tipo = params["tipo"]

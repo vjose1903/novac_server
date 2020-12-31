@@ -220,22 +220,7 @@ class CabeceraFacturasController < ApplicationController
     return DateTime.parse(date.to_s)
   end
 
-  def checkFechaCalcularSaco(fecha, articulo)
-    res = false
-    
-    saco = Articulo.where({nombre:'Saco sistema'})
-
-    unless saco.empty?
-      saco = saco[0]
-      puts saco.to_json.red
-      is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
-
-      if is_correct && articulo["calcular_saco"] 
-        res = true
-      end
-    end
-    return res
-  end
+  
 
   def parsearData(objeto, movimiento_inventario = false, is_adelantada = false)
     puts "--------------- inicio parsearData ---------------"
@@ -327,7 +312,7 @@ class CabeceraFacturasController < ApplicationController
       objD["id"] = detalleF["id"]
       objD["retirado"] = detalleF["retirado"]
       objD["calcular_saco"] = detalleF["calcular_saco"]
-      objD["se_calcula_saco"] = checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
+      objD["se_calcula_saco"] = Articulo.checkFechaCalcularSaco(objeto["fecha_equivalente"], articuloSelect)
 
       if @get_contenidos
         objD["contenidos"] = Articulo.calcularContenidos(articuloSelect)

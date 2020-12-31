@@ -35,6 +35,25 @@ class Articulo < ApplicationRecord
   end
 
   # =====================================================================================================================
+
+    def self.checkFechaCalcularSaco(fecha, articulo)
+      res = false
+      
+      saco = Articulo.where({nombre:'Saco sistema'})
+  
+      unless saco.empty?
+        saco = saco[0]
+        puts saco.to_json.red
+        is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
+  
+        if is_correct && articulo["calcular_saco"] 
+          res = true
+        end
+      end
+      return res
+    end
+
+  # =====================================================================================================================
   def self.filtrarArticulo(arg, is_compra, tipo)
     arg = arg === " " ? "" : arg
 
@@ -162,7 +181,7 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.calcularContenidos(articulo)
+  def self.calcularContenidos(articulo, sacos=true)
     puts " ------------------- inicio calcularContenidos -------------------"
 
     begin
@@ -177,9 +196,13 @@ class Articulo < ApplicationRecord
     elsif contenido.length == 1
       if articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
         contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-        contenidos["Saco_100"] = 100
-        contenidos["Saco_50"] = 50
-        contenidos["Saco_25"] = 25
+        
+        if sacos 
+          contenidos["Saco_100"] = 100
+          contenidos["Saco_50"] = 50
+          contenidos["Saco_25"] = 25
+        end
+
         contenidos[contenido[0]["medida"]] = 1
       else
         contenidos[articulo["medida"]] = contenido[0]["cantidad"]

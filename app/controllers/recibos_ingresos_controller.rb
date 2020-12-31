@@ -81,11 +81,7 @@ class RecibosIngresosController < ApplicationController
             # end
           end
 
-          my_print_log(@recibos_ingreso.to_json)
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
-
-          my_print_log('________________________________________')
-          my_print_log(detalles)
 
           
           if detalles[0][:error]

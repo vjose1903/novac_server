@@ -101,7 +101,6 @@ class CabeceraFactura < ApplicationRecord
     last_cuadre = CuadreCaja.all.last
 
     if factura
-
       if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
 
         can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
@@ -126,8 +125,11 @@ class CabeceraFactura < ApplicationRecord
           return {status: false, msg:'La factura no puede ser editada.'}
         end
       else
-        return {status: false, msg:'La factura no puede ser editada, ya forma parte de un cuadre de caja.'}
-
+        if factura[:is_viaje] && !factura[:pagada] 
+          return {status: true, msg:'La factura si puede ser editada.'}
+        else
+          return {status: false, msg:'La factura no puede ser editada, por que no es del dia de hoy.'}
+        end
       end
 
       return {status: true, msg:'La factura si puede ser editada.'}
@@ -168,7 +170,6 @@ class CabeceraFactura < ApplicationRecord
           end
         end
 
-        
         factura_nueva['detalle_facturas_attributes'].each do |detalle|
           
           detalle_ = CabeceraFactura.formarDetalleFactura(detalle, factura_original['id'])
@@ -326,7 +327,9 @@ puts "VOY A CAMBIAR EXISTENCIA ".yellow
           balance = factura_a_pagar["balance"]
         end
 
-        if f["deposito"] == balance
+        comprobacion_mayor_cero =  balance - f["deposito"] 
+
+        if f["deposito"] == balance || comprobacion_mayor_cero < 1
           unless factura_a_pagar.update({ balance: newBalance, pagada: true, fecha_completada: DateTime.now })
             res = { error: true, msg: factura_a_pagar.errors }
             return res
