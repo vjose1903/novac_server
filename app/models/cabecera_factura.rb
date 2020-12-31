@@ -125,8 +125,12 @@ class CabeceraFactura < ApplicationRecord
           return {status: false, msg:'La factura no puede ser editada.'}
         end
       else
-        if factura[:is_viaje] && !factura[:pagada] 
-          return {status: true, msg:'La factura si puede ser editada.'}
+        if factura[:is_viaje] 
+          if !factura[:pagada] 
+            return {status: true, msg:'La factura si puede ser editada.'}
+          else
+            return {status: false, msg:'La factura no puede ser editada, por que el viaje ya fue pagado.'}
+          end
         else
           return {status: false, msg:'La factura no puede ser editada, por que no es del dia de hoy.'}
         end
