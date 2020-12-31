@@ -128,13 +128,14 @@ class Reporte < ApplicationRecord
     # ---------------------------------------------------------------------------------------------------------
     def self.calcularCantidades(articulos)
         array=[]
+        plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
         articulos.each do |articulo|
             obj                       = articulo.attributes
             obj["cantidades"]         = Articulo.calcularCantidades(articulo)
             # cant = number_with_delimiter(obj["cantidades"][articulo['medida']] , :precision => 2, :delimiter => ",", :separator => ".")
             
             cant = number_with_delimiter( ("%.2f" % obj["cantidades"][articulo['medida']]).gsub(',','.'))
-            obj['cantidad_principal'] = "#{cant} #{articulo['medida']}"
+            obj['cantidad_principal'] = "#{cant} #{cant.to_i == 1 ? articulo['medida'] : plural[articulo['medida'].to_sym]}"
             array.push(obj)
         end
         return array
@@ -276,21 +277,27 @@ class Reporte < ApplicationRecord
             end
         end
         
-        calcular_cantidad_ventida(ventas)
-
-
+        calcular_cantidad_proporcional(ventas)
         obj = { body: ventas, tontal: 0, sub_t: "Fecha: #{formatearFecha(fecha, 1)}" }
         
     end
     
     # ---------------------------------------------------------------------------------------------------------
-    def self.calcular_cantidad_ventida(productos)
+    def self.calcular_cantidad_proporcional(productos)
+        plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
 
         productos.each do |producto|
+            medida_mostrar = ""
             producto[:contenido].each do |key, value|
-                puts "#{producto[:nombre]} --> ".red + "#{key} ==> #{value}"
-                puts " "
+                if producto[:cantidad_en_unidades] > value
+                    cant = producto[:cantidad_en_unidades] / value.to_f
+
+                    medida_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
+                    break
+                end
             end
+            puts ""
+            producto["medida_mostrar"] = medida_mostrar
         end
     end
 

@@ -82,7 +82,8 @@ class RecibosIngresosController < ApplicationController
           end
 
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
-
+          my_print_log("detalles --> #{detalles}")
+          
           
           if detalles[0][:error]
             render json: { msg: detalles[:msg], error: detalles.errors }, :status => :unprocessable_entity

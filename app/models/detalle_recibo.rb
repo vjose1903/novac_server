@@ -28,7 +28,7 @@ class DetalleRecibo < ApplicationRecord
       end
 
       calculo_cabecera = CabeceraFactura.calculateBalanceFactura(detalle["cabecera_factura_id"], detalle["deposito"], (idx + 1))
-
+      my_print_log("calculo_cabecera --> #{calculo_cabecera}")
       if calculo_cabecera[:error]
         return [{ error: true, msg: calculo_cabecera[:msg], status: :unprocessable_entity }]
         raise ActiveRecord::Rollback
