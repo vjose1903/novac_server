@@ -212,8 +212,10 @@ class Reporte < ApplicationRecord
     
     def self.get_ventas_por_producto(params)
         temp = []
+        temp_ventas = []
         ventas = []
         fecha = params["fecha"]
+        total_venta=0
         query={}
         
         query['fecha_equivalente'] = (Date.parse fecha).beginning_of_day..(Date.parse fecha).end_of_day
@@ -226,7 +228,7 @@ class Reporte < ApplicationRecord
             factura.detalle_facturas.each do |detalle|
                 
                 articulo = Articulo.find_by_id(detalle.articulo_id)
-                is_in_array = ventas.any? {|h| h[:id] == detalle.articulo_id}
+                is_in_array = temp_ventas.any? {|h| h[:id] == detalle.articulo_id}
                 se_calcula_saco = Articulo.checkFechaCalcularSaco(factura["fecha_equivalente"], articulo)
                 
                 entrar = false
@@ -235,72 +237,79 @@ class Reporte < ApplicationRecord
                 else
                     if se_calcula_saco 
                         if detalle.calcular_saco 
-                            index = ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == true}
+                            index = temp_ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == true}
                             if index 
-                                ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                                temp_ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                                temp_ventas[index][:total_vendido] += detalle.total
                             else
                                 entrar = true
                             end
                         else
-                            index = ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == false}
+                            index = temp_ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == false}
                             if index 
-                                ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                                temp_ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                                temp_ventas[index][:total_vendido] += detalle.total
                             else
                                 entrar = true
                             end
                         end     
                     else
-                        index = ventas.index {|h| h[:id] == detalle.articulo_id}
-                        ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                        index = temp_ventas.index {|h| h[:id] == detalle.articulo_id}
+                        temp_ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
+                        temp_ventas[index][:total_vendido] += detalle.total
                     end 
                 end
                 
                 nombre = ""
                 
                 if se_calcula_saco
-                    nombre  = articulo.nombre + "#{detalle.calcular_saco ? ' Con saco': ' Sin saco'}"
+                    nombre  = articulo.nombre + "  (#{detalle.calcular_saco ? 'Con saco': 'Sin saco'})"
                 else
                     nombre  = articulo.nombre
                 end
 
                 if entrar
-                    ventas.push({
+                    temp_ventas.push({
                         nombre: nombre,
                         id: articulo.id,
-                        precio: detalle.precio,
                         cantidad_en_unidades: detalle.cantidad_en_unidades,
                         calcular_saco: detalle.calcular_saco,
-                        medida_principal: articulo.medida,
-                        contenido: Articulo.calcularContenidos(articulo, false)
+                        contenido: Articulo.calcularContenidos(articulo, false),
+                        total_vendido: detalle.total,
                     })
                 end
             end
         end
         
-        calcular_cantidad_proporcional(ventas)
-        obj = { body: ventas, tontal: 0, sub_t: "Fecha: #{formatearFecha(fecha, 1)}" }
+        total_venta = calcular_cantidad_proporcional(temp_ventas)
+
+        ventas = temp_ventas.sort_by! { |k| k[:nombre]}
+        
+        obj = { body: ventas, total: total_venta, sub_t: "Fecha: #{formatearFecha(fecha, 1)}" }
         
     end
     
     # ---------------------------------------------------------------------------------------------------------
     def self.calcular_cantidad_proporcional(productos)
+        total_venta=0
         plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
-
         productos.each do |producto|
             medida_mostrar = ""
             producto[:contenido].each do |key, value|
-                if producto[:cantidad_en_unidades] > value
-                    cant = producto[:cantidad_en_unidades] / value.to_f
+                articulo = Articulo.find_by_id(producto[:id])
 
+                if producto[:cantidad_en_unidades] >= value
+                    cant = producto[:cantidad_en_unidades] / value.to_f
                     medida_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
                     break
                 end
             end
-            puts ""
             producto["medida_mostrar"] = medida_mostrar
+            total_venta += producto[:total_vendido]
         end
+        return total_venta
     end
-
+    
     # ---------------------------------------------------------------------------------------------------------
     
     def self.get_ventas(params)
@@ -334,7 +343,6 @@ class Reporte < ApplicationRecord
             att = factura.attributes
             
             if att['tiene_nota']
-                puts "AQUI HAY NOTAAA ".yellow
                 recalculo = recalculo_por_nota(att)
                 att['total_factura'] = recalculo[:total_factura]
                 att['balance'] = recalculo[:balance]

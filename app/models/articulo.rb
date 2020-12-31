@@ -33,23 +33,30 @@ class Articulo < ApplicationRecord
 
     my_query(query)[0]
   end
-
+  
+  
   # =====================================================================================================================
 
     def self.checkFechaCalcularSaco(fecha, articulo)
       res = false
       
       saco = Articulo.where({nombre:'Saco sistema'})
-  
+      puts "saco --> ".red + "#{saco}"
       unless saco.empty?
+        
         saco = saco[0]
-        puts saco.to_json.red
+        puts "fecha.to_s --> ".red + "#{fecha.to_s}"
+        puts "saco['created_at'].to_s --> ".red + "#{saco['created_at'].to_s}"
         is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
+        puts "is_correct --> ".red + "#{is_correct}"
+        puts "articulo['calcular_saco']  --> ".red + "#{articulo["calcular_saco"] }"
+        puts "articulo  --> ".red + "#{articulo }"
   
         if is_correct && articulo["calcular_saco"] 
           res = true
         end
       end
+
       return res
     end
 
@@ -155,6 +162,7 @@ class Articulo < ApplicationRecord
       att = objeto
     end
 
+
     att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: att["id"] })
     att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: att["id"] })
 
@@ -166,6 +174,7 @@ class Articulo < ApplicationRecord
   def self.parsealHistorico(objeto)
     puts "--------------------- inicio parsealHistorico ---------------------"
     puts ""
+    
 
     objeto["descripcion"] = objeto["descripcion"]
     objeto["contenido_articulos"] = objeto["contenido_articulos"]
@@ -196,7 +205,7 @@ class Articulo < ApplicationRecord
     elsif contenido.length == 1
       if articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
         contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-        
+
         if sacos 
           contenidos["Saco_100"] = 100
           contenidos["Saco_50"] = 50

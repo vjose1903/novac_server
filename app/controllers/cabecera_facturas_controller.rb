@@ -252,18 +252,14 @@ class CabeceraFacturasController < ApplicationController
     
     arrayDetalle.each do |detalleF|
       objD = {}
-      puts "detalleF ==> ".yellow + "#{detalleF.to_json}"
       
       contenidoArticulo = ContenidoArticulo.where({ articulo_id: detalleF["articulo_id"] })
-      puts "contenidoArticulo ==> ".yellow + "#{contenidoArticulo.to_json}"
       
       articuloSelect = Articulo.find_by_id(detalleF["articulo_id"])
       tipoArticulo = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
-      puts "articuloSelect ==> ".yellow + "#{articuloSelect.to_json}"
       
       continuar = articuloWasEdited(articuloSelect)
 
-      puts "continuar ==> ".yellow + "#{continuar.to_json}"
 
       unless continuar
         articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])

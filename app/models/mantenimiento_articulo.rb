@@ -30,15 +30,15 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
-
-    
     fecha_factura = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
     
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
     fecha_ultima_edicion = parsearDateTimeUTC(articulo["updated_at"])
-
-
+    
+    puts "articulo --> ".blue + "#{articulo}"
+    
+    
     
     
     if fecha_factura + ":59" >= fecha_ultima_edicion
@@ -53,6 +53,7 @@ class MantenimientoArticulo < ApplicationRecord
           historico.push(Articulo.parseal(articulo))
         else
           articulo = crearArticuloHistorico(histM[0], articulo)
+          puts "articulo --> ".blue + "#{articulo}"
           historico.push(Articulo.parsealHistorico(articulo))
         end
       else
@@ -117,6 +118,7 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["created_at"]             = articulo["created_at"]
     articuloHistorico["updated_at"]             = articulo["updated_at"]
     articuloHistorico["imagen_id"]              = articulo["imagen_id"]
+    articuloHistorico["calcular_saco"]              = articulo["calcular_saco"]
     
     contents = []
     contenidoArticulo.each do |contenido|
