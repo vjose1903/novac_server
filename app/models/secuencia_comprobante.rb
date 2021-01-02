@@ -176,8 +176,9 @@ class SecuenciaComprobante < ApplicationRecord
   end
 
   # ============================================================================================================================================================
-  def self.validar_rango(tipo_factura_id, paquete_ingresando)
+  def self.validar_rango(id, paquete_ingresando, tipo)
     puts " -------------- inicio validar_rango -------------- "
+    tipo_factura_id = paquete_ingresando["tipo_factura_id"]
 
     select_ = "select *"
     from_ = "from secuencia_comprobantes"
@@ -185,13 +186,30 @@ class SecuenciaComprobante < ApplicationRecord
     order_ = "ORDER BY created_at ASC"
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquetes_registrados = my_query(query)
+    
+    puts '-----'.blue * 20
+    puts "#{paquete_ingresando.to_json}"
+    puts '-----'.blue * 20
 
     paquetes_registrados.each do |paquete|
-      if paquete_ingresando["desde"] <= paquete["hasta"]
-        puts " -------------- fin validar_rango -------------- "
-        return { :error => true, :msg => "Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.", :body => {}, :status => 400 }
-        break
+      
+      if tipo === 'new'
+        if paquete_ingresando["desde"] <= paquete["hasta"]
+          puts " -------------- fin validar_rango -------------- "
+          return { :error => true, :msg => "Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.", :body => {}, :status => 400 }
+          break
+        end
+      else
+        if id !=  paquete["id"]
+          if (paquete_ingresando["desde"] <= paquete["hasta"] && paquete_ingresando["hasta"] >= paquete["desde"]) || (paquete_ingresando["desde"] >= paquete["desde"] && paquete_ingresando["desde"] <= paquete["hasta"])
+            puts " -------------- fin validar_rango -------------- "
+            return { :error => true, :msg => "Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.", :body => {}, :status => 400 }
+            break
+          end
+
+        end
       end
+      
     end
     puts " -------------- fin validar_rango -------------- "
     return { :error => false }
