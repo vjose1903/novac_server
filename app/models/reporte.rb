@@ -19,6 +19,27 @@ class Reporte < ApplicationRecord
         return obj
     end
     # ---------------------------------------------------------------------------------------------------------
+    def self.buscar_suplidor(id, max_lengt=0)
+        suplidor={}
+        supli = Suplidor.find_by_id(id)
+
+        puts 'id -->'.yellow + "#{id}"
+        puts 'supli -->'.yellow + "#{supli.to_json}"
+        tempNom = "#{supli["nombre"]}".titleize + " #{supli["apellido"]}".titleize
+        
+        if max_lengt > 0
+            longitud= tempNom.length
+            suplidor["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom
+        else
+            suplidor["nombre"] = tempNom
+        end
+        
+        suplidor["rnc"] = DocumentoDeIdentidad.where({ principal: true, suplidor_id: supli["id"] })[0]["documento"]
+        puts 'suplidor -->'.yellow + "#{suplidor.to_json}"
+        return suplidor
+    end
+
+    # ---------------------------------------------------------------------------------------------------------
     def self.buscar_cliente(factura, max_lengt)
         cliente = {}
         if !factura["cliente_id"].nil? 
@@ -196,6 +217,7 @@ class Reporte < ApplicationRecord
         temp.each do |recibo|
             att = recibo.attributes
             total_recibido += recibo['total']
+
             client = buscar_cliente(att, 48)
             att['cliente_nombre'] = client['nombre']
             att['tipo_recibo'] = att["vehiculo_id"] ? 'Viaje' : 'Normal'
@@ -204,9 +226,41 @@ class Reporte < ApplicationRecord
             recibos.push(att)
         end
         
-        obj = { body: recibos, tontal: total_recibido, sub_t: subT}
+        obj = { body: recibos, total: total_recibido, sub_t: subT}
         
         
+    end
+    # ---------------------------------------------------------------------------------------------------------
+    
+    def self.get_suplidores_por_producto(params)
+        articulo_id = params["articulo_id"]
+        desde = params["desde"]
+        hasta = params["hasta"]
+        
+        temp = []
+        contenido = []
+        query={}
+        query_join={}
+        query['articulo_id'] = articulo_id
+        query_join['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+        query_join['tipo'] = 'compra'
+
+        
+        temp = DetalleFactura.where(query).select("detalle_facturas.* ,cabecera_facturas.suplidor_id,cabecera_facturas.fecha_equivalente").joins(:cabecera_factura).where(cabecera_facturas: query_join).order('detalle_facturas.id ASC')
+
+        temp.each do |detalle|
+            att =detalle.attributes
+            suplidor = buscar_suplidor(detalle.suplidor_id)
+            att["suplidor_nombre"]=suplidor['nombre']
+            contenido.push(att)
+            
+        end
+        
+        articulo = Articulo.find_by_id(articulo_id)
+        subT = "Producto: #{articulo.nombre}"
+
+        obj = { body: contenido, total: 0, sub_t: subT}
+
     end
     # ---------------------------------------------------------------------------------------------------------
     

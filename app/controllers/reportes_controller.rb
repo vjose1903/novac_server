@@ -6,7 +6,7 @@ class ReportesController < ApplicationController
         tipo_reporte = params["tipo_reporte"]
 
         muestra_total=['ventas','cuentas_cobrar','recibos','ventas_productos']
-        muestra_sub_titulo=['inventario','recibos','ventas_productos']
+        muestra_sub_titulo=['inventario','recibos','ventas_productos','suplidor_prod']
         tipo = ''
 
         muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '2'
@@ -44,6 +44,12 @@ class ReportesController < ApplicationController
             body = Reporte.get_ventas_por_producto(params)
             titulo = "Reporte de ventas por producto"
             tipo = 'ventas_prod'
+            
+        elsif tipo_reporte==='suplidor_prod'
+            # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
+            body = Reporte.get_suplidores_por_producto(params)
+            titulo = "Reporte de suplidores por producto"
+            tipo = 'suplidor_prod'
             
         end
 

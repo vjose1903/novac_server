@@ -240,16 +240,20 @@ class CabeceraFactura < ApplicationRecord
     articulo = Articulo.find_by_id(objArticulo["id"])
     
     operador = factura_de == 13 ? '-' : '+' 
+
     mov = eval("#{articulo["existencia"]} #{operador} #{cantidad_en_unidades}")
+
     puts "operador -- ".yellow +  "#{operador}"
     puts "MOV -- ".yellow +  "#{mov}"
 
     if factura_de == 13
       # --------- VENTA ---------
-      if mov < 0
-        mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
-        return render json: { msg: mensaje }, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
+      if articulo.nombre !== 'Transporte'
+        if mov < 0
+          mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
+          return render json: { msg: mensaje }, status: :unprocessable_entity
+          raise ActiveRecord::Rollback
+        end
       end
     else
       # --------- COMPRA ---------
@@ -271,18 +275,20 @@ class CabeceraFactura < ApplicationRecord
         return render json: movimientos_inventario.errors, status: :unprocessable_entity
       end
     end
-puts "VOY A CAMBIAR EXISTENCIA ".yellow
-    articulo.existencia = mov
+    puts "VOY A CAMBIAR EXISTENCIA ".yellow
+    if articulo.nombre !== 'Transporte'
+      articulo.existencia = mov
 
-    if articulo.save!
-      puts "::::::::::::::::::::::::::::::::::::::::::"
-      puts "::::                                  ::::"
-      puts "::::         #{factura_de == 13?'VENTA ' : 'COMPRA'} EXITOSA           ::::"
-      puts "::::                                  ::::"
-      puts "::::::::::::::::::::::::::::::::::::::::::"
-    else
-      render json: articulo.errors, status: :unprocessable_entity
-      raise ActiveRecord::Rollback
+      if articulo.save!
+        puts "::::::::::::::::::::::::::::::::::::::::::"
+        puts "::::                                  ::::"
+        puts "::::         #{factura_de == 13?'VENTA ' : 'COMPRA'} EXITOSA           ::::"
+        puts "::::                                  ::::"
+        puts "::::::::::::::::::::::::::::::::::::::::::"
+      else
+        render json: articulo.errors, status: :unprocessable_entity
+        raise ActiveRecord::Rollback
+      end
     end
   end
 
