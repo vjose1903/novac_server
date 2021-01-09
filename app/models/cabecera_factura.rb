@@ -248,7 +248,7 @@ class CabeceraFactura < ApplicationRecord
       # --------- VENTA ---------
       if mov < 0
         mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
-        render json: { msg: mensaje }, status: :unprocessable_entity
+        return render json: { msg: mensaje }, status: :unprocessable_entity
         raise ActiveRecord::Rollback
       end
     else
