@@ -158,7 +158,7 @@ class CabeceraFactura < ApplicationRecord
           
           if resultCliente[:error]
             render json: resultCliente, status: 400
-            raise ActiveRecord::Rollback
+            
           end
         end
         
@@ -237,6 +237,7 @@ class CabeceraFactura < ApplicationRecord
   
   def self.movimientos_de_inventario(objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_)
     puts "TAMOP AQUIII".yellow
+    res = { :error => false, :msg => '' }
     articulo = Articulo.find_by_id(objArticulo["id"])
     
     operador = factura_de == 13 ? '-' : '+' 
@@ -245,14 +246,14 @@ class CabeceraFactura < ApplicationRecord
 
     puts "operador -- ".yellow +  "#{operador}"
     puts "MOV -- ".yellow +  "#{mov}"
-
+    my_print_log('articulo --> ' + "#{articulo.to_json}")
+    my_print_log('mov --> ' + "#{mov}")
     if factura_de == 13
       # --------- VENTA ---------
       if articulo.nombre != 'Transporte'
         if mov < 0
           mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
-          return render json: { msg: mensaje }, status: :unprocessable_entity
-          raise ActiveRecord::Rollback
+          return { :error => true, msg:mensaje }
         end
       end
     else
@@ -272,13 +273,13 @@ class CabeceraFactura < ApplicationRecord
       movimientos_inventario = MovimientosInventario.new(obj)
 
       unless movimientos_inventario.save!
-        return render json: movimientos_inventario.errors, status: :unprocessable_entity
+        return { :error => true, msg:movimientos_inventario.errors }
       end
     end
     puts "VOY A CAMBIAR EXISTENCIA ".yellow
     if articulo.nombre != 'Transporte'
       articulo.existencia = mov
-
+      
       if articulo.save!
         puts "::::::::::::::::::::::::::::::::::::::::::"
         puts "::::                                  ::::"
@@ -286,10 +287,12 @@ class CabeceraFactura < ApplicationRecord
         puts "::::                                  ::::"
         puts "::::::::::::::::::::::::::::::::::::::::::"
       else
-        render json: articulo.errors, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
+        return { :error => true, msg: articulo.errors }
+        
       end
     end
+
+    return res
   end
 
 

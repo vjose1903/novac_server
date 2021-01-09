@@ -345,7 +345,14 @@ class CabeceraFacturasController < ApplicationController
 
             if factura_tipo != 4 || factura_tipo != "4"
              # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
-              CabeceraFactura.movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
+              if articuloSelect['nombre'] != 'Transporte'
+                res_mov = CabeceraFactura.movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
+
+                if res_mov[:error]
+                  return render json: {msg: res_mov[:msg]}, status: 404
+                  raise ActiveRecord::Rollback
+                end
+              end
             end
           end
         end
