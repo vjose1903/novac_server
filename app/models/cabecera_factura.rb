@@ -248,7 +248,7 @@ class CabeceraFactura < ApplicationRecord
 
     if factura_de == 13
       # --------- VENTA ---------
-      if articulo.nombre !== 'Transporte'
+      if articulo.nombre != 'Transporte'
         if mov < 0
           mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
           return render json: { msg: mensaje }, status: :unprocessable_entity
@@ -276,7 +276,7 @@ class CabeceraFactura < ApplicationRecord
       end
     end
     puts "VOY A CAMBIAR EXISTENCIA ".yellow
-    if articulo.nombre !== 'Transporte'
+    if articulo.nombre != 'Transporte'
       articulo.existencia = mov
 
       if articulo.save!
