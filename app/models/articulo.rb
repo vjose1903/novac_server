@@ -73,12 +73,12 @@ class Articulo < ApplicationRecord
               left join imagenes img on img.id = a.imagen_id"
 
     if is_compra
-      where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id != 3 and a.nombre != 'Saco sistema'"
+      where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id != 3"
     else
       if tipo === "todos"
-        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true and a.nombre != 'Saco sistema'"
+        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
       else
-        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id = #{tipo} and a.nombre != 'Saco sistema'"
+        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id = #{tipo}"
       end
     end
 
