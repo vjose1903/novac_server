@@ -17,7 +17,7 @@ class Suplidor < ApplicationRecord
     where_ = "where lower(s.nombre || ' ' || s.direccion || ' ' || coalesce(s.email, '') || d.documento) like lower('%#{arg}%') AND estado = true"
     order_ = "ORDER BY s.id ASC"
 
-    query = "#{select_} #{from_} #{where_} #{order_}"
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
     my_query(query)
   end
