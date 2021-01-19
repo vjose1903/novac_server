@@ -23,7 +23,6 @@ class DetalleRecibo < ApplicationRecord
 
         if resultCliente[:error]
           return [{ error: true, msg: resultCliente[:msg], status: :unprocessable_entity }]
-          raise ActiveRecord::Rollback
         end
       end
 
@@ -31,7 +30,6 @@ class DetalleRecibo < ApplicationRecord
       my_print_log("calculo_cabecera --> #{calculo_cabecera}")
       if calculo_cabecera[:error]
         return [{ error: true, msg: calculo_cabecera[:msg], status: :unprocessable_entity }]
-        raise ActiveRecord::Rollback
       end
 
       detalle.balance_anterior_factura = calculo_cabecera[:balance_anterior]
