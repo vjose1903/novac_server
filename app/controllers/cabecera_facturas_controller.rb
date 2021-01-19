@@ -43,6 +43,15 @@ class CabeceraFacturasController < ApplicationController
     detalles = CabeceraFactura.getDetallesNotasByFactura(aplicadaA)
     render json: detalles
   end
+  
+  def getInfoFacturas
+    campos = params[:campos]
+    ids = params[:ids]
+
+    puts "CAMPOS --> ".red + "#{campos}"
+    puts "IDS --> ".red + "#{ids}"
+
+  end
 
   def verificateCanUpdateById
     id = params[:id]
@@ -223,13 +232,8 @@ class CabeceraFacturasController < ApplicationController
   
 
   def parsearData(objeto, movimiento_inventario = false, is_adelantada = false)
+    resParser = {:error => false, :msg => '', :status => 200}
     puts "--------------- inicio parsearData ---------------"
-
-    puts "objeto ==> ".yellow + "#{objeto.to_json}"
-    puts "movimiento_inventario ==> ".yellow + "#{movimiento_inventario}"
-    puts "is_adelantada ==> ".yellow + "#{is_adelantada}"
-    
-    
     begin
       obj = objeto.attributes
       obj["detalle_facturas"] = objeto.detalle_facturas.to_a
@@ -291,7 +295,8 @@ class CabeceraFacturasController < ApplicationController
           precio = condi["precio"]
           costo_calculado = condi["costo"]
         end
-      end       end
+      end       
+    end
 
       objD["articulo"] = articuloSelect["nombre"]
       objD["articulo_id"] = articuloSelect["id"]
@@ -344,14 +349,13 @@ class CabeceraFacturasController < ApplicationController
             
 
             if factura_tipo != 4 || factura_tipo != "4"
-             # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
               if articuloSelect['nombre'] != 'Transporte'
                 res_mov = CabeceraFactura.movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
 
                 if res_mov[:error]
-                  return render json: {msg: res_mov[:msg]}, status: 404
-                  raise ActiveRecord::Rollback
+                  return {:error => false, :msg=> res_mov[:msg] , :status => 400}
                 end
+
               end
             end
           end
@@ -475,8 +479,8 @@ class CabeceraFacturasController < ApplicationController
         render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
       else
         puts " ------------------ antes de parsearData ------------------" 
-        cabecera = parsearData(@cabecera_factura, true)
-        render json: cabecera, status: :created, location: @cabecera_factura
+        cabecera = parsearData(@cabecera_factura, true)        
+        render json: cabecera, status: cabecera[:status], location: @cabecera_factura
       end
     else
       # --------- VENTA / NOTA ---------
@@ -492,12 +496,14 @@ class CabeceraFacturasController < ApplicationController
           raise ActiveRecord::Rollback
         else
           cabecera = parsearData(@cabecera_factura, true)
-          render json: cabecera, status: :created, location: @cabecera_factura
+
+          render json: cabecera, status: cabecera[:status], location: @cabecera_factura
         end
       else
         render json: { msg: actualizando["msg"] }, status: :unprocessable_entity
         raise ActiveRecord::Rollback
       end
+
     end
     # end
 
