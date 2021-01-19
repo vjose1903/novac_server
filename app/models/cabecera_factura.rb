@@ -142,6 +142,7 @@ class CabeceraFactura < ApplicationRecord
       return {status: false, msg:'La factura no puede ser editada.'}
     end
   end
+  
   # ====================================================================================================
   def self.updateFactura(id, params={}, user_current)
 
@@ -251,9 +252,11 @@ class CabeceraFactura < ApplicationRecord
     if factura_de == 13
       # --------- VENTA ---------
       if articulo.nombre != 'Transporte'
+        
+        my_print_log('operador 00 --> ' + "#{operador}")
         if mov < 0
           mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
-          return { :error => true, msg:mensaje }
+          return { :error => true, msg: mensaje }
         end
       end
     else
