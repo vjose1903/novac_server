@@ -135,26 +135,24 @@ class ArticulosController < ApplicationController
     fecha = params["fecha"]
     tipo = params["tipo"]
 
-    articulos_ = []
+    articulos_ = [] 
     articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
 
-    articulos.each do |item|
-      articulo = MantenimientoArticulo.get_one_articulo_by_date(fecha, item["id"])
-      articulos_.push(articulo[0])
-    end
-
     res = []
-
     if paginado
-      res = Articulo.agruparDesagruparFiltro(arg, articulos_, page, per_page)
+      res = Articulo.agruparDesagruparFiltro(arg, articulos, page, per_page, fecha)
+
     else
-      res = articulos_
+      res = articulos
       res.each do |arti|
         arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
         arti["contenido"] = Articulo.calcularContenidos(arti)
         arti["cantidades"] = Articulo.calcularCantidades(arti)
       end
     end
+
+
+
 
     render json: res
   end

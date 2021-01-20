@@ -237,7 +237,7 @@ class CabeceraFactura < ApplicationRecord
   # ====================================================================================================
   
   def self.movimientos_de_inventario(objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_)
-    puts "TAMOP AQUIII".yellow
+
     res = { :error => false, :msg => '' }
     articulo = Articulo.find_by_id(objArticulo["id"])
     
@@ -245,10 +245,6 @@ class CabeceraFactura < ApplicationRecord
 
     mov = eval("#{articulo["existencia"]} #{operador} #{cantidad_en_unidades}")
 
-    puts "operador -- ".yellow +  "#{operador}"
-    puts "MOV -- ".yellow +  "#{mov}"
-    my_print_log('articulo --> ' + "#{articulo.to_json}")
-    my_print_log('mov --> ' + "#{mov}")
     if factura_de == 13
       # --------- VENTA ---------
       if articulo.nombre != 'Transporte'

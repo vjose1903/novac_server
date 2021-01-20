@@ -18,7 +18,7 @@ rails g scaffold modelo marca:references descripcion:string
 rails g scaffold produccion user:references numero:integer fecha_equivalente:datetime
 rails g scaffold detalle_produccion produccion:references articulo:references cantidad:float cantidad_en_unidades:integer medida:string
 
-rails g scaffold cuadre_caja user:references total_general:float total_venta_credito:float total_venta_contado:float total_recibo_ingreso:float  total_anterior:float
+rails g scaffold cuadre_caja user:references total_general:float total_venta_credito:float total_venta_contado:float total_reciboIngreso_ingreso:float  total_anterior:float
 
 rails g migration AddBalanceFacturaToDetalleRecibo balance_factura:float
 
@@ -40,6 +40,7 @@ rails g migration AddIsMateriaPrimaToMantenimientoArticulo is_materia_prima:bool
 rails g migration AddCalcularSacoToDetalleFactura calcular_saco:boolean
 rails g migration AddCalcularSacoToMantenimientoArticulo calcular_saco:boolean
 rails g migration AddDetalleFacturaToDetalleFactura detalle_factura_nota:integer
+rails g migration AddEstadoToReciboIngreso estado:boolean
 
 
 

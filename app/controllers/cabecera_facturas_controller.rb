@@ -120,9 +120,12 @@ class CabeceraFacturasController < ApplicationController
     page = params["page"]
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
-
+    puts "arg ==> ".red + "#{arg}"
+    # cabe_pendientes = CabeceraFactura.where({ is_viaje: true, fecha_completada: nil }).where(cabecera_factura: {numero_comprobante: arg}).to_a
+    # cabe_completadas_hoy = CabeceraFactura.where({ is_viaje: true, fecha_completada: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).where(cabecera_factura: {numero_comprobante: arg}).to_a
     cabe_pendientes = CabeceraFactura.where({ is_viaje: true, fecha_completada: nil }).to_a
     cabe_completadas_hoy = CabeceraFactura.where({ is_viaje: true, fecha_completada: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).to_a
+
 
     cabe_pendientes.concat cabe_completadas_hoy
 

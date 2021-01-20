@@ -111,25 +111,26 @@ class RecibosIngresosController < ApplicationController
             # else
             unless @incidencia.save!
               render json: @incidencia.errors, status: :unprocessable_entity
+              raise ActiveRecord::Rollback
             end
             # end
           end
 
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
-          my_print_log("detalles en la funcion create --> #{detalles}")
-          
           
           if detalles[0][:error]
-            render json: { msg: detalles[:msg] }, :status => :unprocessable_entity
+            puts " --> ".red + "#{detalles[0]}"
+            render json: { msg: detalles[0][:msg] }, :status => :unprocessable_entity
             raise ActiveRecord::Rollback
           end
           my_print_log("SE SUPONE QUE NO DIO ERROR EN LA CREACION DEL DETALLE" )
           
           if params["vehiculo_id"]
             vehiculo = Vehiculo.find_by_id(params["vehiculo_id"])
-
+            
             unless vehiculo.update({ cantidad_viajes: vehiculo.cantidad_viajes + 1 })
               render json: vehiculo.errors, status: :unprocessable_entity
+              raise ActiveRecord::Rollback
             end
           end
 

@@ -89,12 +89,13 @@ class Articulo < ApplicationRecord
     my_query(query)
   end
   # =====================================================================================================================
-  def self.agruparDesagruparFiltro(buscando, array, page, per_page)
+  def self.agruparDesagruparFiltro(buscando, array, page, per_page, fecha)
     res = nil
     is_array = true
+    
     if buscando.numeric?
       if array.length == 1
-        res = array[0]
+        res = array[0] 
         is_array = false
       else
         res = array.to_a.my_paginate(page, per_page)
@@ -104,30 +105,31 @@ class Articulo < ApplicationRecord
     end
 
     if is_array
+      articulos_ = []
       res[:data].to_a.each do |arti|
-        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-        if arti["is_combo"]
-          arti["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: arti["id"] })
-        end
-        arti["contenido"] = calcularContenidos(arti)
-        arti["cantidades"] = calcularCantidades(arti)
+        articulos_.push(completar_campos_articulo(fecha , arti["id"]))
       end
+      res[:data] = articulos_
     else
-      res["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: res["id"] })
-      if res["is_combo"]
-        res["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: res["id"] })
-      end
-      res["contenido"] = calcularContenidos(res)
-      res["cantidades"] = calcularCantidades(res)
+      res = completar_campos_articulo(fecha , res["id"])
     end
-
-    # cantidad = Articulo.countArticulos
-
-    # res["total_registros"] = cantidad["count"]
 
     return res
   end
+  
+  # =====================================================================================================================
+  def self.completar_campos_articulo(fecha , id)
+    articulo = MantenimientoArticulo.get_one_articulo_by_date(fecha, id)[0]
 
+    articulo["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: id })
+    if articulo["is_combo"]
+      articulo["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: id })
+    end
+    articulo["contenido"] = calcularContenidos(articulo)
+    articulo["cantidades"] = calcularCantidades(articulo)
+    return articulo
+  end
+    
   # =====================================================================================================================
   def self.delete_articulo(id)
     return my_query("UPDATE articulos SET estado=#{false} WHERE id=#{id}")
