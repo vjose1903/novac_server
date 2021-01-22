@@ -2,9 +2,10 @@ namespace :server_db do
   desc 'Backup DB and upload to Google Drive'
   task :backup do
     rails_env = ENV.fetch("RAILS_ENV") { "development" }
-    # pg_dump = "pg_dump --no-acl --no-owner -U postgres ADM_#{rails_env.downcase}"
-    timestamp = Time.now.strftime('%Y-%m-%d-%H%M%S')
+    
+    timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
     archive_path = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
+
     pg_dump = "pg_dump --verbose --format=c --inserts --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
     `cd #{Rails.root}/public && #{pg_dump}`
     # `export GOOGLE_APPLICATION_CREDENTIALS='#{Rails.root}/config/google_api_credentials.json'`
