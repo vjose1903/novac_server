@@ -79,6 +79,7 @@ class CabeceraFactura < ApplicationRecord
 
     return my_query(query)
   end
+
   # ===================================================================================================================================================
   def self.get_facturas_by_cliente_id_and_estado(cliente_id, pagada)
     select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento, 
@@ -100,8 +101,11 @@ class CabeceraFactura < ApplicationRecord
     
     last_cuadre = CuadreCaja.all.last
 
+
     if factura
-      if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
+      # if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
+
+      if last_cuadre.nil? || comparar_fecha(factura[:fecha_equivalente].to_s, last_cuadre[:created_at].to_s, ">=") 
 
         can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
 
@@ -148,6 +152,7 @@ class CabeceraFactura < ApplicationRecord
 
     CabeceraFactura.transaction do
       validado = verificateCanUpdate(id)
+      res = {:error => false,  :msg => '',:status => 200 }
       if validado[:status] 
 
         @factura_de = params['FACTURA_DE']
@@ -155,11 +160,10 @@ class CabeceraFactura < ApplicationRecord
         factura_original = CabeceraFactura.find_by_id(id)
         
         if factura_original[:condicion] == "Crédito"
-          resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura0], "-")
+          resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura], "-")
           
           if resultCliente[:error]
-            render json: resultCliente, status: 400
-            
+            return {:error => true,  :msg => resultCliente[:msg] ,:status => resultCliente[:status] }
           end
         end
         
@@ -236,7 +240,7 @@ class CabeceraFactura < ApplicationRecord
   
   # ====================================================================================================
   
-  def self.movimientos_de_inventario(objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_)
+  def self.movimientos_de_inventario(objArticulo, cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_)
 
     res = { :error => false, :msg => '' }
     articulo = Articulo.find_by_id(objArticulo["id"])
