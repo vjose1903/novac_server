@@ -367,7 +367,6 @@ ActiveRecord::Schema.define(version: 2020_12_17_000114) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "referencia"
-    t.boolean "status"
     t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
   end
 
