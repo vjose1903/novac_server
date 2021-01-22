@@ -2,31 +2,12 @@ namespace :server_db do
   desc 'Backup DB and upload to Google Drive'
   task :backup do
     rails_env = ENV.fetch("RAILS_ENV") { "development" }
-    db = "ADM_#{rails_env.downcase}"
-    
-    pg_dump = "pg_dump --no-acl --no-owner -U postgres ADM_#{rails_env.downcase}"
+    # pg_dump = "pg_dump --no-acl --no-owner -U postgres ADM_#{rails_env.downcase}"
     timestamp = Time.now.strftime('%Y-%m-%d-%H%M%S')
     archive_path = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
-
-    cmd = nil
-    # with_config do |app, host, db, user|
-        # cmd = "pg_dump -U postgres -W -F t #{db} > #{archive_path}"
-
-        
-        cmd = "pg_dump --verbose --format=c --inserts --dbname=#{db} -f #{archive_path}"
-
-    # end
-
-    puts cmd
-    exec cmd
-
-    # 
-    # 
-    # 
-
-
-    # `cd #{Rails.root}/public && #{pg_dump} | bzip2 - - > #{archive_path}`
-    # `cd #{Rails.root}/public && #{pg_dump} > #{archive_path}`
+    pg_dump = "pg_dump --verbose --format=c --inserts --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+    `cd #{Rails.root}/public && #{pg_dump}`
+    # `export GOOGLE_APPLICATION_CREDENTIALS='#{Rails.root}/config/google_api_credentials.json'`
 
     # require 'google/apis/drive_v2'
     # ENV['GOOGLE_APPLICATION_CREDENTIALS'] = "#{Rails.root}/config/google_api_credentials.json"
