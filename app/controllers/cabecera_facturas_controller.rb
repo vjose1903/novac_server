@@ -30,6 +30,9 @@ class CabeceraFacturasController < ApplicationController
   
   def updateFacturaById
     CabeceraFactura.transaction do
+      return render json: {msg:'Esta función esta inhabilitada por reparaciones!!!'}, status: 400
+      raise ActiveRecord::Rollback
+
       id = params[:id]
       respuesta = CabeceraFactura.updateFactura(id, params, current_user)
       render json: respuesta, status: respuesta[:status]
