@@ -1,7 +1,7 @@
 
 #correr este comando cuando se modifique este archivo => whenever --update-crontab
 
-set :output, "log/cron.log"
+# set :output, "log/cron.log"
 
 # set :environment, "development"
 # set :environment, "production"
