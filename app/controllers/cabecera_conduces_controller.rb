@@ -91,9 +91,9 @@ class CabeceraConducesController < ApplicationController
 
     if secuencia_comprobante.save!
       cabecera_conduce = CabeceraConduce.parsearData(@cabecera_conduce)
-      return {:error => false :body=> cabecera_conduce, :status=> :created}
+      return {:error => false, :body=> cabecera_conduce, :status=> :created}
     else
-      return {:error => true :msg=> 'Error actualizando la secuencia de los conduces.', :status=> 400}
+      return {:error => true, :msg=> 'Error actualizando la secuencia de los conduces.', :status=> 400}
     end
   end
 
