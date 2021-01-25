@@ -174,7 +174,6 @@ class Reporte < ApplicationRecord
         obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos['count'] }"}
         
         return obj
-        
     end
     
     # ---------------------------------------------------------------------------------------------------------
