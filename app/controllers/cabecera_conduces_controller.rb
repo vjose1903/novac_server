@@ -26,8 +26,22 @@ class CabeceraConducesController < ApplicationController
       @cabecera_conduce.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
 
       if @cabecera_conduce.save
-        procesosDetalle
-        updateSecuencias
+        continuar = procesosDetalle
+
+        if continuar[:error]
+          return render json: {msg: continuar[:msg]}, status: continuar[:status] 
+          raise ActiveRecord::Rollback
+        else
+          listo = updateSecuencias
+          
+          if listo[:error]
+            return render json: {msg: listo[:msg]}, status: listo[:status] 
+            raise ActiveRecord::Rollback
+          else
+            return render json: listo[:body], status: listo[:status] 
+          end
+        end
+
       else
         render json: @cabecera_conduce.errors, status: :unprocessable_entity
       end
@@ -35,6 +49,7 @@ class CabeceraConducesController < ApplicationController
   end
 
   def procesosDetalle
+    res = { :error => false , :msg => '' , :status => 200}
     params["detalle_conduces_attributes"].each do |detalle_conduce|
       if detalle_conduce["detalle_factura_id"]
         detalleFactAdelantada = DetalleFactura.find_by_id(detalle_conduce["detalle_factura_id"])
@@ -44,8 +59,7 @@ class CabeceraConducesController < ApplicationController
           detalleFactAdelantada.retirado = detalleFactAdelantada.retirado + detalle_conduce["cantidad_en_unidades"]
 
           unless detalleFactAdelantada.save!
-            render json: detalleFactAdelantada.errors, status: :unprocessable_entity
-            raise ActiveRecord::Rollback
+            return { :error => true , :msg => detalleFactAdelantada.errors , :status => :unprocessable_entity}
           end
         end
       end
@@ -56,19 +70,20 @@ class CabeceraConducesController < ApplicationController
 
       if mov < 0
         mensaje = "Cantidad introducida para el articulo #{articulo.nombre.titleize}  ahora excede la cantidad disponible en inventario. "
-        render json: { msg: mensaje }, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
+        return { :error => true , :msg => mensaje , :status => :unprocessable_entity}
       end
 
       unless articulo.update({ existencia: mov })
-        render json: articulo.errors, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
+        return { :error => true , :msg => articulo.errors , :status => 400}
       end
+
+      return res
     end
   end
 
   # PATCH/PUT /cabecera_conduces/1
   def updateSecuencias
+    
     secuencia_comprobante = SecuenciaFactura.find_by_id(15)
 
     actual = secuencia_comprobante.secuencia
@@ -76,8 +91,9 @@ class CabeceraConducesController < ApplicationController
 
     if secuencia_comprobante.save!
       cabecera_conduce = CabeceraConduce.parsearData(@cabecera_conduce)
-      render json: cabecera_conduce, status: :created, location: @cabecera_conduce
+      return {:error => false :body=> cabecera_conduce, :status=> :created}
     else
+      return {:error => true :msg=> 'Error actualizando la secuencia de los conduces.', :status=> 400}
     end
   end
 

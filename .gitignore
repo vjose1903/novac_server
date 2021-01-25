@@ -9,6 +9,8 @@
 
 # Ignore all logfiles and tempfiles.
 /log/*
+*.sql.bz2
+*.sql
 /tmp/*
 !/log/.keep
 !/tmp/.keep

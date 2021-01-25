@@ -18,9 +18,10 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: admservidor.ddns.net
+  host: localhost #admservidor.ddns.net
   username: postgres
   password: Vasquez1903
+  # password: soporte
   port: 5432
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
@@ -29,16 +30,17 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
 
 development:
+  <<: *default
   database: ADM_development
-  adapter: postgresql
-  encoding: unicode
+  # adapter: postgresql
+  # encoding: unicode
   # host: admservidor.ddns.net
-  host: localhost
-  username: postgres
-  password: Vasquez1903
-  port: 5432
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  # host: localhost
+  # username: postgres
+  # password: Vasquez1903
+  # port: 5432
+  # pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # timeout: 5000
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
@@ -91,12 +93,12 @@ development:
 #
 production:
   database: ADM_production
-  adapter: postgresql
-  encoding: unicode
-  host: admservidor.ddns.net
-  # host: localhost
-  username: postgres
-  password: Vasquez1903
-  port: 5432
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  # adapter: postgresql
+  # encoding: unicode
+  # host: admservidor.ddns.net
+  # # host: localhost
+  # username: postgres
+  # password: Vasquez1903
+  # port: 5432
+  # pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # timeout: 5000
