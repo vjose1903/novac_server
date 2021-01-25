@@ -93,6 +93,7 @@ development:
 #
 production:
   database: ADM_production
+  host: admservidor.ddns.net
   # adapter: postgresql
   # encoding: unicode
   # host: admservidor.ddns.net
