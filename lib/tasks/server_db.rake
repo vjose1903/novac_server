@@ -24,7 +24,7 @@ namespace :server_db do
       drive.insert_permission(file.id, perm)
     end
 
-    FileUtils.remove_file(archive_path)
+    # FileUtils.remove_file(archive_path)
   end
 end
 
