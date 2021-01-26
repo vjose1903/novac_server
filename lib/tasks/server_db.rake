@@ -6,8 +6,6 @@ namespace :server_db do
     timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
     archive_path = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
 
-    host = ENV.fetch("PGHOST") { "admservidor.ddns.net" }
-    puts "host ==> ".red + "#{host}"
     ENV['PGPASSWORD'] = "Vasquez1903"
     pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h admservidor.ddns.net --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
     `cd #{Rails.root}/public && #{pg_dump}`
@@ -28,8 +26,7 @@ namespace :server_db do
     end
     
 
-    #prueba de application sql
-    # FileUtils.remove_file(archive_path)
+    FileUtils.remove_file(archive_path)
   end
 end
 
