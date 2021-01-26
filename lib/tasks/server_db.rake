@@ -7,8 +7,9 @@ namespace :server_db do
     archive_path = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
 
     host = ENV.fetch("PGHOST") { "admservidor.ddns.net" }
+    puts "host ==> ".red + "#{host}"
     
-    pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h #{host} --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+    pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h localhost --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
     `cd #{Rails.root}/public && #{pg_dump}`
 
     require 'google/apis/drive_v2'
