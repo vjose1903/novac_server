@@ -20,7 +20,7 @@ default: &default
   encoding: unicode
   host: localhost #admservidor.ddns.net
   username: postgres
-  # password: Vasquez1903
+  password: Vasquez1903
   # password: soporte
   port: 5432
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
