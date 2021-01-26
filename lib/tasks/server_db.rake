@@ -6,7 +6,7 @@ namespace :server_db do
     timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
     archive_path = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
 
-    pg_dump = "pg_dump --verbose --format=c --inserts --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+    pg_dump = "pg_dump --verbose --format=c --inserts -U postgres --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
     `cd #{Rails.root}/public && #{pg_dump}`
 
     # require 'google/apis/drive_v2'
