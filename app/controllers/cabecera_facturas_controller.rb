@@ -50,10 +50,6 @@ class CabeceraFacturasController < ApplicationController
   def getInfoFacturas
     campos = params[:campos]
     ids = params[:ids]
-
-    puts "CAMPOS --> ".red + "#{campos}"
-    puts "IDS --> ".red + "#{ids}"
-
   end
 
   def verificateCanUpdateById
@@ -62,7 +58,6 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def getFacturasByParams
-    puts "------- GETFACTURASBYPARAMS ------".yellow
     campoNum = params[:campo]
     valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
     tipo_factura_id = params[:tipo_factura_id]
@@ -90,9 +85,6 @@ class CabeceraFacturasController < ApplicationController
 
     cabe_ = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
 
-    puts "page --> #{page}".red
-    puts "per_page --> #{per_page}".red
-    puts "paginado --> #{paginado}".red
     
     if paginado
 
@@ -122,19 +114,16 @@ class CabeceraFacturasController < ApplicationController
     arg = params["arg"]
     page = params["page"]
     per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-    puts "arg ==> ".red + "#{arg}"
-    # cabe_pendientes = CabeceraFactura.where({ is_viaje: true, fecha_completada: nil }).where(cabecera_factura: {numero_comprobante: arg}).to_a
-    # cabe_completadas_hoy = CabeceraFactura.where({ is_viaje: true, fecha_completada: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).where(cabecera_factura: {numero_comprobante: arg}).to_a
-    cabe_pendientes = CabeceraFactura.where({ is_viaje: true, fecha_completada: nil }).to_a
-    cabe_completadas_hoy = CabeceraFactura.where({ is_viaje: true, fecha_completada: DateTime.now.beginning_of_day..DateTime.now.end_of_day }).to_a
+    paginado = params["paginado"] === "true" ? true :  false
 
-
-    cabe_pendientes.concat cabe_completadas_hoy
+    where = "is_viaje = true and ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' and '#{DateTime.now.end_of_day}') )"
+    
+    cabeceras = CabeceraFactura.joins("inner join clientes on clientes.id = cabecera_facturas.cliente_id").where("#{where} and lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ").to_a
+    
 
     cabeceras_temp = []
 
-    cabe_pendientes.each do |factura|
+    cabeceras.each do |factura|
       @usuario_ = User.find_by_id(factura["user_id"])
       cabeceras_temp.push(parsearData(factura))
     end
@@ -212,7 +201,7 @@ class CabeceraFacturasController < ApplicationController
 
         # return render json: { msg: "pruebas", body: cabecera }
         # raise ActiveRecord::Rollback
-        puts "@cabecera_factura===> " + "#{@cabecera_factura.to_json}"
+        
         unless @cabecera_factura.save
           # render json: @cabecera_factura, status: :created, location: @cabecera_factura
           render json: @cabecera_factura.errors, status: :unprocessable_entity
@@ -254,7 +243,6 @@ class CabeceraFacturasController < ApplicationController
     
     @tipoFactura = TipoFactura.find_by_id(obj["tipo_factura_id"])
     
-    puts "obj ==> ".yellow + "#{obj.to_json}"
     arrayDetalle = DetalleFactura.where({ cabecera_factura_id: obj["id"] })
     detalleFacturas = []
     contador_retirado = 0
@@ -465,7 +453,7 @@ class CabeceraFacturasController < ApplicationController
   # end
 
   def cancelarFactura
-    puts "CANCELANDO FACTURA".red
+    
     res = CabeceraFactura.anular_factura(params[:id])
 
     if res
@@ -477,14 +465,11 @@ class CabeceraFacturasController < ApplicationController
 
   def update_secuencia
     # @cabecera_factura.transaction do
-    puts "params[:FACTURA_DE]===> " + "#{params[:FACTURA_DE]}"
     if params[:FACTURA_DE] == 14
       # --------- COMPRA ---------
-      puts "COMPRAAAAA===> " 
       unless @actual_secuencia_factura.update({ secuencia: @next_secuencia_factura })
         render json: { msg: "Error actualizando la tabla de secuencia de Factura Compra" }, status: :unprocessable_entity
       else
-        puts " ------------------ antes de parsearData ------------------" 
         cabecera = parsearData(@cabecera_factura, true)        
         render json: cabecera, status: cabecera[:status], location: @cabecera_factura
       end
