@@ -119,7 +119,6 @@ class RecibosIngresosController < ApplicationController
           detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
           
           if detalles[0][:error]
-            puts " --> ".red + "#{detalles[0]}"
             render json: { msg: detalles[0][:msg] }, :status => :unprocessable_entity
             raise ActiveRecord::Rollback
           end

@@ -41,16 +41,10 @@ class Articulo < ApplicationRecord
       res = false
       
       saco = Articulo.where({nombre:'Saco sistema'})
-      puts "saco --> ".red + "#{saco}"
       unless saco.empty?
         
         saco = saco[0]
-        puts "fecha.to_s --> ".red + "#{fecha.to_s}"
-        puts "saco['created_at'].to_s --> ".red + "#{saco['created_at'].to_s}"
         is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
-        puts "is_correct --> ".red + "#{is_correct}"
-        puts "articulo['calcular_saco']  --> ".red + "#{articulo["calcular_saco"] }"
-        puts "articulo  --> ".red + "#{articulo }"
   
         if is_correct && articulo["calcular_saco"] 
           res = true
@@ -256,9 +250,6 @@ class Articulo < ApplicationRecord
     if existencia == nil
       existencia = 0
     end
-
-    puts "articulo ==> ".red + "#{articulo.to_json}"
-    puts "contenido.length ==> ".red + "#{contenido.length}"
     
     cantidades = {}
     if contenido.length == 0

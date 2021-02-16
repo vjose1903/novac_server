@@ -23,8 +23,6 @@ class Reporte < ApplicationRecord
         suplidor={}
         supli = Suplidor.find_by_id(id)
 
-        puts 'id -->'.yellow + "#{id}"
-        puts 'supli -->'.yellow + "#{supli.to_json}"
         tempNom = "#{supli["nombre"]}".titleize + " #{supli["apellido"]}".titleize
         
         if max_lengt > 0
@@ -35,7 +33,6 @@ class Reporte < ApplicationRecord
         end
         
         suplidor["rnc"] = DocumentoDeIdentidad.where({ principal: true, suplidor_id: supli["id"] })[0]["documento"]
-        puts 'suplidor -->'.yellow + "#{suplidor.to_json}"
         return suplidor
     end
 
@@ -245,10 +242,10 @@ class Reporte < ApplicationRecord
         query_join['tipo'] = 'compra'
 
         
-        temp = DetalleFactura.where(query).select("detalle_facturas.* ,cabecera_facturas.suplidor_id,cabecera_facturas.fecha_equivalente").joins(:cabecera_factura).where(cabecera_facturas: query_join).order('detalle_facturas.id ASC')
-
+        temp = DetalleFactura.where(query).select("detalle_facturas.* ,cabecera_facturas.suplidor_id, cabecera_facturas.fecha_equivalente").joins(:cabecera_factura).where(cabecera_facturas: query_join).order('detalle_facturas.id ASC')
+        
         temp.each do |detalle|
-            att =detalle.attributes
+            att = detalle.attributes
             suplidor = buscar_suplidor(detalle.suplidor_id)
             att["suplidor_nombre"]=suplidor['nombre']
             contenido.push(att)
@@ -257,9 +254,9 @@ class Reporte < ApplicationRecord
         
         articulo = Articulo.find_by_id(articulo_id)
         subT = "Producto: #{articulo.nombre}"
-
+        
         obj = { body: contenido, total: 0, sub_t: subT}
-
+        
     end
     # ---------------------------------------------------------------------------------------------------------
     

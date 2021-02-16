@@ -149,74 +149,74 @@ class CabeceraFactura < ApplicationRecord
   
   # ====================================================================================================
   def self.updateFactura(id, params={}, user_current)
+  
+    validado = verificateCanUpdate(id)
+    puts "validado ==> ".yellow + "#{validado}"
+    res = {:error => false,  :msg => '',:status => 200 }
+    if validado[:status] 
 
-    CabeceraFactura.transaction do
-      validado = verificateCanUpdate(id)
-      res = {:error => false,  :msg => '',:status => 200 }
-      if validado[:status] 
-
-        @factura_de = params['FACTURA_DE']
-        factura_nueva = params['cabecera_factura']
-        factura_original = CabeceraFactura.find_by_id(id)
+      @factura_de = params['FACTURA_DE']
+      factura_nueva = params['cabecera_factura']
+      factura_original = CabeceraFactura.find_by_id(id)
+      
+      if factura_original[:condicion] == "Crédito"
+        resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura], "-")
         
-        if factura_original[:condicion] == "Crédito"
-          resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura], "-")
-          
-          if resultCliente[:error]
-            return {:error => true,  :msg => resultCliente[:msg] ,:status => resultCliente[:status] }
-          end
+        if resultCliente[:error]
+          return {:error => true,  :msg => resultCliente[:msg] ,:status => resultCliente[:status] }
         end
-        
-        detalles = DetalleFactura.where({ cabecera_factura_id: id })
-        
-        detalles.each do |detalle|
-          articulo = Articulo.find_by_id(detalle["articulo_id"])
-          mov = (articulo["existencia"] + detalle["cantidad_en_unidades"])
-          if articulo.update({ existencia: mov })
-            detalle.destroy
-          else
-            return { :error => true, :msg => "Error devolviendo la cantidad de #{articulo["nombre"]} en el inventario", :status => 400 }
-          end
-        end
-
-        factura_nueva['detalle_facturas_attributes'].each do |detalle|
-          
-          detalle_ = CabeceraFactura.formarDetalleFactura(detalle, factura_original['id'])
-          
-          unless detalle_.save!
-            return { :error => true, :msg => "Error editando articulo de la factura.", :status => 400 }
-          else
-            articulo    = Articulo.find_by_id(detalle["articulo_id"])
-            art         = detalle 
-            art['id']   = detalle['articulo_id']
-
-             # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
-
-            # si voy a editar una factura de compra buscar el movimiento de inventario que se genero cuando se compro la factura y borrarlo
-            CabeceraFactura.movimientos_de_inventario(art, detalle['cantidad_en_unidades'], @factura_de, 'editar_factura', factura_original, user_current)
-          end
-          
-        end
-
-        factura_original.total_factura   = factura_nueva['total_factura']
-        factura_original.itbis           = factura_nueva['itbis']
-        factura_original.descuento       = factura_nueva['descuento']
-        factura_original.Bruto           = factura_nueva['Bruto']
-        factura_original.pagada          = factura_nueva['pagada']
-        factura_original.balance         = factura_nueva['balance']
-        factura_original.devuelta        = factura_nueva['devuelta']
-
-        unless factura_original.save!
-          return { :error => true, :msg => 'Error editando la factura', :status => 400 }
+      end
+      
+      detalles = DetalleFactura.where({ cabecera_factura_id: id })
+      
+      detalles.each do |detalle|
+        articulo = Articulo.find_by_id(detalle["articulo_id"])
+        mov = (articulo["existencia"] + detalle["cantidad_en_unidades"])
+        if articulo.update({ existencia: mov })
+          detalle.destroy
         else
-          return { :error => false, :msg => 'Factura editada correctamente.', :status => 200 }
+          return { :error => true, :msg => "Error devolviendo la cantidad de #{articulo["nombre"]} en el inventario", :status => 400 }
         end
-        
-      else
-        return { :error => true, :msg => validado[:msg], :status => 400 }
       end
 
+      factura_nueva['detalle_facturas_attributes'].each do |detalle|
+        
+        detalle_ = CabeceraFactura.formarDetalleFactura(detalle, factura_original['id'])
+        
+        unless detalle_.save!
+          return { :error => true, :msg => "Error editando articulo de la factura.", :status => 400 }
+        else
+          articulo    = Articulo.find_by_id(detalle["articulo_id"])
+          art         = detalle 
+          art['id']   = detalle['articulo_id']
+
+            # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
+
+          # si voy a editar una factura de compra buscar el movimiento de inventario que se genero cuando se compro la factura y borrarlo
+          CabeceraFactura.movimientos_de_inventario(art, detalle['cantidad_en_unidades'], @factura_de, 'editar_factura', factura_original, user_current)
+        end
+        
+      end
+
+
+      factura_original.total_factura   = factura_nueva['total_factura']
+      factura_original.itbis           = factura_nueva['itbis']
+      factura_original.descuento       = factura_nueva['descuento']
+      factura_original.Bruto           = factura_nueva['Bruto']
+      factura_original.pagada          = factura_nueva['pagada']
+      factura_original.balance         = factura_nueva['balance']
+      factura_original.devuelta        = factura_nueva['devuelta']
+
+      unless factura_original.save!
+        return { :error => true, :msg => 'Error editando la factura', :status => 400 }
+      else
+        return { :error => false, :msg => 'Factura editada correctamente.', :status => 200 }
+      end
+      
+    else
+      return { :error => true, :msg => validado[:msg], :status => 400 }
     end
+
   end
   # ====================================================================================================
   def self.formarDetalleFactura(detalle, fact_id)
@@ -279,7 +279,6 @@ class CabeceraFactura < ApplicationRecord
         return { :error => true, msg:movimientos_inventario.errors }
       end
     end
-    puts "VOY A CAMBIAR EXISTENCIA ".yellow
     if articulo.nombre != 'Transporte'
       articulo.existencia = mov
       

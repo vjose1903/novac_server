@@ -135,19 +135,17 @@ class ArticulosController < ApplicationController
     fecha = params["fecha"]
     tipo = params["tipo"]
 
+    
     articulos_ = [] 
     articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
 
     res = []
     if paginado
       res = Articulo.agruparDesagruparFiltro(arg, articulos, page, per_page, fecha)
-
     else
-      res = articulos
-      res.each do |arti|
-        arti["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: arti["id"] })
-        arti["contenido"] = Articulo.calcularContenidos(arti)
-        arti["cantidades"] = Articulo.calcularCantidades(arti)
+      
+      articulos.each do |arti|
+        res.push(Articulo.completar_campos_articulo(DateTime.now.strftime("%Y-%m-%d %H:%M"), arti['id']))
       end
     end
 
@@ -244,7 +242,6 @@ class ArticulosController < ApplicationController
       @ant_articulo = Articulo.parseal(@articulo)
      
       check_saco = checkSacoSistema(articulo_params)
-      puts 'check_saco --> '.red + "#{check_saco}"
       if check_saco[:error]
         return render json: {msg: check_saco[:msg]}, status: 404
         raise ActiveRecord::Rollback
