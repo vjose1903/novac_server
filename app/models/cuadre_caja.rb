@@ -10,7 +10,7 @@ class CuadreCaja < ApplicationRecord
 
       
 
-      ventas_contado = CabeceraFactura.where("forma_pago = 'Efectivo' OR forma_pago = 'Cheque'").where(
+      ventas_contado = CabeceraFactura.where("forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta'").where(
         { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
           'fecha_completada': DateTime.now.beginning_of_day..DateTime.now.end_of_day,
           tipo: "venta", condicion: "Contado", is_viaje: false }
@@ -33,7 +33,7 @@ class CuadreCaja < ApplicationRecord
       end
       
 
-      recibos_ingresos_ = RecibosIngreso.where("forma_pago = 'Efectivo' OR forma_pago = 'Cheque'").where(
+      recibos_ingresos_ = RecibosIngreso.where("forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta'").where(
         { 'fecha_equivalente': DateTime.now.beginning_of_day..DateTime.now.end_of_day}
       ).sum(:total)
 
