@@ -252,7 +252,6 @@ class CabeceraFactura < ApplicationRecord
     if factura_de == 13
       # --------- VENTA ---------
       if articulo.nombre != 'Transporte'
-        my_print_log('operador 00 --> ' + "#{operador}")
         if mov < 0
 
           mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
@@ -301,10 +300,6 @@ class CabeceraFactura < ApplicationRecord
   # ====================================================================================================
   def self.payFacturas(facturas)
     res = { error: false, msg: "facturas actualizadas" }
-    my_print_log(" :::::::: PAGANDO FACTURAS ::::::::")
-    
-    my_print_log("facturas 00 --> #{facturas}" )
-    my_print_log("facturas 11 --> #{facturas.to_json}" )
 
     facturas["detalle_recibos_attributes"].each do |f|
       factura_a_pagar = CabeceraFactura.find_by_id(f["cabecera_factura_id"])
@@ -322,51 +317,33 @@ class CabeceraFactura < ApplicationRecord
         factura_a_pagar["balance"] = factura_a_pagar["balance"] + monto_editado_por_notas
       end
 
-      # if f["pago_total"]
+      # si la factura tiene una nota le quito el valor modificado
+      if factura_a_pagar["tiene_nota"]
+        factura_a_pagar["balance"] = factura_a_pagar["balance"] - monto_editado_por_notas
+      end
 
-      #   if f["deposito"] == factura_a_pagar["balance"]
-      #     unless factura_a_pagar.update({ balance: 0, pagada: true, fecha_completada: DateTime.now })
-      #       res = { error: true, msg: factura_a_pagar.errors }
-      #       return res
-      #     end
-      #   else
-      #     res = { error: true, msg: factura_a_pagar.errors }
-      #     return res
-      #   end
+      newBalance = factura_a_pagar["balance"] - f["deposito"]
 
-      # else
-        # si la factura tiene una nota le quito el valor modificado
-        if factura_a_pagar["tiene_nota"]
-          factura_a_pagar["balance"] = factura_a_pagar["balance"] - monto_editado_por_notas
+      # si la factura tiene una nota le agrego el valor modificado
+      if factura_a_pagar["tiene_nota"]
+        balance = factura_a_pagar["balance"] + monto_editado_por_notas
+      else
+        balance = factura_a_pagar["balance"]
+      end
+
+      comprobacion_mayor_cero =  balance - f["deposito"] 
+      
+      if f["deposito"] == balance || comprobacion_mayor_cero < 1
+        unless factura_a_pagar.update({ balance: newBalance, pagada: true, fecha_completada: DateTime.now })
+          res = { error: true, msg: factura_a_pagar.errors }
+          return res
         end
-
-        newBalance = factura_a_pagar["balance"] - f["deposito"]
-
-        # si la factura tiene una nota le agrego el valor modificado
-        if factura_a_pagar["tiene_nota"]
-          balance = factura_a_pagar["balance"] + monto_editado_por_notas
-        else
-          balance = factura_a_pagar["balance"]
+      else
+        unless factura_a_pagar.update({ balance: newBalance })
+          res = { error: true, msg: factura_a_pagar.errors }
+          return res
         end
-
-        comprobacion_mayor_cero =  balance - f["deposito"] 
-
-        my_print_log("comprobacion_mayor_cero --> #{comprobacion_mayor_cero}" )
-        my_print_log("f['deposito'] --> #{f["deposito"]}" )
-        my_print_log("balance --> #{balance}" )
-        
-        if f["deposito"] == balance || comprobacion_mayor_cero < 1
-          unless factura_a_pagar.update({ balance: newBalance, pagada: true, fecha_completada: DateTime.now })
-            res = { error: true, msg: factura_a_pagar.errors }
-            return res
-          end
-        else
-          unless factura_a_pagar.update({ balance: newBalance })
-            res = { error: true, msg: factura_a_pagar.errors }
-            return res
-          end
-        end
-      # end
+      end
     end
     return res
   end
@@ -409,7 +386,6 @@ class CabeceraFactura < ApplicationRecord
 
     factura = CabeceraFactura.find_by_id(id)
     balance = factura["balance"]
-    my_print_log("factura==> #{factura.to_json}")
 
     total_facturado = factura["total_factura"]
 
@@ -420,8 +396,6 @@ class CabeceraFactura < ApplicationRecord
 
 
     sumatoria = 0
-    my_print_log(" monto recibido --> #{montoRecibido}")
-    my_print_log(" balance --> #{balance}")
 
     if montoRecibido.to_f > balance
       return { :error => true, :msg => "El monto ingresado para la factura: #{factura.numero_comprobante}, es mayor al balance de la factura", :status => 400 }

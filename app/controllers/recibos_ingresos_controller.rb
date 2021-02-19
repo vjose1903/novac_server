@@ -123,7 +123,6 @@ class RecibosIngresosController < ApplicationController
             raise ActiveRecord::Rollback
           end
           
-          my_print_log("SE SUPONE QUE NO DIO ERROR EN LA CREACION DEL DETALLE" )
           if params["vehiculo_id"]
             vehiculo = Vehiculo.find_by_id(params["vehiculo_id"])
             
@@ -137,19 +136,15 @@ class RecibosIngresosController < ApplicationController
           @recibos_ingreso.detalle_recibos = detalles
           
           unless @recibos_ingreso.save!
-            my_print_log(" :::::::: ERROR CREANDO RECIBO ::::::::" )
             render json: @recibos_ingreso.errors, :status => :unprocessable_entity
             raise ActiveRecord::Rollback
           end
-          my_print_log(" :::::::: SE GUARDO EL RECIBO ::::::::" )
 
           continuar = CabeceraFactura.payFacturas(recibos_ingreso_params)
-          my_print_log("continuar --> #{continuar}" )
           unless continuar[:error]
             respuesta = @recibos_ingreso
 
             respuesta.cliente.balance = Cliente.find_by_id(@recibos_ingreso.cliente_id).balance
-            my_print_log("respuesta --> #{respuesta}" )
             res = RecibosIngreso.parsearData(respuesta)
 
             render json: res, status: :created, location: @recibos_ingreso
