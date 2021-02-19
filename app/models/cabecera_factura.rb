@@ -301,6 +301,11 @@ class CabeceraFactura < ApplicationRecord
   # ====================================================================================================
   def self.payFacturas(facturas)
     res = { error: false, msg: "facturas actualizadas" }
+    my_print_log(" :::::::: PAGANDO FACTURAS ::::::::")
+    
+    my_print_log("facturas 00 --> #{facturas}" )
+    my_print_log("facturas 11 --> #{facturas.to_json}" )
+
     facturas["detalle_recibos_attributes"].each do |f|
       factura_a_pagar = CabeceraFactura.find_by_id(f["cabecera_factura_id"])
 
@@ -317,17 +322,19 @@ class CabeceraFactura < ApplicationRecord
         factura_a_pagar["balance"] = factura_a_pagar["balance"] + monto_editado_por_notas
       end
 
-      if f["pago_total"]
-        if f["deposito"] == factura_a_pagar["balance"]
-          unless factura_a_pagar.update({ balance: 0, pagada: true, fecha_completada: DateTime.now })
-            res = { error: true, msg: factura_a_pagar.errors }
-            return res
-          end
-        else
-          res = { error: true, msg: factura_a_pagar.errors }
-          return res
-        end
-      else
+      # if f["pago_total"]
+
+      #   if f["deposito"] == factura_a_pagar["balance"]
+      #     unless factura_a_pagar.update({ balance: 0, pagada: true, fecha_completada: DateTime.now })
+      #       res = { error: true, msg: factura_a_pagar.errors }
+      #       return res
+      #     end
+      #   else
+      #     res = { error: true, msg: factura_a_pagar.errors }
+      #     return res
+      #   end
+
+      # else
         # si la factura tiene una nota le quito el valor modificado
         if factura_a_pagar["tiene_nota"]
           factura_a_pagar["balance"] = factura_a_pagar["balance"] - monto_editado_por_notas
@@ -344,6 +351,10 @@ class CabeceraFactura < ApplicationRecord
 
         comprobacion_mayor_cero =  balance - f["deposito"] 
 
+        my_print_log("comprobacion_mayor_cero --> #{comprobacion_mayor_cero}" )
+        my_print_log("f['deposito'] --> #{f["deposito"]}" )
+        my_print_log("balance --> #{balance}" )
+        
         if f["deposito"] == balance || comprobacion_mayor_cero < 1
           unless factura_a_pagar.update({ balance: newBalance, pagada: true, fecha_completada: DateTime.now })
             res = { error: true, msg: factura_a_pagar.errors }
@@ -355,7 +366,7 @@ class CabeceraFactura < ApplicationRecord
             return res
           end
         end
-      end
+      # end
     end
     return res
   end
