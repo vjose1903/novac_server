@@ -16,6 +16,7 @@ class ReportesController < ApplicationController
             body = Reporte.get_ventas(params)
             titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
             tipo = 'ventas'
+            tipo_tabla = 'normal'
             
         elsif tipo_reporte==='cuentas_cobrar'
             # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
@@ -26,30 +27,35 @@ class ReportesController < ApplicationController
             else
                 tipo = 'cxc_ant'
             end
+            tipo_tabla = 'normal'
             
         elsif tipo_reporte==='inventario'
             # ------------------- REPORTE DE INVENTARIO --------------------
             body = Reporte.get_inventario(params)
             titulo = "Reporte de inventario"
             tipo = 'inventario'
+            tipo_tabla = 'normal'
 
         elsif tipo_reporte==='recibos'
             # ------------------- REPORTE DE RECIBOS --------------------
             body = Reporte.get_recibos(params)
             titulo = "Reporte de Recibos de ingreso"
             tipo = 'recibos'
+            tipo_tabla = 'normal'
 
         elsif tipo_reporte==='ventas_productos'
             # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
             body = Reporte.get_ventas_por_producto(params)
             titulo = "Reporte de ventas por producto"
             tipo = 'ventas_prod'
+            tipo_tabla = 'agrupado'
             
         elsif tipo_reporte==='suplidor_prod'
             # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
             body = Reporte.get_suplidores_por_producto(params)
             titulo = "Reporte de suplidores por producto"
             tipo = 'suplidor_prod'
+            tipo_tabla = 'normal'
             
         end
 
@@ -63,7 +69,7 @@ class ReportesController < ApplicationController
             sub_t: body[:sub_t]
         }
 
-        render json: Reporte.estructura_reporte(titulo , tipo, body[:body], mostrar_total, mostrar_sub_titulo, current_user)
+        render json: Reporte.estructura_reporte(titulo , tipo, body[:body], mostrar_total, mostrar_sub_titulo, tipo_tabla, current_user)
     end
 
 

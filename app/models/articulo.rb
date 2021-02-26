@@ -252,6 +252,9 @@ class Articulo < ApplicationRecord
     end
     
     cantidades = {}
+    my_print_log("existencia -> #{existencia.to_json}")
+    my_print_log("contenido -> #{contenido.to_json}")
+
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1

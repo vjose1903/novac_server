@@ -1,6 +1,6 @@
 class Reporte < ApplicationRecord
     # ---------------------------------------------------------------------------------------------------------
-    def self.estructura_reporte(titulo, _tipo_reporte, content, total_ ,sub_titulo_ ,current_user)
+    def self.estructura_reporte(titulo, _tipo_reporte, content, total_ ,sub_titulo_ ,tipo_tabla ,current_user)
         temp_Emp = current_user.nombre.titleize + " " + current_user.apellido.titleize
         longitud= temp_Emp.length
         # maximo de caracteres 15
@@ -13,6 +13,7 @@ class Reporte < ApplicationRecord
             total: total_[:bool] ? total_[:total] : 0,
             mostrar_sub_titulo: sub_titulo_[:bool],
             sub_titulo: sub_titulo_[:sub_t],
+            tipo_tabla: tipo_tabla,
             contenido_reporte: content,
         }
         
@@ -258,84 +259,56 @@ class Reporte < ApplicationRecord
         obj = { body: contenido, total: 0, sub_t: subT}
         
     end
+
     # ---------------------------------------------------------------------------------------------------------
-    
     def self.get_ventas_por_producto(params)
         temp = []
         temp_ventas = []
         ventas = []
-        fecha = params["fecha"]
-        total_venta=0
+        desde = params["desde"]
+        hasta = params["hasta"].nil? ? params["desde"] : params["hasta"]
+
+        sub_titulo = desde == hasta ? "Fecha: #{formatearFecha(desde, 1)}" : "Entre las fechas: #{formatearFecha(desde, 1)} y #{formatearFecha(hasta, 1)}"
+        total_venta = 0
         query={}
         
-        query['fecha_equivalente'] = (Date.parse fecha).beginning_of_day..(Date.parse fecha).end_of_day
-        query['tipo'] = 'venta'
-        query['is_nota'] = false
-        temp = CabeceraFactura.where(query).order('id ASC')
-        
-        temp.each do |factura|
-            
-            factura.detalle_facturas.each do |detalle|
-                
-                articulo = Articulo.find_by_id(detalle.articulo_id)
-                is_in_array = temp_ventas.any? {|h| h[:id] == detalle.articulo_id}
-                se_calcula_saco = Articulo.checkFechaCalcularSaco(factura["fecha_equivalente"], articulo)
-                
-                entrar = false
-                unless is_in_array
-                    entrar = true
-                else
-                    if se_calcula_saco 
-                        if detalle.calcular_saco 
-                            index = temp_ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == true}
-                            if index 
-                                temp_ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
-                                temp_ventas[index][:total_vendido] += detalle.total
-                            else
-                                entrar = true
-                            end
-                        else
-                            index = temp_ventas.index {|h| h[:id] == detalle.articulo_id && h[:calcular_saco] == false}
-                            if index 
-                                temp_ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
-                                temp_ventas[index][:total_vendido] += detalle.total
-                            else
-                                entrar = true
-                            end
-                        end     
-                    else
-                        index = temp_ventas.index {|h| h[:id] == detalle.articulo_id}
-                        temp_ventas[index][:cantidad_en_unidades] += detalle.cantidad_en_unidades
-                        temp_ventas[index][:total_vendido] += detalle.total
-                    end 
-                end
-                
-                nombre = ""
-                
-                if se_calcula_saco
-                    nombre  = articulo.nombre + "  (#{detalle.calcular_saco ? 'Con saco': 'Sin saco'})"
-                else
-                    nombre  = articulo.nombre
+        query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+
+        query['cabecera_facturas.tipo'] = 'venta'
+        query['cabecera_facturas.is_nota'] = false
+
+
+        TipoArticulo.all.each do |tipo_articulo|
+            temp_ventas = []
+            query['articulos.tipo_articulo_id'] = tipo_articulo.id
+
+            DetalleFactura
+                .joins(:cabecera_factura, :articulo)
+                .select("articulos.id as id, 
+                    (articulos.nombre || case when articulos.calcular_saco = true then (case when detalle_facturas.calcular_saco = true then ' (Con saco)' else ' (Sin saco)' end ) else '' end) as nombre, 
+                    sum(detalle_facturas.total) as total_vendido, 
+                    sum(detalle_facturas.cantidad_en_unidades) as cantidad_en_unidades")
+                .where(query).order('id ASC')
+                .group("articulos.id, nombre, detalle_facturas.calcular_saco")
+                .each do |df| 
+                    detalle = df.attributes
+                    detalle['contenido'] = Articulo.calcularContenidos(Articulo.find_by_id(df.id), false)
+                    temp_ventas.push detalle
                 end
 
-                if entrar
-                    temp_ventas.push({
-                        nombre: nombre,
-                        id: articulo.id,
-                        cantidad_en_unidades: detalle.cantidad_en_unidades,
-                        calcular_saco: detalle.calcular_saco,
-                        contenido: Articulo.calcularContenidos(articulo, false),
-                        total_vendido: detalle.total,
-                    })
-                end
-            end
+            total_grupo = calcular_cantidad_proporcional(temp_ventas)
+            total_venta += total_grupo
+
+            ventas.push({
+                titulo_grupo: tipo_articulo.descripcion,
+                total_grupo: total_grupo,
+                contenido_grupo: temp_ventas.sort_by! { |k| k['nombre']}
+            })
         end
-        
-        total_venta = calcular_cantidad_proporcional(temp_ventas)
 
-        ventas = temp_ventas.sort_by! { |k| k[:nombre]}
-        
-        obj = { body: ventas, total: total_venta, sub_t: "Fecha: #{formatearFecha(fecha, 1)}" }
+        ventas = ventas.sort_by! { |k| k[:titulo_grupo]}
+
+        obj = { body: ventas, total: total_venta, sub_t: sub_titulo }
         
     end
     
@@ -345,17 +318,18 @@ class Reporte < ApplicationRecord
         plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
         productos.each do |producto|
             medida_mostrar = ""
-            producto[:contenido].each do |key, value|
+            puts "producto => #{producto['contenido']}".red
+            producto['contenido'].each do |key, value|
                 articulo = Articulo.find_by_id(producto[:id])
 
-                if producto[:cantidad_en_unidades] >= value
-                    cant = producto[:cantidad_en_unidades] / value.to_f
+                if producto['cantidad_en_unidades'] >= value
+                    cant = producto['cantidad_en_unidades'] / value.to_f
                     medida_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
                     break
                 end
             end
             producto["medida_mostrar"] = medida_mostrar
-            total_venta += producto[:total_vendido]
+            total_venta += producto['total_vendido']
         end
         return total_venta
     end
