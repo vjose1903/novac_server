@@ -44,9 +44,10 @@ class ReportesController < ApplicationController
             tipo_tabla = 'normal'
 
         elsif tipo_reporte==='ventas_productos'
-            # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
+            # ------------------- REPORTE DE VENTAS POR PRODUCTO -------------------- 
             body = Reporte.get_ventas_por_producto(params)
             titulo = "Reporte de ventas por producto"
+            # tipo = params["hasta"].nil? ? 'ventas_prod_one' : 'ventas_prod_range' 
             tipo = 'ventas_prod'
             tipo_tabla = 'agrupado'
             

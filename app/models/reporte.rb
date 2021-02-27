@@ -301,7 +301,8 @@ class Reporte < ApplicationRecord
 
             ventas.push({
                 titulo_grupo: tipo_articulo.descripcion,
-                total_grupo: total_grupo,
+                # total_grupo: total_grupo,
+                mostrar_total: false,
                 contenido_grupo: temp_ventas.sort_by! { |k| k['nombre']}
             })
         end
