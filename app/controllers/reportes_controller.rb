@@ -4,10 +4,9 @@ class ReportesController < ApplicationController
 
     def getReportes
         tipo_reporte = params["tipo_reporte"]
-
-        muestra_total=['ventas','cuentas_cobrar','recibos','ventas_productos']
-        muestra_sub_titulo=['inventario','recibos','ventas_productos','suplidor_prod']
         tipo = ''
+        tipo_tabla = 'normal'
+        muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod']
 
         muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '2'
 
@@ -16,7 +15,7 @@ class ReportesController < ApplicationController
             body = Reporte.get_ventas(params)
             titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
             tipo = 'ventas'
-            tipo_tabla = 'normal'
+            
             
         elsif tipo_reporte==='cuentas_cobrar'
             # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
@@ -27,27 +26,23 @@ class ReportesController < ApplicationController
             else
                 tipo = 'cxc_ant'
             end
-            tipo_tabla = 'normal'
             
         elsif tipo_reporte==='inventario'
             # ------------------- REPORTE DE INVENTARIO --------------------
             body = Reporte.get_inventario(params)
             titulo = "Reporte de inventario"
             tipo = 'inventario'
-            tipo_tabla = 'normal'
 
         elsif tipo_reporte==='recibos'
             # ------------------- REPORTE DE RECIBOS --------------------
             body = Reporte.get_recibos(params)
             titulo = "Reporte de Recibos de ingreso"
             tipo = 'recibos'
-            tipo_tabla = 'normal'
 
         elsif tipo_reporte==='ventas_productos'
             # ------------------- REPORTE DE VENTAS POR PRODUCTO -------------------- 
             body = Reporte.get_ventas_por_producto(params)
             titulo = "Reporte de ventas por producto"
-            # tipo = params["hasta"].nil? ? 'ventas_prod_one' : 'ventas_prod_range' 
             tipo = 'ventas_prod'
             tipo_tabla = 'agrupado'
             
@@ -56,69 +51,15 @@ class ReportesController < ApplicationController
             body = Reporte.get_suplidores_por_producto(params)
             titulo = "Reporte de suplidores por producto"
             tipo = 'suplidor_prod'
-            tipo_tabla = 'normal'
             
         end
-
-        mostrar_total = {
-            bool: muestra_total.any? { |i| [tipo_reporte].include? i },
-            total: body[:total]
-        }
 
         mostrar_sub_titulo = {
             bool: muestra_sub_titulo.any? { |i| [tipo_reporte].include? i },
             sub_t: body[:sub_t]
         }
 
-        render json: Reporte.estructura_reporte(titulo , tipo, body[:body], mostrar_total, mostrar_sub_titulo, tipo_tabla, current_user)
+        render json: Reporte.estructura_reporte(titulo , tipo, body[:body], body[:total], mostrar_sub_titulo, tipo_tabla, current_user)
     end
-
-
-    # def getVentas
-    #     ventas = Reporte.get_ventas(params) #     titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
-
-    #     mostrar_total={
-    #         bool: true,
-    #         total: ventas[:total]
-    #     }
-    #     mostrar_sub_titulo={
-    #         bool: false,
-    #         arg: {}
-    #     }
-    #     render json: Reporte.estructura_reporte(titulo ,'ventas', ventas[:body], mostrar_total, mostrar_sub_titulo, current_user)
-    # end
-    
-    # def getCuentasPagar
-    #     ventas = Reporte.get_ventas(params)
-    #     titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
-        
-    #     mostrar_total={
-    #         bool: true,
-    #         total: ventas[:total]
-    #     }
-    #     mostrar_sub_titulo={
-    #         bool: false,
-    #         arg: {}
-    #     }
-    #     render json: Reporte.estructura_reporte(titulo ,'ventas', ventas[:body], mostrar_total, mostrar_sub_titulo, current_user)
-    # end
-    
-    # def getCuentasCobrar
-    #     cuentas = Reporte.get_cuentas_cobrar(params)
-    #     titulo = "Reporte de cuentas por cobrar"
-
-    #     mostrar_total={
-    #         bool: true,
-    #         total: cuentas[:total]
-    #     }
-
-    #     mostrar_sub_titulo={
-    #         bool: true,
-    #         arg: ""
-    #     }
-
-    #     render json: Reporte.estructura_reporte(titulo ,'cuentas', cuentas[:body], mostrar_total, mostrar_sub_titulo, current_user)
-    #     # render json: cuentas
-    # end
 
 end

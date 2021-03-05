@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_16_213158) do
+ActiveRecord::Schema.define(version: 2021_03_05_161544) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -133,6 +133,7 @@ ActiveRecord::Schema.define(version: 2021_01_16_213158) do
     t.integer "numero_reporte"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "fecha_equivalente"
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
 

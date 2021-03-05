@@ -9,8 +9,7 @@ class Reporte < ApplicationRecord
             tipo_reporte: _tipo_reporte,
             fecha: formatearFecha(DateTime.now.to_s ,2),
             realizado_por: longitud > 15 ? "#{temp_Emp[0, 15]}..." : temp_Emp,
-            mostrar_total: total_[:bool],
-            total: total_[:bool] ? total_[:total] : 0,
+            total: total_ ,
             mostrar_sub_titulo: sub_titulo_[:bool],
             sub_titulo: sub_titulo_[:sub_t],
             tipo_tabla: tipo_tabla,
@@ -301,13 +300,16 @@ class Reporte < ApplicationRecord
 
             ventas.push({
                 titulo_grupo: tipo_articulo.descripcion,
-                # total_grupo: total_grupo,
-                mostrar_total: false,
+                total: total_grupo,
                 contenido_grupo: temp_ventas.sort_by! { |k| k['nombre']}
             })
         end
 
-        ventas = ventas.sort_by! { |k| k[:titulo_grupo]}
+        ventas.push({
+            titulo_grupo: 'TOTAL GENERAL',
+            total: total_venta,
+            contenido_grupo: []
+        })
 
         obj = { body: ventas, total: total_venta, sub_t: sub_titulo }
         

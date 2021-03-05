@@ -40,7 +40,7 @@ Rails.application.routes.draw do
   # get "reporte/cuentas/cobrar/:tipo/:cliente_id" => "reportes#getCuentasCobrar"
 
   # Cuadre caja
-  post "cuadre_cajas/custom/nuevo" => "cuadre_cajas#createCuadre"
+  post "cuadre_cajas/custom" => "cuadre_cajas#createCuadre"
   
   # vehiculos
   get "vehiculos/filtro/:arg" => "vehiculos#getVehiculosFiltrados"

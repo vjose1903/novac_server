@@ -246,6 +246,9 @@ class CabeceraFactura < ApplicationRecord
     articulo = Articulo.find_by_id(objArticulo["id"])
     
     operador = factura_de == 13 ? '-' : '+' 
+    puts "cantidad_en_unidades --------------> ".blue + "#{cantidad_en_unidades}"
+    puts "articulo --------------------------> ".red + "#{articulo.to_json}"
+    puts "articulo[existencia] --------------> ".yellow + "#{articulo["existencia"]}"
 
     mov = eval("#{articulo["existencia"]} #{operador} #{cantidad_en_unidades}")
 

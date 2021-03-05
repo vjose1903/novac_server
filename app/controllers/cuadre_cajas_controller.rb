@@ -10,7 +10,8 @@ class CuadreCajasController < ApplicationController
   
   def createCuadre
     CuadreCaja.transaction do
-      cuadre_caja = CuadreCaja.makecuadre(current_user)
+      
+      cuadre_caja = CuadreCaja.makecuadre(current_user, params)
     
       # raise ActiveRecord::Rollback
       # return render json: {msg:'pruebas'}, status: 400
