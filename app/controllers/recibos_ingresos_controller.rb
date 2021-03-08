@@ -85,7 +85,7 @@ class RecibosIngresosController < ApplicationController
       att.except(:incidencia)
       @recibos_ingreso = RecibosIngreso.new(att)
 
-      today_cuadre = CuadreCaja.where({ created_at: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+      today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
       
       if today_cuadre.empty?

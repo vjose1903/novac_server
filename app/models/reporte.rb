@@ -101,7 +101,7 @@ class Reporte < ApplicationRecord
     def self.get_cuentas_cobrar(params)
         tipo = params["tipo"]
         cliente_id = params["cliente_id"]
-        longitud = 20
+        longitud = 70
         cuentas_temp = []
         query = {}
         query['tipo'] = "venta"
