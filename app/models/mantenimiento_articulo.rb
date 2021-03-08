@@ -8,86 +8,40 @@ class MantenimientoArticulo < ApplicationRecord
     return my_query("SELECT * FROM mantenimiento_articulos WHERE articulo_id = #{id} ORDER BY created_at ASC")
   end
 
-  def self.get_historico_by_date_menor(date, articulo_id)
-    select_ = "select * ,ta.descripcion as descripcion"
-    from_ = "from mantenimiento_articulos ma"
-    joins_ = 'inner join tipo_articulos ta on ma."ant_tipoArticuloId"= ta.id'
-    where_ = "where ma.created_at <= '#{date}' AND ma.articulo_id = #{articulo_id}"
-    query = "#{select_} #{from_} #{joins_} #{where_}"
-    return my_query(query)
-  end
-
+  
   # ============================================================================================================================================================
-
-  def self.get_historico_by_date_mayor(date, articulo_id)
+  
+  def self.get_historico_by_date_mayor_or_menor(date, articulo_id, operador, order)
     select_ = "select * ,ta.descripcion as descripcion"
     from_ = "from mantenimiento_articulos ma"
     joins_ = 'inner join tipo_articulos ta on ma."ant_tipoArticuloId"= ta.id'
-    where_ = "where ma.created_at >= '#{date}' AND ma.articulo_id = #{articulo_id}"
-    query = "#{select_} #{from_} #{joins_} #{where_}"
+    where_ = "where ma.created_at #{operador} '#{date}' AND ma.articulo_id = #{articulo_id}"
+    order_ = "ORDER BY ma.id #{order}"
+    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} limit 1"
     return my_query(query)
   end
 
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
     fecha_factura = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
-    
     historico = []
     articulo = Articulo.find_by_id(articulo_id)
     fecha_ultima_edicion = parsearDateTimeUTC(articulo["updated_at"])
-    
-    puts "articulo --> ".blue + "#{articulo}"
-    
-    
-    
-    
     if fecha_factura + ":59" >= fecha_ultima_edicion
       historico.push(Articulo.parseal(articulo))
-      
     else
-      hist = get_historico_by_date_menor(fecha_factura + ":59", articulo_id)
       
+      hist = get_historico_by_date_mayor_or_menor(fecha_factura + ":59", articulo_id, "<=", "DESC")
+      hist = get_historico_by_date_mayor_or_menor(fecha_factura + ":59", articulo_id, ">=", "ASC") if hist.empty?
+
       if hist.rows == []
-        histM = get_historico_by_date_mayor(fecha_factura + ":00", articulo_id)
-        if histM.rows == []
           historico.push(Articulo.parseal(articulo))
-        else
-          articulo = crearArticuloHistorico(histM[0], articulo)
-          puts "articulo --> ".blue + "#{articulo}"
-          historico.push(Articulo.parsealHistorico(articulo))
-        end
       else
         articulo = crearArticuloHistorico(hist[0], articulo)
         historico.push(Articulo.parsealHistorico(articulo))
       end
     end
 
-    return historico
-  end
-  # ============================================================================================================================================================
-  def self.get_all_articulos_by_date(date)
-    historico = []
-
-    Articulo.all.each do |articulo|
-      hist = get_historico_by_date_menor(date + ":59", articulo["id"])
-
-      if fechaConHora >= parsearDateTimeUTC(articulo["updated_at"])
-        historico.push(Articulo.parseal(articulo))
-      else
-        if hist.rows == []
-          histM = get_historico_by_date_mayor(date + ":00", articulo["id"])
-          if histM.rows == []
-            historico.push(Articulo.parseal(articulo))
-          else
-            articulo = crearArticuloHistorico(histM[0], articulo)
-            historico.push(Articulo.parsealHistorico(articulo))
-          end
-        else
-          articulo = crearArticuloHistorico(hist[0], articulo)
-          historico.push(Articulo.parsealHistorico(articulo))
-        end
-      end
-    end
     return historico
   end
 
@@ -118,7 +72,7 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["created_at"]             = articulo["created_at"]
     articuloHistorico["updated_at"]             = articulo["updated_at"]
     articuloHistorico["imagen_id"]              = articulo["imagen_id"]
-    articuloHistorico["calcular_saco"]              = articulo["calcular_saco"]
+    articuloHistorico["calcular_saco"]          = articulo["calcular_saco"]
     
     contents = []
     contenidoArticulo.each do |contenido|

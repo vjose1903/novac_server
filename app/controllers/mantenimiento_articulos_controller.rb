@@ -25,13 +25,6 @@ class MantenimientoArticulosController < ApplicationController
     render json: articulos
   end
 
-  def getAllArticulosByDate
-    articulos = []
-    articulos = MantenimientoArticulo.get_all_articulos_by_date(params[:date])
-
-    render json: articulos
-  end
-
   def getHistoricoByIdArticulo
     historialById = []
     historico = MantenimientoArticulo.get_historico_by_id_articulo(params[:id])

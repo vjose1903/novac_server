@@ -136,6 +136,8 @@ class ArticulosController < ApplicationController
     tipo = params["tipo"]
 
     
+
+    
     articulos_ = [] 
     articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
 
