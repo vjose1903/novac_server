@@ -151,18 +151,20 @@ class ArticulosController < ApplicationController
       end
     end
 
-
-
-
     render json: res
   end
 
   # GET /articulos/1
   def show
-    articulo = Articulo.parseal(@articulo)
+    fecha = params["fecha"]
+    puts "fecha --> ".red + "#{fecha}"
+    articulo = Articulo.completar_campos_articulo(fecha, params[:id])
+    # articulo = Articulo.parseal(@articulo)
+
     if articulo["estado"] == false
       articulo = { "nombre": "Este articulo esta desactivado." }
     end
+
     render json: articulo
   end
 
@@ -172,13 +174,19 @@ class ArticulosController < ApplicationController
       @usuario_id = params["user_id"]
       @articulo = Articulo.new(articulo_params)
 
-      unless @articulo.save
+      # if @articulo.valid?
+      # else
+      # end
+
+      unless @articulo.valid? && @articulo.save
         render json: @articulo.errors, status: :unprocessable_entity
       else
         set_contenido_referencia
       end
     end
   end
+
+
 
   def set_contenido_referencia
     if @articulo.contenido_articulos.length <= 1

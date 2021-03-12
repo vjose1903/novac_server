@@ -20,10 +20,10 @@ class ReportesController < ApplicationController
         elsif tipo_reporte==='cuentas_cobrar'
             # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
             body = Reporte.get_cuentas_cobrar(params)
-            titulo = "Reporte de cuentas por cobrar #{ params["tipo"] == '2' ? 'por cliente' : '' }"
-            if params["tipo"] == '2'
+            titulo = "Reporte de cuentas por cobrar #{ params["tipo"] == '1' ? 'por cliente' : '' } #{ params["tipo"] == '1'? '': params["tipo"] == '2' ? '- DETALLADO -' : '- AGRUPADO -' }"
+            if params["tipo"] == '1'
                 tipo = 'cxc'
-            else
+            else 
                 tipo = 'cxc_ant'
             end
             
@@ -51,7 +51,6 @@ class ReportesController < ApplicationController
             body = Reporte.get_suplidores_por_producto(params)
             titulo = "Reporte de suplidores por producto"
             tipo = 'suplidor_prod'
-            
         end
 
         mostrar_sub_titulo = {

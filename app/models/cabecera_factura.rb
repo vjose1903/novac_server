@@ -428,13 +428,15 @@ class CabeceraFactura < ApplicationRecord
         monto_editado_por_notas = monto_editado_por_notas + (nota["total_factura"].to_d).abs
       end
     end
+    puts "factura['total_factura'] --> ".red + "#{factura["total_factura"]}"
+    puts "monto_editado_por_notas --> ".red + "#{monto_editado_por_notas}"
 
     chequeo = factura["total_factura"] + monto_editado_por_notas
 
     puts "CHEQUEO --> ".red + "#{chequeo}"
     puts "NOTA['TOTAL_FACTURA'] --> ".red + "#{ (nota["total_factura"].to_d).abs }"
     
-    if (nota["total_factura"].to_d).abs == chequeo || chequeo < 1
+    if chequeo < 1 || (nota["total_factura"].to_d).abs == chequeo 
       factura.estado = false
     end
     

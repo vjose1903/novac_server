@@ -14,6 +14,17 @@ class Articulo < ApplicationRecord
 
   validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
 
+  # before_validation :otras_validaciones
+
+  def otras_validaciones
+    if self.tipo_articulo.descripcion.downcase != "producto terminado" && self.medida.downcase != "unidad" && self.medida.downcase != "quintal"
+        self.contenido_articulos.each do |contenido_articulo|
+          
+          self.errors.add(:base, "")
+        end
+    end
+  end
+
   def self.get_articulos_formateado
     return my_query("SELECT a.id, a.nombre, ta.descripcion as tipo_articulo, a.costo_principal, a.precio_principal, a.existencia, a.codigo, a.fecha_ingreso, a.medida, a.is_detallable, ca.*, a.created_at, a.updated_at from articulos a INNER JOIN tipo_articulos ta on a.tipo_articulo_id = ta.id INNER JOIN contenido_articulos ca on ca.articulo_id = a.id")
   end

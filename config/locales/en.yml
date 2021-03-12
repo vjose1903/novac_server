@@ -31,3 +31,10 @@
 
 en:
   hello: "Hello world"
+
+  errors:
+    format: "%{message}"
+    messages:
+      required: "%{attribute} debe existir"
+      blank: "" #"it cant be empty"
+      taken: "" #"it cant be empty"
