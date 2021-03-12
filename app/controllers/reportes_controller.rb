@@ -8,7 +8,7 @@ class ReportesController < ApplicationController
         tipo_tabla = 'normal'
         muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod']
 
-        muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '2'
+        muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '1'
 
         if tipo_reporte==='ventas'
             # ------------------- REPORTE DE VENTAS --------------------
@@ -23,8 +23,10 @@ class ReportesController < ApplicationController
             titulo = "Reporte de cuentas por cobrar #{ params["tipo"] == '1' ? 'por cliente' : '' } #{ params["tipo"] == '1'? '': params["tipo"] == '2' ? '- DETALLADO -' : '- AGRUPADO -' }"
             if params["tipo"] == '1'
                 tipo = 'cxc'
+            elsif params["tipo"] == '2'
+                tipo = 'cxc_ant_detallado'
             else 
-                tipo = 'cxc_ant'
+                tipo = 'cxc_ant_agrupado'
             end
             
         elsif tipo_reporte==='inventario'

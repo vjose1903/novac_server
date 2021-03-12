@@ -101,10 +101,9 @@ class Reporte < ApplicationRecord
         # tipo 1 = por cliente
         # tipo 2 = general detallado
         # tipo 3 = general agrupado
-
         tipo = params["tipo"]
         cliente_id = params["cliente_id"]
-        longitud = 70
+        longitud = tipo == '1' ? 55 : tipo == '2' ? 75 : 100 
         cuentas_temp = []
 
         query = {}
@@ -113,7 +112,6 @@ class Reporte < ApplicationRecord
 
         if tipo == '1'
             query['cliente_id'] = cliente_id 
-            longitud = 55
         end
     
         
@@ -121,22 +119,18 @@ class Reporte < ApplicationRecord
         total_cuentas = 0
         cuentas = []
 
-        
-        inicio_select = tipo == "3" ? "cabecera_facturas.id," : ""
-        inicio_select += " clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre, cabecera_facturas.fecha_equivalente"  
-        
-        
-        
+        inicio_select = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante'}"  
+
         select_ = ""
         if tipo == "1"
             select_ = "#{inicio_select}, cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
             cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_pendiente" 
         else
-            select_ = "#{inicio_select}, #{tipo == 3 ? 'sum' : ''}(cabecera_facturas.balance) + coalesce(sum(notas.total_factura),0) as total_pendiente, cabecera_facturas.numero_comprobante,
-            #{tipo == 3 ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as cero_to_treinta,
-            #{tipo == 3 ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as treinta_uno_to_sesenta,
-            #{tipo == 3 ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as sesenta_uno_to_noventa,
-            #{tipo == 3 ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as noventa_uno_to_more"
+            select_ = "#{inicio_select}, #{tipo == '3' ? 'sum' : ''}(cabecera_facturas.balance) + coalesce(sum(notas.total_factura),0) as total_pendiente,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as cero_to_treinta,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as treinta_uno_to_sesenta,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as sesenta_uno_to_noventa,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as noventa_uno_to_more"
         end
 
         group_by = tipo == "1" ? "" : tipo == "2" ? "cabecera_facturas.id, clientes.id" : "clientes.id"
@@ -144,12 +138,14 @@ class Reporte < ApplicationRecord
         CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
         .joins("left join cabecera_facturas notas on notas.aplicada_a = cabecera_facturas.numero_comprobante")
         .select(select_).where(query).where("cabecera_facturas.balance >= 1").group(group_by)
-        .order('cabecera_facturas.fecha_equivalente ASC').each do |cf| 
+        .order("#{tipo == '3' ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf| 
             cabeza = cf.attributes
             total_cuentas += cabeza['total_pendiente']
             cabeza = sustituirMonto(cabeza ) if tipo == "2"
             cuentas.push(cabeza)
         end
+
+        cuentas = cuentas.sort_by! { |k| k["total_pendiente"]}.reverse if tipo == '3'
 
         # numero_comprobante IN ('B0200005287')
 
