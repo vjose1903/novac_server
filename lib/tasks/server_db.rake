@@ -30,3 +30,12 @@ namespace :server_db do
   end
 end
 
+
+# namespace :app do
+#   desc 'Mira si existen detalles de facturas con el calcular_saco en null'
+#   task :detalle_null do
+#     puts '--- SETEANDO LOS CAMPOS DE CALCULAR_SACO DE DETALLES DE FACTURAS A FALSE CUANDO ESTAN NULL ---'
+#     ActiveRecord::Base.connection.exec_query(" UPDATE detalle_facturas SET calcular_saco=false WHERE calcular_saco isnull")
+#   end
+# end
+

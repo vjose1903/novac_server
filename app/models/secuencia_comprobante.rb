@@ -187,9 +187,6 @@ class SecuenciaComprobante < ApplicationRecord
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquetes_registrados = my_query(query)
     
-    puts '-----'.blue * 20
-    puts "#{paquete_ingresando.to_json}"
-    puts '-----'.blue * 20
 
     paquetes_registrados.each do |paquete|
       

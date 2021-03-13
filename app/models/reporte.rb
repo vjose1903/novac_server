@@ -238,7 +238,7 @@ class Reporte < ApplicationRecord
             att = recibo.attributes
             total_recibido += recibo['total']
 
-            client = buscar_cliente(att, 48)
+            client = buscar_cliente(att, 39)
             att['cliente_nombre'] = client['nombre']
             att['tipo_recibo'] = att["vehiculo_id"] ? 'Viaje' : 'Normal'
             factura = getInfoFactura(recibo, ['numero_comprobante'])

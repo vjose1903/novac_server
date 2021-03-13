@@ -32,8 +32,7 @@ def parsearHora(dateTime, lUtc = true)
   hora = Time.parse(DateTime.parse("#{dateTime}").to_s)
   hora = hora.utc if lUtc
   hora = hora.getlocal if !lUtc
-
-  puts "#{hora}".red
+  
   return hora
 end
 

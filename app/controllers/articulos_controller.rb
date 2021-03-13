@@ -157,7 +157,6 @@ class ArticulosController < ApplicationController
   # GET /articulos/1
   def show
     fecha = params["fecha"]
-    puts "fecha --> ".red + "#{fecha}"
     articulo = Articulo.completar_campos_articulo(fecha, params[:id])
     # articulo = Articulo.parseal(@articulo)
 
