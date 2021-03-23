@@ -1,9 +1,37 @@
+require 'net/smtp'
 
 def desencriptarBase64(enc)
   valor_des = Base64.decode64(enc)
   return valor_des
 end
 
+# ---------------------------------------------------------------------------------------------------------
+def sendEmail( msg, asunto="Error realizando una tarea")
+	email     = "vjposystem@gmail.com"
+	password  = "Vasquez1903"
+	listEmail = [
+		email, "vjose1903@outlook.es"
+	]
+
+	style = 'style="font-weight: normal;"'
+	
+message = <<MESSAGE_END
+From: VJpos<#{email}>
+To: <#{listEmail}>
+Content-type: text/html
+Subject: #{asunto}
+
+<h3><span #{style}>#{msg}</span></h3>
+
+MESSAGE_END
+
+	smtp = Net::SMTP.new 'smtp.gmail.com', 587
+	smtp.enable_starttls
+	smtp.start('gmail.com', email, password, :login) do
+		smtp.send_message(message, email, listEmail)
+	end
+
+end
 # ---------------------------------------------------------------------------------------------------------
 def my_query(query)
   return ActiveRecord::Base.connection.exec_query(query)
@@ -60,6 +88,7 @@ class Array
       end
       index += 1
     end
+    
 
     total_pag = (items.length.to_f / per_page.to_f).ceil
 

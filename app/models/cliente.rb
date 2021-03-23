@@ -42,8 +42,23 @@ class Cliente < ApplicationRecord
 
     return clientes
   end
-  # =========================================================================================================================================================
 
+  # =========================================================================================================================================================
+  def self.checkBalanceClientes()
+    Cliente.all.each do |cliente|
+      sumBalance = my_query("SELECT coalesce(sum(balance),0) as balance FROM cabecera_facturas WHERE cliente_id = #{cliente.id}")
+      # sumBalance = CabeceraFactura.where({cliente_id: cliente.id}).select("sum(balance) as balance, cliente_id")
+      if sumBalance[0]['balance'] != cliente.balance
+        cliente.balance = sumBalance[0]['balance']
+        
+        unless cliente.save!
+          sendEmail("Error recalculando el balance del cliente: #{cliente.nombre} #{cliente.apellido}  -- ID: #{cliente.id}", "Error en la tarea de recalcular balance")
+        end
+      end
+    end
+  end
+    # =========================================================================================================================================================
+    
   def self.CalculateBalanceCLiente(id, totalFactura, operacion)
 
     unless id
