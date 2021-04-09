@@ -218,7 +218,7 @@ class Reporte < ApplicationRecord
         tipo_recibo = params["tipo_recibo"]
         order = params["order"]
 
-        query['fecha_equivalente'] = desde..hasta
+        query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
         
         if tipo_recibo == 'todos'
             subT='Tipo de recibo: TODOS'
@@ -378,7 +378,7 @@ class Reporte < ApplicationRecord
                 query['condicion'] = condicion 
             end
         elsif tipo == '2'
-            query['fecha_equivalente'] = desde..hasta
+            query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
             if condicion != 'todos'
                 query['condicion'] = condicion 
             end
