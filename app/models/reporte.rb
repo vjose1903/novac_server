@@ -394,9 +394,11 @@ class Reporte < ApplicationRecord
             att = factura.attributes
             
             if att['tiene_nota']
+                my_print_log("total_factura ANTES DE RECALCULO ---> ".yellow + "#{att['total_factura']}")
                 recalculo = recalculo_por_nota(att)
                 att['total_factura'] = recalculo[:total_factura]
                 att['balance'] = recalculo[:balance]
+                my_print_log("total_factura DESPUES DE RECALCULO ---> ".green + "#{att['total_factura']}")
             end
 
             total_ventas += att['total_factura']
@@ -406,6 +408,8 @@ class Reporte < ApplicationRecord
             
             ventas.push(att)
         end
+        my_print_log("total_ventas ---> ".red + "#{total_ventas}")
+        
 
         obj = { body: ventas, total: total_ventas , sub_t:''}
 
