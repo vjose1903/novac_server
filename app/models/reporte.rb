@@ -9,7 +9,7 @@ class Reporte < ApplicationRecord
             tipo_reporte: _tipo_reporte,
             fecha: formatearFecha(DateTime.now.to_s ,2),
             realizado_por: longitud > 15 ? "#{temp_Emp[0, 15]}..." : temp_Emp,
-            total: total_ ,
+            total: total_.round(2),
             mostrar_sub_titulo: sub_titulo_[:bool],
             sub_titulo: sub_titulo_[:sub_t],
             tipo_tabla: tipo_tabla,
@@ -90,8 +90,8 @@ class Reporte < ApplicationRecord
             # end
         end
         obj = {
-            total_factura: (factura['total_factura']).round(2),
-            balance: (factura['balance']).round(2),
+            total_factura: (factura['total_factura']),
+            balance: (factura['balance']),
         }
         return obj
     end
@@ -149,7 +149,7 @@ class Reporte < ApplicationRecord
 
         # numero_comprobante IN ('B0200005287')
 
-        obj = { body: cuentas, total: (total_cuentas).round(2), sub_t: "Cliente: #{ buscar_cliente(query, 48)["nombre"] }"}
+        obj = { body: cuentas, total: (total_cuentas), sub_t: "Cliente: #{ buscar_cliente(query, 48)["nombre"] }"}
         return obj
         
     end
