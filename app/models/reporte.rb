@@ -412,31 +412,35 @@ class Reporte < ApplicationRecord
         query['tipo'] = 'venta'
         query['is_nota'] = false
 
+        # select cabecera_facturas.id, clientes.id as cliente_id,
+        # coalesce(SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,48),'Cliente contado') as cliente_nombre,
+        # coalesce(doc.documento,'-------------' ) as cliente_rnc,
+        # cabecera_facturas.numero_comprobante, cabecera_facturas.condicion, 
+        # cabecera_facturas.total_factura + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_factura
+        # from cabecera_facturas
+        # LEFT JOIN clientes ON cabecera_facturas.cliente_id = clientes.id
+        # LEFT JOIN documentos_de_identidad doc ON cabecera_facturas.cliente_id = doc.cliente_id and doc.principal = true
+        # where cabecera_facturas.fecha_equivalente::DATE BETWEEN '2021-03-01' AND '2021-03-31' AND cabecera_facturas.tipo='venta' and cabecera_facturas.is_nota=false ORDER BY cabecera_facturas.fecha_equivalente ASC
         
 
-        select_ = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,48) as cliente_nombre, cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
-
+        select_ = "cabecera_facturas.id, clientes.id as cliente_id, coalesce(SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,48),'Cliente contado') as cliente_nombre,
+        doc.suplidor_id as suplidor_id, cabecera_facturas.tipo_factura_id as tipo_factura_id,
+        cabecera_facturas.fecha_equivalente,
+        coalesce(doc.documento,'-------------' ) as cliente_rnc,
+        cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
         cabecera_facturas.total_factura + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_factura" 
 
+        total_ventas=0
 
-        group_by = tipo == "1" ? "" : tipo == "2" ? "cabecera_facturas.id, clientes.id" : "clientes.id"
-
-        CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
-        .joins("left join cabecera_facturas notas on notas.aplicada_a = cabecera_facturas.numero_comprobante")
+        ventas = CabeceraFactura.joins("LEFT JOIN clientes ON cabecera_facturas.cliente_id = clientes.id")
+        .joins("LEFT JOIN documentos_de_identidad doc ON cabecera_facturas.cliente_id = doc.cliente_id and doc.principal = true")
         .select(select_).where(query)
-        .order("cabecera_facturas.id ASC").each do |cf| 
-            cabeza = cf.attributes
-            total_cuentas += cabeza['total_pendiente']
-            cabeza = sustituirMonto(cabeza ) if tipo == "2"
-            cuentas.push(cabeza)
+        .order("cabecera_facturas.fecha_equivalente ASC").each do |cf| 
+            total_ventas += cf['total_factura']
         end
-
-        cuentas = cuentas.sort_by! { |k| k["total_pendiente"]}.reverse if tipo == '3'
 
         # ventas_temp = CabeceraFactura.where(query).order('id ASC')
 
-        
-        
         # ventas=[]
         # total_ventas=0
         # ventas_temp.each do |factura|
@@ -458,6 +462,7 @@ class Reporte < ApplicationRecord
         #     ventas.push(att)
         # end
         my_print_log("total_ventas ---> ".red + "#{total_ventas}")
+        my_print_log("ventas ---> ".yellow + "#{ventas.to_json}")
         
 
         obj = { body: ventas, total: total_ventas , sub_t:''}
