@@ -301,16 +301,41 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.is_nota'] = false
 
 
+        # SELECT articulos.id as id,(articulos.nombre || case when articulos.calcular_saco = true then (case when detalle_facturas.calcular_saco = true then ' (Con saco)' else ' (Sin saco)' end ) else '' end) as nombre,
+        #     sum(detalle_facturas.total - 
+        #         (select coalesce(sum(nota.total),0) from detalle_facturas nota 
+        #         INNER JOIN "cabecera_facturas" cfn ON cfn.id = nota.cabecera_factura_id
+        #         where nota.detalle_factura_nota = detalle_facturas.id and 
+        #         cfn.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as total_vendido, 
+        #     sum(detalle_facturas.cantidad_en_unidades - 
+        #         (select coalesce(sum(nota.cantidad_en_unidades),0) from detalle_facturas nota 
+        #         INNER JOIN "cabecera_facturas" cfn ON cfn.id = nota.cabecera_factura_id
+        #         where nota.detalle_factura_nota = detalle_facturas.id and 
+        #         cfn.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as cantidad_en_unidades
+        #     FROM "detalle_facturas"
+        #     INNER JOIN "cabecera_facturas" ON "cabecera_facturas"."id" = "detalle_facturas"."cabecera_factura_id" 
+        #     INNER JOIN "articulos" ON "articulos"."id" = "detalle_facturas"."articulo_id" 
+        #     WHERE "cabecera_facturas"."fecha_equivalente" BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' 
+        #     AND "cabecera_facturas"."tipo" = 'venta' AND "cabecera_facturas"."is_nota" = false  GROUP BY articulos.id, nombre, detalle_facturas.calcular_saco ORDER BY id asc
+
+
         TipoArticulo.all.each do |tipo_articulo|
             temp_ventas = []
             query['articulos.tipo_articulo_id'] = tipo_articulo.id
 
-            DetalleFactura
-                .joins(:cabecera_factura, :articulo)
+            DetalleFactura .joins(:cabecera_factura, :articulo)
                 .select("articulos.id as id, 
                     (articulos.nombre || case when articulos.calcular_saco = true then (case when detalle_facturas.calcular_saco = true then ' (Con saco)' else ' (Sin saco)' end ) else '' end) as nombre, 
-                    sum(detalle_facturas.total) as total_vendido, 
-                    sum(detalle_facturas.cantidad_en_unidades) as cantidad_en_unidades")
+                    sum(detalle_facturas.total - 
+                        (select coalesce(sum(d_nota.total),0) from detalle_facturas d_nota 
+                        INNER JOIN cabecera_facturas c_nota ON c_nota.id = d_nota.cabecera_factura_id
+                        where d_nota.detalle_factura_nota = detalle_facturas.id and 
+                        c_nota.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as total_vendido, 
+                    sum(detalle_facturas.cantidad_en_unidades - 
+                        (select coalesce(sum(d_nota.cantidad_en_unidades),0) from detalle_facturas d_nota 
+                        INNER JOIN cabecera_facturas c_nota ON c_nota.id = d_nota.cabecera_factura_id
+                        where d_nota.detalle_factura_nota = detalle_facturas.id and 
+                        c_nota.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as cantidad_en_unidades")
                 .where(query).order('id ASC')
                 .group("articulos.id, nombre, detalle_facturas.calcular_saco")
                 .each do |df| 
@@ -386,28 +411,52 @@ class Reporte < ApplicationRecord
 
         query['tipo'] = 'venta'
         query['is_nota'] = false
-        ventas_temp = CabeceraFactura.where(query).order('id ASC')
-        
-        ventas=[]
-        total_ventas=0
-        ventas_temp.each do |factura|
-            att = factura.attributes
-            
-            if att['tiene_nota']
-                my_print_log("total_factura ANTES DE RECALCULO ---> ".yellow + "#{att['total_factura']}")
-                recalculo = recalculo_por_nota(att)
-                att['total_factura'] = recalculo[:total_factura]
-                att['balance'] = recalculo[:balance]
-                my_print_log("total_factura DESPUES DE RECALCULO ---> ".green + "#{att['total_factura']}")
-            end
 
-            total_ventas += att['total_factura']
-            client = buscar_cliente(att, 48)
-            att['cliente_nombre'] = client['nombre']
-            att['cliente_rnc'] = client['rnc']
-            
-            ventas.push(att)
+        
+
+        select_ = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,48) as cliente_nombre, cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
+
+        cabecera_facturas.total_factura + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_factura" 
+
+
+        group_by = tipo == "1" ? "" : tipo == "2" ? "cabecera_facturas.id, clientes.id" : "clientes.id"
+
+        CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
+        .joins("left join cabecera_facturas notas on notas.aplicada_a = cabecera_facturas.numero_comprobante")
+        .select(select_).where(query)
+        .order("cabecera_facturas.id ASC").each do |cf| 
+            cabeza = cf.attributes
+            total_cuentas += cabeza['total_pendiente']
+            cabeza = sustituirMonto(cabeza ) if tipo == "2"
+            cuentas.push(cabeza)
         end
+
+        cuentas = cuentas.sort_by! { |k| k["total_pendiente"]}.reverse if tipo == '3'
+
+        # ventas_temp = CabeceraFactura.where(query).order('id ASC')
+
+        
+        
+        # ventas=[]
+        # total_ventas=0
+        # ventas_temp.each do |factura|
+        #     att = factura.attributes
+            
+        #     if att['tiene_nota']
+        #         my_print_log("total_factura ANTES DE RECALCULO ---> ".yellow + "#{att['total_factura']}")
+        #         recalculo = recalculo_por_nota(att)
+        #         att['total_factura'] = recalculo[:total_factura]
+        #         att['balance'] = recalculo[:balance]
+        #         my_print_log("total_factura DESPUES DE RECALCULO ---> ".green + "#{att['total_factura']}")
+        #     end
+
+        #     total_ventas += att['total_factura']
+        #     client = buscar_cliente(att, 48)
+        #     att['cliente_nombre'] = client['nombre']
+        #     att['cliente_rnc'] = client['rnc']
+            
+        #     ventas.push(att)
+        # end
         my_print_log("total_ventas ---> ".red + "#{total_ventas}")
         
 
