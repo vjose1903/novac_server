@@ -106,9 +106,13 @@ class CabeceraFactura < ApplicationRecord
       # if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
 
       if last_cuadre.nil? || comparar_fecha(factura[:fecha_equivalente].to_s, last_cuadre[:created_at].to_s, ">=") 
-
+        my_print_log('Date.today.to_s --> ', Date.today.to_s)
+        my_print_log('------------------------------------------------ ')
+        
+        my_print_log('factura[:created_at].to_s --> ', factura[:created_at].to_s)
+        my_print_log('------------------------------------------------ ')
         can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
-
+        
         unless can_update
           can_update = comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
         end
@@ -116,6 +120,10 @@ class CabeceraFactura < ApplicationRecord
         if can_update      
           # ver si la factura tiene algun pago.
           pago_ = DetalleRecibo.where({ cabecera_factura_id: id }).as_json
+          my_print_log('------------------------------------------------ ')
+          my_print_log('LA FACTURA RECIBIO UN PAGO --> ', pago_)
+          my_print_log('COMPROBAR LA FACTURA RECIBIO UN PAGO --> ', pago_.to_json)
+          my_print_log('------------------------------------------------ ')
           if pago_.length > 0
             return {status: false, msg:'La factura no puede ser editada.'}
           end
@@ -129,7 +137,12 @@ class CabeceraFactura < ApplicationRecord
           return {status: false, msg:'La factura no puede ser editada.'}
         end
       else
+        my_print_log('------------------------------------------------ ')
+        my_print_log('factura[:is_viaje] --> ', factura[:is_viaje])
+        my_print_log('------------------------------------------------ ')
         if factura[:is_viaje] 
+          my_print_log('factura[:pagada] --> ', factura[:pagada])
+          my_print_log('------------------------------------------------ ')
           if !factura[:pagada] 
             return {status: true, msg:'La factura si puede ser editada.'}
           else
