@@ -102,6 +102,8 @@ class CabeceraFactura < ApplicationRecord
     last_cuadre = CuadreCaja.all.last
 
 
+    my_print_log('factura --> ', factura)
+    my_print_log('------------------------------------------------ ')
     if factura
       # if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
 
@@ -156,6 +158,7 @@ class CabeceraFactura < ApplicationRecord
       return {status: true, msg:'La factura si puede ser editada.'}
 
     else      
+      my_print_log('NO SE ENCONTRO FACTURA CON EL ID MANDADO')
       return {status: false, msg:'La factura no puede ser editada.'}
     end
   end
