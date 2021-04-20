@@ -102,7 +102,7 @@ class CabeceraFactura < ApplicationRecord
     last_cuadre = CuadreCaja.all.last
 
 
-    my_print_log('factura --> ', factura)
+    my_print_log('factura --> ', factura.to_json)
     my_print_log('------------------------------------------------ ')
     if factura
       # if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
@@ -114,12 +114,23 @@ class CabeceraFactura < ApplicationRecord
         my_print_log('factura[:created_at].to_s --> ', factura[:created_at].to_s)
         my_print_log('------------------------------------------------ ')
         can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
+        my_print_log('SE CREO HOY LA FACTURA --> ', comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "=="))
         
         unless can_update
+          my_print_log('LA FECHA EQUIVALENTE DE LA FACTURA ES MAYOR AL DIA DE HOY --> ', comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
           can_update = comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
         end
         
-        if can_update      
+        my_print_log('factura[:is_viaje] --> ', factura[:is_viaje])
+        my_print_log('factura[:pagada] --> ', factura[:pagada])
+        my_print_log('------------------------------------------------ ')
+        if factura[:is_viaje] && !factura[:pagada] 
+          can_update = true
+        else
+          return {status: false, msg:'La factura no puede ser editada, por que el viaje ya recibio un pago anteriormente.'}
+        end
+
+        if can_update
           # ver si la factura tiene algun pago.
           pago_ = DetalleRecibo.where({ cabecera_factura_id: id }).as_json
           my_print_log('------------------------------------------------ ')
@@ -127,7 +138,7 @@ class CabeceraFactura < ApplicationRecord
           my_print_log('COMPROBAR LA FACTURA RECIBIO UN PAGO --> ', pago_.to_json)
           my_print_log('------------------------------------------------ ')
           if pago_.length > 0
-            return {status: false, msg:'La factura no puede ser editada.'}
+            return {status: false, msg:'La factura no puede ser editada, por que ya ha recibido pagos anteriormente.'}
           end
           
           # ver si la factura tiene alguna nota de credito.
