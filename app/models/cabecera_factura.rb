@@ -117,7 +117,7 @@ class CabeceraFactura < ApplicationRecord
         my_print_log('SE CREO HOY LA FACTURA --> ', comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "=="))
         
         unless can_update
-          my_print_log('LA FECHA EQUIVALENTE DE LA FACTURA ES MAYOR AL DIA DE HOY --> ', comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
+          my_print_log('LA FECHA EQUIVALENTE DE LA FACTURA ES MAYOR AL DIA DE HOY --> ', comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">="))
           can_update = comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
         end
         
