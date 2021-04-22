@@ -149,7 +149,7 @@ class CabeceraFactura < ApplicationRecord
         
         # ver si la factura tiene alguna nota de credito.
         has_hotas =  verificateFacturaHasNotas(factura)
-        return {status: false, msg:'La factura no puede ser editada, por que ha sido modificada por una nota.'} unless has_hotas
+        return {status: false, msg:'La factura no puede ser editada, por que ha sido modificada por una nota.'} if has_hotas
         
       else
         
