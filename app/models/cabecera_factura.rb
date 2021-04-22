@@ -107,7 +107,7 @@ class CabeceraFactura < ApplicationRecord
     is_contado = factura.is_contado
     pago_ = DetalleRecibo.where({ cabecera_factura_id: factura_id }).as_json unless is_contado
 
-    my_print_log('LA FACTURA YA HA RECIBIDO PAGOS'.red) if pago_.length > 0
+    my_print_log('LA FACTURA YA HA RECIBIDO PAGOS'.red) if pago_ && pago_.length > 0
 
     return is_contado || pago_.length > 0 ? true : false
   end
@@ -118,7 +118,7 @@ class CabeceraFactura < ApplicationRecord
     factura = id ? CabeceraFactura.find_by_id(id) : factura
 
     notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] }).as_json
-    my_print_log('LA FACTURA YA TIENE NOTAS REGISTRADAS'.red) if notas.length > 0
+    my_print_log('LA FACTURA YA TIENE NOTAS REGISTRADAS'.red) if notas && notas.length > 0
     return notas.length > 0 ? true : false
   end
   
