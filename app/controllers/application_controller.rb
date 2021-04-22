@@ -8,7 +8,15 @@ class ApplicationController < ActionController::API
     before_action :validateUserIsLogging!, unless: :devise_controller?
   # end
 
+  def testFunction
+    param = params[:param]
+    factura = CabeceraFactura.find_by_id(param)
+    res = CabeceraFactura.verificateCanUpdate(factura)
+    render json: { body: res }, status: 200
+  end
+
   protected
+
 
   def validateUserIsLogging!
     puts "------- VALIDANDO TOKEN -------".red

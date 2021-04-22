@@ -12,6 +12,11 @@ class CabeceraFactura < ApplicationRecord
   attribute :detalle_facturas
   accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
   # ===================================================================================================================================================
+  def is_contado
+    return self.condicion == 'Contado'
+  end
+
+  # ===================================================================================================================================================
   def self.getDetallesNotasByFactura(aplicadaA)
     detalles_nota = {}
     notas = CabeceraFactura.where({ aplicada_a: aplicadaA })
@@ -96,81 +101,73 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ====================================================================================================
+
+  def self.verificateFacturaHasPagos(factura, id=nil)
+    factura_id = id ? id : factura['id']
+    is_contado = factura.is_contado
+    pago_ = DetalleRecibo.where({ cabecera_factura_id: factura_id }).as_json unless is_contado
+
+    my_print_log('LA FACTURA YA HA RECIBIDO PAGOS'.red) if pago_.length > 0
+
+    return is_contado || pago_.length > 0 ? true : false
+  end
+
+  # ====================================================================================================
+
+  def self.verificateFacturaHasNotas(factura, id=nil)
+    factura = id ? CabeceraFactura.find_by_id(id) : factura
+
+    notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] }).as_json
+    my_print_log('LA FACTURA YA TIENE NOTAS REGISTRADAS'.red) if notas.length > 0
+    return notas.length > 0 ? true : false
+  end
+  
+  # ====================================================================================================
+  
+  def self.verificateCanUpdateViaje(factura, id=nil)
+    factura_id = id ? id : factura['id']
+    ha_recibido_pagos = verificateFacturaHasPagos(factura, factura_id) 
+
+    my_print_log('VIAJE NO HA RECIBIDO PAGOS'.green) if !ha_recibido_pagos
+
+    return {is_viaje: factura[:is_viaje], can_update: !ha_recibido_pagos} 
+  end
+
+    # ====================================================================================================
   def self.verificateCanUpdate(id)
     factura = CabeceraFactura.find_by_id(id)
-    
     last_cuadre = CuadreCaja.all.last
-
 
     my_print_log('factura --> ', factura.to_json)
     my_print_log('------------------------------------------------ ')
     if factura
-      # if parsearDateTimeUTC(factura[:fecha_equivalente]) >= parsearDateTimeUTC(last_cuadre[:created_at]) 
+      if last_cuadre.nil? || comparar_fecha(factura[:fecha_equivalente].to_s, last_cuadre[:created_at].to_s, ">=")
 
-      if last_cuadre.nil? || comparar_fecha(factura[:fecha_equivalente].to_s, last_cuadre[:created_at].to_s, ">=") 
-        my_print_log('Date.today.to_s --> ', Date.today.to_s)
-        my_print_log('------------------------------------------------ ')
+        # ver si la factura tiene algun pago.
+        has_pagos = verificateFacturaHasPagos(factura)
+        return {status: false, msg:'La factura no puede ser editada, por que ya ha recibido pagos anteriormente.'} if has_pagos && !factura.is_contado
         
-        my_print_log('factura[:created_at].to_s --> ', factura[:created_at].to_s)
-        my_print_log('------------------------------------------------ ')
-        can_update = comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "==")
-        my_print_log('SE CREO HOY LA FACTURA --> ', comparar_fecha(factura[:created_at].to_s, Date.today.to_s, "=="))
+        # ver si la factura tiene alguna nota de credito.
+        has_hotas =  verificateFacturaHasNotas(factura)
+        return {status: false, msg:'La factura no puede ser editada, por que ha sido modificada por una nota.'} unless has_hotas
         
-        unless can_update
-          my_print_log('LA FECHA EQUIVALENTE DE LA FACTURA ES MAYOR AL DIA DE HOY --> ', comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">="))
-          can_update = comparar_fecha(factura[:fecha_equivalente].to_s, Date.today.to_s ,">=")
-        end
-        
-        my_print_log('factura[:is_viaje] --> ', factura[:is_viaje])
-        my_print_log('factura[:pagada] --> ', factura[:pagada])
-        my_print_log('------------------------------------------------ ')
-        if factura[:is_viaje] && !factura[:pagada] 
-          can_update = true
-        else
-          return {status: false, msg:'La factura no puede ser editada, por que el viaje ya recibio un pago anteriormente.'}
-        end
-
-        if can_update
-          # ver si la factura tiene algun pago.
-          pago_ = DetalleRecibo.where({ cabecera_factura_id: id }).as_json
-          my_print_log('------------------------------------------------ ')
-          my_print_log('LA FACTURA RECIBIO UN PAGO --> ', pago_)
-          my_print_log('COMPROBAR LA FACTURA RECIBIO UN PAGO --> ', pago_.to_json)
-          my_print_log('------------------------------------------------ ')
-          if pago_.length > 0
-            return {status: false, msg:'La factura no puede ser editada, por que ya ha recibido pagos anteriormente.'}
-          end
-          
-          # ver si la factura tiene alguna nota de credito.
-          notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] }).as_json
-          if notas.length > 0
-            return {status: false, msg:'La factura no puede ser editada.'}
-          end
-        else
-          return {status: false, msg:'La factura no puede ser editada.'}
-        end
       else
-        my_print_log('------------------------------------------------ ')
-        my_print_log('factura[:is_viaje] --> ', factura[:is_viaje])
-        my_print_log('------------------------------------------------ ')
-        if factura[:is_viaje] 
-          my_print_log('factura[:pagada] --> ', factura[:pagada])
-          my_print_log('------------------------------------------------ ')
-          if !factura[:pagada] 
-            return {status: true, msg:'La factura si puede ser editada.'}
-          else
-            return {status: false, msg:'La factura no puede ser editada, por que el viaje ya fue pagado.'}
-          end
-        else
-          return {status: false, msg:'La factura no puede ser editada, por que no es del dia de hoy.'}
-        end
+        
+        can_update = verificateCanUpdateViaje(factura)
+
+        msg_ = 'La factura si puede ser editada.'
+
+        msg_ =  'La factura no puede ser editada, por que no es del dia de hoy.' if !can_update[:is_viaje] && !can_update[:can_update]
+
+        msg_ = 'La factura no puede ser editada, por que el viaje ya ha recibido un pago anteriormente.' if can_update[:is_viaje] && !can_update[:can_update]
+
+        return {status: can_update[:can_update], msg: msg_} 
       end
 
       return {status: true, msg:'La factura si puede ser editada.'}
-
     else      
-      my_print_log('NO SE ENCONTRO FACTURA CON EL ID MANDADO')
-      return {status: false, msg:'La factura no puede ser editada.'}
+      my_print_log('NO SE ENCONTRO FACTURA CON EL ID MANDADO'.yellow)
+      return {status: false, msg:'No se encuentra la factura a editar, contactar a Victor José Vásquez.'}
     end
   end
   

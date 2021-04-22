@@ -86,7 +86,6 @@ class RecibosIngresosController < ApplicationController
       @recibos_ingreso = RecibosIngreso.new(att)
 
       today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
-
       
       if today_cuadre.empty?
         @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
@@ -221,7 +220,7 @@ class RecibosIngresosController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def recibos_ingreso_params
     params.fetch(:recibos_ingreso).permit(:user_id, :cliente_id, :chofer, :total, :forma_pago, :tipo_factura_id, :devuelta, :fecha_equivalente, :estado,
-                                          :vehiculo_id, :incidencia,
+                                          :vehiculo_id, :incidencia, :numero_recibo,
                                           detalle_recibos_attributes: [:recibos_ingreso_id, :balance_anterior_factura, :balance_factura, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo])
   end
 end
