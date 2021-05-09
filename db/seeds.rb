@@ -251,8 +251,9 @@ PROVINCIAS_MUNICIPIOS.each do |provincia|
   provincia_new = Provincia.new({nombre: provincia[:nombre] }) if provincia_exist.nil?
   
   provincia_creada = Provincia.create({nombre: provincia[:nombre]}) if provincia_new.nil?
-  
+  puts "provincia_creada ==> ".red + "#{provincia_creada}"
   provincia[:municipios].each do |municipio|
+    puts "municipio ==> ".yellow + "#{municipio}"
     if Municipio.find_by_nombre(municipio).nil?
       Municipio.create({nombre: municipio, provincia_id: provincia_creada[:id]})
     end
