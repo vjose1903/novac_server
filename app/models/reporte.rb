@@ -153,6 +153,53 @@ class Reporte < ApplicationRecord
         return obj
         
     end
+
+    # ---------------------------------------------------------------------------------------------------------
+    
+    def self.get_cuentas_con_pagos(params)
+
+        tipo = params["tipo"]
+        desde = params["desde"]
+        hasta = params["hasta"]
+        longitud = 100 
+        cuentas_temp = []
+
+        query = {}
+        query['estado'] = true
+        puts "desde => ".red + "#{desde}"
+        puts "hasta => ".red + "#{hasta}"
+        query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if tipo == '2'
+    
+        
+        # cuentas_temp = CabeceraFactura.where(query).where("balance >= 1").order('id ASC')
+        total_cuentas = 0
+        cuentas = []
+
+        select_ = "SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre, cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante,cabecera_facturas.condicion,
+        cabecera_facturas.total_factura + coalesce(sum(notas.total_factura), 0) as total_factura,
+        cabecera_facturas.balance + coalesce(sum(notas.total_factura), 0) as balance "
+        # cabecera_facturas.total_factura + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_factura,
+
+        group_by = "cabecera_facturas.id, clientes.id"
+
+        CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
+        .joins("left join cabecera_facturas notas on notas.aplicada_a = cabecera_facturas.numero_comprobante")
+        .select(select_).where(query).where("cabecera_facturas.balance >= 1").group(group_by)
+        .order("cabecera_facturas.fecha_equivalente ASC").each do |cf| 
+            cabeza = cf.attributes
+            total_cuentas += cabeza['total_factura']
+            select_pago = "detalle_recibos.id, detalle_recibos.deposito, cabeza.fecha_equivalente"
+            cabeza["pagos"] = DetalleRecibo.select(select_pago).joins("inner join cabecera_facturas cabeza on cabeza.id = detalle_recibos.cabecera_factura_id")
+                                            .where({cabecera_factura_id: cabeza["id"]}).order("id ASC")
+            cuentas.push(cabeza)
+        end
+
+        # numero_comprobante IN ('B0200005287')
+        subtitulo = tipo === '2' ? "Entre las fechas: #{formatearFecha(hasta, 1)} y #{formatearFecha(desde, 1)}" : "Todas las facturas pendientes"
+        obj = { body: cuentas, total: (total_cuentas), sub_t: subtitulo}
+        return obj
+        
+    end
     
     # ---------------------------------------------------------------------------------------------------------
     def self.parsearDiasAntSaldo(detalle)

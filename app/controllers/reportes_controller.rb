@@ -4,7 +4,7 @@ class ReportesController < ApplicationController
 
     def getReportes
         tipo_reporte = params["tipo_reporte"]
-        tipo = ''
+        tipo = tipo_reporte
         tipo_tabla = 'normal'
         muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod']
 
@@ -14,8 +14,6 @@ class ReportesController < ApplicationController
             # ------------------- REPORTE DE VENTAS --------------------
             body = Reporte.get_ventas(params)
             titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
-            tipo = 'ventas'
-            
             
         elsif tipo_reporte==='cuentas_cobrar'
             # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
@@ -33,13 +31,11 @@ class ReportesController < ApplicationController
             # ------------------- REPORTE DE INVENTARIO --------------------
             body = Reporte.get_inventario(params)
             titulo = "Reporte de inventario"
-            tipo = 'inventario'
 
         elsif tipo_reporte==='recibos'
             # ------------------- REPORTE DE RECIBOS --------------------
             body = Reporte.get_recibos(params)
             titulo = "Reporte de Recibos de ingreso"
-            tipo = 'recibos'
 
         elsif tipo_reporte==='ventas_productos'
             # ------------------- REPORTE DE VENTAS POR PRODUCTO -------------------- 
@@ -52,7 +48,13 @@ class ReportesController < ApplicationController
             # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
             body = Reporte.get_suplidores_por_producto(params)
             titulo = "Reporte de suplidores por producto"
-            tipo = 'suplidor_prod'
+            
+        elsif tipo_reporte==='cuentas_con_pagos'
+            # ------------------- REPORTE DE CUENTAS POR COBRAR CLIENTES CON SUS PAGOS --------------------
+            body = Reporte.get_cuentas_con_pagos(params)
+            titulo = "Reporte de Facturas pendientes con sus pagos"
+            tipo_tabla = 'agrupado'
+
         end
 
         mostrar_sub_titulo = {

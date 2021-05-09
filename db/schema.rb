@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_05_161544) do
+ActiveRecord::Schema.define(version: 2021_05_02_195908) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -327,6 +327,14 @@ ActiveRecord::Schema.define(version: 2021_03_05_161544) do
     t.index ["user_id"], name: "index_movimientos_inventarios_on_user_id"
   end
 
+  create_table "municipios", force: :cascade do |t|
+    t.bigint "provincia_id"
+    t.string "nombre"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
+  end
+
   create_table "producciones", force: :cascade do |t|
     t.bigint "user_id"
     t.integer "numero"
@@ -334,6 +342,12 @@ ActiveRecord::Schema.define(version: 2021_03_05_161544) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_producciones_on_user_id"
+  end
+
+  create_table "provincias", force: :cascade do |t|
+    t.string "nombre"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "recibos_ingresos", force: :cascade do |t|
@@ -486,6 +500,7 @@ ActiveRecord::Schema.define(version: 2021_03_05_161544) do
   add_foreign_key "modelos", "marcas"
   add_foreign_key "movimientos_inventarios", "articulos"
   add_foreign_key "movimientos_inventarios", "users"
+  add_foreign_key "municipios", "provincias"
   add_foreign_key "producciones", "users"
   add_foreign_key "recibos_ingresos", "clientes"
   add_foreign_key "recibos_ingresos", "tipo_facturas"

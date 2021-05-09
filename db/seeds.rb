@@ -244,3 +244,18 @@ modelos.each do |modelo|
     Modelo.create(modelo)
   end
 end
+
+PROVINCIAS_MUNICIPIOS.each do |provincia|
+  provincia_exist = Provincia.find_by_nombre(provincia[:nombre])
+
+  provincia_new = Provincia.new({nombre: provincia[:nombre] }) if provincia_exist.nil?
+  
+  provincia_creada = Provincia.create({nombre: provincia[:nombre]}) if provincia_new.nil?
+  
+  provincia[:municipios].each do |municipio|
+    if Municipio.find_by_nombre(municipio).nil?
+      Municipio.create({nombre: municipio, provincia_id: provincia_creada[:id]})
+    end
+  end
+  
+end 

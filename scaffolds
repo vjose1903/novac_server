@@ -15,6 +15,7 @@ rails g scaffold marca descripcion:string
 rails g scaffold modelo marca:references descripcion:string
 
 
+
 rails g scaffold produccion user:references numero:integer fecha_equivalente:datetime
 rails g scaffold detalle_produccion produccion:references articulo:references cantidad:float cantidad_en_unidades:integer medida:string
 
@@ -59,4 +60,9 @@ rails g migration ChangeIsComboToBeIsComboInArticulos
 
 rails g migration ChangeFileNameToBeFileNameInImagenes
  
+ rails g scaffold forma_de_pago cabecera_factura:references forma_pago:string cantidad:float
+ rails g scaffold provincia nombre:string
+ rails g model municipio provincia:references nombre:string 
+
+
 

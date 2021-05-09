@@ -3,14 +3,12 @@ class Articulo < ApplicationRecord
   belongs_to :imagen, optional: true
 
   has_many :contenido_articulos, dependent: :destroy
-  has_many :formulas_productos_terminados, dependent: :destroy
-
-  attribute :contenido_articulos
-  # attribute :tipo_articulo
-
-  accepts_nested_attributes_for :imagen
   accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
+
+  has_many :formulas_productos_terminados, dependent: :destroy
   accepts_nested_attributes_for :formulas_productos_terminados, :allow_destroy => true
+  
+  accepts_nested_attributes_for :imagen
 
   validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
 
@@ -19,7 +17,6 @@ class Articulo < ApplicationRecord
   def otras_validaciones
     if self.tipo_articulo.descripcion.downcase != "producto terminado" && self.medida.downcase != "unidad" && self.medida.downcase != "quintal"
         self.contenido_articulos.each do |contenido_articulo|
-          
           self.errors.add(:base, "")
         end
     end

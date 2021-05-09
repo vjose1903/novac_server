@@ -34,5 +34,8 @@ module ServerRa
     config.middleware.use ActionDispatch::Flash
     config.active_record.default_timezone = :local
     config.api_only = true
+
+    config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}')]
+    config.i18n.default_locale = :es
   end
 end

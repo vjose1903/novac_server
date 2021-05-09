@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :provincias
+  resources :municipios
   resources :modelos
   resources :marcas
   resources :incidencias
