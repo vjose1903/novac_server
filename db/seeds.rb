@@ -246,12 +246,15 @@ modelos.each do |modelo|
 end
 
 PROVINCIAS_MUNICIPIOS.each do |provincia|
+  puts "provincia ==> ".green + "#{provincia.to_json}"
   provincia_exist = Provincia.find_by_nombre(provincia[:nombre])
-
+  puts "provincia_exist ==> ".cyan + "#{provincia_exist.to_json}"
+  
   provincia_new = Provincia.new({nombre: provincia[:nombre] }) if provincia_exist.nil?
+  puts "provincia_exist ==> ".blue + "#{provincia_exist.to_json}"
   
   provincia_creada = Provincia.create({nombre: provincia[:nombre]}) if provincia_new.nil?
-  puts "provincia_creada ==> ".red + "#{provincia_creada}"
+  puts "provincia_creada ==> ".red + "#{provincia_creada.to_json}"
   provincia[:municipios].each do |municipio|
     puts "municipio ==> ".yellow + "#{municipio}"
     if Municipio.find_by_nombre(municipio).nil?
