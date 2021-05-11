@@ -334,15 +334,24 @@ class CabeceraFacturasController < ApplicationController
           unless @actual_secuencia_factura == nil
             factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
 
+            my_print_log("articuloSelect ==>  #{articuloSelect.to_json}")
+            my_print_log("articuloSelect[contenido_articulos] ==>  #{articuloSelect["contenido_articulos"].to_json}")
+            my_print_log("articuloSelect[contenido_articulos].nil? ==>  #{articuloSelect["contenido_articulos"].nil?}")
+            my_print_log("articuloSelect[contenido_articulos].length == 0 ==>  #{articuloSelect["contenido_articulos"].length == 0}")
             
-            if articuloSelect["contenido_articulos"] == nil
+            if articuloSelect["contenido_articulos"] == nil || articuloSelect["contenido_articulos"].nil? || articuloSelect["contenido_articulos"].length == 0
               array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(articuloSelect["id"])
-              articuloSelect["contenido_articulos"] = array_contenido
+              begin
+                articuloSelect.contenido_articulos = array_contenido
+              rescue => exception
+                articuloSelect["contenido_articulos"] = array_contenido
+              end
+              my_print_log("articuloSelect ==>  #{articuloSelect.to_json}")
             end
             
 
             if factura_tipo != 4 || factura_tipo != "4"
-              if articuloSelect['nombre'] != 'Transporte'
+              if articuloSelect["nombre"] != 'Transporte'
                 res_mov = CabeceraFactura.movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
 
                 if res_mov[:error]

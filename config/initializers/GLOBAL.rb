@@ -89,7 +89,9 @@ class Array
       index += 1
     end
     
-
+    puts "items.length.to_f ==> ".red + "#{items.length.to_f}"
+    puts "per_page.to_f ==> ".red + "#{per_page.to_f}"
+    
     total_pag = (items.length.to_f / per_page.to_f).ceil
 
     return { data: itemsTem, total_registros: items.length, total_paginas: total_pag }
