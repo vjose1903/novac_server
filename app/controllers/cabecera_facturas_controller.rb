@@ -326,7 +326,6 @@ class CabeceraFacturasController < ApplicationController
         objD["descripcion"] = "#{articuloSelect["nombre"]}"
         objD["unidad"] = detalleF["unidad"]
       end
-
       
       
       unless objeto["is_adelantada"]

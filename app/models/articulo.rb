@@ -4,11 +4,14 @@ class Articulo < ApplicationRecord
 
   has_many :contenido_articulos, dependent: :destroy
   accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
-
+  attribute :contenido_articulos
+  
   has_many :formulas_productos_terminados, dependent: :destroy
   accepts_nested_attributes_for :formulas_productos_terminados, :allow_destroy => true
+  attribute :formulas_productos_terminados
   
   accepts_nested_attributes_for :imagen
+  attribute :imagen
 
   validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
 

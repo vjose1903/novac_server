@@ -473,7 +473,7 @@ class ArticulosController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def articulo_params
     params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable,
-                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos, :vendido_en, :is_materia_prima, :calcular_saco,
+                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos, :vendido_en, :is_materia_prima, :calcular_saco, :contenido_articulos,
                                      imagen_attributes: [:file_name, :base_64, :path],
                                      contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis, :secuencia],
                                      formulas_productos_terminados_attributes: [:articulo_id, :cantidad, :costo, :_destroy, :articulo_combo, :id, :precio])
