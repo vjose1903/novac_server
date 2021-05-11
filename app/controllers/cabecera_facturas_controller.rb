@@ -333,12 +333,10 @@ class CabeceraFacturasController < ApplicationController
           unless @actual_secuencia_factura == nil
             factura_tipo = @actual_secuencia_factura["tipo_factura_id"]
 
-            my_print_log("articuloSelect ==>  #{articuloSelect.to_json}")
-            my_print_log("articuloSelect[contenido_articulos] ==>  #{articuloSelect["contenido_articulos"].to_json}")
-            my_print_log("articuloSelect[contenido_articulos].nil? ==>  #{articuloSelect["contenido_articulos"].nil?}")
-            my_print_log("articuloSelect[contenido_articulos].length == 0 ==>  #{articuloSelect["contenido_articulos"].length == 0}")
-            
-            if articuloSelect["contenido_articulos"] == nil || articuloSelect["contenido_articulos"].nil? || articuloSelect["contenido_articulos"].length == 0
+            if articuloSelect["medida"] != "Unidad" && ( articuloSelect["contenido_articulos"] == nil || articuloSelect["contenido_articulos"].nil? || articuloSelect["contenido_articulos"].length == 0 )
+              my_print_log("articuloSelect ==>  #{articuloSelect.to_json}")
+              my_print_log("articuloSelect[contenido_articulos] ==>  #{articuloSelect["contenido_articulos"].to_json}")
+              my_print_log("articuloSelect[contenido_articulos].nil? ==>  #{articuloSelect["contenido_articulos"].nil?}")
               array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(articuloSelect["id"])
               begin
                 articuloSelect.contenido_articulos = array_contenido
