@@ -263,6 +263,7 @@ class Articulo < ApplicationRecord
     end
     
     cantidades = {}
+    my_print_log("articulo ==>  #{articulo.to_json}")
     my_print_log("contenido ==>  #{contenido.to_json}")
 
     if contenido.length == 0
