@@ -77,32 +77,35 @@ class MantenimientoArticulo < ApplicationRecord
     contents = []
     my_print_log("historico ==> #{historico.to_json}")
     my_print_log("contenidoArticulo ==> #{contenidoArticulo.to_json}")
-    contenidoArticulo.each do |contenido|
-      conte = {}
-      if contenido["referencia"]
-        conte["costo"]          = historico["ant_costoHijo"]
-        conte["precio"]         = historico["ant_precioHijo"]
-        conte["cantidad"]       = historico["ant_cantidadHijo"]
-        conte["medida"]         = historico["ant_medidaHijo"]
-        conte["id"]             = contenido["id"]
-        conte["referencia"]     = contenido["referencia"]
-        conte["condicion"]      = contenido["condicion"]
-        conte["articulo_id"]    = contenido["articulo_id"]
-        conte["created_at"]     = contenido["created_at"]
-        conte["updated_at"]     = contenido["updated_at"]
-      else
-        conte["costo"]          = historico["ant_costoPadre"]
-        conte["precio"]         = historico["ant_precioPadre"]
-        conte["cantidad"]       = historico["ant_cantidadPadre"]
-        conte["medida"]         = historico["ant_medidaPadre"]
-        conte["articulo_id"]    = contenido["articulo_id"]
-        conte["id"]             = contenido["id"]
-        conte["referencia"]     = contenido["referencia"]
-        conte["condicion"]      = contenido["condicion"]
-        conte["created_at"]     = contenido["created_at"]
-        conte["updated_at"]     = contenido["updated_at"]
+
+    if historico["ant_medidaHijo"] || historico["ant_medidaPadre"]
+      contenidoArticulo.each do |contenido|
+        conte = {}
+        if contenido["referencia"]
+          conte["costo"]          = historico["ant_costoHijo"]
+          conte["precio"]         = historico["ant_precioHijo"]
+          conte["cantidad"]       = historico["ant_cantidadHijo"]
+          conte["medida"]         = historico["ant_medidaHijo"]
+          conte["id"]             = contenido["id"]
+          conte["referencia"]     = contenido["referencia"]
+          conte["condicion"]      = contenido["condicion"]
+          conte["articulo_id"]    = contenido["articulo_id"]
+          conte["created_at"]     = contenido["created_at"]
+          conte["updated_at"]     = contenido["updated_at"]
+        else
+          conte["costo"]          = historico["ant_costoPadre"]
+          conte["precio"]         = historico["ant_precioPadre"]
+          conte["cantidad"]       = historico["ant_cantidadPadre"]
+          conte["medida"]         = historico["ant_medidaPadre"]
+          conte["articulo_id"]    = contenido["articulo_id"]
+          conte["id"]             = contenido["id"]
+          conte["referencia"]     = contenido["referencia"]
+          conte["condicion"]      = contenido["condicion"]
+          conte["created_at"]     = contenido["created_at"]
+          conte["updated_at"]     = contenido["updated_at"]
+        end
+        contents.push(conte)
       end
-      contents.push(conte)
     end
 
 
