@@ -263,11 +263,14 @@ class Articulo < ApplicationRecord
     end
     
     cantidades = {}
+    my_print_log("contenido ==>  #{contenido.to_json}")
 
     if contenido.length == 0
       cantidades[articulo["medida"]] = existencia
     elsif contenido.length == 1
-      
+
+      my_print_log("existencia ==>  #{existencia}")
+
       cantidades[articulo["medida"]] = (existencia / contenido[0]["cantidad"])
       cantidades[contenido[0]["medida"]] = existencia
     else
