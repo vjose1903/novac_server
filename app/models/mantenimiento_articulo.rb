@@ -75,6 +75,7 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["calcular_saco"]          = articulo["calcular_saco"]
     
     contents = []
+    my_print_log("historico ==> #{historico.to_json}")
     my_print_log("contenidoArticulo ==> #{contenidoArticulo.to_json}")
     contenidoArticulo.each do |contenido|
       conte = {}
