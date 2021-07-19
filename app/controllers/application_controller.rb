@@ -10,8 +10,9 @@ class ApplicationController < ActionController::API
 
   def testFunction
     param = params[:param]
-    factura = CabeceraFactura.find_by_id(param)
-    res = CabeceraFactura.verificateCanUpdate(factura)
+    # factura = CabeceraFactura.find_by_id(param)
+    # res = CabeceraFactura.verificateCanUpdate(factura)
+    Cliente.checkBalanceClientes()
     render json: { body: res }, status: 200
   end
 

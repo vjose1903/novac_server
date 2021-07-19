@@ -35,7 +35,7 @@ Rails.application.routes.draw do
   resources :reportes
   
   
-  get "ruta/test/:param" => "application#testFunction"
+  get "ruta/test" => "application#testFunction"
   
   # - REPORTES --------------------------------------------------------------
   get "reporte/:tipo_reporte" => "reportes#getReportes"

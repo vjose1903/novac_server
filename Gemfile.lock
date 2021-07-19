@@ -59,7 +59,7 @@ GEM
       activesupport
     chronic (0.10.2)
     colorize (0.8.1)
-    concurrent-ruby (1.1.8)
+    concurrent-ruby (1.1.9)
     crass (1.0.6)
     declarative (0.0.20)
     declarative-option (0.1.0)
@@ -112,7 +112,7 @@ GEM
       os (>= 0.9, < 2.0)
       signet (~> 0.14)
     httpclient (2.8.3)
-    i18n (1.8.7)
+    i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     jsonapi-renderer (0.2.2)
     jwt (2.2.2)
@@ -129,7 +129,9 @@ GEM
       mimemagic (~> 0.3.2)
     memoist (0.16.2)
     method_source (1.0.0)
-    mimemagic (0.3.5)
+    mimemagic (0.3.10)
+      nokogiri (~> 1)
+      rake
     mini_mime (1.0.2)
     mini_portile2 (2.5.0)
     minitest (5.14.3)
@@ -230,6 +232,7 @@ DEPENDENCIES
   devise (~> 4.6.2)
   devise_token_auth
   google-api-client
+  i18n (~> 1.8, >= 1.8.10)
   listen (>= 3.0.5, < 3.2)
   pg (>= 0.18, < 2.0)
   puma (~> 3.11)
@@ -241,7 +244,7 @@ DEPENDENCIES
   whenever
 
 RUBY VERSION
-   ruby 2.5.6p201
+   ruby 2.6.3p62
 
 BUNDLED WITH
    1.17.3

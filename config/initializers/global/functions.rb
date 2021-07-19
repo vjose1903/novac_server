@@ -1,3 +1,6 @@
+require 'net/smtp'
+
+
 class Response
 	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 		@res = {status:status_, data: data,  msg: msg_}
@@ -83,3 +86,4 @@ class String
 	end
 end
 # ---------------------------------------------------------------------------------------------------------
+

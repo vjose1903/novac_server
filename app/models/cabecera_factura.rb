@@ -175,13 +175,16 @@ class CabeceraFactura < ApplicationRecord
   def self.updateFactura(id, params={}, user_current)
   
     validado = verificateCanUpdate(id)
-    puts "validado ==> ".yellow + "#{validado}"
+
     res = {:error => false,  :msg => '',:status => 200 }
     if validado[:status] 
 
       @factura_de = params['FACTURA_DE']
       factura_nueva = params['cabecera_factura']
+
+      puts "factura_nueva ==> ".red + "#{factura_nueva.to_json}"
       factura_original = CabeceraFactura.find_by_id(id)
+      puts "factura_original ==> ".green + "#{factura_original.to_json}"
       
       if factura_original[:condicion] == "Crédito"
         resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura], "-")
@@ -406,6 +409,29 @@ class CabeceraFactura < ApplicationRecord
     }
     return obj
   end
+
+  # =====================================================================================================================
+
+  def self.recalculo_factura_por_nota(factura)
+    notas = CabeceraFactura.where({aplicada_a: factura['numero_comprobante']})
+
+    notas.each do |nota|
+        tipo_nota = TipoFactura.find_by_id(nota['tipo_factura_id'])
+        descripcion = tipo_nota.descripcion.split(" ")[2]
+
+        factura['total_factura'] += nota['total_factura']
+        factura['balance'] += nota['total_factura']
+        # if descripcion == 'credito'
+        #     att['total_factura'] -= nota['total_factura']
+        # elsif descripcion == 'contado'
+        # end
+    end
+    obj = {
+        total_factura: (factura['total_factura']),
+        balance: (factura['balance']),
+    }
+    return obj
+end
 
   # =====================================================================================================================
   def self.calculateBalanceFactura(id, montoRecibido, num_fila)

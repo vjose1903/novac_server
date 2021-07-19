@@ -75,26 +75,7 @@ class Reporte < ApplicationRecord
         return factura
     end
     # ---------------------------------------------------------------------------------------------------------
-    def self.recalculo_por_nota(factura)
-        notas = CabeceraFactura.where({aplicada_a: factura['numero_comprobante']})
-
-        notas.each do |nota|
-            tipo_nota = TipoFactura.find_by_id(nota['tipo_factura_id'])
-            descripcion = tipo_nota.descripcion.split(" ")[2]
-
-            factura['total_factura'] += nota['total_factura']
-            factura['balance'] += nota['total_factura']
-            # if descripcion == 'credito'
-            #     att['total_factura'] -= nota['total_factura']
-            # elsif descripcion == 'contado'
-            # end
-        end
-        obj = {
-            total_factura: (factura['total_factura']),
-            balance: (factura['balance']),
-        }
-        return obj
-    end
+    
     # ---------------------------------------------------------------------------------------------------------
     
     def self.get_cuentas_cobrar(params)

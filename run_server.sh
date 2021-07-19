@@ -1,92 +1,89 @@
 #!/bin/bash
 
-export BACKEND_PORT="5432"
-export BACKEND_HOST="localhost"
-export BACKEND_USERNAME="postgres"
-export BACKEND_PASSWORD="Vasquez1903"
-export RAILS_SHOW_LOG=false
+green=$(tput setaf 2)
+red=$(tput setaf 1)
+white=$(tput setaf 7)
+yellow=$(tput setaf 3)
+cyan=$(tput setaf 6)
 
-OPTIONS="rcsmpld"
-PRODUCTION="no"
-RAKE="no"
+OPTIONS="lpscet:r:"
+PRODUCTION='no'
 
-echo "opciones => ${getopts}"
-echo "opciones => ${opt}"
+setVariable() {
+  echo "${yellow}setVariable ...  production (${PRODUCTION})"
+  echo "${white} "
+
+  export BACKEND_PORT="5432"
+  export BACKEND_HOST="localhost"
+  export BACKEND_USERNAME="postgres"
+  export BACKEND_PASSWORD="Vasquez1903"
+  export RAILS_SHOW_LOG=false
+  export PORT="3000"
+}
 
 setNivel() {
-  echo "setNivel ==> ${PRODUCTION}"
+  echo "${yellow}setNivel ... production (${PRODUCTION})"
+  echo "${white} "
 
-  if [ "${PRODUCTION}" == "yes" ]; then
+  if [ "$PRODUCTION" == "yes" ]; then
     export RAILS_ENV=production
     export RAILS_SERVE_STATIC_FILES=true
     export DISABLE_DATABASE_ENVIRONMENT_CHECK=1
   else
     export RAILS_ENV=development
   fi
-  echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
-  echo " "
 }
 
 setRake() {
-  echo "setRake ==> ${RAKE}"
-  if [ "${RAKE}" != "no" ]; then
-    rails db:environment:set
+  plat=$OPTARG
+  echo "${cyan}setRake ... ${plat}"
+  echo "${white} "
 
-    if [ "${RAKE}" == "all" ]; then
+  if [ "$plat" == "reset" -o "$plat" == "drop" -o "$plat" == "create" -o "$plat" == "migrate" -o "$plat" == "seed" ]; then
+    echo "${green}setRake ... encontrado"
+    echo "${white} "
+    rails db:environment:set
+    if [ "${plat}" == "reset" ]; then
       rake db:drop db:create db:migrate db:seed
     else
-      rake db:$RAKE
+      rake db:$plat
     fi
+  else
+    echo "${red}setRake ... no encontrado"
+    echo "${white} "
   fi
-  echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
-  echo " "
 }
 
 while getopts $OPTIONS opt; do
-  echo "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
-  echo " "
   echo "opciones => ${opt}"
   case "${opt}" in
   r)
     echo "la opcion -r"
-
-    rails db:environment:set
-    RAKE="all"
     setRake
-
     ;;
   c)
     echo "la opcion -c"
     rails c
-
     ;;
   s)
     echo "la opcion -s"
-    rails s -b 0.0.0.0
-
-    ;;
-  m)
-    echo "la opcion -m"
-    RAKE="migrate"
-    setRake
-
-    ;;
-  l)
-    echo "la opcion -l"
-    RAKE="seed"
-    setRake
-
-    ;;
-  d)
-    echo "la opcion -d"
-    export RAILS_SHOW_LOG=true
+    rails s -b 0.0.0.0 --port $PORT
+    # rails s -b 0.0.0.0
+    # /home/vjose/.rvm/bin/rvm all do bundle exec puma -C config/puma.rb
 
     ;;
   p)
     echo "la opcion -p"
     PRODUCTION="yes"
     setNivel
-
+    ;;
+  l)
+    echo "la opcion -l"
+    export RAILS_SHOW_LOG=true
+    ;;
+  e)
+    echo "la opcion -e"
+    setVariable
     ;;
   *)
     exit 2
