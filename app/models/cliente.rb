@@ -69,9 +69,9 @@ class Cliente < ApplicationRecord
     else  
       cliente = Cliente.find_by_id(id)
       balance = 0
-      if !cliente["balance"].nil?
-        balance = cliente["balance"]
-      end
+      
+      balance = cliente["balance"] unless cliente["balance"].nil?
+        
 
       sumatoria = 0
       if operacion == "+"

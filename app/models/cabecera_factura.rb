@@ -187,11 +187,11 @@ class CabeceraFactura < ApplicationRecord
       puts "factura_original ==> ".green + "#{factura_original.to_json}"
       
       if factura_original[:condicion] == "Crédito"
-        resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], factura_original[:total_factura], "-")
-        
-        if resultCliente[:error]
-          return {:error => true,  :msg => resultCliente[:msg] ,:status => resultCliente[:status] }
-        end
+        calculo_para_balancear_cliente = factura_nueva[:total_factura] - factura_original[:total_factura]
+        puts "calculo_para_balancear_cliente ==> ".yellow + "#{calculo_para_balancear_cliente.to_json}"
+
+        resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], calculo_para_balancear_cliente, "+")
+        return {:error => true,  :msg => resultCliente[:msg] ,:status => resultCliente[:status] } if resultCliente[:error]
       end
       
       detalles = DetalleFactura.where({ cabecera_factura_id: id })
