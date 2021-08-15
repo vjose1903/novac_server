@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_08_15_130237) do
+ActiveRecord::Schema.define(version: 2021_08_15_181050) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -128,6 +128,7 @@ ActiveRecord::Schema.define(version: 2021_08_15_130237) do
     t.float "costo", default: 0.0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "estado"
     t.index ["municipio_id"], name: "index_costo_fletes_on_municipio_id"
   end
 

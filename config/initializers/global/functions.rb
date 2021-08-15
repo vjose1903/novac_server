@@ -2,8 +2,16 @@ require 'net/smtp'
 
 
 class Response
-	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
+	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, paginate_options=nil)
+		@paginate_options = paginate_options
 		@res = {status:status_, data: data,  msg: msg_}
+
+		paginate = nil
+		paginate = @res[:data].to_a.my_paginate(@paginate_options['page'], @paginate_options['per_page']) if @paginate_options && @paginate_options['paginado']
+		@res[:data] = paginate['data'] if paginate
+		@res[:total_registros] = paginate['total_registros'] if paginate
+		@res[:total_paginas] = paginate['total_paginas'] if paginate
+
 		set_data(data, parametros_opcionales) if data && parametros_opcionales
 	end
 	
@@ -13,8 +21,9 @@ class Response
 	
 	def status_valid
 		@res[:status] == HTTP_STATUS_CODE[:ok]
+		
 	end
-	
+
 	def set_data(data, parametros_opcionales=nil)
 		data = ActiveModelSerializers::SerializableResource.new(data, parametros_opcionales) unless parametros_opcionales.nil?
 		@res[:data] = data
@@ -38,11 +47,22 @@ class Response
 		end
 	end
 	
-	def send_response(controller, parametros_opcionales=nil)
-		set_data(@res[:data], parametros_opcionales) if @res[:data] && parametros_opcionales
+	def send_response(controller)
 		controller.render json: @res.except(:status) , status: @res[:status]
 	end
 end
+
+# ---------------------------------------------------------------------------------------------------------
+def set_paginate_options(params)
+	pde = {"page" => params['page'], "per_page" => params['per_page'], "paginado" => params['paginado']}
+	return pde
+end
+# ---------------------------------------------------------------------------------------------------------
+
+def serialize_parser(modelo, params={})
+	ActiveModelSerializers::SerializableResource.new(modelo, params)
+end
+
 # ---------------------------------------------------------------------------------------------------------
 
 def set_entidad(modelo, params, extra="", key="id")
@@ -79,20 +99,21 @@ def traducir(key, others=nil)
 	return texto_traducido.join(" ")
 end
 # ---------------------------------------------------------------------------------------------------------
-def borrar_entidad(obj, entidad)
+def borrar_entidad(obj, destroy=false)
 	res = Response.new
-	begin
+
+	if destroy
 		obj.destroy
-	rescue => exception
+	else
 		obj.estado = false
 		unless obj.save!
 			res.set_status(HTTP_STATUS_CODE[:conflict])
-			res.add_msg("Error borrando #{entidad}.")
+			res.add_msg("Error borrando #{obj.model_name.element}.")
 			return res
 		end
 	end
 	
-	res.add_msg("#{entidad.capitalize} borrado correctamente.")
+	res.add_msg("#{obj.model_name.element.capitalize} borrado correctamente.")
 	return res
 end
 

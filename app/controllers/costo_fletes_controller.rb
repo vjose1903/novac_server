@@ -4,7 +4,8 @@ class CostoFletesController < ApplicationController
 
   # GET /costo_fletes
   def index
-    return Response.new(nil, CostoFlete.all, nil, {}).send_response self
+    return Response.new(nil, CostoFlete.all.where({estado: true}).order('id DESC'), nil, {}, set_paginate_options(params)).send_response self
+    # return Response.new(nil, CostoFlete.all, nil, {}).send_response self
   end
   
   # GET /costo_fletes/1
@@ -32,17 +33,22 @@ class CostoFletesController < ApplicationController
 
   # DELETE /costo_fletes/1
   def destroy
-    @costo_flete.destroy
+    resultado = borrar_entidad(@costo_flete)
+    return resultado.send_response self
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_costo_flete
+    
       params[:id] = params[:persona_id] if params[:persona_id] 
       respuesta = set_entidad(CostoFlete, params)
       @costo_flete = respuesta.get_data
+    
+
+
       
-      return respuesta.send_response self if @persona.nil?
+      return respuesta.send_response self if @costo_flete.nil?
     end
 
     # Only allow a trusted parameter "white list" through.

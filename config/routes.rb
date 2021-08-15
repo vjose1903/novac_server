@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :costo_fletes
   resources :provincias
   resources :municipios
   resources :modelos
@@ -35,6 +34,11 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
   resources :reportes
   
+  resources :costo_fletes do
+    collection do
+      get "filtro/:arg" => "costo_fletes#index"
+    end
+  end
   
   get "ruta/test" => "application#testFunction"
   

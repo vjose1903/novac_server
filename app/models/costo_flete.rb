@@ -5,6 +5,7 @@ class CostoFlete < ApplicationRecord
   validates :costo, presence: { :message => "Debe de especificar un costo." }, numericality: { greater_than: 0, :message => "El costo del flete debe de ser mayor a 0." }
 
   def self.crear_actualizar_costo(params, is_save=false)
+    puts " --- crear_actualizar_costo --- ".yellow 
     res = Response.new
 
     unless params["id"]
@@ -13,9 +14,12 @@ class CostoFlete < ApplicationRecord
       costo_flete = CostoFlete.find_by_id(params["id"])
     end
 
+    
     costo_flete.municipio_id = params["municipio_id"]
     costo_flete.costo = params["costo"]
-
+    costo_flete.estado = true
+    
+    puts "costo_flete --> ".red + "#{costo_flete.to_json}"
     costo_flete.valid?
 
     if costo_flete.errors.to_a.empty? && (!is_save || (is_save && costo_flete.save!))

@@ -67,34 +67,18 @@ end
 # ---------------------------------------------------------------------------------------------------------
 class Array
   def my_paginate(page, per_page)
-    itemsTem = []
-    pagina = 0
-    lSalir = false
-
     items = self
 
     page = page.to_i
     per_page = per_page.to_i
 
-    index = 0
-    while !lSalir and items.length > 0
-      itemsTem.push items[index]
-      if itemsTem.length == per_page or index == (items.length - 1)
-        pagina += 1
-        lSalir = pagina == page
-        if !lSalir
-          itemsTem = []
-        end
-      end
-      index += 1
-    end
-    
-    puts "items.length.to_f ==> ".red + "#{items.length.to_f}"
-    puts "per_page.to_f ==> ".red + "#{per_page.to_f}"
-    
-    total_pag = (items.length.to_f / per_page.to_f).ceil
+    inicio = (1 - page).abs * per_page
 
-    return { data: itemsTem, total_registros: items.length, total_paginas: total_pag }
+    itemsPaginated = items[inicio , per_page]
+  
+    total_pag = (items.length.to_f / per_page.to_f).ceil
+    # return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
+    return { data: itemsPaginated, total_registros: items.length, total_paginas: total_pag }
   end
 end
 
