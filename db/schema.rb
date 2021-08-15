@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_05_02_195908) do
+ActiveRecord::Schema.define(version: 2021_08_15_130237) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -121,6 +121,14 @@ ActiveRecord::Schema.define(version: 2021_05_02_195908) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["articulo_id"], name: "index_contenido_articulos_on_articulo_id"
+  end
+
+  create_table "costo_fletes", force: :cascade do |t|
+    t.bigint "municipio_id", null: false
+    t.float "costo", default: 0.0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["municipio_id"], name: "index_costo_fletes_on_municipio_id"
   end
 
   create_table "cuadre_cajas", force: :cascade do |t|
@@ -479,6 +487,7 @@ ActiveRecord::Schema.define(version: 2021_05_02_195908) do
   add_foreign_key "cabecera_facturas", "users"
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "contenido_articulos", "articulos"
+  add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "cuadre_cajas", "users"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"

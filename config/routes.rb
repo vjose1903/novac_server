@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :costo_fletes
   resources :provincias
   resources :municipios
   resources :modelos

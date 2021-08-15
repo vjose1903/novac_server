@@ -2,12 +2,12 @@ class MunicipiosController < ApplicationController
 	before_action :set_municipio, only: [:show, :update, :destroy]
 
 	def crear_actualizar_municipio
-    parametros = municipio_params
-    parametros["id"] = params["id"] if params["id"]
+		parametros = municipio_params
+		parametros["id"] = params["id"] if params["id"]
 
-    resultado = Municipio.crear_actualizar_municipio(parametros, true)
-    resultado.send_response self
-  end
+		resultado = Municipio.crear_actualizar_municipio(parametros, true)
+		resultado.send_response self
+	end
 
 	# GET /municipio
 	def index

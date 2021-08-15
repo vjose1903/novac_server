@@ -44,6 +44,41 @@ class Response
 	end
 end
 # ---------------------------------------------------------------------------------------------------------
+
+def set_entidad(modelo, params, extra="", key="id")
+	res = Response.new
+	where = { "#{key}": params[key]}
+	entidad = modelo.where(where) 
+
+	unless entidad.length == 0
+		res.set_data(entidad[0])
+	else
+		res.set_status(HTTP_STATUS_CODE[:not_found])
+		res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", extra:"#{extra}" ))
+	end
+
+	return res
+end
+
+
+# ---------------------------------------------------------------------------------------------------------
+
+def traducir(key, others=nil)
+	others_tem = {}
+	unless others.nil?
+		others.keys.each do |key_|
+		others_tem[key_] = (:valor == key_ or :otro_valor == key_) ? others[key_] : I18n.t(others[key_])
+	end
+	texto_traducido = I18n.t(key, others_tem)
+	else
+		texto_traducido = I18n.t(key)
+	end
+	
+	texto_traducido = texto_traducido.kind_of?(Array)? texto_traducido : [texto_traducido]  
+
+	return texto_traducido.join(" ")
+end
+# ---------------------------------------------------------------------------------------------------------
 def borrar_entidad(obj, entidad)
 	res = Response.new
 	begin

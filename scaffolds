@@ -63,6 +63,7 @@ rails g migration ChangeFileNameToBeFileNameInImagenes
  rails g scaffold forma_de_pago cabecera_factura:references forma_pago:string cantidad:float
  rails g scaffold provincia nombre:string
  rails g model municipio provincia:references nombre:string 
+ rails g scaffold costo_flete municipio:references costo:float
 
 
 

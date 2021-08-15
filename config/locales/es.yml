@@ -1,14 +1,38 @@
 es:
+  ya_existe: &ya_existe "ya existe"
+  ya_existe_descripcion_un: &ya_existe_descripcion_un "%{entidad} registrado con el campo, %{campo} = %{valor}"
+  ya_existe_descripcion_una: &ya_existe_descripcion_una "%{entidad} registrada con el campo, %{campo} = %{valor}"
+
+  no_existe: "%{entidad}%{extra} no existe."
+
+  borrar_un: "%{entidad} borrado correctamente."
+  borrar_una: "%{entidad} borrada correctamente."
+
+  ya_existe_un:
+    - *ya_existe
+    - "un"
+    - *ya_existe_descripcion_un
+
+  ya_existe_una:
+    - *ya_existe
+    - "una"
+    - *ya_existe_descripcion_una
+
+  modelo:
+    costo_fletes: "costo de flete"
+    costo_fletes_p: "costos de fletes"
+
   errors:
     format: "%{message}"
     messages:
       required: ""
       blank: "" #"it cant be empty"
       taken: "" #"it cant be empty"
+
   activerecord:
     errors:
       models:
-        modelo:
+        costo_flete:
           attributes:
-            marca:
-              required: "Debe de especificar una marca."
+            costo:
+              not_a_number: "Valor introducido no es un número."
