@@ -17,7 +17,7 @@ class CostoFletesController < ApplicationController
 		parametros = costo_flete_params
 		parametros["id"] = params["id"] if params["id"]
 
-		resultado = CostoFlete.crear_actualizar_costo(parametros, true)
+		resultado = CostoFlete.crear_actualizar_costo(parametros, current_user, true)
 		resultado.send_response self
 	end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_08_15_181050) do
+ActiveRecord::Schema.define(version: 2021_08_17_225402) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -130,6 +130,18 @@ ActiveRecord::Schema.define(version: 2021_08_15_181050) do
     t.datetime "updated_at", null: false
     t.boolean "estado"
     t.index ["municipio_id"], name: "index_costo_fletes_on_municipio_id"
+  end
+
+  create_table "costos_fletes_historiales", force: :cascade do |t|
+    t.bigint "user_id"
+    t.bigint "costo_flete_id"
+    t.integer "municipio_id"
+    t.float "costo"
+    t.boolean "estado"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["costo_flete_id"], name: "index_costos_fletes_historiales_on_costo_flete_id"
+    t.index ["user_id"], name: "index_costos_fletes_historiales_on_user_id"
   end
 
   create_table "cuadre_cajas", force: :cascade do |t|
@@ -489,6 +501,8 @@ ActiveRecord::Schema.define(version: 2021_08_15_181050) do
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
+  add_foreign_key "costos_fletes_historiales", "costo_fletes"
+  add_foreign_key "costos_fletes_historiales", "users"
   add_foreign_key "cuadre_cajas", "users"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"

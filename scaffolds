@@ -66,5 +66,7 @@ rails g model municipio provincia:references nombre:string
 rails g scaffold costo_flete municipio:references costo:float
 rails g migration AddEstadoToCostoFlete
 
+rails g scaffold costo_flete_historial user:references costo_flete:references municipio:integer costo:float estado:boolean
+
 
 
