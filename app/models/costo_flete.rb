@@ -13,7 +13,6 @@ class CostoFlete < ApplicationRecord
         costo_flete = CostoFlete.new
       else
         costo_flete = CostoFlete.find_by_id(params["id"])
-        puts "BUSCANDO HISTORIAL --> ".yellow + "#{costo_flete.to_json}"
         historial = costo_flete.attributes.clone
       end
       
@@ -22,16 +21,12 @@ class CostoFlete < ApplicationRecord
       costo_flete.costo = params["costo"]
       costo_flete.estado = true
       
-      puts "costo_flete --> ".red + "#{costo_flete.to_json}"
       costo_flete.valid?
       
       if costo_flete.errors.to_a.empty? && (!is_save || (is_save && costo_flete.save!))
-        puts "historial =====> ".cyan + "(#{historial.to_json})"
-        puts "#{historial.nil? ? "CREANDO NUEVO HISTORIAL" : "AÑADIENDO HISTORIAL"}".green
 
         
         historial = costo_flete.attributes.clone if historial.nil?
-        puts "historial =====> ".red + "(#{historial.to_json})"
 
         if CostoFlete.set_historial(historial, current_user)
           res.set_data(costo_flete)
@@ -51,14 +46,11 @@ class CostoFlete < ApplicationRecord
   end
 
   def self.set_historial(data, current_user)
-
-    puts "=========== CREANDO HISTORIAL ===========".red
     historial = data.clone
     historial["costo_flete_id"] = historial["id"]
     historial["id"] = nil
     historial["user_id"] = current_user["id"]
 
-    puts "historial =====> ".yellow + "#{historial}"
     historial_parsed = CostoFleteHistorial.new(historial)
     
     return  historial_parsed.save!
