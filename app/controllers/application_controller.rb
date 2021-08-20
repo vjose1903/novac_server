@@ -12,7 +12,7 @@ class ApplicationController < ActionController::API
     param = params[:param]
     # factura = CabeceraFactura.find_by_id(param)
     # res = CabeceraFactura.verificateCanUpdate(factura)
-    res = Cliente.checkBalanceClientes()
+    res = Cliente.mudar_info(param)
     render json: { body: res }, status: 200
   end
 

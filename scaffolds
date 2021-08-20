@@ -68,5 +68,13 @@ rails g migration AddEstadoToCostoFlete
 
 rails g scaffold costo_flete_historial user:references costo_flete:references municipio:integer costo:float estado:boolean
 
+rails g migration AddCamposToSuplidor 
+
+rails g model entidad user:references nombre:string apellido:string direccion:string is_user:boolean is_suplidor:boolean is_cliente:boolean estado:boolean
+rails g model telefono entidad:references tipo:string valor:string
+rails g model correo_electronico entidad:references valor:string
+rails g model config_entidad has_user:boolean tipo:string
+
+
 
 

@@ -57,4 +57,27 @@ class User < ApplicationRecord
 
     return usuarios
   end
+
+    # =========================================================================================================================================================
+
+    def self.mudar_info(param)
+    res = {"correcto" => true}
+    User.all.each do |user|
+      documentos = DocumentoDeIdentidad.where({ user_id: user["id"] })
+    
+      documentos.each do |doc|
+        user['cedula']  = doc["documento"]  if doc["descripcion"].downcase == "cedula"
+      end
+      user['principal'] = "cedula"
+      # user['cedula'] =nil 
+
+      unless user.save!
+        res = {"correcto" => false}
+        break
+      end
+      
+    end
+    return res
+  end
+
 end

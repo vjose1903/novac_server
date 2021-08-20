@@ -3,32 +3,35 @@ class Suplidor < ApplicationRecord
   attribute :documentos_de_identidad
   accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
 
+  
   def self.get_nombres_suplidores
     return my_query("SELECT s.id, s.nombre from suplidores s")
   end
 
-  #   ==============================================================================================================
+  # =========================================================================================================================================================
 
-  def self.filtrarSuplidores(arg)
-    arg = arg === " " ? "" : arg
-    select_ = "SELECT s.*"
-    from_ = "FROM suplidores s "
-    joins_ = "inner join documentos_de_identidad d on s.id = d.suplidor_id"
-    where_ = "where lower(s.nombre || ' ' || s.direccion || ' ' || coalesce(s.email, '') || d.documento) like lower('%#{arg}%') AND estado = true"
-    order_ = "ORDER BY s.id ASC"
+  def self.mudar_info(param)
+    res = {"correcto" => true}
+    Suplidor.all.each do |suplidor|
+      documentos = DocumentoDeIdentidad.where({ suplidor_id: suplidor["id"] })
+      
+      principal = "cedula"
+      documentos.each do |doc|
+        suplidor['cedula']  = doc["documento"]  if doc["descripcion"].downcase == "cedula"
+        suplidor['rnc']     = doc["documento"]  if doc["descripcion"].downcase == "rnc"
+        
+        principal = "rnc" if doc["descripcion"].downcase == "rnc" && doc["principal"]
+      end
+      suplidor['principal'] = principal
+      # suplidor['cedula'] =nil 
 
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
-
-    my_query(query)
-  end
-
-  #   ==============================================================================================================
-
-  def self.parsearSuplidores(suplidores)
-    suplidores.each do |supli|
-      supli["nombre"] = supli["nombre"].capitalize
+      unless suplidor.save!
+        res = {"correcto" => false}
+        break
+      end
+      
     end
-
-    return suplidores
+    return res
   end
+
 end

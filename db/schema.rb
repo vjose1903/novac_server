@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_08_17_225402) do
+ActiveRecord::Schema.define(version: 2021_08_18_212304) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -106,6 +106,9 @@ ActiveRecord::Schema.define(version: 2021_08_17_225402) do
     t.float "balance"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cedula"
+    t.string "rnc"
+    t.string "principal"
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
   end
 
@@ -126,9 +129,9 @@ ActiveRecord::Schema.define(version: 2021_08_17_225402) do
   create_table "costo_fletes", force: :cascade do |t|
     t.bigint "municipio_id", null: false
     t.float "costo", default: 0.0
+    t.boolean "estado", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "estado"
     t.index ["municipio_id"], name: "index_costo_fletes_on_municipio_id"
   end
 
@@ -423,6 +426,9 @@ ActiveRecord::Schema.define(version: 2021_08_17_225402) do
     t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cedula"
+    t.string "rnc"
+    t.string "principal"
   end
 
   create_table "tipo_articulos", force: :cascade do |t|

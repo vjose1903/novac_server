@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  has_user: false
+  tipo: MyString
+
+two:
+  has_user: false
+  tipo: MyString

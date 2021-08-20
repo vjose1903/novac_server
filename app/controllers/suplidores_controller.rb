@@ -48,13 +48,11 @@ class SuplidoresController < ApplicationController
     paginado = params["paginado"] === "true" ? true : false
 
 
-    suplidores_ = Suplidor
-    .joins("left join documentos_de_identidad on suplidores.id = documentos_de_identidad.suplidor_id AND principal = true")
+    suplidores = Suplidor.select("suplidores.*, initcap(suplidores.nombre) as nombre")
+    .joins("left join documentos_de_identidad on suplidores.id = documentos_de_identidad.suplidor_id AND documentos_de_identidad.principal = true")
     .where("lower(suplidores.nombre || ' ' || suplidores.direccion || ' ' || coalesce(suplidores.email, '') || ' ' || documentos_de_identidad.documento) like lower('%#{arg}%') AND estado = true")
     .order("suplidores.id ASC")
     .to_a
-
-    suplidores = Suplidor.parsearSuplidores(suplidores_)
 
     res = []
 

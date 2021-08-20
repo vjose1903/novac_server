@@ -15,6 +15,34 @@ class Cliente < ApplicationRecord
 
   # =========================================================================================================================================================
 
+  def self.mudar_info(param)
+    res = {"correcto" => true}
+    
+    Cliente.all.each do |cliente|
+      documentos = DocumentoDeIdentidad.where({ cliente_id: cliente["id"] })
+
+      principal = "cedula"
+      
+      documentos.each do |doc|
+        cliente['cedula']  = doc["documento"]  if doc["descripcion"].downcase == "cedula"
+        cliente['rnc']     = doc["documento"]  if doc["descripcion"].downcase == "rnc"
+
+        principal = "rnc" if doc["descripcion"].downcase == "rnc" && doc["principal"]
+      end
+      cliente['principal'] = principal
+      # cliente['cedula'] =nil 
+
+      unless cliente.save!
+        res = {"correcto" => false}
+        break
+      end
+      
+    end
+    return res
+  end
+
+  # =========================================================================================================================================================
+
   def self.filtrarCliente(arg)
     arg = arg === " " ? "" : arg
     select_ = "SELECT c.* , v.nombre as vendedor_nombre, v.apellido as vendedor_apellido"

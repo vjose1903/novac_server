@@ -41,7 +41,7 @@ Rails.application.routes.draw do
     end
   end
   
-  get "ruta/test" => "application#testFunction"
+  post "ruta/test" => "application#testFunction"
   
   # - REPORTES --------------------------------------------------------------
   get "reporte/:tipo_reporte" => "reportes#getReportes"
