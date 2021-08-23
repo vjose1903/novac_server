@@ -48,6 +48,6 @@ class ProvinciasController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def provincia_params
-      params.require(:provincia).permit(:nombre)
+      params.require(:provincia).permit(:nombre, documentos_de_identidad_attributes: [:cliente_id, :descripcion, :documento, :principal])
     end
 end

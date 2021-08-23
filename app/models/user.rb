@@ -3,18 +3,18 @@
 class User < ApplicationRecord
   extend Devise::Models
   belongs_to :imagen, optional: true
-
-  has_many :documentos_de_identidad, dependent: :destroy
-  attribute :documentos_de_identidad
-
   accepts_nested_attributes_for :imagen
+
+  has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
   accepts_nested_attributes_for :documentos_de_identidad
+
 
   devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
   
   validates :usuario, presence: { :message => "Usuario no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
   validates :telefono, presence: { :message => "Telefono no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
   validates :email, presence: { :message => "Email no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
+
   include DeviseTokenAuth::Concerns::User
 
   def self.get_users
@@ -61,23 +61,24 @@ class User < ApplicationRecord
     # =========================================================================================================================================================
 
     def self.mudar_info(param)
-    res = {"correcto" => true}
-    User.all.each do |user|
-      documentos = DocumentoDeIdentidad.where({ user_id: user["id"] })
-    
-      documentos.each do |doc|
-        user['cedula']  = doc["documento"]  if doc["descripcion"].downcase == "cedula"
-      end
-      user['principal'] = "cedula"
-      # user['cedula'] =nil 
+      res = {"correcto" => true}
+      DocumentoDeIdentidad.all.each do |documento|
 
-      unless user.save!
-        res = {"correcto" => false}
-        break
+        if !documento.user.nil?
+          documento.origen = documento.user
+
+        elsif !documento.suplidor.nil?
+          documento.origen = documento.suplidor
+
+        elsif !documento.cliente.nil?
+          documento.origen = documento.cliente
+          
+        end
+
+        documento.save!
+        
       end
-      
+      return res
     end
-    return res
-  end
 
 end

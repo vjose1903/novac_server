@@ -106,9 +106,6 @@ ActiveRecord::Schema.define(version: 2021_08_18_212304) do
     t.float "balance"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "cedula"
-    t.string "rnc"
-    t.string "principal"
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
   end
 
@@ -234,7 +231,11 @@ ActiveRecord::Schema.define(version: 2021_08_18_212304) do
     t.boolean "principal"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "origen_type"
+    t.bigint "origen_id"
     t.index ["cliente_id"], name: "index_documentos_de_identidad_on_cliente_id"
+    t.index ["documento", "origen_type"], name: "index_documentos_de_identidad_on_documento_and_origen_type", unique: true
+    t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
   end
@@ -426,9 +427,6 @@ ActiveRecord::Schema.define(version: 2021_08_18_212304) do
     t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "cedula"
-    t.string "rnc"
-    t.string "principal"
   end
 
   create_table "tipo_articulos", force: :cascade do |t|

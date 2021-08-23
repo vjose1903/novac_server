@@ -3,8 +3,9 @@ class Cliente < ApplicationRecord
   # belongs_to :documento_de_identidad, optional: true
 
   has_many :documentos_de_identidad, dependent: :destroy
-
   attribute :documentos_de_identidad
+
+  has_one :entidad, dependent: :destroy
 
   accepts_nested_attributes_for :imagen
   accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
@@ -13,34 +14,7 @@ class Cliente < ApplicationRecord
     self.balance = 0 unless self.balance
   end
 
-  # =========================================================================================================================================================
-
-  def self.mudar_info(param)
-    res = {"correcto" => true}
-    
-    Cliente.all.each do |cliente|
-      documentos = DocumentoDeIdentidad.where({ cliente_id: cliente["id"] })
-
-      principal = "cedula"
-      
-      documentos.each do |doc|
-        cliente['cedula']  = doc["documento"]  if doc["descripcion"].downcase == "cedula"
-        cliente['rnc']     = doc["documento"]  if doc["descripcion"].downcase == "rnc"
-
-        principal = "rnc" if doc["descripcion"].downcase == "rnc" && doc["principal"]
-      end
-      cliente['principal'] = principal
-      # cliente['cedula'] =nil 
-
-      unless cliente.save!
-        res = {"correcto" => false}
-        break
-      end
-      
-    end
-    return res
-  end
-
+  
   # =========================================================================================================================================================
 
   def self.filtrarCliente(arg)

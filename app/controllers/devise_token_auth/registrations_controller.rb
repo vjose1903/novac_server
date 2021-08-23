@@ -43,6 +43,8 @@ module DeviseTokenAuth
           @resource.skip_confirmation_notification!
         end
 
+        # @resource.documentos_de_identidad = params["documentos_de_identidad"] unless params["documentos_de_identidad"].nil?
+        
         if @resource.save
           yield @resource if block_given?
 

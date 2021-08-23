@@ -11,11 +11,10 @@ module DeviseTokenAuth
     end
 
     def create
-      # Check
-      # params[:usuario] = params[:email]
-
       
       user = User.find_by_usuario(params[:usuario])
+      
+      
       
       # if user["role"] === "V"
 
@@ -29,7 +28,6 @@ module DeviseTokenAuth
       
 
       unless user.nil?
-      
         params[:email] = user.email
       else
         # return render json: { msg: "Usuario ingresado no existe" }, status: 401
@@ -44,6 +42,9 @@ module DeviseTokenAuth
 
         @resource = find_resource(field, q_value)
       end
+
+      puts "@resource --> ".red + "#{@resource.to_json}"
+
 
       if !@resource.nil? and @resource[:estado] == "I"
         return render json: { msg: "Usuario desactivado, favor de comunicarse con el administrador del sistema." }, status: 401
@@ -126,6 +127,7 @@ module DeviseTokenAuth
     end
 
     def render_create_success
+      puts "ENTROO".yellow
       datos = {
         success: true,
         data: resource_data(resource_json: @resource.token_validation_response),

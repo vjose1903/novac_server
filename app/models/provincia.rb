@@ -1,5 +1,5 @@
 class Provincia < ApplicationRecord
-  validates :nombre, presence: { :message => "Debe de especificar un nombre para la provincia." }
+  validates :nombre, presence: { :message => "Debe de especificar un nombre para la provincia." }, uniqueness: { case_sensitive: false, :message => "Esta provincia ya esta creada"}
 
 	has_many :municipios, dependent: :destroy
   accepts_nested_attributes_for :municipios, :allow_destroy => true
