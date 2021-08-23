@@ -94,7 +94,6 @@ Rails.application.routes.draw do
 
   # clientes
   get "clientes/filtro/:arg" => "clientes#getClientesFiltrados"
-  get "clientes/nombre/:nombre" => "clientes#getClientesByName"
 
   # usuarios
   get "users" => "users#getUsers"

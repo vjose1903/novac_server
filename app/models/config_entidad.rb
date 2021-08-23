@@ -1,2 +1,0 @@
-class ConfigEntidad < ApplicationRecord
-end

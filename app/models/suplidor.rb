@@ -1,8 +1,5 @@
 class Suplidor < ApplicationRecord
-  has_many :documentos_de_identidad, dependent: :destroy
-  attribute :documentos_de_identidad
-
-  has_one :entidad, dependent: :destroy
+  has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
 
   accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
 

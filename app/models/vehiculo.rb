@@ -20,19 +20,6 @@ class Vehiculo < ApplicationRecord
     my_query(query)
   end
   
-  # ==========================================================================================
-  def self.parsearClientes(clientes)
-    clientes.each do |cliente|
-      cliente["nombre"] = cliente["nombre"].capitalize
-      cliente["apellido"] = cliente["apellido"].capitalize
-      cliente["vendedor"] = { nombre: "#{cliente["vendedor_nombre"].capitalize if cliente["vendedor_nombre"]} #{cliente["vendedor_apellido"].capitalize if cliente["vendedor_apellido"]}", id: cliente["vendedor_id"] }
-      
-      cliente.delete("vendedor_nombre")
-      cliente.delete("vendedor_apellido")
-    end
-    
-    return clientes
-  end
   def self.parsear(vehiculos)
     puts "--------------- INICIO parsear ---------------"
     vehiculos.each do |vehiculo|

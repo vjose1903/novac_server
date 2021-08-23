@@ -1,14 +1,11 @@
 class Cliente < ApplicationRecord
   belongs_to :imagen, optional: true
-  # belongs_to :documento_de_identidad, optional: true
-
-  has_many :documentos_de_identidad, dependent: :destroy
-  attribute :documentos_de_identidad
-
-  has_one :entidad, dependent: :destroy
-
   accepts_nested_attributes_for :imagen
+
+  has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
   accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
+
+
 
   def init
     self.balance = 0 unless self.balance
@@ -17,32 +14,23 @@ class Cliente < ApplicationRecord
   
   # =========================================================================================================================================================
 
-  def self.filtrarCliente(arg)
-    arg = arg === " " ? "" : arg
-    select_ = "SELECT c.* , v.nombre as vendedor_nombre, v.apellido as vendedor_apellido"
-    from_ = "FROM clientes c"
-    joins_ = "left join users v on c.vendedor_id = v.id
-              inner join documentos_de_identidad d on c.id = d.cliente_id"
-    where_ = "where lower(c.nombre || ' ' || c.apellido || d.documento) like lower('%#{arg}%') AND c.estado = true"
-    order_ = "ORDER BY c.id ASC"
+  def self.filtrarCliente(arg, params)
+    res = Response.new
 
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
+    clientes = Cliente
+    .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
+    .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true")
+    .order("clientes.id ASC").to_a
 
-    my_query(query)
-  end
-  #   ==============================================================================================================
-
-  def self.parsearClientes(clientes)
-    clientes.each do |cliente|
-      cliente["nombre"] = cliente["nombre"].capitalize
-      cliente["apellido"] = cliente["apellido"].capitalize
-      cliente["vendedor"] = { nombre: "#{cliente["vendedor_nombre"].capitalize if cliente["vendedor_nombre"]} #{cliente["vendedor_apellido"].capitalize if cliente["vendedor_apellido"]}", id: cliente["vendedor_id"] }
-
-      cliente.delete("vendedor_nombre")
-      cliente.delete("vendedor_apellido")
+    if clientes.length > 0
+      res.set_data(clientes, {}, params)
+    else
+      res.set_data([])
+      res.add_msg("No existe cliente con las especificaciones introducidas")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return clientes
+    return res
   end
 
   # =========================================================================================================================================================
@@ -98,12 +86,4 @@ class Cliente < ApplicationRecord
     end
   end
 
-  # ===================================================================================================================================================
-  def self.get_cliente_by_name(nombre)
-    select_ = "SELECT id, imagen_id, nombre, apellido, telefono, direccion, sexo, created_at, updated_at, limite_credito, estado, maximo_credito, vendedor_id, balance"
-    from_ = "FROM clientes"
-    where_ = " WHERE lower(nombre) like lower('#{nombre}%') AND estado = true"
-    query = "#{select_} #{from_} #{where_}"
-    return my_query(query)
-  end
 end

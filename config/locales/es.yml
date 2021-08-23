@@ -3,7 +3,7 @@ es:
   ya_existe_descripcion_un: &ya_existe_descripcion_un "%{entidad} registrado con el campo, %{campo} = %{valor}"
   ya_existe_descripcion_una: &ya_existe_descripcion_una "%{entidad} registrada con el campo, %{campo} = %{valor}"
 
-  no_existe: "%{entidad}%{extra} no existe."
+  no_existe: "%{entidad}%{otro_valor} no existe."
 
   borrar_un: "%{entidad} borrado correctamente."
   borrar_una: "%{entidad} borrada correctamente."
@@ -21,6 +21,8 @@ es:
   modelo:
     costo_fletes: "costo de flete"
     costo_fletes_p: "costos de fletes"
+    cliente: "cliente"
+    cliente_p: "clientes"
 
   errors:
     format: "%{message}"

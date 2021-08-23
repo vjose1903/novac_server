@@ -79,3 +79,6 @@ rails g migration AddEntidadToTablas
 
 
 
+rails generate serializer cliente
+rails generate serializer user
+rails generate serializer documento_de_identidad

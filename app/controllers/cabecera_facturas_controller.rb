@@ -380,7 +380,7 @@ class CabeceraFacturasController < ApplicationController
       cliente["nombre"] = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
       cliente["telefono"] = cli["telefono"]
       cliente["direccion"] = cli["direccion"]
-      cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
+      cliente["rnc"] = cli.documentos_de_identidad.where({ principal: true })[0]["documento"]
     else
       if !objeto["NoCliente_nombre"].nil?
         cliente["nombre"] = objeto["NoCliente_nombre"]
@@ -405,7 +405,7 @@ class CabeceraFacturasController < ApplicationController
       supli = Suplidor.find_by_id(obj["suplidor_id"])
       suplidor["nombre"] = "#{supli["nombre"]}".titleize
       suplidor["direccion"] = supli["direccion"]
-      suplidor["rnc"] = DocumentoDeIdentidad.where({ principal: true, suplidor_id: supli["id"] })[0]["documento"]
+      suplidor["rnc"] = supli.documentos_de_identidad.where({ principal: true })[0]["documento"]
     end
 
     obj["notas"] = CabeceraFactura.where({ aplicada_a: objeto["numero_comprobante"] })
