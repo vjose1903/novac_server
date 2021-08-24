@@ -1,5 +1,5 @@
 class ClientesController < ApplicationController
-  before_action :set_cliente, only: [:show, :update, :destroy]
+  before_action :set_cliente, only: [:show, :destroy]
 
   # GET /clientes
   def index    
@@ -17,30 +17,41 @@ class ClientesController < ApplicationController
     return Response.new(nil, @cliente, nil, {}).send_response self
   end
 
+
+  def crear_actualizar_cliente
+		parametros = params
+		parametros["id"] = params["id"] if params["id"]
+
+    resultado = Cliente.create_update_cliente(parametros, true)
+		resultado.send_response self
+	end
+
   # POST /clientes
   def create
-    @cliente = Cliente.new(cliente_params)
+    crear_actualizar_cliente
+    # @cliente = Cliente.new(cliente_params)
 
-    if @cliente.save
-      render json: @cliente, status: :created, location: @cliente
-    else
-      render json: @cliente.errors, status: :unprocessable_entity
-    end
+    # if @cliente.save
+    #   render json: @cliente, status: :created, location: @cliente
+    # else
+    #   render json: @cliente.errors, status: :unprocessable_entity
+    # end
   end
 
   # PATCH/PUT /clientes/1
   def update
-    oldDocuments = @cliente.documentos_de_identidad
+    crear_actualizar_cliente
+    # oldDocuments = @cliente.documentos_de_identidad
 
-    oldDocuments.each do |doc|
-      doc.delete()
-    end
+    # oldDocuments.each do |doc|
+    #   doc.delete()
+    # end
 
-    if @cliente.update(cliente_params)
-      render json: @cliente
-    else
-      render json: @cliente.errors, status: :unprocessable_entity
-    end
+    # if @cliente.update(cliente_params)
+    #   render json: @cliente
+    # else
+    #   render json: @cliente.errors, status: :unprocessable_entity
+    # end
   end
 
   # DELETE /clientes/1

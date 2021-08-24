@@ -11,6 +11,73 @@ class Cliente < ApplicationRecord
     self.balance = 0 unless self.balance
   end
 
+  # =========================================================================================================================================================
+
+  def self.create_update_cliente(params , is_save=false)
+    Cliente.transaction do
+      res = Response.new
+      
+      unless params["id"]
+        cliente = Cliente.new()
+      else
+        cliente = Cliente.find_by_id(params["id"])
+        # oldDocuments = cliente.documentos_de_identidad
+        # oldDocuments.delete()
+        # cliente = Cliente.new(params)
+        # cliente['id'] = params["id"]
+      end
+
+      params["documentos_de_identidad"] = params["documentos_de_identidad_attributes"] if params["documentos_de_identidad_attributes"]
+      params.delete("documentos_de_identidad_attributes") if params["documentos_de_identidad_attributes"]
+
+
+      cliente.imagen_id            = params["imagen_id"]
+      cliente.nombre               = params["nombre"]
+      cliente.estado               = params["estado"]
+      cliente.apellido             = params["apellido"]
+      cliente.limite_credito       = params["limite_credito"]
+      cliente.telefono             = params["telefono"]
+      cliente.direccion            = params["direccion"]
+      cliente.sexo                 = params["sexo"]
+      cliente.maximo_credito       = params["maximo_credito"]
+      cliente.vendedor_id          = params["vendedor_id"]
+      cliente.balance              = params["balance"] ? params["balance"] : 0
+      
+      if cliente.errors.to_a.empty? && cliente.valid?
+        dependencias = [{modelo:DocumentoDeIdentidad, key_object:"documentos_de_identidad", padre:cliente}]
+
+        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
+          cliente.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
+        }
+        
+        if res.status_valid && cliente.save!
+          res.set_data(serialize_parser(cliente,{}))
+
+          action = params["id"] ? 'actualizado' : 'creado'
+          res.add_msg("Cliente #{action} correctamente.")
+        end
+      end
+      
+      puts "cliente.errors.to_a ==>  ".red  + "#{cliente.errors.to_a}"
+      unless cliente.errors.to_a.empty?
+        
+        res.add_msgs(cliente.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        raise ActiveRecord::Rollback
+
+        # begin
+        #   cliente.valid?
+        # rescue => exception
+        #   raise ActiveRecord::Rollback
+        # end
+      end
+
+      return res
+    end
+
+  end
+
+
   
   # =========================================================================================================================================================
 

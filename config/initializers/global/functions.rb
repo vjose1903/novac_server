@@ -119,12 +119,23 @@ def borrar_entidad(obj, destroy=false)
 end
 
 # ---------------------------------------------------------------------------------------------------------
-def agregar_dependencias(obj, aParametros)
-	aParametros.each do |parametro|
-		obj[parametro] = params[parametro]
+
+def crear_actualizar_dependencias(dependencias, parametros, save)
+	puts "parametros ==> ".yellow + "#{parametros.to_json}"
+	dependencias.each do |dependencia|
+		if !parametros[dependencia[:key_object]].nil? && parametros[dependencia[:key_object]].kind_of?(Array)
+			res_dependencia = dependencia[:modelo].validar_e_inicializar(parametros[dependencia[:key_object]], dependencia[:padre], save)
+			if res_dependencia.status_valid
+				yield dependencia[:key_object], res_dependencia.get_data if block_given?
+			else
+				return res_dependencia
+			end
+		end
+
+		return Response.new
 	end
-	return obj
 end
+
 # ---------------------------------------------------------------------------------------------------------
 class Array
 	def my_includes(str)

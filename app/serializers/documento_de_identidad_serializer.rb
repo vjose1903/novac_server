@@ -1,3 +1,3 @@
 class DocumentoDeIdentidadSerializer < ActiveModel::Serializer
-  attributes :descripcion, :documento, :principal
+  attributes :descripcion, :documento, :principal, :id
 end
