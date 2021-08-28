@@ -32,6 +32,21 @@ class User < ApplicationRecord
   def self.get_user_by_id(id)
     return my_query("SELECT * FROM users WHERE id = #{id}")
   end
+
+  # ============================================================================================
+  # HANDLE FILTER
+  # ============================================================================================
+  def self.handleFilter(parametros)
+    filter_key = parametros["filter_key"]
+    filter_value = parametros["filter_value"]
+
+    if filter_key == 'role'
+      return User.all.where("lower(role) like lower('%#{filter_value}%') and estado = true")
+    else
+      return User.all.where("#{filter_key} = #{filter_value} and estado = true")
+    end
+
+  end  
   # =====================================================================================================================
 
   def self.filtrarUsusarios(arg)

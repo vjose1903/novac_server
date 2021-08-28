@@ -14,11 +14,23 @@ class UserSerializer < ActiveModel::Serializer
   attribute :role,                      if: Proc.new { self.personalizar_parametros('role') || self.personalizar_parametros('all') }
   attribute :imagen,                    if: Proc.new { self.personalizar_parametros('imagen') || self.personalizar_parametros('all') }
   attribute :documentos_de_identidad,   if: Proc.new { self.personalizar_parametros('documentos_de_identidad') || self.personalizar_parametros('all') }
+  
+  attribute :imagen,                    if: Proc.new { self.personalizar_parametros('imagen') || self.personalizar_parametros('all') }
 
-  attribute :vendedor_id,               if: Proc.new { self.personalizar_parametros('vendedor_id')  }
+  attribute :nombreCompleto,            if: Proc.new { self.personalizar_parametros('nombreCompleto')  }
 
   def nombre
     object.nombre.capitalize
+  end 
+
+  def nombreCompleto
+    
+    nombreCompleto = "#{object.nombre.capitalize}" 
+    nombreCompleto += " #{object.apellido.capitalize}" unless object.apellido.blank?
+    puts "nombreCompleto:  ".yellow + "#{nombreCompleto}"
+    puts "object:  ".green + "#{object.to_json}"
+    puts "tiene apeliido".red unless object.apellido.blank?
+    nombreCompleto
   end
 
   def apellido

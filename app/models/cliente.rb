@@ -21,19 +21,10 @@ class Cliente < ApplicationRecord
         cliente = Cliente.new()
       else
         cliente = Cliente.find_by_id(params["id"])
-        # oldDocuments = cliente.documentos_de_identidad
-        # oldDocuments.delete()
-        # cliente = Cliente.new(params)
-        # cliente['id'] = params["id"]
       end
-
-      params["documentos_de_identidad"] = params["documentos_de_identidad_attributes"] if params["documentos_de_identidad_attributes"]
-      params.delete("documentos_de_identidad_attributes") if params["documentos_de_identidad_attributes"]
-
 
       cliente.imagen_id            = params["imagen_id"]
       cliente.nombre               = params["nombre"]
-      cliente.estado               = params["estado"]
       cliente.apellido             = params["apellido"]
       cliente.limite_credito       = params["limite_credito"]
       cliente.telefono             = params["telefono"]
@@ -42,6 +33,7 @@ class Cliente < ApplicationRecord
       cliente.maximo_credito       = params["maximo_credito"]
       cliente.vendedor_id          = params["vendedor_id"]
       cliente.balance              = params["balance"] ? params["balance"] : 0
+      cliente.estado               = true
       
       if cliente.errors.to_a.empty? && cliente.valid?
         dependencias = [{modelo:DocumentoDeIdentidad, key_object:"documentos_de_identidad", padre:cliente}]
@@ -90,6 +82,7 @@ class Cliente < ApplicationRecord
     .order("clientes.id ASC").to_a
 
     if clientes.length > 0
+      puts "clientes.length > 0 ".yellow 
       res.set_data(clientes, {}, params)
     else
       res.set_data([])

@@ -99,13 +99,16 @@ def traducir(key, others=nil)
 
 	return texto_traducido.join(" ")
 end
+
 # ---------------------------------------------------------------------------------------------------------
-def borrar_entidad(obj, destroy=false)
+def borrar_entidad(obj)
 	res = Response.new
 
-	if destroy
+	begin
+		puts "INTENTANDO BORRAR".green
 		obj.destroy
-	else
+	rescue => exception
+		puts "NO PUDO BORRAR PROCEDIENDO A DESABILITAR".red
 		obj.estado = false
 		unless obj.save!
 			res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -114,7 +117,7 @@ def borrar_entidad(obj, destroy=false)
 		end
 	end
 	
-	res.add_msg("#{obj.model_name.element.capitalize} borrado correctamente.")
+	res.add_msg(traducir(:borrar_un, entidad: "#{obj.model_name.element.capitalize}"))
 	return res
 end
 

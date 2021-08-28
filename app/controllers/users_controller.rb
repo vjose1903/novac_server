@@ -17,13 +17,24 @@ class UsersController < ApplicationController
   end
 
   def getUsers
-    @usuarios = []
-    User.get_users.each do |user|
-      if user.sexo != "i"
-        @usuarios.push(parsealUser(user))
-      end
+    puts "params --> ".blue + "#{params}"
+    if params['filter_key'] && params['filter_value']
+      puts  "FILTRANDO".green
+      users = User.handleFilter(params)
+      return Response.new(nil, users, nil, get_parametros_opcionales).send_response self
+    else
+      puts  "NO FILTRANDO".red
+      # return Response.new(nil, Persona.all, nil, get_parametros_opcionales).send_response self
+      return Response.new(nil, User.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
     end
-    render json: @usuarios
+    
+    # @usuarios = []
+    # User.get_users.each do |user|
+    #   if user.sexo != "i"
+    #     @usuarios.push(parsealUser(user))
+    #   end
+    # end
+    # render json: @usuarios
   end
 
   def getUserByRole
@@ -112,6 +123,29 @@ class UsersController < ApplicationController
     end
     return object
   end
+
+
+  def get_parametros_opcionales 
+    return {
+      nombreCompleto: params['nombreCompleto'] || false,
+      all: params['all'] || false,
+      id: params['id'] || false,
+      nombre: params['nombre'] || false,
+      usuario: params['usuario'] || false,
+      estado: params['estado'] || false,
+      cedula: params['cedula'] || false,
+      apellido: params['apellido'] || false,
+      sexo: params['sexo'] || false,
+      fotoPerfil: params['fotoPerfil'] || false,
+      telefono: params['telefono'] || false,
+      email: params['email'] || false,
+      fecha_nacimiento: params['fecha_nacimiento'] || false,
+      role: params['role'] || false,
+      imagen: params['imagen'] || false,
+      documentos_de_identidad: params['documentos_de_identidad'] || false,
+    }
+  end
+
 
   private
 end
