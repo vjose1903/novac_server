@@ -19,10 +19,14 @@ es:
     - *ya_existe_descripcion_una
 
   modelo:
-    costo_fletes: "costo de flete"
-    costo_fletes_p: "costos de fletes"
-    cliente: "cliente"
-    cliente_p: "clientes"
+    costo_fletes: "Costo de flete"
+    costo_fletes_p: "Costos de fletes"
+    cliente: "Cliente"
+    cliente_p: "Clientes"
+    suplidor: "Suplidor"
+    suplidor_p: "Suplidores"
+    user: "Empleado"
+    user_p: "Empleados"
 
   errors:
     format: "%{message}"

@@ -1,10 +1,6 @@
-class String
-  def is_number?
-    true if Float(self) rescue false
-  end
-end
-
 class UsersController < ApplicationController
+
+  before_action :set_user, only: [:show, :destroy]
 
   def getUsersNames
     @usuarios = []
@@ -16,7 +12,7 @@ class UsersController < ApplicationController
     render json: @usuarios
   end
 
-  def getUsers
+  def index
     puts "params --> ".blue + "#{params}"
     if params['filter_key'] && params['filter_value']
       puts  "FILTRANDO".green
@@ -47,7 +43,7 @@ class UsersController < ApplicationController
     render json: @usuarios
   end
 
-  def getUserById
+  def show
     usuario = User.get_user_by_id(params[:id])
     user = parsealUser(usuario[0])
     if user["estado"] == false
@@ -146,6 +142,26 @@ class UsersController < ApplicationController
     }
   end
 
+  # DELETE /users/1
+  def destroy
+    puts "@user ==> ".red + "#{@user.to_json}"
+    resultado = borrar_entidad(@user)
+    resultado.send_response self
+  end
 
   private
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_user
+    
+    params[:id] = params[:user_id] if params[:user_id] 
+    respuesta = set_entidad(User, params)
+    @user = respuesta.get_data
+    
+    return respuesta.send_response self if @user.nil?
+  end
+
+  def user_params
+    params.require(:user).permit(:id, :nombre, :usuario, :estado, :cedula, :apellido, :sexo, :fotoPerfil, :telefono, :email, :fecha_nacimiento, :role, :imagen, :documentos_de_identidad )
+  end
 end

@@ -18,10 +18,7 @@ class ApplicationController < ActionController::API
 
 
   def validateUserIsLogging!
-    puts "------- VALIDANDO TOKEN -------".red
-    unless user_signed_in?
-      render json: { msg: "Para realizar esta accion debe de iniciar sesión." }, status: Rack::Utils::SYMBOL_TO_STATUS_CODE[:unauthorized]
-    end
+      render json: { msg: "Para realizar esta accion debe de iniciar sesión." }, status: HTTP_STATUS_CODE[:unauthorized] unless user_signed_in?
   end
 
   def configure_permitted_parameters

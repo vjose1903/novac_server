@@ -65,6 +65,12 @@ def parsearHora(dateTime, lUtc = true)
 end
 
 # ---------------------------------------------------------------------------------------------------------
+class String
+  def is_number?
+    true if Float(self) rescue false
+  end
+end
+# ---------------------------------------------------------------------------------------------------------
 class Array
   def my_paginate(page, per_page)
     items = self

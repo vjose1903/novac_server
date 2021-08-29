@@ -34,6 +34,15 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
   resources :reportes
+
+  resources :users do 
+    collection do
+      
+      get "by_role/:role" => "users#getUserByRole"
+      get "filtro/:arg" => "users#getUsuariosFiltrados"
+      get "custom/names" => "users#getUsersNames"
+    end
+  end
   
   resources :costo_fletes do
     collection do
@@ -95,12 +104,8 @@ Rails.application.routes.draw do
   # clientes
   get "clientes/filtro/:arg" => "clientes#getClientesFiltrados"
 
-  # usuarios
-  get "users" => "users#getUsers"
-  get "users/by_role/:role" => "users#getUserByRole"
-  get "users/:id" => "users#getUserById"
-  get "users/filtro/:arg" => "users#getUsuariosFiltrados"
-  get "users/custom/names" => "users#getUsersNames"
+  
+  
 
   # notas 
   get "cabecera_facturas/custom/get_cantidad_devuelto/:aplicadaA" => "cabecera_facturas#getCantidadDevuelto"

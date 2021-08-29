@@ -61,27 +61,22 @@ end
 def serialize_parser(modelo, params={})
 	ActiveModelSerializers::SerializableResource.new(modelo, params)
 end
-
 # ---------------------------------------------------------------------------------------------------------
 
-def set_entidad(modelo, params, otro_valor="", key="id")
+def set_entidad(modelo, params, key="id")
 	res = Response.new
 	where = { "#{key}": params[key]}
-	puts "where => ".red + "#{where}"
 	entidad = modelo.where(where) 
-	puts "entidad => ".red + "#{entidad.to_json}"
-	puts "modelo.#{modelo.new.model_name.element}".yellow 
 
 	unless entidad.length == 0
 		res.set_data(entidad[0])
 	else
 		res.set_status(HTTP_STATUS_CODE[:not_found])
-		res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", otro_valor:"#{otro_valor}" ))
+		res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", otro_valor:""))
 	end
 
 	return res
 end
-
 
 # ---------------------------------------------------------------------------------------------------------
 def traducir(key, others=nil)
@@ -105,10 +100,8 @@ def borrar_entidad(obj)
 	res = Response.new
 
 	begin
-		puts "INTENTANDO BORRAR".green
 		obj.destroy
 	rescue => exception
-		puts "NO PUDO BORRAR PROCEDIENDO A DESABILITAR".red
 		obj.estado = false
 		unless obj.save!
 			res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -116,15 +109,14 @@ def borrar_entidad(obj)
 			return res
 		end
 	end
-	
-	res.add_msg(traducir(:borrar_un, entidad: "#{obj.model_name.element.capitalize}"))
+
+	res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
 	return res
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
-	puts "parametros ==> ".yellow + "#{parametros.to_json}"
 	dependencias.each do |dependencia|
 		if !parametros[dependencia[:key_object]].nil? && parametros[dependencia[:key_object]].kind_of?(Array)
 			res_dependencia = dependencia[:modelo].validar_e_inicializar(parametros[dependencia[:key_object]], dependencia[:padre], save)

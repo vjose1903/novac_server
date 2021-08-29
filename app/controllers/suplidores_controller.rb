@@ -1,9 +1,3 @@
-class String
-  def is_number?
-    true if Float(self) rescue false
-  end
-end
-
 class SuplidoresController < ApplicationController
   before_action :set_suplidor, only: [:show, :destroy]
 
@@ -55,7 +49,12 @@ class SuplidoresController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_suplidor
-    @suplidor = Suplidor.find(params[:id])
+    
+    params[:id] = params[:suplidor_id] if params[:suplidor_id] 
+    respuesta = set_entidad(Suplidor, params)
+    @suplidor = respuesta.get_data
+    
+    return respuesta.send_response self if @suplidor.nil?
   end
 
   # Only allow a trusted parameter "white list" through.
