@@ -13,7 +13,7 @@ class User < ApplicationRecord
   
   validates :usuario, presence: { :message => "Usuario no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "El nombre de usuario ya esta registrado" }
   validates :telefono, presence: { :message => "Telefono no puede estar vacio." }
-  validates :email, presence: { :message => "Email no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
+  validates :email, presence: { :message => "Email no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "El email introducido ya esta registrado" }
 
   include DeviseTokenAuth::Concerns::User
 
