@@ -73,31 +73,6 @@ module DeviseTokenAuth
     end
 
     def update
-      @resource = User.find_by_id(params[:id])
-      oldDocuments = params["documentos_de_identidad_attributes"]
-
-      aNewDocumentos = []
-      oldDocuments.each do |doc|
-        find = DocumentoDeIdentidad.where("documento = '#{doc["documento"]}' and user_id != #{@resource.id}")
-
-        return render json: { "msg": "Documento de identidad ya esta registrado" }, status: 409 if find.length > 0
-        aNewDocumentos.push(DocumentoDeIdentidad.new({
-          "descripcion" => doc["descripcion"], "documento" => doc["documento"], "principal" => doc["principal"],
-        }))
-      end
-
-      @resource.documentos_de_identidad = aNewDocumentos
-
-      # oldDocuments = DocumentoDeIdentidad.get_documentos_by_user_id(params[:id])
-
-      # if oldDocuments.length > 0
-      #   oldDocuments.each do |doc|
-      #     documento = DocumentoDeIdentidad.find_by_id(doc["id"])
-      #     if documento.delete()
-      #       puts "ELIMINADO"
-      #     end
-      #   end
-      # end
 
       if @resource
         if @resource.send(resource_update_method, account_update_params.except(:documentos_de_identidad_attributes))

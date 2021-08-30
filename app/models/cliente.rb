@@ -55,13 +55,8 @@ class Cliente < ApplicationRecord
         
         res.add_msgs(cliente.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
+        return res
         raise ActiveRecord::Rollback
-
-        # begin
-        #   cliente.valid?
-        # rescue => exception
-        #   raise ActiveRecord::Rollback
-        # end
       end
 
       return res

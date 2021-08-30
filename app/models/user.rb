@@ -11,26 +11,14 @@ class User < ApplicationRecord
 
   devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
   
-  validates :usuario, presence: { :message => "Usuario no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
-  validates :telefono, presence: { :message => "Telefono no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
+  validates :usuario, presence: { :message => "Usuario no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "El nombre de usuario ya esta registrado" }
+  validates :telefono, presence: { :message => "Telefono no puede estar vacio." }
   validates :email, presence: { :message => "Email no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "ya esta registrado" }
 
   include DeviseTokenAuth::Concerns::User
 
-  def self.get_users
-    return my_query("SELECT * FROM users WHERE estado = #{true}")
-  end
-
-  def self.get_vendedores
-    return my_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V'")
-  end
-
   def self.get_vendedor_by_id(id)
     return my_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V' AND id = #{id}")
-  end
-
-  def self.get_user_by_id(id)
-    return my_query("SELECT * FROM users WHERE id = #{id}")
   end
 
   # ============================================================================================
@@ -49,28 +37,84 @@ class User < ApplicationRecord
   end  
   # =====================================================================================================================
 
-  def self.filtrarUsusarios(arg)
-    arg = arg === " " ? "" : arg
+  def self.crear_actualizar_user(params , is_save=false)
+    User.transaction do
+      res = Response.new
+      
+      unless params["id"]
+        user = User.new()
+      else
+        user = User.find_by_id(params["id"])
+      end
 
-    select_ = "SELECT u.id, u.uid, u.sign_in_count, u.nombre, u.usuario, u.apellido, u.sexo, u.telefono, u.email, u.fecha_nacimiento, u.role, u.created_at, u.updated_at, u.estado"
-    from_ = "FROM users u "
-    where_ = "where lower(u.nombre || ' ' || u.apellido ) like lower('%#{arg}%') AND estado = true AND sexo != 'i'"
-    order_ = "ORDER BY u.id ASC"
+      user.nombre                 = params["nombre"]
+      user.apellido               = params["apellido"]
+      user.usuario                = params["usuario"]
+      user.sexo                   = params["sexo"]
+      user.telefono               = params["telefono"]
+      user.email                  = params["email"]
+      user.fecha_nacimiento       = params["fecha_nacimiento"]
+      user.role                   = params["role"]
+      user.password               = params["password"] if params["password"]
+      user.password_confirmation  = params["password"] if params["password"]
+      user.estado                 = true
 
-    query = "#{select_} #{from_} #{where_} #{order_}"
+      puts "user ==>  ".blue  + "#{user.to_json}"
+      puts "user.valid ==>  ".green  + "#{user.valid?}"
 
-    my_query(query)
+      puts "user.errors ==>  ".cyan  + "#{user.errors.to_json}"
+
+      
+      if user.errors.to_a.empty? && user.valid?
+        dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]
+
+        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
+          user.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
+        }
+        
+        if res.status_valid && user.save!
+          res.set_data(serialize_parser(user,{}))
+
+          action = params["id"] ? 'actualizado' : 'creado'
+          res.add_msg("Empleado #{action} correctamente.")
+        end
+      end
+      
+      puts "user ==>  ".red  + "#{user.to_json}"
+      puts "user.errors.to_a ==>  ".red  + "#{user.errors.to_a}"
+      unless user.errors.to_a.empty?
+        
+        res.add_msgs(user.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        return res
+        raise ActiveRecord::Rollback
+      end
+
+      return res
+    end
   end
 
   # =====================================================================================================================
 
-  def self.parsearUsuariosFiltro(usuarios)
-    usuarios.each do |user|
-      user["nombre"] = user["nombre"].capitalize
-      user["apellido"] = user["apellido"].capitalize
+  def self.filtrarUsusarios(arg, params)
+    res = Response.new
+
+    users = User
+    .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
+    .where("lower(users.nombre || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
+    .order("users.id ASC").to_a
+
+    if users.length > 0
+      puts "users.length > 0 ".yellow 
+      puts "users: ".yellow  + "#{users.to_json}"
+      res.set_data(users, {all: true}, params)
+    else
+      res.set_data([])
+      res.add_msg("No existe empleado con las especificaciones introducidas")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return usuarios
+    return res
   end
 
     # =========================================================================================================================================================

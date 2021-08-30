@@ -2,122 +2,40 @@ class UsersController < ApplicationController
 
   before_action :set_user, only: [:show, :destroy]
 
-  def getUsersNames
-    @usuarios = []
-    User.all.each do |user|
-      if user.sexo != "i"
-        @usuarios.push({ id: user.id, nombre: "#{user["nombre"]}".titleize , apellido: "#{user["apellido"]}".titleize , telefono: user["telefono"] })
-      end
-    end
-    render json: @usuarios
-  end
-
   def index
-    puts "params --> ".blue + "#{params}"
     if params['filter_key'] && params['filter_value']
-      puts  "FILTRANDO".green
       users = User.handleFilter(params)
       return Response.new(nil, users, nil, get_parametros_opcionales).send_response self
     else
-      puts  "NO FILTRANDO".red
-      # return Response.new(nil, Persona.all, nil, get_parametros_opcionales).send_response self
       return Response.new(nil, User.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
     end
-    
-    # @usuarios = []
-    # User.get_users.each do |user|
-    #   if user.sexo != "i"
-    #     @usuarios.push(parsealUser(user))
-    #   end
-    # end
-    # render json: @usuarios
   end
 
-  def getUserByRole
-    @usuarios = []
-    role_ = params["role"]
-    vendedores = User.where({ estado: true, role: role_ })
-    vendedores.each do |user|
-      @usuarios.push(parsealUser(user))
-    end
-    render json: @usuarios
-  end
 
   def show
-    usuario = User.get_user_by_id(params[:id])
-    user = parsealUser(usuario[0])
-    if user["estado"] == false
-      user = { "nombre": "Este usuario esta desactivado." }
-    end
-    render json: user
+    return Response.new(nil, @cliente, nil, {}).send_response self
   end
 
   def getUsuariosFiltrados
     arg = params["arg"]
-
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-
-    usuarios = User.filtrarUsusarios(arg)
-
-    usuarios_ = User.parsearUsuariosFiltro(usuarios)
-
-    res = []
-
-    if paginado
-      res = usuarios_.to_a.my_paginate(page, per_page)
-
-      res[:data].each do |user|
-        user["documentos_de_identidad"] = DocumentoDeIdentidad.where({ user_id: user["id"] })
-      end
-    else
-      res = usuarios_.each do |user|
-        user["documentos_de_identidad"] = DocumentoDeIdentidad.where({ user_id: user["id"] })
-      end
-    end
-
-    render json: res
+    resultado = User.filtrarUsusarios(arg, set_paginate_options(params))
+    resultado.send_response self
   end
 
-  def parsealUser(objeto)
-    docs = []
-    object = {}
+  def crear_actualizar_user
+		parametros = params
+		parametros["id"] = params["id"] if params["id"]
+    puts "params --> ".yellow + "#{params.to_json}"
+    resultado = User.crear_actualizar_user(parametros, true)
+		resultado.send_response self
+	end
 
-    object["id"] = objeto["id"]
-    object["uid"] = objeto["uid"]
-    object["sign_in_count"] = objeto["sign_in_count"]
-    object["nombre"] = objeto["nombre"]
-    object["usuario"] = objeto["usuario"]
-    object["apellido"] = objeto["apellido"]
-    object["sexo"] = objeto["sexo"]
-    object["telefono"] = objeto["telefono"]
-    object["email"] = objeto["email"]
-    object["fecha_nacimiento"] = objeto["fecha_nacimiento"]
-    object["role"] = objeto["role"]
-    object["created_at"] = objeto["created_at"]
-    object["updated_at"] = objeto["updated_at"]
-    object["imagen_id"] = objeto["imagen_id"]
-    object["estado"] = objeto["estado"]
+  def create
+    crear_actualizar_user
+  end
 
-    if objeto == ""
-    end
-
-    documentos = DocumentoDeIdentidad.get_documentos_by_user_id(objeto["id"])
-
-    object["documentos_de_identidad"] = []
-    unless documentos.rows == []
-      puts " ------ LLENO ------"
-      documentos.each do |doc|
-        obj = {}
-        obj["descripcion"] = doc["descripcion"]
-        obj["documento"] = doc["documento"]
-        obj["principal"] = doc["principal"]
-        docs.push(obj)
-      end
-      object["documentos_de_identidad"] = docs
-    end
-    return object
+  def update
+    crear_actualizar_user
   end
 
 
@@ -144,7 +62,6 @@ class UsersController < ApplicationController
 
   # DELETE /users/1
   def destroy
-    puts "@user ==> ".red + "#{@user.to_json}"
     resultado = borrar_entidad(@user)
     resultado.send_response self
   end

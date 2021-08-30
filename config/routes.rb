@@ -37,10 +37,7 @@ Rails.application.routes.draw do
 
   resources :users do 
     collection do
-      
-      get "by_role/:role" => "users#getUserByRole"
       get "filtro/:arg" => "users#getUsuariosFiltrados"
-      get "custom/names" => "users#getUsersNames"
     end
   end
   

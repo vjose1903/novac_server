@@ -4,33 +4,31 @@ class UserSerializer < ActiveModel::Serializer
   attribute :nombre,                    if: Proc.new { self.personalizar_parametros('nombre') || self.personalizar_parametros('all') }
   attribute :usuario,                   if: Proc.new { self.personalizar_parametros('usuario') || self.personalizar_parametros('all') }
   attribute :estado,                    if: Proc.new { self.personalizar_parametros('estado') || self.personalizar_parametros('all') }
-  attribute :cedula,                    if: Proc.new { self.personalizar_parametros('cedula') || self.personalizar_parametros('all') }
   attribute :apellido,                  if: Proc.new { self.personalizar_parametros('apellido') || self.personalizar_parametros('all') }
   attribute :sexo,                      if: Proc.new { self.personalizar_parametros('sexo') || self.personalizar_parametros('all') }
-  attribute :fotoPerfil,                if: Proc.new { self.personalizar_parametros('fotoPerfil') || self.personalizar_parametros('all') }
+  # attribute :fotoPerfil,                if: Proc.new { self.personalizar_parametros('fotoPerfil') || self.personalizar_parametros('all') }
   attribute :telefono,                  if: Proc.new { self.personalizar_parametros('telefono') || self.personalizar_parametros('all') }
   attribute :email,                     if: Proc.new { self.personalizar_parametros('email') || self.personalizar_parametros('all') }
   attribute :fecha_nacimiento,          if: Proc.new { self.personalizar_parametros('fecha_nacimiento') || self.personalizar_parametros('all') }
   attribute :role,                      if: Proc.new { self.personalizar_parametros('role') || self.personalizar_parametros('all') }
   attribute :imagen,                    if: Proc.new { self.personalizar_parametros('imagen') || self.personalizar_parametros('all') }
+  attribute :sign_in_count,               if: Proc.new { self.personalizar_parametros('sign_in_count') || self.personalizar_parametros('all') }
   attribute :documentos_de_identidad,   if: Proc.new { self.personalizar_parametros('documentos_de_identidad') || self.personalizar_parametros('all') }
-  
-  attribute :imagen,                    if: Proc.new { self.personalizar_parametros('imagen') || self.personalizar_parametros('all') }
 
   attribute :nombreCompleto,            if: Proc.new { self.personalizar_parametros('nombreCompleto')  }
+  attribute :vendedor_id,               if: Proc.new { self.personalizar_parametros('vendedor_id')  }
+
+  # def fotoPerfil
+  #   nil
+  # end 
 
   def nombre
     object.nombre.capitalize
   end 
 
   def nombreCompleto
-    
     nombreCompleto = "#{object.nombre.capitalize}" 
     nombreCompleto += " #{object.apellido.capitalize}" unless object.apellido.blank?
-    puts "nombreCompleto:  ".yellow + "#{nombreCompleto}"
-    puts "object:  ".green + "#{object.to_json}"
-    puts "tiene apeliido".red unless object.apellido.blank?
-    nombreCompleto
   end
 
   def apellido
@@ -38,7 +36,7 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def documentos_de_identidad
-    serialize_parser(documentos_de_identidad, {})
+    serialize_parser(object.documentos_de_identidad, {})
   end
   
   def vendedor_id
