@@ -27,13 +27,18 @@ Rails.application.routes.draw do
   resources :tipo_facturas
   resources :suplidores
   resources :clientes
-  resources :documentos_de_identidad
   resources :imagenes
   resources :contenido_articulos
   resources :articulos
   resources :tipo_articulos
   resources :secuencia_facturas
   resources :reportes
+
+  resources :documentos_de_identidad do 
+    collection do
+      get "persona" => "application#getPersonasOfDocumento"
+    end
+  end
 
   resources :users do 
     collection do

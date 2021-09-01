@@ -3,7 +3,6 @@ require 'net/smtp'
 
 class Response
 	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, paginate_options=nil)
-		@paginate_options = paginate_options
 		@res = {status:status_, data: data,  msg: msg_}
 
 		set_data(data, parametros_opcionales, paginate_options) if data && parametros_opcionales
@@ -19,11 +18,13 @@ class Response
 	end
 
 	def set_data(data, parametros_opcionales=nil, paginate_options=nil)
-		data = ActiveModelSerializers::SerializableResource.new(data, parametros_opcionales) unless parametros_opcionales.nil?
 
 		paginate = nil
-		paginate = @res[:data].to_a.my_paginate(@paginate_options['page'], @paginate_options['per_page']) if @paginate_options && @paginate_options['paginado']
-		@res[:data] = paginate ? paginate['data'] : data
+		paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
+		
+		data = serialize_parser(paginate ? paginate['data'] : data , parametros_opcionales) unless parametros_opcionales.nil?
+
+		@res[:data] = data
 		@res[:total_registros] = paginate['total_registros'] if paginate
 		@res[:total_paginas] = paginate['total_paginas'] if paginate
 	end

@@ -87,8 +87,8 @@ class Array
     puts "per_page --> ".blue + "#{per_page}"
     
     total_pag = (items.length.to_f / per_page.to_f).ceil
-    # return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
-    return { :data =>  itemsPaginated, :total_registros =>  items.length, :total_paginas => total_pag }
+    return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
+    # return { :data =>  itemsPaginated, :total_registros =>  items.length, :total_paginas => total_pag }
   end
 end
 

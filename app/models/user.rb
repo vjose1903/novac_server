@@ -30,6 +30,11 @@ class User < ApplicationRecord
 
     if filter_key == 'role'
       return User.all.where("lower(role) like lower('%#{filter_value}%') and estado = true")
+    elsif filter_key == 'cedula'
+      
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: filter_value})
+    elsif filter_key == 'rnc'
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: filter_value})
     else
       return User.all.where("#{filter_key} = #{filter_value} and estado = true")
     end
@@ -105,9 +110,10 @@ class User < ApplicationRecord
     .order("users.id ASC").to_a
 
     if users.length > 0
-      puts "users.length > 0 ".yellow 
-      puts "users: ".yellow  + "#{users.to_json}"
       res.set_data(users, {all: true}, params)
+      puts " "
+      puts "res==> ".red + "#{res.get_data().to_json}"
+      puts " "
     else
       res.set_data([])
       res.add_msg("No existe empleado con las especificaciones introducidas")

@@ -14,6 +14,20 @@ class ApplicationController < ActionController::API
     render json: { body: res }, status: 200
   end
 
+  # ============================================================================================
+  # GET PERSONAS OF DOCUMENTO
+  # ============================================================================================
+  def getPersonasOfDocumento()
+    res = Response.new
+    filter_key = params["filter_key"]
+    filter_value = params["filter_value"]
+    tabla_origen = params["tabla_origen"]
+
+    documentos = DocumentoDeIdentidad.where("documento='#{filter_value}' and lower(origen_type)!='#{tabla_origen}'")
+    res.set_data(documentos, {persona: true})
+    return res.send_response self
+  end 
+
   protected
 
 
