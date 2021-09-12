@@ -62,6 +62,12 @@ class CabeceraFacturasController < ApplicationController
     tipo_factura_id = params[:tipo_factura_id]
     is_adelantada = params[:is_adelantada].to_boolean
 
+    puts "campoNum       : ".cyan + "#{campoNum}"
+    puts "is_adelantada  : ".red + "#{is_adelantada}"
+    puts "valor_des      : ".yellow + "#{valor_des}"
+    puts "tipo_factura_id: ".green + "#{tipo_factura_id}"
+    puts "is_adelantada  : ".blue + "#{is_adelantada}"
+
     page = params["page"]
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
@@ -88,8 +94,8 @@ class CabeceraFacturasController < ApplicationController
     if paginado
 
       facturas = cabe_.to_a.my_paginate(page, per_page)
-
-      facturas[:data].each do |factura|
+      puts "facturas --> ".red + "#{facturas.to_json}"
+      facturas["data"].each do |factura|
         @usuario_ = User.find_by_id(factura["user_id"])
         cabecera_parsed = parsearData(factura, false, is_adelantada)
         factura = cabecera_parsed unless cabecera_parsed.nil?
@@ -573,9 +579,9 @@ class CabeceraFacturasController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def cabecera_factura_params
     params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_equivalente, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
-                                             :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :aplicada_a, :tiene_nota,
-                                             :is_completada, :is_viaje, :fecha_viaje,
-                                             detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
-                                                                           :retirado_en_venta, :cantidad_en_unidades, :calcular_saco, :detalle_factura_nota])
+                                              :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :aplicada_a, :tiene_nota,
+                                              :is_completada, :is_viaje, :fecha_viaje,
+                                              detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
+                                                                            :retirado_en_venta, :cantidad_en_unidades, :calcular_saco, :detalle_factura_nota])
   end
 end

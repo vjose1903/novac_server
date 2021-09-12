@@ -111,10 +111,10 @@ class Articulo < ApplicationRecord
 
     if is_array
       articulos_ = []
-      res[:data].to_a.each do |arti|
+      res["data"].to_a.each do |arti|
         articulos_.push(completar_campos_articulo(fecha , arti["id"]))
       end
-      res[:data] = articulos_
+      res["data"] = articulos_
     else
       res = completar_campos_articulo(fecha , res["id"])
     end

@@ -62,7 +62,7 @@ class CabeceraFactura < ApplicationRecord
     limit_ = ""
     order_ = "ORDER BY ca.id DESC"
     
-    
+    puts "campo:  ".yellow + "#{campo}"
     if tipo_factura_id == 0 || tipo_factura_id == "0"
       if campo == "numero_comprobante"
         where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and is_adelantada = #{is_adelantada}"
@@ -70,6 +70,7 @@ class CabeceraFactura < ApplicationRecord
         where_ = "WHERE tipo = 'venta' and is_adelantada = #{is_adelantada}"
         limit_ = "LIMIT 50"
       else
+        puts "entre aquiii".red
         where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and is_adelantada = #{is_adelantada}"
       end
     else

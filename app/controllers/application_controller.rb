@@ -21,9 +21,8 @@ class ApplicationController < ActionController::API
     res = Response.new
     filter_key = params["filter_key"]
     filter_value = params["filter_value"]
-    tabla_origen = params["tabla_origen"]
 
-    documentos = DocumentoDeIdentidad.where("documento='#{filter_value}' and lower(origen_type)!='#{tabla_origen}'")
+    documentos = DocumentoDeIdentidad.where("documento='#{filter_value}'")
     res.set_data(documentos, {persona: true})
     return res.send_response self
   end 

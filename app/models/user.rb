@@ -64,11 +64,6 @@ class User < ApplicationRecord
       user.password_confirmation  = params["password"] if params["password"]
       user.estado                 = true
 
-      puts "user ==>  ".blue  + "#{user.to_json}"
-      puts "user.valid ==>  ".green  + "#{user.valid?}"
-
-      puts "user.errors ==>  ".cyan  + "#{user.errors.to_json}"
-
       
       if user.errors.to_a.empty? && user.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]

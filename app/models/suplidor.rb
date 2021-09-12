@@ -23,6 +23,7 @@ class Suplidor < ApplicationRecord
       suplidor.email             = params["email"]
       suplidor.estado            = true
       
+      
       if suplidor.errors.to_a.empty? && suplidor.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: suplidor }]
 

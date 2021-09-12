@@ -34,6 +34,7 @@ class Cliente < ApplicationRecord
       cliente.vendedor_id          = params["vendedor_id"]
       cliente.balance              = params["balance"] ? params["balance"] : 0
       cliente.estado               = true
+
       
       if cliente.errors.to_a.empty? && cliente.valid?
         dependencias = [{modelo:DocumentoDeIdentidad, key_object:"documentos_de_identidad", padre:cliente}]

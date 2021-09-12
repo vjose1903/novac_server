@@ -74,17 +74,12 @@ end
 class Array
   def my_paginate(page, per_page)
     items = self
-    puts "items --> ".blue + "#{items.to_json}"
     page = page.to_i
     per_page = per_page.to_i
     
     inicio = (1 - page).abs * per_page
-    puts "inicio --> ".blue + "#{inicio}"
     
     itemsPaginated = items[inicio , per_page]
-    puts "itemsPaginated --> ".blue + "#{itemsPaginated}"
-    puts "page --> ".blue + "#{page}"
-    puts "per_page --> ".blue + "#{per_page}"
     
     total_pag = (items.length.to_f / per_page.to_f).ceil
     return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
