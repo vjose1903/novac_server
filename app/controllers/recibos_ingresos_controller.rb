@@ -149,8 +149,6 @@ class RecibosIngresosController < ApplicationController
 
             respuesta.cliente.balance = Cliente.find_by_id(@recibos_ingreso.cliente_id).balance
             res = RecibosIngreso.parsearData(respuesta)
-            
-            puts "res ==> ". red + "#{res.to_json}"
 
             render json: res.to_json, status: :created, location: @recibos_ingreso
           else

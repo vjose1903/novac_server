@@ -14,10 +14,10 @@ class CabeceraConduce < ApplicationRecord
     puts "--------------- inicio parsearData ---------------"
 
     begin
-      obj = objeto.attributes
-      obj["cliente"] = objeto.cliente
-      obj["user"] = objeto.user
-      obj["numero_conduce"] = objeto.numero_conduce
+      obj                       = objeto.attributes
+      obj["cliente"]            = serialize_parser(objeto.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true})
+      obj["user"]               = serialize_parser(objeto.user,    {nombre: true, apellido: true})
+      obj["numero_conduce"]     = objeto.numero_conduce
     rescue
       obj = objeto
     end
@@ -35,21 +35,21 @@ class CabeceraConduce < ApplicationRecord
       unidad = detalle_conduce["unidad"].split(" ")
 
       if unidad.length > 1
-        objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
-        objD["unidad"] = "#{unidad[0]}"
-        objD["peso_saco"] = unidad[2]
+        objD["descripcion"]             = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
+        objD["unidad"]                  = "#{unidad[0]}"
+        objD["peso_saco"]               = unidad[2]
       else
-        objD["descripcion"] = "#{articuloSelect["nombre"]}"
-        objD["unidad"] = detalle_conduce["unidad"]
+        objD["descripcion"]             = "#{articuloSelect["nombre"]}"
+        objD["unidad"]                  = detalle_conduce["unidad"]
       end
 
-      objD["detalle_Factura_id"] = detalle_conduce["detalle_Factura_id"]
-      objD["cabecera_conduce_id"] = detalle_conduce["cabecera_conduce_id"]
-      objD["articulo"] = articuloSelect["nombre"]
-      objD["articulo_id"] = articuloSelect["id"]
-      objD["cantidad"] = detalle_conduce["cantidad"]
-      objD["cantidad_en_unidades"] = detalle_conduce["cantidad_en_unidades"]
-      objD["id"] = detalle_conduce["id"]
+      objD["detalle_Factura_id"]        = detalle_conduce["detalle_Factura_id"]
+      objD["cabecera_conduce_id"]       = detalle_conduce["cabecera_conduce_id"]
+      objD["articulo"]                  = articuloSelect["nombre"]
+      objD["articulo_id"]               = articuloSelect["id"]
+      objD["cantidad"]                  = detalle_conduce["cantidad"]
+      objD["cantidad_en_unidades"]      = detalle_conduce["cantidad_en_unidades"]
+      objD["id"]                        = detalle_conduce["id"]
 
       detalleConduce.push(objD)
     end

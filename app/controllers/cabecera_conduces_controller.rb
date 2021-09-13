@@ -91,7 +91,8 @@ class CabeceraConducesController < ApplicationController
 
     if secuencia_comprobante.save!
       cabecera_conduce = CabeceraConduce.parsearData(@cabecera_conduce)
-      return {:error => false, :body=> cabecera_conduce, :status=> :created}
+
+      return {:error => false, :body=> cabecera_conduce.to_json, :status=> :created}
     else
       return {:error => true, :msg=> 'Error actualizando la secuencia de los conduces.', :status=> 400}
     end
@@ -120,6 +121,6 @@ class CabeceraConducesController < ApplicationController
   # Only allow a trusted parameter "white list" through.
   def cabecera_conduce_params
     params.require(:cabecera_conduce).permit(:user_id, :cliente_id, :numero_conduce, :fecha_equivalente,
-                                             detalle_conduces_attributes: [:cabecera_conduce_id, :detalle_factura_id, :articulo_id, :cantidad, :cantidad_en_unidades, :unidad])
+                                              detalle_conduces_attributes: [:cabecera_conduce_id, :detalle_factura_id, :articulo_id, :cantidad, :cantidad_en_unidades, :unidad])
   end
 end
