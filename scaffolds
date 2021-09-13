@@ -83,3 +83,5 @@ rails generate serializer cliente
 rails generate serializer user
 rails generate serializer documento_de_identidad
 rails generate serializer suplidor
+rails generate serializer recibos_ingreso
+rails generate serializer detalle_recibo

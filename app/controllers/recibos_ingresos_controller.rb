@@ -28,28 +28,32 @@ class RecibosIngresosController < ApplicationController
 
   
   def getRecibosFiltrados
+
     arg = params["arg"]
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
+    resultado = RecibosIngreso.filtrarRecibos(arg, set_paginate_options(params))
+    resultado.send_response self
+    # arg = params["arg"]
+    # page = params["page"]
+    # per_page = params["per_page"]
+    # paginado = params["paginado"] === "true" ? true : false
 
-    recibos_ = []
-    recibos = RecibosIngreso.filtrarRecibos(arg)
+    # recibos_ = []
+    # recibos = RecibosIngreso.filtrarRecibos(arg)
 
-    recibos.each do |item|
-      recibo = RecibosIngreso.find_by_id(item["id"])
-      recibos_.push(RecibosIngreso.parsearData(recibo))
-    end
+    # recibos.each do |item|
+    #   recibo = RecibosIngreso.find_by_id(item["id"])
+    #   recibos_.push(RecibosIngreso.parsearData(recibo))
+    # end
 
-    res = []
+    # res = []
 
-    if paginado
-      res = recibos_.to_a.my_paginate(page, per_page)
-    else
-      res = recibos_
-    end
+    # if paginado
+    #   res = recibos_.to_a.my_paginate(page, per_page)
+    # else
+    #   res = recibos_
+    # end
 
-    render json: res
+    # render json: res
   end
   
   # GET /recibos_ingresos/1
@@ -145,8 +149,10 @@ class RecibosIngresosController < ApplicationController
 
             respuesta.cliente.balance = Cliente.find_by_id(@recibos_ingreso.cliente_id).balance
             res = RecibosIngreso.parsearData(respuesta)
+            
+            puts "res ==> ". red + "#{res.to_json}"
 
-            render json: res, status: :created, location: @recibos_ingreso
+            render json: res.to_json, status: :created, location: @recibos_ingreso
           else
             render json: continuar[:msg], status: :unprocessable_entity
             raise ActiveRecord::Rollback

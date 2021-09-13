@@ -44,7 +44,7 @@ class Cliente < ApplicationRecord
         }
         
         if res.status_valid && cliente.save!
-          res.set_data(serialize_parser(cliente,{}))
+          res.set_data(serialize_parser(cliente, {all: true}))
 
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Cliente #{action} correctamente.")
@@ -79,7 +79,7 @@ class Cliente < ApplicationRecord
 
     if clientes.length > 0
       puts "clientes.length > 0 ".yellow 
-      res.set_data(clientes, {}, params)
+      res.set_data(clientes, {all: true}, params)
     else
       res.set_data([])
       res.add_msg("No existe cliente con las especificaciones introducidas")

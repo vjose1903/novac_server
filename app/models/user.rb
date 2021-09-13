@@ -73,7 +73,7 @@ class User < ApplicationRecord
         }
         
         if res.status_valid && user.save!
-          res.set_data(serialize_parser(user,{}))
+          res.set_data(serialize_parser(user, {all: true}))
 
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Empleado #{action} correctamente.")

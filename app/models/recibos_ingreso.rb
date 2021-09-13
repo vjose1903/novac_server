@@ -16,20 +16,43 @@ class RecibosIngreso < ApplicationRecord
   
   # =========================================================================================================================================================
 
-  def self.filtrarRecibos(arg)
-    arg = arg === " " ? "" : arg
-    select_ = "SELECT r.id"
-    from_ = "FROM recibos_ingresos r"
-    joins_ = "inner join detalle_recibos dr on r.id = dr.recibos_ingreso_id
-              inner join cabecera_facturas cf on cf.id = dr.cabecera_factura_id
-              inner join clientes c on c.id = r.cliente_id"
-    where_ = "where lower(r.numero_recibo || ' ' || c.nombre || ' ' || c.apellido || ' ' || cf.numero_comprobante) like lower('%#{arg}%') AND r.estado = true"
-    order_ = "ORDER BY r.id DESC"
-    group_ = "GROUP BY r.id"
+  # def self.filtrarRecibos(arg)
+  #   arg = arg === " " ? "" : arg
+  #   select_ = "SELECT r.id"
+  #   from_ = "FROM recibos_ingresos r"
+  #   joins_ = "inner join detalle_recibos dr on r.id = dr.recibos_ingreso_id
+  #             inner join cabecera_facturas cf on cf.id = dr.cabecera_factura_id
+  #             inner join clientes c on c.id = r.cliente_id"
+  #   where_ = "where lower(r.numero_recibo || ' ' || c.nombre || ' ' || c.apellido || ' ' || cf.numero_comprobante) like lower('%#{arg}%') AND r.estado = true"
+  #   order_ = "ORDER BY r.id DESC"
+  #   group_ = "GROUP BY r.id"
 
-    query = "#{select_} #{from_} #{joins_} #{where_} #{group_} #{order_}"
+  #   query = "#{select_} #{from_} #{joins_} #{where_} #{group_} #{order_}"
 
-    my_query(query)
+  #   my_query(query)
+  # end
+
+
+  def self.filtrarRecibos(arg, params)
+    res = Response.new
+
+    recibos = RecibosIngreso
+    .joins("inner join detalle_recibos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id")
+    .joins("inner join cabecera_facturas on cabecera_facturas.id = detalle_recibos.cabecera_factura_id")
+    .joins("inner join clientes on clientes.id = recibos_ingresos.cliente_id")
+    .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
+    .order("recibos_ingresos.id").to_a
+
+    if recibos.length > 0
+      puts "recibos.length > 0 ".yellow 
+      res.set_data(recibos, {all: true}, params)
+    else
+      res.set_data([])
+      res.add_msg("No existen recibos con las especificaciones introducidas")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
   end
   
   # ===================================================================================================================================================
@@ -117,16 +140,16 @@ class RecibosIngreso < ApplicationRecord
 
   def self.parsearData(data)
     begin
-      obj = data.attributes
-      obj["detalle_recibos"] = data.detalle_recibos.to_a
-      obj["cliente"] = data.cliente
-      obj["user"] = data.user
+      obj                    = data.attributes
+      obj["cliente"]         = serialize_parser(data.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true})
+      obj["user"]            = serialize_parser(data.user,    {nombre: true, apellido: true})
+
     rescue
       obj = data
     end
 
     detalles = []
-    obj["detalle_recibos"].each do |detalle|
+    data.detalle_recibos.to_a.each do |detalle|
       objD = detalle.attributes
       factura = CabeceraFactura.find_by_id(detalle["cabecera_factura_id"])
 
@@ -136,10 +159,13 @@ class RecibosIngreso < ApplicationRecord
 
     if data.chofer
       chofer_ = User.find_by_id(data.chofer)
+      chofer_ = serialize_parser(chofer_, {id:true, nombre: true, apellido: true, documentos_de_identidad: true,})
     end
 
     obj["chofer"] = chofer_
     obj["detalle_recibos"] = detalles
+
+    
 
     return obj
   end
