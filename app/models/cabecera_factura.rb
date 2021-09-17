@@ -50,40 +50,112 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ===================================================================================================================================================
-  def self.get_facturas_venta_by_params(campo, valor, tipo_factura_id, is_adelantada)
-    select_ = 'SELECT ca.id, tipo_factura_id ,tf.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento,
-    fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, ca.estado, tipo, ca.created_at, ca.updated_at, 
-    ca."Bruto", ca."NoCliente_nombre", ca."NoCliente_direccion", pagada, ca.vendedor_id, ca.balance, ca.devuelta, ca.is_adelantada, ca.is_nota, ca.aplicada_a,
-    ca.tiene_nota,ca.is_viaje,ca.fecha_completada, ca.fecha_viaje, CONCAT(u.nombre, ' + "' '" + ", u.apellido)as usuario"
-    from_ = "FROM cabecera_facturas ca"
-    joins_ = "inner join tipo_facturas tf on ca.tipo_factura_id = tf.id
-    inner join users u on ca.user_id = u.id"
-    where_ = ""
-    limit_ = ""
-    order_ = "ORDER BY ca.id DESC"
-    
-    puts "campo:  ".yellow + "#{campo}"
-    if tipo_factura_id == 0 || tipo_factura_id == "0"
-      if campo == "numero_comprobante"
-        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and is_adelantada = #{is_adelantada}"
-      elsif campo == "last_50"
-        where_ = "WHERE tipo = 'venta' and is_adelantada = #{is_adelantada}"
-        limit_ = "LIMIT 50"
+  def self.get_facturas_by_params(params, paginate_options)
+    CabeceraFactura.transaction do
+      res = Response.new
+
+      campoNum = params[:campo]
+      valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
+      tipo_factura_id = params[:tipo_factura_id]
+      is_adelantada = params[:is_adelantada].to_boolean
+      fact_de = params[:fact_de] ? params[:fact_de] : "venta"
+
+      puts "campoNum       : ".cyan + "#{campoNum}"
+      puts "is_adelantada  : ".red + "#{is_adelantada}"
+      puts "valor_des      : ".yellow + "#{valor_des}"
+      puts "tipo_factura_id: ".green + "#{tipo_factura_id}"
+      puts "is_adelantada  : ".blue + "#{is_adelantada}"
+
+      # page = params["page"]
+      # per_page = params["per_page"]
+      # paginado = params["paginado"] === "true" ? true : false
+
+      campo = FacturasParams.get_campo_by_param(campoNum)
+      valor_des = FacturasParams.parse_valor_by_param(campoNum, valor_des)
+      limit_ = campo == "last_50" ? 50 : nil
+
+      # cabe_ = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
+
+      # if paginado
+
+      #   facturas = cabe_.to_a.my_paginate(page, per_page)
+      #   puts "facturas --> ".red + "#{facturas.to_json}"
+      #   facturas["data"].each do |factura|
+      #     @usuario_ = User.find_by_id(factura["user_id"])
+      #     cabecera_parsed = parsearData(factura, false, is_adelantada)
+      #     factura = cabecera_parsed unless cabecera_parsed.nil?
+      #   end
+      # else
+      #   cabe = cabe_
+
+      #   cabe.each do |factura|
+      #     @usuario_ = User.find_by_id(factura["user_id"])
+      #     cabecera_parsed = parsearData(factura, false, is_adelantada)
+      #     facturas.push(cabecera_parsed) unless cabecera_parsed.nil?
+      #   end
+      # end
+
+      valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}'"
+
+      where_ = "WHERE tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
+
+      where_ += "and #{campo} = #{valor_where}" unless campo == "last_50"
+      
+      where_ += "and tipo_factura_id = #{tipo_factura_id}" unless tipo_factura_id == "0"
+
+
+      facturas = CabeceraFactura
+      .joins("inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id")
+      .where(where)
+      .order("cabecera_facturas.id DESC")
+      .limit(limit_).to_a
+
+
+      if facturas.length > 0
+        puts "facturas.length > 0 ".yellow 
+        # res.set_data(facturas, {all: true}, params)
+        res.set_data(facturas)
       else
-        puts "entre aquiii".red
-        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and is_adelantada = #{is_adelantada}"
+        res.set_data([])
+        res.add_msg("No existe facturas con las especificaciones introducidas")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-    else
-      if campo == "numero_comprobante"
-        where_ = "WHERE #{campo} = '#{valor}' and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
-      else
-        where_ = "WHERE #{campo} = #{valor} and tipo = 'venta' and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
-      end
+      # select_ = 'SELECT cabecera_facturas.id, tipo_factura_id ,tipo_facturas.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento,
+      # fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, cabecera_facturas.estado, tipo, cabecera_facturas.created_at, cabecera_facturas.updated_at, 
+      # cabecera_facturas."Bruto", cabecera_facturas."NoCliente_nombre", cabecera_facturas."NoCliente_direccion", pagada, cabecera_facturas.vendedor_id, cabecera_facturas.balance, cabecera_facturas.devuelta, cabecera_facturas.is_adelantada, cabecera_facturas.is_nota, cabecera_facturas.aplicada_a,
+      # cabecera_facturas.tiene_nota,cabecera_facturas.is_viaje,cabecera_facturas.fecha_completada, cabecera_facturas.fecha_viaje, CONCAT(users.nombre, ' + "' '" + ", users.apellido)as usuario"
+
+      # from_ = "FROM cabecera_facturas ca"
+      # joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id
+      # inner join users on cabecera_facturas.user_id = users.id"
+      # where_ = ""
+      # limit_ = ""
+      # order_ = "ORDER BY cabecera_facturas.id DESC"
+      
+      # if tipo_factura_id == 0 || tipo_factura_id == "0"
+      #   if campo == "numero_comprobante"
+      #     where_ = "WHERE #{campo} = '#{valor_des}' and tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
+      #   elsif campo == "last_50"
+      #     where_ = "WHERE tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
+      #     limit_ = "LIMIT 50"
+      #   else
+      #     puts "entre aquiii".red
+      #     where_ = "WHERE #{campo} = #{valor_des} and tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
+      #   end
+      # else
+      #   if campo == "numero_comprobante"
+      #     where_ = "WHERE #{campo} = '#{valor_des}' and tipo = #{fact_de} and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
+      #   else
+      #     where_ = "WHERE #{campo} = #{valor_des} and tipo = #{fact_de} and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
+      #   end
+      # end
+
+      # query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
+
+      # return my_query(query)
+
+      return res
     end
-
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
-
-    return my_query(query)
   end
 
   # ===================================================================================================================================================

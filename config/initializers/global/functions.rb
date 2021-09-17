@@ -138,16 +138,3 @@ class Array
 		return  self.any? { |i| [str].include? i }
 	end
 end
-# ---------------------------------------------------------------------------------------------------------
-class String
-	def numeric?
-		return true if self =~ /\A\d+\Z/
-		true if Float(self) rescue false
-	end
-	
-	def to_boolean
-		ActiveRecord::Type::Boolean.new.cast(self)
-	end
-end
-# ---------------------------------------------------------------------------------------------------------
-

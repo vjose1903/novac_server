@@ -85,5 +85,8 @@ rails generate serializer documento_de_identidad
 rails generate serializer suplidor
 rails generate serializer recibos_ingreso
 rails generate serializer detalle_recibo
+rails generate serializer cabecera_factura
 rails generate serializer cabecera_conduce
 rails generate serializer detalle_conduce
+rails generate serializer detalle_factura
+

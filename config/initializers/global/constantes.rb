@@ -17,6 +17,48 @@ module Documentos
 end
 DOCUMENTOS_DE_IDENTIDAD_VALIDOS = [Documentos.cedula, Documentos.rnc]
 
+module FacturasParams
+
+  CLIENTE_ID = "cliente_id"
+  NUMERO_COMPROBANTE = "numero_comprobante"
+  NUMERO_FACTURA = "numero_factura"
+  LAST_50 = "last_50"
+
+  PARAMETROS = { :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50 }
+
+  def self.get_campo_by_param(param)
+    return PARAMETROS[:"_#{param}_"]
+  end
+
+  def self.parse_valor_by_param(param, valor=nil)
+    valor = param == "1" || param == "3" ? valor.to_i : valor.upcase unless param == "4"
+    return valor
+  end
+
+
+  def self.cliente_id
+    return CLIENTE_ID
+  end
+  
+  def self.numero_comprobante
+    return NUMERO_COMPROBANTE
+  end
+  
+  def self.numero_factura
+    return NUMERO_FACTURA
+  end
+  
+  def self.last_50
+    return LAST_50
+  end
+  
+
+
+
+
+end
+
+
 
 
 PROVINCIAS_MUNICIPIOS=[

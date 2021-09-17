@@ -9,9 +9,16 @@ class ApplicationController < ActionController::API
   # end
 
   def testFunction
-    param = params[:param]
-    res = User.mudar_info(param)
-    render json: { body: res }, status: 200
+    a = CabeceraFactura.find_by_id(3244)
+    puts ":::::::: a".red + "#{a.to_json}"
+
+    b = serialize_parser(a,{all:true})
+    render json:  b.to_json, status: 200
+    
+
+    # param = params[:param]
+    # res = User.mudar_info(param)
+    # render json: { body: res }, status: 200
   end
 
   # ============================================================================================

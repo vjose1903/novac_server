@@ -35,7 +35,6 @@ class CabeceraFacturasController < ApplicationController
       # return render json: {msg:'Esta función esta inhabilitada por reparaciones!!!'}, status: 400
       # raise ActiveRecord::Rollback
       render json: respuesta, status: respuesta[:status]
-      
     end
   end
   
@@ -57,62 +56,8 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def getFacturasByParams
-    campoNum = params[:campo]
-    valor_des = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
-    tipo_factura_id = params[:tipo_factura_id]
-    is_adelantada = params[:is_adelantada].to_boolean
-
-    puts "campoNum       : ".cyan + "#{campoNum}"
-    puts "is_adelantada  : ".red + "#{is_adelantada}"
-    puts "valor_des      : ".yellow + "#{valor_des}"
-    puts "tipo_factura_id: ".green + "#{tipo_factura_id}"
-    puts "is_adelantada  : ".blue + "#{is_adelantada}"
-
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-
-    campo = ""
-    if campoNum == "1"
-      campo = "cliente_id"
-      valor_des = valor_des.to_i
-    elsif campoNum == "2"
-      campo = "numero_comprobante"
-      valor_des = valor_des.upcase
-    elsif campoNum == "3"
-      campo = "numero_factura"
-      valor_des = valor_des.to_i
-    elsif campoNum == "4"
-      campo = "last_50"
-    end
-
-    facturas = []
-
-    cabe_ = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
-
-    
-    if paginado
-
-      facturas = cabe_.to_a.my_paginate(page, per_page)
-      puts "facturas --> ".red + "#{facturas.to_json}"
-      facturas["data"].each do |factura|
-        @usuario_ = User.find_by_id(factura["user_id"])
-        cabecera_parsed = parsearData(factura, false, is_adelantada)
-        factura = cabecera_parsed unless cabecera_parsed.nil?
-      end
-    else
-      cabe = cabe_
-
-      cabe.each do |factura|
-        @usuario_ = User.find_by_id(factura["user_id"])
-        cabecera_parsed = parsearData(factura, false, is_adelantada)
-        facturas.push(cabecera_parsed) unless cabecera_parsed.nil?
-      end
-    end
-
-
-
-    render json: facturas
+    resultado = CabeceraFactura.get_facturas_params(params, set_paginate_options(params))
+    resultado.send_response self
   end
 
   def getViajesSinCompletar
@@ -256,26 +201,24 @@ class CabeceraFacturasController < ApplicationController
     arrayDetalle.each do |detalleF|
       objD = {}
       
-      contenidoArticulo = ContenidoArticulo.where({ articulo_id: detalleF["articulo_id"] })
-      
-      articuloSelect = Articulo.find_by_id(detalleF["articulo_id"])
-      tipoArticulo = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
-      
-      continuar = articuloWasEdited(articuloSelect)
+      contenidoArticulo   = ContenidoArticulo.where({ articulo_id: detalleF["articulo_id"] })
+      articuloSelect      = Articulo.find_by_id(detalleF["articulo_id"])
+      tipoArticulo        = TipoArticulo.find_by_id(articuloSelect["tipo_articulo_id"])
+      continuar           = articuloWasEdited(articuloSelect)
 
 
       unless continuar
-        articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])
-        articuloSelect = articuloSelect[0]
+        articuloSelect    = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])
+        articuloSelect    = articuloSelect[0]
       end
 
-      precioPrincipal = articuloSelect["precio_principal"]
-      costoPrincipal = articuloSelect["costo_principal"]
+      precioPrincipal     = articuloSelect["precio_principal"]
+      costoPrincipal      = articuloSelect["costo_principal"]
 
-      tipoArticuloD = tipoArticulo["descripcion"]
+      tipoArticuloD       = tipoArticulo["descripcion"]
 
-      precio = 0
-      costo_calculado = 0
+      precio              = 0
+      costo_calculado     = 0
 
       unidad = detalleF["unidad"].split(" ")
 
@@ -290,12 +233,12 @@ class CabeceraFacturasController < ApplicationController
         end
       else unidad[0] == "Paquete" || unidad[0] == "Libra"
         contenidoArticulo.each do |condi|
-        if condi["medida"] == unidad[0]
-          precio = condi["precio"]
-          costo_calculado = condi["costo"]
-        end
-      end       
-    end
+          if condi["medida"] == unidad[0]
+            precio = condi["precio"]
+            costo_calculado = condi["costo"]
+          end
+        end       
+      end
 
       objD["articulo"] = articuloSelect["nombre"]
       objD["articulo_id"] = articuloSelect["id"]
@@ -320,7 +263,6 @@ class CabeceraFacturasController < ApplicationController
       
       if unidad.length > 1
         if objD["se_calcula_saco"]
-          
           objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)#{objD["calcular_saco"] ? '' : '*'}"
         else
           objD["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
@@ -372,6 +314,7 @@ class CabeceraFacturasController < ApplicationController
       end
 
       detalleFacturas.push(objD)
+
     end
 
     obj["detalle_facturas"] = []
