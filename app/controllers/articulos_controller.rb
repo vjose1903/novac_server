@@ -40,6 +40,27 @@ class ArticulosController < ApplicationController
   end
 
 
+  def crear_actualizar_articulo
+		parametros = params
+		parametros["id"] = params["id"] if params["id"]
+
+    resultado = Articulo.create_update_articulo(parametros, true)
+		resultado.send_response self
+	end
+
+
+  # POST /articulos
+  def create
+    crear_actualizar_articulo
+  end
+
+  # PATCH/PUT /articulos/1
+  def update
+    crear_actualizar_articulo
+  end
+
+
+
   def getContenidos
     id = params["id"]
     articulo = Articulo.find_by_id(id)
@@ -135,9 +156,6 @@ class ArticulosController < ApplicationController
     fecha = params["fecha"]
     tipo = params["tipo"]
 
-    
-
-    
     articulos_ = [] 
     articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
 
@@ -168,14 +186,10 @@ class ArticulosController < ApplicationController
   end
 
   # POST /articulos
-  def create
+  def create_
     Articulo.transaction do
       @usuario_id = params["user_id"]
       @articulo = Articulo.new(articulo_params)
-
-      # if @articulo.valid?
-      # else
-      # end
 
       unless @articulo.valid? && @articulo.save
         render json: @articulo.errors, status: :unprocessable_entity
@@ -246,7 +260,7 @@ class ArticulosController < ApplicationController
   end
 
   # PATCH/PUT /articulos/1
-  def update
+  def update_
     Articulo.transaction do
       @ant_articulo = Articulo.parseal(@articulo)
      

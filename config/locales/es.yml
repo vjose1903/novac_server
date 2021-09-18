@@ -31,14 +31,36 @@ es:
   errors:
     format: "%{message}"
     messages:
-      required: ""
-      blank: "" #"it cant be empty"
+      required: "El campo: '%{attribute}', es requerido."
+      blank: "El campo: '%{attribute}', no puede estar vacio."
       taken: "" #"it cant be empty"
 
+  # aqui van los mensajes internos que maneja ruby por debajo como son el caso de los belong_to
   activerecord:
     errors:
       models:
         costo_flete:
           attributes:
             costo:
+              not_a_number: "Valor introducido no es un número."
+
+        formulas_productos_terminado:
+          attributes:
+            costo:
+              not_a_number: "Valor introducido no es un número."
+            precio:
+              not_a_number: "Valor introducido no es un número."
+
+        articulo:
+          attributes:
+            costo_principal:
+              not_a_number: "Valor introducido no es un número."
+            precio_principal:
+              not_a_number: "Valor introducido no es un número."
+
+        contenido_articulo:
+          attributes:
+            costo:
+              not_a_number: "Valor introducido no es un número."
+            precio:
               not_a_number: "Valor introducido no es un número."

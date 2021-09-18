@@ -24,7 +24,7 @@ class Suplidor < ApplicationRecord
       suplidor.estado            = true
       
       
-      if suplidor.errors.to_a.empty? && suplidor.valid?
+      if suplidor.errors.empty? && suplidor.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: suplidor }]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
@@ -39,7 +39,7 @@ class Suplidor < ApplicationRecord
         end
       end
       
-      unless suplidor.errors.to_a.empty?
+      unless suplidor.errors.empty?
         
         res.add_msgs(suplidor.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])

@@ -3,17 +3,15 @@ class Articulo < ApplicationRecord
   belongs_to :imagen, optional: true
 
   has_many :contenido_articulos, dependent: :destroy
-  accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
-  attribute :contenido_articulos
-  
   has_many :formulas_productos_terminados, dependent: :destroy
-  accepts_nested_attributes_for :formulas_productos_terminados, :allow_destroy => true
-  attribute :formulas_productos_terminados
   
-  accepts_nested_attributes_for :imagen
-  attribute :imagen
+  # has_many :imagen
 
-  validates :nombre, presence: { :message => "Nombre articulo no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
+  validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
+  validates :medida,              presence: { :message => "Medida articulo no puede estar vacio." }
+  validates :vendido_en,          presence: { :message => "Debe de especificar en que medida se vende el articulo." }
+  validates :costo_principal,     presence: { :message => "El costo del articulo no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del articulo debe de ser mayor a 0." }
+  validates :precio_principal,    presence: { :message => "El precio del articulo no puede estar vacio." },  numericality: { greater_than: 0, :message => "El precio del articulo debe de ser mayor a 0." }
 
   # before_validation :otras_validaciones
 
@@ -25,10 +23,83 @@ class Articulo < ApplicationRecord
     end
   end
 
-  def self.get_articulos_formateado
-    return my_query("SELECT a.id, a.nombre, ta.descripcion as tipo_articulo, a.costo_principal, a.precio_principal, a.existencia, a.codigo, a.fecha_ingreso, a.medida, a.is_detallable, ca.*, a.created_at, a.updated_at from articulos a INNER JOIN tipo_articulos ta on a.tipo_articulo_id = ta.id INNER JOIN contenido_articulos ca on ca.articulo_id = a.id")
-  end
 
+  def self.create_update_articulo(params , is_save=false)
+    Articulo.transaction do
+      res = Response.new
+      
+      unless params["id"]
+        articulo = Articulo.new()
+      else
+        articulo = Articulo.find_by_id(params["id"])
+      end
+
+      articulo.tipo_articulo_id                 = params["tipo_articulo_id"]
+      articulo.nombre                           = params["nombre"]
+      articulo.estado                           = params["estado"]
+      articulo.costo_principal                  = params["costo_principal"]
+      articulo.precio_principal                 = params["precio_principal"]
+      articulo.medida_alerta                    = params["medida_alerta"]
+      articulo.existencia                       = params["existencia"]
+      articulo.codigo                           = params["codigo"]
+      articulo.fecha_ingreso                    = params["fecha_ingreso"]
+      articulo.medida                           = params["medida"]
+      articulo.is_detallable                    = params["is_detallable"]
+      articulo.aviso_existencia                 = params["aviso_existencia"]
+      articulo.calcular_itbis                   = params["calcular_itbis"]
+      articulo.is_combo                         = params["is_combo"]
+      articulo.otros_costos                     = params["otros_costos"]
+      articulo.vendido_en                       = params["vendido_en"]
+      articulo.is_materia_prima                 = params["is_materia_prima"]
+      articulo.calcular_saco                    = params["calcular_saco"]
+      articulo.imagen_id                        = params["imagen_id"]
+
+      # imagen_attributes
+
+      params["contenido_articulos"]             = params["contenido_articulos_attributes"]           if params["contenido_articulos_attributes"]
+      params["formulas_productos_terminados"]   = params["formulas_productos_terminados_attributes"] if params["formulas_productos_terminados_attributes"]
+      
+      dependencias = [
+        {modelo: FormulasProductosTerminado, key_object: "formulas_productos_terminados", padre: articulo},
+        {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
+      ]
+
+      res = crear_actualizar_dependencias(dependencias, params, !articulo.id.nil?) { |key_object, dependencia_data| 
+        articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
+        articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
+      }
+
+      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.save! 
+      
+      
+      if res.status_valid 
+        # res.set_data(serialize_parser(articulo,{}))
+        res.set_data(articulo)        
+        action = params["id"] ? 'actualizado' : 'creado'
+        res.add_msg("Articulo #{action} correctamente.")
+      else
+        res.add_msgs(articulo.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+      return res
+      raise ActiveRecord::Rollback unless articulo.errors.empty? 
+    end
+  end
+  
+  def set_contenido_referencia_and_codigo
+    res = Response.new
+    self.contenido_articulos.last.referencia    = self.contenido_articulos.first.id if self.contenido_articulos.length > 1
+    
+    self.codigo                                 = "%05d" % self.id.to_s
+
+    unless self.save! && (self.contenido_articulos.last.nil? || (!self.contenido_articulos.last.nil? && self.contenido_articulos.last.save!))
+      res.add_msgs(self.errors.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
 
 
   # =====================================================================================================================

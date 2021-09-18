@@ -17,7 +17,7 @@ class Municipio < ApplicationRecord
 
     municipio.valid?
 
-    if municipio.errors.to_a.empty? && (!is_save || (is_save && municipio.save!))
+    if municipio.errors.empty? && (!is_save || (is_save && municipio.save!))
       res.set_data(municipio)
     else
       res.add_msgs(municipio.errors.to_a)

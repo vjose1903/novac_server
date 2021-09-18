@@ -36,7 +36,7 @@ class Cliente < ApplicationRecord
       cliente.estado               = true
 
       
-      if cliente.errors.to_a.empty? && cliente.valid?
+      if cliente.errors.empty? && cliente.valid?
         dependencias = [{modelo:DocumentoDeIdentidad, key_object:"documentos_de_identidad", padre:cliente}]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
@@ -52,7 +52,7 @@ class Cliente < ApplicationRecord
       end
       
       puts "cliente.errors.to_a ==>  ".red  + "#{cliente.errors.to_a}"
-      unless cliente.errors.to_a.empty?
+      unless cliente.errors.empty?
         
         res.add_msgs(cliente.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])

@@ -285,7 +285,9 @@ class CabeceraFacturasController < ApplicationController
               my_print_log("articuloSelect ==>  #{articuloSelect.to_json}")
               my_print_log("articuloSelect[contenido_articulos] ==>  #{articuloSelect["contenido_articulos"].to_json}")
               my_print_log("articuloSelect[contenido_articulos].nil? ==>  #{articuloSelect["contenido_articulos"].nil?}")
-              array_contenido = ContenidoArticulo.get_contenido_articulo_by_id(articuloSelect["id"])
+
+              array_contenido = ContenidoArticulo.where({articulo_id: articuloSelect["id"]})
+              
               begin
                 articuloSelect.contenido_articulos = array_contenido
               rescue => exception

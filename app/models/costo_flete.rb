@@ -23,7 +23,7 @@ class CostoFlete < ApplicationRecord
       
       costo_flete.valid?
       
-      if costo_flete.errors.to_a.empty? && (!is_save || (is_save && costo_flete.save!))
+      if costo_flete.errors.empty? && (!is_save || (is_save && costo_flete.save!))
 
         
         historial = costo_flete.attributes.clone if historial.nil?

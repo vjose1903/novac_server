@@ -127,9 +127,9 @@ def crear_actualizar_dependencias(dependencias, parametros, save)
 				return res_dependencia
 			end
 		end
-
-		return Response.new
 	end
+
+	return Response.new
 end
 
 # ---------------------------------------------------------------------------------------------------------

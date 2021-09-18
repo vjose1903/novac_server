@@ -65,7 +65,7 @@ class User < ApplicationRecord
       user.estado                 = true
 
       
-      if user.errors.to_a.empty? && user.valid?
+      if user.errors.empty? && user.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
@@ -82,7 +82,7 @@ class User < ApplicationRecord
       
       puts "user ==>  ".red  + "#{user.to_json}"
       puts "user.errors.to_a ==>  ".red  + "#{user.errors.to_a}"
-      unless user.errors.to_a.empty?
+      unless user.errors.empty?
         
         res.add_msgs(user.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])

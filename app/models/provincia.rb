@@ -17,7 +17,7 @@ class Provincia < ApplicationRecord
 
     provincia.valid?
 
-    if provincia.errors.to_a.empty? && (!is_save || (is_save && provincia.save!))
+    if provincia.errors.empty? && (!is_save || (is_save && provincia.save!))
       res.set_data(provincia)
     else
       res.add_msgs(provincia.errors.to_a)
