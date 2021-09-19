@@ -33,7 +33,7 @@ class Response
 		!@res[:data].nil?
 	end
 
-	def get_data()
+	def get_data
 		@res[:data]
 	end
 	
@@ -45,6 +45,10 @@ class Response
 		msgs.each do |msg|
 			@res[:msg].push(msg) if msg.length > 0 
 		end
+	end
+	
+	def get_msgs
+		@res[:msg]
 	end
 	
 	def send_response(controller)
@@ -137,4 +141,9 @@ class Array
 	def my_includes(str)
 		return  self.any? { |i| [str].include? i }
 	end
+end
+
+# ---------------------------------------------------------------------------------------------------------
+def get_current_user
+	return Thread.current[:current_user]
 end

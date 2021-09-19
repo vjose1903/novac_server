@@ -27,14 +27,10 @@ class FormulasProductosTerminado < ApplicationRecord
       formula                 = FormulasProductosTerminado.find_by_id(params["id"])
     end
     
-    puts "formula:  ".red + "#{formula.to_json}"
-    
     formula.cantidad          = params["cantidad"]
     formula.articulo_combo    = params["articulo_combo"]
     formula.precio            = params["precio"]
     formula.costo             = params["costo"]
-
-    puts "formula:  ".green + "#{formula.to_json}"
     
     formula.valid?
     
@@ -55,7 +51,7 @@ class FormulasProductosTerminado < ApplicationRecord
     array_valid=[]
     
     items.each do |item|
-      res_temp = self.crear_actualizar_contenido_articulo(item, padre, save)
+      res_temp = self.crear_actualizar_contenido_articulo(item, padre, !item[:id].nil?)
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)

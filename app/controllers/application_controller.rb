@@ -8,6 +8,17 @@ class ApplicationController < ActionController::API
     before_action :validateUserIsLogging!, unless: :devise_controller?
   # end
 
+  around_action :encarsular_usuario
+
+  def encarsular_usuario
+    Thread.current[:current_user] = current_user
+    begin
+      yield
+    ensure
+      Thread.current[:current_user] = nil
+    end
+  end
+
   def testFunction
     a = CabeceraFactura.find_by_id(3244)
     puts ":::::::: a".red + "#{a.to_json}"

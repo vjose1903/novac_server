@@ -4,10 +4,66 @@ class MantenimientoArticulo < ApplicationRecord
 
   attribute :user
 
-  def self.get_historico_by_id_articulo(id)
-    return my_query("SELECT * FROM mantenimiento_articulos WHERE articulo_id = #{id} ORDER BY created_at ASC")
-  end
+  def self.add_historico(parametros, contenidos, formulas)
+    MantenimientoArticulo.transaction do
+      res = Response.new
 
+      usuario_actual         = get_current_user
+      historico              = MantenimientoArticulo.new()
+      secuencia              = (MantenimientoArticulo.last.id + 1) || 0
+
+
+      historico.articulo_id                  = parametros["id"]
+      historico.user_id                      = usuario_actual.id
+      historico.ant_nombre                   = parametros["nombre"]
+      historico.ant_tipoArticuloId           = parametros["tipo_articulo_id"]
+      historico.ant_medida                   = parametros["medida"]
+      historico.ant_medidaAlerta             = parametros["medida_alerta"]
+      historico.ant_costoP                   = parametros["costo_principal"]
+      historico.ant_precioP                  = parametros["precio_principal"]
+      historico.ant_alertaExistencia         = parametros["aviso_existencia"]
+      historico.ant_isDetallable             = parametros["is_detallable"]
+      historico.ant_calcularItbis            = parametros["calcular_itbis"]
+      historico.ant_isCombo                  = parametros["is_combo"]
+      historico.vendido_en                   = parametros["vendido_en"]
+      historico.is_materia_prima             = parametros["is_materia_prima"]
+      historico.ant_otrosCostos              = parametros["otros_costos"] 
+      historico.calcular_saco                = parametros["calcular_saco"] 
+      historico.secuencia                    = secuencia
+
+
+      contenidos.to_a.each do |contenido|
+        if contenido["referencia"]
+          historico["ant_medidaHijo"]         = contenido["medida"]
+          historico["ant_costoHijo"]          = contenido["costo"]
+          historico["ant_precioHijo"]         = contenido["precio"]
+          historico["ant_cantidadHijo"]       = contenido["cantidad"]
+          historico["ant_idHijo"]             = contenido["id"]
+          historico["ant_referenciaHijo"]     = contenido["referencia"]
+        else
+          historico["ant_medidaPadre"]        = contenido["medida"]
+          historico["ant_costoPadre"]         = contenido["costo"]
+          historico["ant_precioPadre"]        = contenido["precio"]
+          historico["ant_cantidadPadre"]      = contenido["cantidad"]
+          historico["ant_idPadre"]            = contenido["id"]
+          historico["ant_referenciaPadre"]    = contenido["referencia"]
+        end
+      end
+      
+      puts "historico ".red  + "#{historico.to_json}"
+      puts "historico.errors ".red  + "#{historico.errors.to_json}"
+
+      res_formula = MantenimientoFormula.add_historico(formulas, secuencia)
+
+      unless res_formula.status_valid && historico.save! 
+        errores = historico.errors.to_a.concat(res_formula.get_msgs)
+        res.add_msgs(errores)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+      return res 
+    end
+  end
   
   # ============================================================================================================================================================
   
@@ -113,13 +169,16 @@ class MantenimientoArticulo < ApplicationRecord
     
     if historico["ant_isCombo"]
       fomulaS = []
-      formulas = MantenimientoFormula.get_mantenimiento_formulas_by_secuencia(historico["secuencia"])
+      formulas = MantenimientoFormula.find_by_secuencia(historico["secuencia"])
       formulas.each do |f|
-        obj = { "articulo_combo": f["articulo_combo"],
-               "cantidad": f["cantidad"],
-               "costo": f["costo"],
-               "precio": f["precio"] }
+        obj = { 
+          :articulo_combo      => f["articulo_combo"],
+          :cantidad            => f["cantidad"],
+          :costo               => f["costo"],
+          :precio              => f["precio"] 
+        }
       end
+
       articuloHistorico["formulas_productos_terminados"] = fomulaS
     end
 

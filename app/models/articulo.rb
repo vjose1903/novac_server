@@ -24,14 +24,39 @@ class Articulo < ApplicationRecord
   end
 
 
-  def self.create_update_articulo(params , is_save=false)
+  def checkSacoSistema(articulo_nuevo)
+      self.errors.add(:base, "A este articulo no se le puede editar el nombre.") if articulo_nuevo["nombre"] != 'Saco sistema'
+      
+      self.errors.add(:base, "A este articulo no se le puede editar la medida en que se compra.") if articulo_nuevo["medida"] != 'Unidad'
+      
+      self.errors.add(:base, "A este articulo no se le puede editar la medida para vender.") if articulo_nuevo["vendido_en"] != 'Unidad'
+      
+      self.errors.add(:base, "A este articulo no se le puede editar el tipo de articulo.") if articulo_nuevo["tipo_articulo_id"] != 4
+      
+      self.errors.add(:base, "Este articulo no se puede ser materia prima.") if articulo_nuevo["is_materia_prima"] 
+  end
+  
+  
+  def self.create_update_articulo(params, articulo_antiguo, is_save=false)
     Articulo.transaction do
+
+      ant_articulo               =  articulo_antiguo.nil? ? nil : articulo_antiguo
+      ant_articulo_contenido     =  articulo_antiguo.nil? ? nil : articulo_antiguo.contenido_articulos
+      ant_articulo_formula       =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
+
+      puts " "
+      puts "ant_articulo_contenido ==> ".green + "#{ant_articulo_contenido.to_json}"
+      puts " "
+      puts "ant_articulo_formula ==> ".green + "#{ant_articulo_formula.to_json}"
+      puts " "
+
       res = Response.new
       
       unless params["id"]
         articulo = Articulo.new()
       else
         articulo = Articulo.find_by_id(params["id"])
+        articulo.checkSacoSistema(params) if articulo.nombre == 'Saco sistema'
       end
 
       articulo.tipo_articulo_id                 = params["tipo_articulo_id"]
@@ -64,24 +89,40 @@ class Articulo < ApplicationRecord
         {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
       ]
 
-      res = crear_actualizar_dependencias(dependencias, params, !articulo.id.nil?) { |key_object, dependencia_data| 
+      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
         articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
+      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty?  && articulo.save! 
 
-      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.save! 
+      if res.status_valid && articulo.errors.empty? 
+        # puts "ant_articulo ==> ".red + "#{ant_articulo.to_json}"
+        # puts "ant_articulo.nil? ==> ".red + "#{ant_articulo.nil?}"
+        
+        if ant_articulo.nil?
+          # puts ":::::::::::::: ENRTROOOOOO ::::::::::::::".yellow
+          ant_articulo             = articulo
+          ant_articulo_contenido   = ant_articulo.contenido_articulos
+          ant_articulo_formula     = ant_articulo.formulas_productos_terminados
+        end
       
-      
-      if res.status_valid 
-        # res.set_data(serialize_parser(articulo,{}))
-        res.set_data(articulo)        
-        action = params["id"] ? 'actualizado' : 'creado'
-        res.add_msg("Articulo #{action} correctamente.")
+        res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
+        
+        if res_historico.status_valid
+          # res.set_data(serialize_parser(articulo,{}))
+          res.set_data(articulo)        
+          action = params["id"] ? 'actualizado' : 'creado'
+          res.add_msg("Articulo #{action} correctamente.")
+        else
+          res.add_msgs(res_historico.get_msgs)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
       else
         res.add_msgs(articulo.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-
+      
       return res
       raise ActiveRecord::Rollback unless articulo.errors.empty? 
     end
@@ -250,8 +291,6 @@ class Articulo < ApplicationRecord
   end
   # =====================================================================================================================
   def self.parsealHistorico(objeto)
-    puts "--------------------- inicio parsealHistorico ---------------------"
-    puts ""
     
 
     objeto["descripcion"] = objeto["descripcion"]
@@ -260,16 +299,12 @@ class Articulo < ApplicationRecord
     objeto["contenido"] = calcularContenidos(objeto)
     objeto["cantidades"] = calcularCantidades(objeto)
 
-    puts "--------------------- fin parsealHistorico ---------------------"
-    puts " "
-    puts " "
     return objeto
   end
 
   # =====================================================================================================================
 
   def self.calcularContenidos(articulo, sacos=true)
-    puts " ------------------- inicio calcularContenidos -------------------"
 
     begin
       contenido = articulo.contenido_articulos
@@ -312,9 +347,6 @@ class Articulo < ApplicationRecord
       contenidos[contenido[1]["medida"]] = cantHijo
     end
 
-    puts " ------------------- fin calcularContenidos -------------------"
-    puts " "
-    puts " "
     return contenidos
   end
 
@@ -349,7 +381,6 @@ class Articulo < ApplicationRecord
       maxCant = 1
       cantPadre = 1
       contenido.each do |conte|
-        puts "conte ==> ".red + "#{conte.to_json}"
         maxCant = conte["cantidad"] * maxCant
         if conte["condicion"] == "hijo"
           cantPadre = conte["cantidad"]

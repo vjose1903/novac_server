@@ -44,18 +44,20 @@ class ArticulosController < ApplicationController
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
 
-    resultado = Articulo.create_update_articulo(parametros, true)
+    resultado = Articulo.create_update_articulo(parametros, @articulo, true)
 		resultado.send_response self
 	end
 
 
   # POST /articulos
   def create
+    @articulo = nil
     crear_actualizar_articulo
   end
 
   # PATCH/PUT /articulos/1
   def update
+    puts "toyaquiii".red
     crear_actualizar_articulo
   end
 
@@ -185,282 +187,6 @@ class ArticulosController < ApplicationController
     render json: articulo
   end
 
-  # POST /articulos
-  def create_
-    Articulo.transaction do
-      @usuario_id = params["user_id"]
-      @articulo = Articulo.new(articulo_params)
-
-      unless @articulo.valid? && @articulo.save
-        render json: @articulo.errors, status: :unprocessable_entity
-      else
-        set_contenido_referencia
-      end
-    end
-  end
-
-
-
-  def set_contenido_referencia
-    if @articulo.contenido_articulos.length <= 1
-      set_secuencia
-      return
-    end
-
-    firstContenido = @articulo.contenido_articulos.first
-
-    lastContenido = @articulo.contenido_articulos.last
-
-    unless lastContenido.update({ referencia: firstContenido.id })
-      render json: lastContenido.errors, status: :unprocessable_entity
-      raise ActiveRecord::Rollback
-    else
-      set_secuencia
-    end
-  end
-
-  def set_secuencia
-    lastArticulo = @articulo
-    @codigoSiguiente = "%05d" % lastArticulo["id"].to_s
-    if lastArticulo.update({ codigo: @codigoSiguiente })
-      arti = Articulo.parseal(@articulo)
-      seguir = addHistorico(arti)
-
-      if seguir[:error] == false
-        render json: arti, status: :created, location: @articulo
-      else
-        render json: { error: seguir[:msg], msg: "error creando historico" }, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
-      end
-    else
-      render json: lastArticulo.errors, status: :unprocessable_entity
-      raise ActiveRecord::Rollback
-    end
-  end
-
-  def checkSacoSistema(articulo_nuevo)
-    res = { :error => false, :msg => '' }
-
-    if @ant_articulo['nombre'] == 'Saco sistema'
-      if articulo_nuevo["nombre"] != 'Saco sistema'
-        return { :error => true, msg:'A este articulo no se le puede editar el nombre.' }
-      elsif articulo_nuevo["medida"] != 'Unidad'
-        return { :error => true, msg:'A este articulo no se le puede editar la medida en que se compra.' }
-      elsif articulo_nuevo["vendido_en"] != 'Unidad'
-        return { :error => true, msg:'A este articulo no se le puede editar la medida para vender.' }
-      elsif articulo_nuevo["tipo_articulo_id"] != 4
-        return { :error => true, msg:'A este articulo no se le puede editar el tipo de articulo.' }
-      elsif articulo_nuevo["is_materia_prima"] 
-        return { :error => true, msg:'Este articulo no se puede ser materia prima.' }
-      else 
-        return res
-      end
-    end
-    return res
-  end
-
-  # PATCH/PUT /articulos/1
-  def update_
-    Articulo.transaction do
-      @ant_articulo = Articulo.parseal(@articulo)
-     
-      check_saco = checkSacoSistema(articulo_params)
-      if check_saco[:error]
-        return render json: {msg: check_saco[:msg]}, status: 404
-        raise ActiveRecord::Rollback
-      end
-      
-
-      if articulo_params["existencia"] == @ant_articulo["existencia"]
-        seguir = addHistorico(@ant_articulo)
-      else
-        seguir = { error: true, msg: "" }
-      end
-
-      if !seguir[:error]
-        newArticulo = {
-          "tipo_articulo_id": articulo_params["tipo_articulo_id"],
-          "nombre": articulo_params["nombre"],
-          "costo_principal": articulo_params["costo_principal"],
-          "precio_principal": articulo_params["precio_principal"],
-          "existencia": articulo_params["existencia"],
-          "imagen_id": articulo_params["imagen_id"],
-          "medida": articulo_params["medida"],
-          "is_detallable": articulo_params["is_detallable"],
-          "medida_alerta": articulo_params["medida_alerta"],
-          "aviso_existencia": articulo_params["aviso_existencia"],
-          "otros_costos": articulo_params["otros_costos"],
-          "calcular_itbis": articulo_params["calcular_itbis"],
-          "vendido_en": articulo_params["vendido_en"],
-          "is_materia_prima": articulo_params["is_materia_prima"],
-          "calcular_saco": articulo_params["calcular_saco"],
-          "codigo": @articulo["codigo"],
-        }
-
-        if @articulo.update(newArticulo)
-          contenidosAdd = []
-          articulo_params["contenido_articulos_attributes"].each do |contenido|
-            contentido = ContenidoArticulo.find_by_id(contenido["id"])
-
-            if contentido == [] || contentido == nil
-              contentido={}
-              contentido["articulo_id"] = @articulo["id"]
-              contentido = ContenidoArticulo.new
-            end
-
-            contentido.costo = contenido["costo"]
-            contentido.precio = contenido["precio"]
-            contentido.cantidad = contenido["cantidad"]
-            contentido.medida = contenido["medida"]
-            contentido.condicion = contenido["condicion"]
-            contentido.calcular_itbis = contenido["calcular_itbis"]
-
-            contenidosAdd.push contentido
-          end
-          @articulo.contenido_articulos = contenidosAdd
-
-          if @articulo.save!
-            unless @articulo.contenido_articulos.length <= 1
-              firstContenido = @articulo.contenido_articulos.first
-
-              lastContenido = @articulo.contenido_articulos.last
-
-              unless lastContenido.update({ referencia: firstContenido.id })
-                return render json: lastContenido.errors, status: :unprocessable_entity
-              end
-            end
-          else
-            return render json: @articulo.errors, status: :unprocessable_entity
-          end
-
-          @obj = articulo_params
-
-          @obj["id"] = @articulo["id"]
-          @obj["codigo"] = @articulo["codigo"]
-
-          if articulo_params["is_combo"]
-            seguirFormula = true
-            articulosAdd = []
-            articulo_params["formulas_productos_terminados_attributes"].each do |articulo_formula|
-              formula_ingrediente = FormulasProductosTerminado.find_by_id(articulo_formula["id"])
-
-              if formula_ingrediente == nil
-                formula_ingrediente = FormulasProductosTerminado.new
-              end
-
-              formula_ingrediente.articulo_id    = @articulo["id"]
-              formula_ingrediente.articulo_combo = articulo_formula["articulo_combo"]
-              formula_ingrediente.cantidad       = articulo_formula["cantidad"]
-              formula_ingrediente.costo          = articulo_formula["costo"]
-              formula_ingrediente.precio         = articulo_formula["precio"]
-
-              articulosAdd.push formula_ingrediente
-            end
-            @articulo.formulas_productos_terminados = articulosAdd
-
-            if @articulo.save!
-              render json: @obj
-            else
-              return render json: { msg: "Error editando formula de articulo, << luego del seguir >>" }, status: 400
-            end
-          else
-            render json: @obj
-          end
-        else
-          return render json: @articulo.errors, status: 400
-        end
-      else
-        return render json: { error: seguir[:msg], msg: "error creando historico" }, status: seguir[:status]
-      end
-    end
-  end
-
-  def addHistorico(anterior)
-    Articulo.transaction do
-      @ant = anterior
-      obj = { "articulo_id": anterior["id"],
-             "user_id": @usuario_id,
-             "ant_nombre": anterior["nombre"],
-             "ant_tipoArticuloId": anterior["tipo_articulo_id"],
-             "ant_medida": anterior["medida"],
-             "ant_medidaAlerta": anterior["medida_alerta"],
-             "ant_costoP": anterior["costo_principal"],
-             "ant_precioP": anterior["precio_principal"],
-             "ant_alertaExistencia": anterior["aviso_existencia"],
-             "ant_isDetallable": anterior["is_detallable"],
-             "ant_calcularItbis": anterior["calcular_itbis"],
-             "ant_isCombo": anterior["is_combo"],
-             "vendido_en": anterior["vendido_en"],
-             "is_materia_prima": anterior["is_materia_prima"],
-             "ant_otrosCostos": anterior["otros_costos"] ,
-             "calcular_saco": anterior["calcular_saco"] }
-
-      anterior["contenido_articulos"].to_a.each do |contenido|
-        if contenido["referencia"]
-          obj["ant_medidaHijo"] = contenido["medida"]
-          obj["ant_costoHijo"] = contenido["costo"]
-          obj["ant_precioHijo"] = contenido["precio"]
-          obj["ant_cantidadHijo"] = contenido["cantidad"]
-          obj["ant_idHijo"] = contenido["id"]
-          obj["ant_referenciaHijo"] = contenido["referencia"]
-        else
-          obj["ant_medidaPadre"] = contenido["medida"]
-          obj["ant_costoPadre"] = contenido["costo"]
-          obj["ant_precioPadre"] = contenido["precio"]
-          obj["ant_cantidadPadre"] = contenido["cantidad"]
-          obj["ant_idPadre"] = contenido["id"]
-          obj["ant_referenciaPadre"] = contenido["referencia"]
-        end
-      end
-
-      numeroDeRegistros = MantenimientoArticulo.all.count
-      if numeroDeRegistros == 0
-        secu = 0
-      else
-        lastmantenimiento = MantenimientoArticulo.last
-        secu = lastmantenimiento["id"]
-      end
-
-      if secu == nil
-        secu = 0
-      end
-
-      @secue = secu + 1
-      obj["secuencia"] = @secue
-
-      historico = MantenimientoArticulo.new(obj)
-
-      unless historico.save
-        return { error: true, msg: historico.errors, status: :unprocessable_entity }
-      else
-        res = false
-
-        if @ant["is_combo"]
-          @ant["formulas_productos_terminados"].to_a.each do |form|
-            formulaObj = {
-              "articulo_id": form["articulo_id"],
-              "articulo_combo": form["articulo_combo"],
-              "cantidad": form["cantidad"],
-              "costo": form["costo"],
-              "precio": form["precio"],
-              "secuencia": @secue,
-            }
-
-            @historicoF = MantenimientoFormula.new(formulaObj)
-
-            unless @historicoF.save
-              res = true
-            end
-          end
-        end
-        if res == true
-          return { error: true, msg: @historicoF.errors, status: :unprocessable_entity }
-        else
-          return { error: false, msg: "", status: 200 }
-        end
-      end
-    end
-  end
 
   # DELETE /articulos/1
   def destroy
@@ -479,17 +205,9 @@ class ArticulosController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_articulo
-    @usuario_id = params["user_id"]
-
-    @articulo = Articulo.find(params[:id])
-  end
-
-  # Only allow a trusted parameter "white list" through.
-  def articulo_params
-    params.require(:articulo).permit(:tipo_articulo_id, :nombre, :estado, :costo_principal, :precio_principal, :medida_alerta, :existencia, :codigo, :fecha_ingreso, :medida, :is_detallable,
-                                     :aviso_existencia, :calcular_itbis, :is_combo, :otros_costos, :vendido_en, :is_materia_prima, :calcular_saco, :contenido_articulos,
-                                     imagen_attributes: [:file_name, :base_64, :path],
-                                     contenido_articulos_attributes: [:articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :id, :condicion, :calcular_itbis, :secuencia],
-                                     formulas_productos_terminados_attributes: [:articulo_id, :cantidad, :costo, :_destroy, :articulo_combo, :id, :precio])
+    respuesta = set_entidad(Articulo, params)
+    @articulo = respuesta.get_data
+    
+    return respuesta.send_response self if @articulo.nil?
   end
 end

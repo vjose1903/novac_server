@@ -27,7 +27,7 @@ class MantenimientoArticulosController < ApplicationController
 
   def getHistoricoByIdArticulo
     historialById = []
-    historico = MantenimientoArticulo.get_historico_by_id_articulo(params[:id])
+    historico = MantenimientoArticulo.find_by_articulo_id(params[:id])
     historico.each do |historial|
       historialById.push(parsearData(historial))
     end

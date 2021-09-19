@@ -24,7 +24,6 @@ class ContenidoArticulo < ApplicationRecord
     contenido.medida            = params["medida"]
     contenido.condicion         = params["condicion"]
     contenido.calcular_itbis    = params["calcular_itbis"]
-
     
     contenido.valid?
     
@@ -41,12 +40,11 @@ class ContenidoArticulo < ApplicationRecord
   end
 
   def self.validar_e_inicializar(items, padre, save)
-    puts "ESTOY EN CONTENIDOOO".yellow
     res_valid = Response.new
     array_valid=[]
     
     items.each do |item|
-      res_temp = self.crear_actualizar_contenido_articulo(item, padre, save)
+      res_temp = self.crear_actualizar_contenido_articulo(item, padre, !item[:id].nil?)
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)
