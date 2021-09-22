@@ -134,7 +134,7 @@ class ArticulosController < ApplicationController
   end
 
   def getcountArticulos
-    cantidad = Articulo.countArticulos
+    cantidad = Articulo.all.count()
     render json: cantidad
   end
 
@@ -159,7 +159,11 @@ class ArticulosController < ApplicationController
     tipo = params["tipo"]
 
     articulos_ = [] 
-    articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
+    # articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
+
+    respuesta = Articulo.filtrarArticulo(params)
+
+    articulos = respuesta.get_data
 
     res = []
     if paginado
@@ -207,7 +211,7 @@ class ArticulosController < ApplicationController
   def set_articulo
     respuesta = set_entidad(Articulo, params)
     @articulo = respuesta.get_data
-    
+
     return respuesta.send_response self if @articulo.nil?
   end
 end

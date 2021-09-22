@@ -142,69 +142,86 @@ class Articulo < ApplicationRecord
     return res
   end
 
-
-  # =====================================================================================================================
-
-  def self.countArticulos() 
-    select_ = "SELECT count(id)"
-    from_ = "FROM articulos "
-    joins_ = ""
-    where_ = "where estado = true"
-    order_ = ""
-
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
-
-    my_query(query)[0]
-  end
-  
-  
   # =====================================================================================================================
 
     def self.checkFechaCalcularSaco(fecha, articulo)
       res = false
       
-      saco = Articulo.where({nombre:'Saco sistema'})
-      unless saco.empty?
-        
-        saco = saco[0]
+      saco = Articulo.find_by_nombre("Saco sistema")
+      unless saco.nil?
         is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
-  
-        if is_correct && articulo["calcular_saco"] 
-          res = true
-        end
+        res = is_correct && articulo["calcular_saco"] 
       end
 
       return res
     end
 
   # =====================================================================================================================
-  def self.filtrarArticulo(arg, is_compra, tipo)
-    arg = arg === " " ? "" : arg
 
-    # select_ = "SELECT a.*, ta.descripcion as tipo_articulo_descripcion,
-    #             img.file_name as file_name, img.base_64 as base_64, img.path as path "
-    select_ = "SELECT a.id"
 
-    from_ = "FROM articulos a"
-    joins_ = "inner join tipo_articulos ta on a.tipo_articulo_id = ta.id
-              left join imagenes img on img.id = a.imagen_id"
+  def self.filtrarArticulo(params)
+    res = Response.new
 
-    if is_compra
-      where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id != 3"
+    arg = params["arg"]
+    page = params["page"]
+    per_page = params["per_page"]
+    paginado = params["paginado"] === "true" ? true : false
+    fecha = params["fecha"]
+    
+    where = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
+    
+    signo = params["is_compra"].to_boolean ? "!=" : "="
+    tipo_id = params["is_compra"].to_boolean ? "3" : params["tipo"]
+    
+    where += " AND articulos.tipo_articulo_id #{signo} #{tipo_id}" if params["tipo"] != "todos"
+
+    articulos = Articulo
+    .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id left join imagenes img on img.id = articulos.imagen_id")
+    .where(where)
+    .order("articulos.id ASC").to_a
+
+    if articulos.length > 0
+      puts "articulos.length > 0 ".yellow 
+      # res.set_data(articulos, {all: true}, params)
+      res.set_data(articulos)
     else
-      if tipo === "todos"
-        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true"
-      else
-        where_ = "where lower(ta.descripcion || ' ' || a.nombre || ' ' || a.codigo ) like lower('%#{arg}%') AND a.estado = true AND a.tipo_articulo_id = #{tipo}"
-      end
+      res.set_data([])
+      res.add_msg("No existe cliente con las especificaciones introducidas")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    order_ = "ORDER BY a.id ASC"
-
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
-
-    my_query(query)
+    return res
   end
+
+
+
+    # def self.filtrarArticulo(arg, is_compra, tipo)
+    #   arg = arg === " " ? "" : arg
+
+    #   # select_ = "SELECT articulos.*, tipo_articulos.descripcion as tipo_articulo_descripcion,
+    #   #             img.file_name as file_name, img.base_64 as base_64, img.path as path "
+    #   select_ = "SELECT articulos.id"
+
+    #   from_ = "FROM articulos"
+    #   joins_ = "inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id
+    #             left join imagenes img on img.id = articulos.imagen_id"
+
+    #   if is_compra
+    #       where_ = "where lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true AND articulos.tipo_articulo_id != 3"
+    #   else
+    #     if tipo === "todos"
+    #       where_ = "where lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
+    #     else
+    #       where_ = "where lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true AND articulos.tipo_articulo_id = #{tipo}"
+    #     end
+    #   end
+
+    #   order_ = "ORDER BY articulos.id ASC"
+
+    #   query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
+
+    #   my_query(query)
+    # end
   # =====================================================================================================================
   def self.agruparDesagruparFiltro(buscando, array, page, per_page, fecha)
     res = nil

@@ -77,7 +77,7 @@ class Cliente < ApplicationRecord
     .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true")
     .order("clientes.id ASC").to_a
 
-    if clientes.length > 0
+    if clientes.length > 0  
       puts "clientes.length > 0 ".yellow 
       res.set_data(clientes, {all: true}, params)
     else
