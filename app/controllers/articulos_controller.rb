@@ -161,21 +161,23 @@ class ArticulosController < ApplicationController
     articulos_ = [] 
     # articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
 
-    respuesta = Articulo.filtrarArticulo(params)
+    resultado = Articulo.filtrarArticulo(params, set_paginate_options(params))
 
-    articulos = respuesta.get_data
+    resultado.send_response self
 
-    res = []
-    if paginado
-      res = Articulo.agruparDesagruparFiltro(arg, articulos, page, per_page, fecha)
-    else
+    # articulos = respuesta.get_data
+
+    # res = []
+    # if paginado
+    #   res = Articulo.agruparDesagruparFiltro(arg, articulos, page, per_page, fecha)
+    # else
       
-      articulos.each do |arti|
-        res.push(Articulo.completar_campos_articulo(DateTime.now.strftime("%Y-%m-%d %H:%M"), arti['id']))
-      end
-    end
+    #   articulos.each do |arti|
+    #     res.push(Articulo.completar_campos_articulo(DateTime.now.strftime("%Y-%m-%d %H:%M"), arti['id']))
+    #   end
+    # end
 
-    render json: res
+    # render json: res
   end
 
   # GET /articulos/1

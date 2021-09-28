@@ -159,7 +159,7 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
 
 
-  def self.filtrarArticulo(params)
+  def self.filtrarArticulo(params, paginate_options)
     res = Response.new
 
     arg = params["arg"]
@@ -181,9 +181,10 @@ class Articulo < ApplicationRecord
     .order("articulos.id ASC").to_a
 
     if articulos.length > 0
-      puts "articulos.length > 0 ".yellow 
-      # res.set_data(articulos, {all: true}, params)
-      res.set_data(articulos)
+      res.set_data(articulos, {all: true}, paginate_options)
+
+
+      # res.set_data(articulos)
     else
       res.set_data([])
       res.add_msg("No existe cliente con las especificaciones introducidas")
@@ -227,26 +228,28 @@ class Articulo < ApplicationRecord
     res = nil
     is_array = true
     
-    if buscando.numeric?
-      if array.length == 1
-        res = array[0] 
-        is_array = false
-      else
-        res = array.to_a.my_paginate(page, per_page)
-      end
-    else
-      res = array.to_a.my_paginate(page, per_page)
-    end
+    # if buscando.numeric?
+    #   if array.length == 1
+    #     res = array[0] 
+    #     is_array = false
+    #   else
+    #     res = array.to_a.my_paginate(page, per_page)
+    #   end
+    # else
+    #   res = array.to_a.my_paginate(page, per_page)
+    # end
+    puts "::::: ".yellow + "#{array.to_json}" 
 
-    if is_array
-      articulos_ = []
-      res["data"].to_a.each do |arti|
-        articulos_.push(completar_campos_articulo(fecha , arti["id"]))
-      end
-      res["data"] = articulos_
-    else
-      res = completar_campos_articulo(fecha , res["id"])
-    end
+    res["data"] = array
+    # if is_array
+    #   articulos_ = []
+    #   # res["data"].to_a.each do |arti|
+    #   #   articulos_.push(completar_campos_articulo(fecha , arti["id"]))
+    #   # end
+
+    # else
+    #   res = completar_campos_articulo(fecha , res["id"])
+    # end
 
     return res
   end
