@@ -71,6 +71,7 @@ class String
   end
 end
 # ---------------------------------------------------------------------------------------------------------
+
 class Array
   def my_paginate(page, per_page)
     items = self

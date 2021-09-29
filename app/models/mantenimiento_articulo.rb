@@ -68,27 +68,37 @@ class MantenimientoArticulo < ApplicationRecord
   # ============================================================================================================================================================
   
   def self.get_historico_by_date_mayor_or_menor(date, articulo_id, operador, order)
-    select_ = "select * ,ta.descripcion as descripcion"
-    from_ = "from mantenimiento_articulos ma"
-    joins_ = 'inner join tipo_articulos ta on ma."ant_tipoArticuloId"= ta.id'
-    where_ = "where ma.created_at #{operador} '#{date}' AND ma.articulo_id = #{articulo_id}"
-    order_ = "ORDER BY ma.id #{order}"
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} limit 1"
-    return my_query(query)
+    # select_ = "select *, tipo_articulos.descripcion as descripcion"
+    # from_ = "from mantenimiento_articulos"
+    # joins_ = 'inner join tipo_articulos on mantenimiento_articulos."ant_tipoArticuloId"= tipo_articulos.id'
+    # where_ = "where mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}"
+    # order_ = "ORDER BY mantenimiento_articulos.id #{order}"
+    # query = "#{select_} #{from_} #{joins_} #{where_} #{order_} limit 1"
+
+    puts "BUSCANDO HISTORICO".yellow
+    historico = MantenimientoArticulo
+    .where("mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}")
+    .order("mantenimiento_articulos.id #{order}").limit(1)
+
+
+    return historico
   end
 
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
     fecha_factura = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
+    fecha_factura_parsed = fecha_factura + ":59"
+
     historico = []
-    articulo = Articulo.find_by_id(articulo_id)
-    fecha_ultima_edicion = parsearDateTimeUTC(articulo["updated_at"])
-    if fecha_factura + ":59" >= fecha_ultima_edicion
+    articulo  = Articulo.find_by_id(articulo_id)
+    fecha_ultima_edicion_articulo = parsearDateTimeUTC(articulo["updated_at"])
+
+    if fecha_factura_parsed >= fecha_ultima_edicion_articulo
       historico.push(Articulo.parseal(articulo))
     else
       
-      hist = get_historico_by_date_mayor_or_menor(fecha_factura + ":59", articulo_id, "<=", "DESC")
-      hist = get_historico_by_date_mayor_or_menor(fecha_factura + ":59", articulo_id, ">=", "ASC") if hist.empty?
+      hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, "<=", "DESC")
+      hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, ">=", "ASC") if hist.empty?
 
       if hist.rows == []
           historico.push(Articulo.parseal(articulo))

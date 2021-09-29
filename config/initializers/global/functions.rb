@@ -19,14 +19,19 @@ class Response
 
 	def set_data(data, parametros_opcionales=nil, paginate_options=nil)
 
-		paginate = nil
-		paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
+		# paginate = nil
+		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
+		puts "paginate_options ==> ".red + "#{paginate_options}"
+		puts "paginate_options[total_registros] ==> ".yellow + "#{paginate_options["total_registros"]}"
+		puts "paginate_options[total_registros] ==> ".blue + "#{paginate_options[:total_registros]}"
 		
-		data = serialize_parser(paginate ? paginate['data'] : data , parametros_opcionales) unless parametros_opcionales.nil?
+		data = serialize_parser(data , parametros_opcionales) unless parametros_opcionales.nil?
 
-		@res[:data] = data
-		@res[:total_registros] = paginate['total_registros'] if paginate
-		@res[:total_paginas] = paginate['total_paginas'] if paginate
+		@res[:data] = {
+			:data            => data,
+			:total_registros => paginate_options["total_registros"],
+			:total_paginas   => paginate_options["total_paginas"] 
+		}
 	end
 	
 	def has_data
@@ -98,6 +103,19 @@ def traducir(key, others=nil)
 	texto_traducido = texto_traducido.kind_of?(Array)? texto_traducido : [texto_traducido]  
 
 	return texto_traducido.join(" ")
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def parse_paginate_options(params, modelo)
+	inicio    = params['paginado'] ? (params["page"].to_i - 1) * params["per_page"].to_i : nil
+	final     = params['paginado'] ? inicio + params["per_page"].to_i : nil 
+	
+	total_reg = modelo.all.count
+	total_pag = (total_reg.to_f / params["per_page"].to_i).ceil
+
+
+	return { :inicio => inicio, :final => final, :total_registros => total_reg, :total_paginas => total_pag}
 end
 
 # ---------------------------------------------------------------------------------------------------------

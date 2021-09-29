@@ -1,3 +1,6 @@
+const prueba = {
+};
+
 const prueba_array = {
   data: [
     {

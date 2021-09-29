@@ -167,6 +167,11 @@ class Articulo < ApplicationRecord
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
     fecha = params["fecha"]
+
+    pagination = parse_paginate_options(params, Articulo)
+
+    puts "pagination ==> ".red + "#{pagination}"
+    
     
     where = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
     
@@ -178,10 +183,10 @@ class Articulo < ApplicationRecord
     articulos = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id left join imagenes img on img.id = articulos.imagen_id")
     .where(where)
-    .order("articulos.id ASC").to_a
+    .order("articulos.id ASC").limit(pagination["inicio"]).offset(pagination["final"])
 
     if articulos.length > 0
-      res.set_data(articulos, {all: true}, paginate_options)
+      res.set_data(articulos, {all: true}, pagination)
 
 
       # res.set_data(articulos)
