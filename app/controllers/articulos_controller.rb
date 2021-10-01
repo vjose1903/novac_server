@@ -5,8 +5,12 @@ class ArticulosController < ApplicationController
   def index
     # @articulos = Articulo.all
     @articulos = []
+    fecha = params["fecha"] 
     Articulo.all.each do |articulo|
-      articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])
+      articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(fecha, articulo["id"])
+      puts "articuloSelect ==> ".magenta + "#{articuloSelect.to_json}"
+      articuloSelect = articuloSelect.first if articuloSelect.kind_of?(Array)
+
       if articulo["estado"] == true
         @articulos.push(Articulo.parseal(articuloSelect))
       end
@@ -182,7 +186,8 @@ class ArticulosController < ApplicationController
 
   # GET /articulos/1
   def show
-    fecha = params["fecha"]
+    puts "aquiiiii"
+    fecha = params["fecha"] 
     articulo = Articulo.completar_campos_articulo(fecha, params[:id])
     # articulo = Articulo.parseal(@articulo)
 
@@ -212,6 +217,7 @@ class ArticulosController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_articulo
     respuesta = set_entidad(Articulo, params)
+    puts ":::::: set_articulo:::::: ".green
     @articulo = respuesta.get_data
 
     return respuesta.send_response self if @articulo.nil?

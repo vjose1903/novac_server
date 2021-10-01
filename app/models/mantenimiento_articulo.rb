@@ -86,6 +86,8 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
+
+
     fecha_factura = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
     fecha_factura_parsed = fecha_factura + ":59"
 
@@ -100,10 +102,17 @@ class MantenimientoArticulo < ApplicationRecord
       hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, "<=", "DESC")
       hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, ">=", "ASC") if hist.empty?
 
-      if hist.rows == []
-          historico.push(Articulo.parseal(articulo))
+      puts "hist --> ".green + "#{hist}"
+      puts "hist --> ".green + "#{hist.to_json}"
+      
+      if hist.blank?
+        puts "MMG"
+        historico.push(Articulo.parseal(articulo))
       else
-        articulo = crearArticuloHistorico(hist[0], articulo)
+        articulo = crearArticuloHistorico(hist.first, articulo)
+
+        puts "articulo --> ".cyan + "#{articulo}"
+
         historico.push(Articulo.parsealHistorico(articulo))
       end
     end
@@ -141,8 +150,6 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["calcular_saco"]          = articulo["calcular_saco"]
     
     contents = []
-    my_print_log("historico ==> #{historico.to_json}")
-    my_print_log("contenidoArticulo ==> #{contenidoArticulo.to_json}")
 
     if historico["ant_medidaHijo"] || historico["ant_medidaPadre"]
       contenidoArticulo.each do |contenido|
@@ -177,10 +184,11 @@ class MantenimientoArticulo < ApplicationRecord
 
     articuloHistorico["contenido_articulos"] = contents
     
+    
     if historico["ant_isCombo"]
       fomulaS = []
-      formulas = MantenimientoFormula.find_by_secuencia(historico["secuencia"])
-      formulas.each do |f|
+      formulas = MantenimientoFormula.where({secuencia: historico["secuencia"]})
+      formulas.to_a.each do |f|
         obj = { 
           :articulo_combo      => f["articulo_combo"],
           :cantidad            => f["cantidad"],

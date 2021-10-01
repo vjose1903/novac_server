@@ -3,7 +3,7 @@ require 'net/smtp'
 
 class Response
 	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, paginate_options=nil)
-		@res = {status:status_, data: data,  msg: msg_}
+		@res = {status:status_, data: data,  msg: msg_, total_registros: 0, total_paginas: 0}
 
 		set_data(data, parametros_opcionales, paginate_options) if data && parametros_opcionales
 	end
@@ -21,17 +21,12 @@ class Response
 
 		# paginate = nil
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
-		puts "paginate_options ==> ".red + "#{paginate_options}"
-		puts "paginate_options[total_registros] ==> ".yellow + "#{paginate_options["total_registros"]}"
-		puts "paginate_options[total_registros] ==> ".blue + "#{paginate_options[:total_registros]}"
 		
 		data = serialize_parser(data , parametros_opcionales) unless parametros_opcionales.nil?
 
-		@res[:data] = {
-			:data            => data,
-			:total_registros => paginate_options["total_registros"],
-			:total_paginas   => paginate_options["total_paginas"] 
-		}
+		@res[:data]             = data
+		@res[:total_registros]  = paginate_options["total_registros"]  if paginate_options
+		@res[:total_paginas]    = paginate_options["total_paginas"] if paginate_options
 	end
 	
 	def has_data
@@ -74,12 +69,16 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def set_entidad(modelo, params, key="id")
+	puts ":::::: set_entidad:::::: ".yellow
 	res = Response.new
 	where = { "#{key}": params[key]}
 	entidad = modelo.where(where) 
 
+	puts "entidad ".red + "#{entidad.to_json}"
+	puts "entidad.first ".red + "#{entidad.first.to_json}"
+
 	unless entidad.length == 0
-		res.set_data(entidad[0])
+		res.set_data(entidad.first)
 	else
 		res.set_status(HTTP_STATUS_CODE[:not_found])
 		res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", otro_valor:""))
@@ -108,14 +107,14 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def parse_paginate_options(params, modelo)
-	inicio    = params['paginado'] ? (params["page"].to_i - 1) * params["per_page"].to_i : nil
-	final     = params['paginado'] ? inicio + params["per_page"].to_i : nil 
+	limit      = params['paginado'].to_boolean ? params["per_page"].to_i : nil 
+	offset     = params['paginado'].to_boolean ? (params["page"].to_i - 1) * params["per_page"].to_i : nil
 	
-	total_reg = modelo.all.count
-	total_pag = (total_reg.to_f / params["per_page"].to_i).ceil
+	total_reg  = modelo.all.count
+	total_pag  = (total_reg / params["per_page"].to_i).ceil
 
 
-	return { :inicio => inicio, :final => final, :total_registros => total_reg, :total_paginas => total_pag}
+	return { "limit" => limit, "offset" => offset, "total_registros" => total_reg, "total_paginas" => total_pag}
 end
 
 # ---------------------------------------------------------------------------------------------------------

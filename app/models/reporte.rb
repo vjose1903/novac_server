@@ -220,7 +220,8 @@ class Reporte < ApplicationRecord
         
         inventario = inventario_temp.sort_by! { |k| k["nombre"]}
         cantidad_articulos = Articulo.all.count()
-        obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos['count'] }"}
+
+        obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
         
         return obj
     end

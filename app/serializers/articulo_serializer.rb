@@ -26,7 +26,7 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   attribute :contenido,                          if: Proc.new { self.personalizar_parametros('contenido') || self.personalizar_parametros('all') }
   attribute :cantidades,                         if: Proc.new { self.personalizar_parametros('cantidades') || self.personalizar_parametros('all') }
-  # attribute :calcular_saco,                      if: Proc.new { self.personalizar_parametros('calcular_saco') || self.personalizar_parametros('all') }
+  attribute :calcular_saco,                      if: Proc.new { self.personalizar_parametros('calcular_saco') || self.personalizar_parametros('all') }
 
 
   def contenido_articulos
@@ -49,6 +49,57 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def cantidades
     "cantidades"
+  end
+
+
+
+
+
+
+  def calcularContenidos(articulo, sacos=true)
+
+    begin
+      contenido = articulo.contenido_articulos
+    rescue
+      contenido = articulo["contenido_articulos"]
+    end
+    contenidos = {}
+
+    if contenido.length == 0
+      contenidos[articulo["medida"]] = 1
+    elsif contenido.length == 1
+      if articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
+        contenidos[articulo["medida"]] = contenido[0]["cantidad"]
+
+        if sacos 
+          contenidos["Saco_100"] = 100
+          contenidos["Saco_50"] = 50
+          contenidos["Saco_25"] = 25
+        end
+
+        contenidos[contenido[0]["medida"]] = 1
+      else
+        contenidos[articulo["medida"]] = contenido[0]["cantidad"]
+        contenidos[contenido[0]["medida"]] = 1
+      end
+    else
+      cantPrincipal = 1
+      cantHijo = 1
+      cantPadre = 1
+
+      contenido.each do |conte|
+        cantPrincipal *= conte["cantidad"]
+        if conte["referencia"] != nil
+          cantPadre = conte["cantidad"]
+        end
+      end
+
+      contenidos[articulo["medida"]] = cantPrincipal
+      contenidos[contenido[0]["medida"]] = cantPadre
+      contenidos[contenido[1]["medida"]] = cantHijo
+    end
+
+    return contenidos
   end
   
   def personalizar_parametros(col)

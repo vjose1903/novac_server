@@ -127,6 +127,8 @@ class Articulo < ApplicationRecord
       raise ActiveRecord::Rollback unless articulo.errors.empty? 
     end
   end
+
+  # =====================================================================================================================
   
   def set_contenido_referencia_and_codigo
     res = Response.new
@@ -169,9 +171,6 @@ class Articulo < ApplicationRecord
     fecha = params["fecha"]
 
     pagination = parse_paginate_options(params, Articulo)
-
-    puts "pagination ==> ".red + "#{pagination}"
-    
     
     where = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
     
@@ -181,9 +180,9 @@ class Articulo < ApplicationRecord
     where += " AND articulos.tipo_articulo_id #{signo} #{tipo_id}" if params["tipo"] != "todos"
 
     articulos = Articulo
-    .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id left join imagenes img on img.id = articulos.imagen_id")
+    .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
-    .order("articulos.id ASC").limit(pagination["inicio"]).offset(pagination["final"])
+    .order("articulos.id ASC").limit(pagination["limit"]).offset(pagination["offset"])
 
     if articulos.length > 0
       res.set_data(articulos, {all: true}, pagination)
@@ -300,15 +299,27 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
   def self.parseal(objeto)
+
     begin
       att = objeto.attributes
     rescue
       att = objeto
     end
 
+    att = att[0] if att.kind_of?(Array)
 
-    att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: att["id"] })
-    att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: att["id"] })
+    # puts " att: ".red + "#{att.to_json}"
+    # puts " att[id]0: ".red + "#{att["id"]}"
+    
+    puts " COÑOOOOO".yellow
+    puts " att: ".red + "#{att}"
+    id = att["id"]
+
+    puts " COÑOOOOO".yellow
+    puts " id: ".red + "#{id}"
+    
+    att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: id })
+    att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: id })
 
     tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
     att["descripcion"] = tipoArt["descripcion"]
@@ -318,11 +329,11 @@ class Articulo < ApplicationRecord
   def self.parsealHistorico(objeto)
     
 
-    objeto["descripcion"] = objeto["descripcion"]
-    objeto["contenido_articulos"] = objeto["contenido_articulos"]
+    objeto["descripcion"]              = objeto["descripcion"]
+    objeto["contenido_articulos"]      = objeto["contenido_articulos"]
 
-    objeto["contenido"] = calcularContenidos(objeto)
-    objeto["cantidades"] = calcularCantidades(objeto)
+    objeto["contenido"]                = calcularContenidos(objeto)
+    objeto["cantidades"]               = calcularCantidades(objeto)
 
     return objeto
   end
@@ -331,6 +342,11 @@ class Articulo < ApplicationRecord
 
   def self.calcularContenidos(articulo, sacos=true)
 
+    puts "\n" * 3
+    puts "======= ".red * 10
+    puts "CALCULAR CONTENIDOS ".red + "#{articulo["nombre"]}"
+    puts "======= ".red * 10
+
     begin
       contenido = articulo.contenido_articulos
     rescue
@@ -338,24 +354,30 @@ class Articulo < ApplicationRecord
     end
     contenidos = {}
 
+    puts "contenido ==> ".blue + "#{contenido.to_json}"
+
+    
     if contenido.length == 0
+      puts " ---------------- CONTENIDO 0 ----------------".yellow 
       contenidos[articulo["medida"]] = 1
     elsif contenido.length == 1
+      puts " ---------------- CONTENIDO 1 ----------------".yellow 
       if articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
-        contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-
+        contenidos[articulo["medida"]] = contenido.first["cantidad"]
+        
         if sacos 
           contenidos["Saco_100"] = 100
           contenidos["Saco_50"] = 50
           contenidos["Saco_25"] = 25
         end
-
-        contenidos[contenido[0]["medida"]] = 1
+        
+        contenidos[contenido.first["medida"]] = 1
       else
-        contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-        contenidos[contenido[0]["medida"]] = 1
+        contenidos[articulo["medida"]] = contenido.first["cantidad"]
+        contenidos[contenido.first["medida"]] = 1
       end
     else
+      puts " ---------------- CONTENIDO 2 ----------------".yellow 
       cantPrincipal = 1
       cantHijo = 1
       cantPadre = 1
@@ -371,6 +393,9 @@ class Articulo < ApplicationRecord
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
+
+    puts "======= ".red * 10
+    puts "\n" * 3
 
     return contenidos
   end

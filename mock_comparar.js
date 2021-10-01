@@ -1,5 +1,4 @@
-const prueba = {
-};
+const prueba = {};
 
 const prueba_array = {
   data: [
@@ -73,9 +72,10 @@ const prueba_array = {
       descripcion: "Producto terminado",
       contenido: "contenido",
       cantidades: "cantidades",
+      calcular_saco: true,
     },
   ],
   msg: [],
-  total_registros: 1,
-  total_paginas: 1,
+  total_registros: 429,
+  total_paginas: 21,
 };
