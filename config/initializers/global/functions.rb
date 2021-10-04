@@ -106,16 +106,24 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 
-def parse_paginate_options(params, modelo)
-	limit      = params['paginado'].to_boolean ? params["per_page"].to_i : nil 
-	offset     = params['paginado'].to_boolean ? (params["page"].to_i - 1) * params["per_page"].to_i : nil
+class Pagination
+	def initialize(params)
+		limit       = params['paginado'].to_boolean ? params["per_page"].to_i : nil 
+		offset      = params['paginado'].to_boolean ? (params["page"].to_i - 1) * params["per_page"].to_i : nil
+
+		@pagination = {"limit" => limit, "offset" => offset,  "total_registros" => 0, "total_paginas" => 0, "per_page" => params["per_page"].to_i}
+	end
+
+	def setTotals(items)
+		@pagination["total_registros"] = items.kind_of?(Array) ? items.length : items.to_a.length
+		@pagination["total_paginas"]   = (@pagination["total_registros"] / @pagination["per_page"].to_i).ceil
+	end
 	
-	total_reg  = modelo.all.count
-	total_pag  = (total_reg / params["per_page"].to_i).ceil
-
-
-	return { "limit" => limit, "offset" => offset, "total_registros" => total_reg, "total_paginas" => total_pag}
+	def getParams
+		@pagination
+	end
 end
+
 
 # ---------------------------------------------------------------------------------------------------------
 def borrar_entidad(obj)

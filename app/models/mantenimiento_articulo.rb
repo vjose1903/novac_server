@@ -75,11 +75,9 @@ class MantenimientoArticulo < ApplicationRecord
     # order_ = "ORDER BY mantenimiento_articulos.id #{order}"
     # query = "#{select_} #{from_} #{joins_} #{where_} #{order_} limit 1"
 
-    puts "BUSCANDO HISTORICO".yellow
     historico = MantenimientoArticulo
     .where("mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}")
     .order("mantenimiento_articulos.id #{order}").limit(1)
-
 
     return historico
   end
@@ -93,7 +91,7 @@ class MantenimientoArticulo < ApplicationRecord
 
     historico = []
     articulo  = Articulo.find_by_id(articulo_id)
-    fecha_ultima_edicion_articulo = parsearDateTimeUTC(articulo["updated_at"])
+    fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"])
 
     if fecha_factura_parsed >= fecha_ultima_edicion_articulo
       historico.push(Articulo.parseal(articulo))
@@ -101,12 +99,9 @@ class MantenimientoArticulo < ApplicationRecord
       
       hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, "<=", "DESC")
       hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, ">=", "ASC") if hist.empty?
-
-      puts "hist --> ".green + "#{hist}"
-      puts "hist --> ".green + "#{hist.to_json}"
       
       if hist.blank?
-        puts "MMG"
+        
         historico.push(Articulo.parseal(articulo))
       else
         articulo = crearArticuloHistorico(hist.first, articulo)
@@ -127,6 +122,7 @@ class MantenimientoArticulo < ApplicationRecord
     contenidoArticulo = articulo.contenido_articulos
     
     articuloHistorico = {}
+    articuloHistorico["id"]                     = articulo["id"]
     articuloHistorico["tipo_articulo_id"]       = historico["ant_tipoArticuloId"]
     articuloHistorico["nombre"]                 = historico["ant_nombre"]
     articuloHistorico["costo_principal"]        = historico["ant_costoP"]
@@ -140,12 +136,9 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["otros_costos"]           = historico["ant_otrosCostos"]
     articuloHistorico["is_materia_prima"]       = historico["is_materia_prima"]
     articuloHistorico["vendido_en"]             = historico["vendido_en"]
-    articuloHistorico["id"]                     = articulo["id"]
     articuloHistorico["existencia"]             = articulo["existencia"]
     articuloHistorico["codigo"]                 = articulo["codigo"]
     articuloHistorico["fecha_ingreso"]          = articulo["fecha_ingreso"]
-    articuloHistorico["created_at"]             = articulo["created_at"]
-    articuloHistorico["updated_at"]             = articulo["updated_at"]
     articuloHistorico["imagen_id"]              = articulo["imagen_id"]
     articuloHistorico["calcular_saco"]          = articulo["calcular_saco"]
     
@@ -163,8 +156,6 @@ class MantenimientoArticulo < ApplicationRecord
           conte["referencia"]     = contenido["referencia"]
           conte["condicion"]      = contenido["condicion"]
           conte["articulo_id"]    = contenido["articulo_id"]
-          conte["created_at"]     = contenido["created_at"]
-          conte["updated_at"]     = contenido["updated_at"]
         else
           conte["costo"]          = historico["ant_costoPadre"]
           conte["precio"]         = historico["ant_precioPadre"]
@@ -174,16 +165,12 @@ class MantenimientoArticulo < ApplicationRecord
           conte["id"]             = contenido["id"]
           conte["referencia"]     = contenido["referencia"]
           conte["condicion"]      = contenido["condicion"]
-          conte["created_at"]     = contenido["created_at"]
-          conte["updated_at"]     = contenido["updated_at"]
         end
         contents.push(conte)
       end
     end
 
-
-    articuloHistorico["contenido_articulos"] = contents
-    
+    articuloHistorico["contenido_articulos_attributes"] = contents
     
     if historico["ant_isCombo"]
       fomulaS = []
@@ -197,12 +184,7 @@ class MantenimientoArticulo < ApplicationRecord
         }
       end
 
-      articuloHistorico["formulas_productos_terminados"] = fomulaS
-    end
-
-    unless articuloHistorico["descripcion"]
-      des = TipoArticulo.find_by_id(articuloHistorico["tipo_articulo_id"])
-      articuloHistorico["descripcion"] = des["descripcion"]
+      articuloHistorico["formulas_productos_terminados_attributes"] = fomulaS
     end
 
     return articuloHistorico

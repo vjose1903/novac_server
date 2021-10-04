@@ -163,7 +163,7 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def articuloWasEdited(articulo)
-    if parsearDateTimeUTC(articulo["updated_at"]) != parsearDateTimeUTC(articulo["created_at"]) 
+    if calculateDateUTC(articulo["updated_at"]) != calculateDateUTC(articulo["created_at"]) 
       return false
     else
       return true

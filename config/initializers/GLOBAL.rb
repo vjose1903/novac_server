@@ -50,7 +50,7 @@ class String
 end
 
 # ---------------------------------------------------------------------------------------------------------
-def parsearDateTimeUTC(dateTime)
+def calculateDateUTC(dateTime)
   return dateTime.getlocal.strftime("%Y-%m-%d") + " " + dateTime.getlocal.strftime("%H:%M:%S")
 end
 

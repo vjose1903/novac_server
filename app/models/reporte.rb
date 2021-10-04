@@ -215,7 +215,7 @@ class Reporte < ApplicationRecord
     def self.get_inventario(params)
         inventario_temp = []
         query={}
-        inventario_temp = Articulo.all    
+        inventario_temp = Articulo.all
         inventario_temp = calcularCantidades(inventario_temp)
         
         inventario = inventario_temp.sort_by! { |k| k["nombre"]}

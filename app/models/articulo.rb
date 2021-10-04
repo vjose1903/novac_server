@@ -3,7 +3,9 @@ class Articulo < ApplicationRecord
   belongs_to :imagen, optional: true
 
   has_many :contenido_articulos, dependent: :destroy
+  accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
   has_many :formulas_productos_terminados, dependent: :destroy
+  accepts_nested_attributes_for :formulas_productos_terminados, :allow_destroy => true
   
   # has_many :imagen
 
@@ -162,15 +164,15 @@ class Articulo < ApplicationRecord
 
 
   def self.filtrarArticulo(params, paginate_options)
-    res = Response.new
+    res        = Response.new
+    pagination = Pagination.new(params)
+    
 
-    arg = params["arg"]
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-    fecha = params["fecha"]
+    arg        = params["arg"]
+    fecha      = "#{params["fecha"]}:59"
 
-    pagination = parse_paginate_options(params, Articulo)
+    puts "fecha ==>          ".green + "#{fecha}"
+    
     
     where = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
     
@@ -179,19 +181,47 @@ class Articulo < ApplicationRecord
     
     where += " AND articulos.tipo_articulo_id #{signo} #{tipo_id}" if params["tipo"] != "todos"
 
-    articulos = Articulo
+    articulos_ = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
-    .order("articulos.id ASC").limit(pagination["limit"]).offset(pagination["offset"])
+    .order("articulos.id ASC").limit(pagination.getParams["limit"]).offset(pagination.getParams["offset"])
+
+    articulos = []
+
+    articulos_.map { |articulo|
+
+      fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"])
+      
+      if fecha < fecha_ultima_edicion_articulo
+        puts "TEGNO QUE BUSCAR HISTORIAL".yellow
+        
+        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, "<=", "DESC")
+        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC") if hist.blank?
+        
+        unless hist.blank?
+          puts "articulo --> ".magenta + "#{articulo.to_json}"
+          historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
+          articulos.push(Articulo.new(historico.dup)) 
+          puts "articulo --> ".green + "#{Articulo.new(historico.dup).to_json}"
+        end
+      else
+        puts "ME QUEDO IGUAL".green
+        articulos.push(articulo) 
+      end
+      
+    }
+    
+    
+    puts "articulos --> ".blue + "#{articulos.to_json}"
+    
+
+    pagination.setTotals(articulos)
 
     if articulos.length > 0
-      res.set_data(articulos, {all: true}, pagination)
-
-
-      # res.set_data(articulos)
+      res.set_data(articulos, {all: true}, pagination.getParams)
     else
       res.set_data([])
-      res.add_msg("No existe cliente con las especificaciones introducidas")
+      res.add_msg("No existen articulos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

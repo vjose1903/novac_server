@@ -29,14 +29,17 @@ class ArticuloSerializer < ActiveModel::Serializer
   attribute :calcular_saco,                      if: Proc.new { self.personalizar_parametros('calcular_saco') || self.personalizar_parametros('all') }
 
 
+  def otros_costos
+    object.otros_costos || 0
+  end
+
+
   def contenido_articulos
-    object.contenido_articulos
-    # serialize_parser(object.detalle_conduces, {all: true})
+    serialize_parser(object.contenido_articulos, {all: true})
   end
   
   def formulas_productos_terminados
-    object.formulas_productos_terminados
-    # serialize_parser(object.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true})
+    serialize_parser(object.formulas_productos_terminados, {all: true})
   end
   
   def descripcion
@@ -44,65 +47,77 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def contenido
-    "contenido"
+    calcularContenidos(object, true)
   end
 
   def cantidades
-    "cantidades"
+    calcularCantidades(object)
   end
 
 
+  def personalizar_parametros(col)
+		return @instance_options[:"#{col}"]
+	end
 
+  def calcularContenidos(articulo, sacos)
 
-
-
-  def calcularContenidos(articulo, sacos=true)
-
-    begin
-      contenido = articulo.contenido_articulos
-    rescue
-      contenido = articulo["contenido_articulos"]
-    end
+    contenido = articulo.contenido_articulos
     contenidos = {}
 
-    if contenido.length == 0
-      contenidos[articulo["medida"]] = 1
-    elsif contenido.length == 1
-      if articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
-        contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-
-        if sacos 
-          contenidos["Saco_100"] = 100
-          contenidos["Saco_50"] = 50
-          contenidos["Saco_25"] = 25
-        end
-
-        contenidos[contenido[0]["medida"]] = 1
-      else
-        contenidos[articulo["medida"]] = contenido[0]["cantidad"]
-        contenidos[contenido[0]["medida"]] = 1
+    if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
+      [100, 50, 25].each do |c|
+        contenidos["Saco_#{c}"] = c 
       end
-    else
+    end
+
+    contenidos[articulo["medida"]] = contenido.length == 0 ? 1 : contenido.first["cantidad"]
+    contenidos[contenido.first["medida"]] = 1 if contenido.length > 0
+
+
+    if contenido.length == 2
+
       cantPrincipal = 1
       cantHijo = 1
       cantPadre = 1
 
       contenido.each do |conte|
         cantPrincipal *= conte["cantidad"]
-        if conte["referencia"] != nil
-          cantPadre = conte["cantidad"]
-        end
+        cantPadre = conte["cantidad"] if conte["referencia"] != nil
       end
 
       contenidos[articulo["medida"]] = cantPrincipal
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
+    contenidos
+  end
 
-    return contenidos
+  def calcularCantidades(articulo)
+    contenido = articulo.contenido_articulos
+
+    existencia = articulo["existencia"].nil? ? 0 : articulo["existencia"]
+
+    cantidades = {}
+    
+    cantidades[articulo["medida"]] = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
+    cantidades[contenido.first["medida"]] = existencia if contenido.length > 0
+
+    if contenido.length == 2
+
+      maxCant = 1
+      cantPadre = 1
+
+      contenido.each do |conte|
+        maxCant = conte["cantidad"] * maxCant
+        cantPadre = conte["cantidad"] if conte["condicion"] == "hijo"
+      end
+
+      cantidades[articulo["medida"]] = (existencia / maxCant)
+      cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
+      cantidades[contenido[1]["medida"]] = existencia
+    end
+
+    return cantidades
   end
   
-  def personalizar_parametros(col)
-		return @instance_options[:"#{col}"]
-	end
 end

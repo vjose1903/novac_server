@@ -90,4 +90,6 @@ rails generate serializer cabecera_conduce
 rails generate serializer detalle_conduce
 rails generate serializer detalle_factura
 rails generate serializer articulo
+rails generate serializer contenido_articulo
+rails generate serializer formulas_productos_terminado
 
