@@ -165,7 +165,7 @@ class ArticulosController < ApplicationController
     articulos_ = [] 
     # articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
 
-    resultado = Articulo.filtrarArticulo(params, set_paginate_options(params))
+    resultado = Articulo.filtrarArticulo(params)
 
     resultado.send_response self
 

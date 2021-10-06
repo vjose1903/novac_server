@@ -163,15 +163,17 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
 
 
-  def self.filtrarArticulo(params, paginate_options)
+  def self.filtrarArticulo(params)
     res        = Response.new
-    pagination = Pagination.new(params)
+    # pagination = Pagination.new(params)
+
+    paginate_options = set_paginate_options(params)
     
 
     arg        = params["arg"]
     fecha      = "#{params["fecha"]}:59"
 
-    puts "fecha ==>          ".green + "#{fecha}"
+    # puts "fecha ==>          ".green + "#{fecha}"
     
     
     where = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
@@ -181,10 +183,11 @@ class Articulo < ApplicationRecord
     
     where += " AND articulos.tipo_articulo_id #{signo} #{tipo_id}" if params["tipo"] != "todos"
 
+
     articulos_ = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
-    .order("articulos.id ASC").limit(pagination.getParams["limit"]).offset(pagination.getParams["offset"])
+    .order("articulos.id ASC")
 
     articulos = []
 
@@ -193,32 +196,26 @@ class Articulo < ApplicationRecord
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"])
       
       if fecha < fecha_ultima_edicion_articulo
-        puts "TEGNO QUE BUSCAR HISTORIAL".yellow
+        # puts "TEGNO QUE BUSCAR HISTORIAL".yellow
         
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, "<=", "DESC")
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC") if hist.blank?
         
         unless hist.blank?
-          puts "articulo --> ".magenta + "#{articulo.to_json}"
+          # puts "articulo --> ".magenta + "#{articulo.to_json}"
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           articulos.push(Articulo.new(historico.dup)) 
-          puts "articulo --> ".green + "#{Articulo.new(historico.dup).to_json}"
+          # puts "articulo --> ".green + "#{Articulo.new(historico.dup).to_json}"
         end
       else
-        puts "ME QUEDO IGUAL".green
+        # puts "ME QUEDO IGUAL".green
         articulos.push(articulo) 
       end
       
     }
-    
-    
-    puts "articulos --> ".blue + "#{articulos.to_json}"
-    
-
-    pagination.setTotals(articulos)
 
     if articulos.length > 0
-      res.set_data(articulos, {all: true}, pagination.getParams)
+      res.set_data(articulos, {all: true}, paginate_options)
     else
       res.set_data([])
       res.add_msg("No existen articulos con las especificaciones introducidas")

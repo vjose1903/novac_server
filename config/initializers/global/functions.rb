@@ -2,10 +2,12 @@ require 'net/smtp'
 
 
 class Response
-	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, paginate_options=nil)
+	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, params=nil)
+		@paginate_class = Paginator.new(params)
+
 		@res = {status:status_, data: data,  msg: msg_, total_registros: 0, total_paginas: 0}
 
-		set_data(data, parametros_opcionales, paginate_options) if data && parametros_opcionales
+		set_data(data, parametros_opcionales) if data && parametros_opcionales
 	end
 	
 	def set_status(status)
@@ -17,16 +19,25 @@ class Response
 		
 	end
 
-	def set_data(data, parametros_opcionales=nil, paginate_options=nil)
+	def set_data(data, parametros_opcionales=nil)
 
 		# paginate = nil
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
 		
-		data = serialize_parser(data , parametros_opcionales) unless parametros_opcionales.nil?
+		data_parsed = @paginate_class.parse_pagination(data) serialize_parser(paginate ? paginate['data'] : data , parametros_opcionales) unless parametros_opcionales.nil?
+		
+		@res[:data] = data
+		@res[:total_registros] = paginate['total_registros'] if paginate
+		@res[:total_paginas] = paginate['total_paginas']     if paginate
 
-		@res[:data]             = data
-		@res[:total_registros]  = paginate_options["total_registros"]  if paginate_options
-		@res[:total_paginas]    = paginate_options["total_paginas"] if paginate_options
+		# paginate = nil
+		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
+		
+		# data = serialize_parser(data , parametros_opcionales) unless parametros_opcionales.nil?
+
+		# @res[:data]             = data
+		# @res[:total_registros]  = paginate_options["total_registros"]  if paginate_options
+		# @res[:total_paginas]    = paginate_options["total_paginas"] if paginate_options
 	end
 	
 	def has_data
@@ -56,6 +67,39 @@ class Response
 	end
 end
 
+
+class Paginator
+	def initialize(params)
+		@paginate_options = {"page" => params['page'], "per_page" => params['per_page'], "paginado" => params['paginado']}
+	end
+	
+	
+	def parse_pagination(items)
+
+	end
+	
+	def paginate(items)
+		page      = paginate_options["page"].to_i
+		per_page  = paginate_options["per_page"].to_i
+		
+		inicio    = (1 - page).abs * per_page
+		
+		itemsPaginated = items[inicio, per_page]
+		
+		total_pag = (items.length.to_f / per_page.to_f).ceil
+
+		return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
+	end
+	
+	def set_data(params)
+	end
+	def set_per_page(params)
+	end
+	def set_paginado(params)
+	end
+	
+end
+	
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
 	pde = {"page" => params['page'], "per_page" => params['per_page'], "paginado" => params['paginado']}
@@ -103,28 +147,6 @@ def traducir(key, others=nil)
 
 	return texto_traducido.join(" ")
 end
-
-# ---------------------------------------------------------------------------------------------------------
-
-class Pagination
-	def initialize(params)
-		limit       = params['paginado'].to_boolean ? params["per_page"].to_i : nil 
-		offset      = params['paginado'].to_boolean ? (params["page"].to_i - 1) * params["per_page"].to_i : nil
-
-		@pagination = {"limit" => limit, "offset" => offset,  "total_registros" => 0, "total_paginas" => 0, "per_page" => params["per_page"].to_i}
-	end
-
-	def setTotals(items)
-		@pagination["total_registros"] = items.kind_of?(Array) ? items.length : items.to_a.length
-		@pagination["total_paginas"]   = (@pagination["total_registros"] / @pagination["per_page"].to_i).ceil
-	end
-	
-	def getParams
-		@pagination
-	end
-end
-
-
 # ---------------------------------------------------------------------------------------------------------
 def borrar_entidad(obj)
 	res = Response.new
