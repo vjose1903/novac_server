@@ -57,19 +57,15 @@ class DocumentoDeIdentidad < ApplicationRecord
     puts "documentos --> ".blue + "#{documentos.to_json}"
     
     documentos.each do |documento|
-      puts " "
-      puts " "
-    puts "documento --> ".green + "#{documento.to_json}"
-      res_temp = self.crear_actualizar_documento(documento, padre, save)
-      if res_temp.status_valid
-        array_valid.push(res_temp.get_data)
-      else
-        return res_temp 
+      unless item.documento.nil?
+        res_temp = self.crear_actualizar_documento(item, padre, save)
+        if res_temp.status_valid
+          array_valid.push(res_temp.get_data)
+        else
+          return res_temp 
+        end
+        res_valid.set_data array_valid
       end
-    end
-
-    res_valid.set_data array_valid
-
     return res_valid
   end
 
