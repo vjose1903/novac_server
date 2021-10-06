@@ -56,10 +56,10 @@ class DocumentoDeIdentidad < ApplicationRecord
     puts " "
     puts "documentos --> ".blue + "#{documentos.to_json}"
     
-    documentos.each do |documento|
-      my_print_log("documento ==>  #{documento.to_json}")
-      my_print_log("documento.documento ==>  #{documento.documento.nil?}")
-      unless documento.documento.nil?
+    documentos.each do |item|
+      
+      
+      unless item["documento"].nil?
           res_temp = self.crear_actualizar_documento(item, padre, save)
           if res_temp.status_valid
             array_valid.push(res_temp.get_data)
