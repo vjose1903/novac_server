@@ -70,7 +70,7 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.filtrarCliente(arg, params)
-    res = Response.new
+    res = Response.new(params)
 
     clientes = Cliente
     .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
@@ -79,7 +79,7 @@ class Cliente < ApplicationRecord
 
     if clientes.length > 0  
       puts "clientes.length > 0 ".yellow 
-      res.set_data(clientes, {all: true}, params)
+      res.set_data(clientes, {all: true})
     else
       res.set_data([])
       res.add_msg("No existe cliente con las especificaciones introducidas")

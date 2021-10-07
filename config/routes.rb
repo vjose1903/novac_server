@@ -88,7 +88,6 @@ Rails.application.routes.draw do
   get "articulosF" => "articulos#getArticulosFormateados"
   
   get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getOneArticuloByDate" #
-  patch "articulos/delete/:id" => "articulos#deleteArticulo" #
   get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
   get "articulos/custom/productos_terminados" => "articulos#getProductosTerminados" #
   get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"

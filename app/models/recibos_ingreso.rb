@@ -34,7 +34,7 @@ class RecibosIngreso < ApplicationRecord
 
 
   def self.filtrarRecibos(arg, params)
-    res = Response.new
+    res = Response.new(params)
 
     recibos = RecibosIngreso
     .joins("inner join detalle_recibos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id")
@@ -45,7 +45,7 @@ class RecibosIngreso < ApplicationRecord
 
     if recibos.length > 0
       puts "recibos.length > 0 ".yellow 
-      res.set_data(recibos, {all: true}, params)
+      res.set_data(recibos, {all: true})
     else
       res.set_data([])
       res.add_msg("No existen recibos con las especificaciones introducidas")

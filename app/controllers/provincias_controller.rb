@@ -11,12 +11,12 @@ class ProvinciasController < ApplicationController
 
   # GET /provincias
   def index
-    return Response.new(nil, Provincia.all, nil, get_parametros_opcionales).send_response self
+    return Response.new(params, nil, Provincia.all, nil, get_parametros_opcionales).send_response self
   end
   
   # GET /provincias/1
   def show
-    return Response.new(nil, @provincia, nil, get_parametros_opcionales).send_response self
+    return Response.new(params, nil, @provincia, nil, get_parametros_opcionales).send_response self
   end
 
   # POST /provincias

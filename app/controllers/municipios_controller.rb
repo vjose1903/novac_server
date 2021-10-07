@@ -11,12 +11,12 @@ class MunicipiosController < ApplicationController
 
 	# GET /municipio
 	def index
-		return Response.new(nil, Municipio.all, nil).send_response self
+		return Response.new(params, nil, Municipio.all, nil).send_response self
 	end
 	
 	# GET /municipio/1
 	def show
-		return Response.new(nil, @municipio, nil).send_response self
+		return Response.new(params, nil, @municipio, nil).send_response self
 	end
 
 	# POST /municipio

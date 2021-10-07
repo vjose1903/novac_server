@@ -32,7 +32,7 @@ class Suplidor < ApplicationRecord
         }
         
         if res.status_valid && suplidor.save!
-          res.set_data(serialize_parser(suplidor,{}))
+          res.set_data(serialize_parser(suplidor,{all:true}))
 
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Suplidor #{action} correctamente.")
@@ -57,7 +57,7 @@ class Suplidor < ApplicationRecord
   # ============================================================================================================================================
 
   def self.filtrarSuplidores(arg, params)
-    res = Response.new
+    res = Response.new(params)
 
     suplidores = Suplidor
     .joins("left join documentos_de_identidad on suplidores.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Suplidor' AND documentos_de_identidad.principal = true")
@@ -66,7 +66,7 @@ class Suplidor < ApplicationRecord
 
     if suplidores.length > 0
       puts "suplidores.length > 0 ".yellow 
-      res.set_data(suplidores, {all: true}, params)
+      res.set_data(suplidores, {all: true})
     else
       res.set_data([])
       res.add_msg("No existe suplidor con las especificaciones introducidas")

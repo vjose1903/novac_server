@@ -2,10 +2,10 @@ class Articulo < ApplicationRecord
   belongs_to :tipo_articulo
   belongs_to :imagen, optional: true
 
-  has_many :contenido_articulos, dependent: :destroy
-  accepts_nested_attributes_for :contenido_articulos, :allow_destroy => true
-  has_many :formulas_productos_terminados, dependent: :destroy
-  accepts_nested_attributes_for :formulas_productos_terminados, :allow_destroy => true
+  has_many :contenido_articulos
+  accepts_nested_attributes_for :contenido_articulos
+  has_many :formulas_productos_terminados
+  accepts_nested_attributes_for :formulas_productos_terminados
   
   # has_many :imagen
 
@@ -135,7 +135,6 @@ class Articulo < ApplicationRecord
   def set_contenido_referencia_and_codigo
     res = Response.new
     self.contenido_articulos.last.referencia    = self.contenido_articulos.first.id if self.contenido_articulos.length > 1
-    
     self.codigo                                 = "%05d" % self.id.to_s
 
     unless self.save! && (self.contenido_articulos.last.nil? || (!self.contenido_articulos.last.nil? && self.contenido_articulos.last.save!))
@@ -164,22 +163,15 @@ class Articulo < ApplicationRecord
 
 
   def self.filtrarArticulo(params)
-    res        = Response.new
-    # pagination = Pagination.new(params)
-
-    paginate_options = set_paginate_options(params)
+    res        = Response.new(params)
     
-
     arg        = params["arg"]
-    fecha      = "#{params["fecha"]}:59"
-
-    # puts "fecha ==>          ".green + "#{fecha}"
+    fecha      = "#{params["fecha"]}:00"
     
+    where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado         = true"
     
-    where = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
-    
-    signo = params["is_compra"].to_boolean ? "!=" : "="
-    tipo_id = params["is_compra"].to_boolean ? "3" : params["tipo"]
+    signo      = params["is_compra"].to_boolean ? "!=" : "="
+    tipo_id    = params["is_compra"].to_boolean ? "3" : params["tipo"]
     
     where += " AND articulos.tipo_articulo_id #{signo} #{tipo_id}" if params["tipo"] != "todos"
 
@@ -193,29 +185,25 @@ class Articulo < ApplicationRecord
 
     articulos_.map { |articulo|
 
-      fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"])
-      
+      fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
+      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
+
       if fecha < fecha_ultima_edicion_articulo
-        # puts "TEGNO QUE BUSCAR HISTORIAL".yellow
-        
-        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, "<=", "DESC")
-        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC") if hist.blank?
+
+        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC") 
         
         unless hist.blank?
-          # puts "articulo --> ".magenta + "#{articulo.to_json}"
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           articulos.push(Articulo.new(historico.dup)) 
-          # puts "articulo --> ".green + "#{Articulo.new(historico.dup).to_json}"
         end
       else
-        # puts "ME QUEDO IGUAL".green
         articulos.push(articulo) 
       end
       
     }
 
     if articulos.length > 0
-      res.set_data(articulos, {all: true}, paginate_options)
+      res.set_data(articulos, {all: true})
     else
       res.set_data([])
       res.add_msg("No existen articulos con las especificaciones introducidas")
@@ -225,65 +213,6 @@ class Articulo < ApplicationRecord
     return res
   end
 
-
-
-    # def self.filtrarArticulo(arg, is_compra, tipo)
-    #   arg = arg === " " ? "" : arg
-
-    #   # select_ = "SELECT articulos.*, tipo_articulos.descripcion as tipo_articulo_descripcion,
-    #   #             img.file_name as file_name, img.base_64 as base_64, img.path as path "
-    #   select_ = "SELECT articulos.id"
-
-    #   from_ = "FROM articulos"
-    #   joins_ = "inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id
-    #             left join imagenes img on img.id = articulos.imagen_id"
-
-    #   if is_compra
-    #       where_ = "where lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true AND articulos.tipo_articulo_id != 3"
-    #   else
-    #     if tipo === "todos"
-    #       where_ = "where lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
-    #     else
-    #       where_ = "where lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true AND articulos.tipo_articulo_id = #{tipo}"
-    #     end
-    #   end
-
-    #   order_ = "ORDER BY articulos.id ASC"
-
-    #   query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
-
-    #   my_query(query)
-    # end
-  # =====================================================================================================================
-  def self.agruparDesagruparFiltro(buscando, array, page, per_page, fecha)
-    res = nil
-    is_array = true
-    
-    # if buscando.numeric?
-    #   if array.length == 1
-    #     res = array[0] 
-    #     is_array = false
-    #   else
-    #     res = array.to_a.my_paginate(page, per_page)
-    #   end
-    # else
-    #   res = array.to_a.my_paginate(page, per_page)
-    # end
-    puts "::::: ".yellow + "#{array.to_json}" 
-
-    res["data"] = array
-    # if is_array
-    #   articulos_ = []
-    #   # res["data"].to_a.each do |arti|
-    #   #   articulos_.push(completar_campos_articulo(fecha , arti["id"]))
-    #   # end
-
-    # else
-    #   res = completar_campos_articulo(fecha , res["id"])
-    # end
-
-    return res
-  end
   
   # =====================================================================================================================
   def self.completar_campos_articulo(fecha , id)
@@ -293,35 +222,9 @@ class Articulo < ApplicationRecord
     if articulo["is_combo"]
       articulo["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: id })
     end
-    articulo["contenido"] = calcularContenidos(articulo)
+    articulo["contenido"]  = calcularContenidos(articulo)
     articulo["cantidades"] = calcularCantidades(articulo)
     return articulo
-  end
-    
-  # =====================================================================================================================
-  def self.delete_articulo(id)
-    return my_query("UPDATE articulos SET estado=#{false} WHERE id=#{id}")
-  end
-
-  # =====================================================================================================================
-
-  def self.update_formula(params)
-    params["formulas_productos_terminados_attributes"].each do |formula|
-      formu = FormulasProductosTerminado.find_by_id(formula["id"])
-
-      newFormula = {
-        "articulo_id": formu["articulo_id"],
-        "cantidad": formula["cantidad"],
-        "articulo_combo": formula["articulo_combo"],
-        "costo": formula["costo"],
-      }
-      unless formu.update(newFormula)
-        # render json: { error: formu.errors, msg: "Error editando formula de articulo" }, status: :unprocessable_entity
-        return false
-      else
-        return true
-      end
-    end
   end
 
   # =====================================================================================================================
@@ -334,16 +237,7 @@ class Articulo < ApplicationRecord
     end
 
     att = att[0] if att.kind_of?(Array)
-
-    # puts " att: ".red + "#{att.to_json}"
-    # puts " att[id]0: ".red + "#{att["id"]}"
-    
-    puts " COÑOOOOO".yellow
-    puts " att: ".red + "#{att}"
     id = att["id"]
-
-    puts " COÑOOOOO".yellow
-    puts " id: ".red + "#{id}"
     
     att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: id })
     att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: id })

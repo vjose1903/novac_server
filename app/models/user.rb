@@ -97,7 +97,7 @@ class User < ApplicationRecord
   # =====================================================================================================================
 
   def self.filtrarUsusarios(arg, params)
-    res = Response.new
+    res = Response.new(params)
 
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
@@ -105,7 +105,7 @@ class User < ApplicationRecord
     .order("users.id ASC").to_a
 
     if users.length > 0
-      res.set_data(users, {all: true}, params)
+      res.set_data(users, {all: true})
       puts " "
       puts "res==> ".red + "#{res.get_data().to_json}"
       puts " "

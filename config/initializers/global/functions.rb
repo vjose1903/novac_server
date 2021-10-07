@@ -2,7 +2,7 @@ require 'net/smtp'
 
 
 class Response
-	def initialize(status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, params=nil)
+	def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 		@paginate_class = Paginator.new(params)
 
 		@res = {status:status_, data: data,  msg: msg_, total_registros: 0, total_paginas: 0}
@@ -24,11 +24,13 @@ class Response
 		# paginate = nil
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
 		
-		data_parsed = @paginate_class.parse_pagination(data) serialize_parser(paginate ? paginate['data'] : data , parametros_opcionales) unless parametros_opcionales.nil?
+		@paginate_class.parse_pagination(data) 
+
+		data_ = parametros_opcionales.nil? ? @paginate_class.get_data(): serialize_parser(@paginate_class.get_data(), parametros_opcionales)
 		
-		@res[:data] = data
-		@res[:total_registros] = paginate['total_registros'] if paginate
-		@res[:total_paginas] = paginate['total_paginas']     if paginate
+		@res[:data]              = data_
+		@res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()
+		@res[:total_paginas]     = @paginate_class.get_total_paginas()    if @paginate_class.is_paginated()
 
 		# paginate = nil
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
@@ -70,18 +72,28 @@ end
 
 class Paginator
 	def initialize(params)
-		@paginate_options = {"page" => params['page'], "per_page" => params['per_page'], "paginado" => params['paginado']}
+		puts "params: ".red + "#{params.to_json}"
+		@paginate_options = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
+		@data_paginated={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
+		set_pagination_options(params)
+	end
+	
+	def set_pagination_options(params)
+		@paginate_options["page"]     = params['page']       if params && !params['page'].nil?
+		@paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
+		@paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
 	end
 	
 	
-	def parse_pagination(items)
-
+	def parse_pagination(data)
+		@data_paginated["data"] = data
+		@data_paginated = paginate(data) if @paginate_options["paginado"]
 	end
 	
 	def paginate(items)
-		page      = paginate_options["page"].to_i
-		per_page  = paginate_options["per_page"].to_i
-		
+		page      = @paginate_options["page"].to_i
+		per_page  = @paginate_options["per_page"].to_i
+
 		inicio    = (1 - page).abs * per_page
 		
 		itemsPaginated = items[inicio, per_page]
@@ -91,11 +103,20 @@ class Paginator
 		return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
 	end
 	
-	def set_data(params)
+	def is_paginated
+		@paginate_options['paginado']
 	end
-	def set_per_page(params)
+
+	def get_data()
+		@data_paginated["data"]
 	end
-	def set_paginado(params)
+	
+	def get_total_registros()
+		@data_paginated["total_registros"]
+	end
+
+	def get_total_paginas()
+		@data_paginated["total_paginas"]
 	end
 	
 end
@@ -136,9 +157,10 @@ def traducir(key, others=nil)
 	others_tem = {}
 	unless others.nil?
 		others.keys.each do |key_|
-			others_tem[key_] = (:valor == key_ or :otro_valor == key_) ? others[key_] : I18n.t(others[key_]) 
+			others_tem[key_] = (:valor == key_ or :otro_valor == key_) ? others[key_] : I18n.t(others[key_])
 		end
-		texto_traducido = I18n.t(key, others_tem)
+		
+		texto_traducido = I18n.t(key, **others_tem)
 	else
 		texto_traducido = I18n.t(key)
 	end
@@ -155,13 +177,13 @@ def borrar_entidad(obj)
 		obj.destroy
 	rescue => exception
 		obj.estado = false
+		puts "============ EDITANDO ESTADO ============".yellow
 		unless obj.save!
 			res.set_status(HTTP_STATUS_CODE[:conflict])
 			res.add_msg("Error borrando #{obj.model_name.element}.")
 			return res
 		end
 	end
-
 	res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
 	return res
 end
@@ -194,3 +216,4 @@ end
 def get_current_user
 	return Thread.current[:current_user]
 end
+

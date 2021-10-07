@@ -5,15 +5,15 @@ class UsersController < ApplicationController
   def index
     if params['filter_key'] && params['filter_value']
       users = User.handleFilter(params)
-      return Response.new(nil, users, nil, get_parametros_opcionales).send_response self
+      return Response.new(params, nil, users, nil, get_parametros_opcionales).send_response self
     else
-      return Response.new(nil, User.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
+      return Response.new(params, nil, User.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
     end
   end
 
 
   def show
-    return Response.new(nil, @cliente, nil, {}).send_response self
+    return Response.new(params, nil, @cliente, nil, {}).send_response self
   end
 
   def getUsuariosFiltrados

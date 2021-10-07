@@ -154,34 +154,8 @@ class ArticulosController < ApplicationController
   end
 
   def getArticulosFiltrados
-    arg = params["arg"]
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-    is_compra = params["is_compra"] === "true" ? true : false
-    fecha = params["fecha"]
-    tipo = params["tipo"]
-
-    articulos_ = [] 
-    # articulos = Articulo.filtrarArticulo(arg, is_compra, tipo)
-
     resultado = Articulo.filtrarArticulo(params)
-
     resultado.send_response self
-
-    # articulos = respuesta.get_data
-
-    # res = []
-    # if paginado
-    #   res = Articulo.agruparDesagruparFiltro(arg, articulos, page, per_page, fecha)
-    # else
-      
-    #   articulos.each do |arti|
-    #     res.push(Articulo.completar_campos_articulo(DateTime.now.strftime("%Y-%m-%d %H:%M"), arti['id']))
-    #   end
-    # end
-
-    # render json: res
   end
 
   # GET /articulos/1
@@ -201,16 +175,10 @@ class ArticulosController < ApplicationController
 
   # DELETE /articulos/1
   def destroy
-    @articulo.destroy
+    resultado = borrar_entidad(@articulo)
+    resultado.send_response self
   end
 
-  def deleteArticulo
-    if Articulo.delete_articulo(params[:id])
-      render json: { msg: "Articulo borrado" }
-    else
-      render json: { msg: "error borrando articulo." }
-    end
-  end
 
   private
 

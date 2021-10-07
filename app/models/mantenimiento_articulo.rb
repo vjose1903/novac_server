@@ -74,6 +74,7 @@ class MantenimientoArticulo < ApplicationRecord
     # where_ = "where mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}"
     # order_ = "ORDER BY mantenimiento_articulos.id #{order}"
     # query = "#{select_} #{from_} #{joins_} #{where_} #{order_} limit 1"
+    puts "date ==> ".red + "#{date}"
 
     historico = MantenimientoArticulo
     .where("mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}")
