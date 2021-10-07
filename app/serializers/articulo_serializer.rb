@@ -1,5 +1,5 @@
 class ArticuloSerializer < ActiveModel::Serializer
-  attribute :id,                                 if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
+  attribute :id
   attribute :imagen_id,                          if: Proc.new { self.personalizar_parametros('imagen_id') || self.personalizar_parametros('all') }
   attribute :tipo_articulo_id,                   if: Proc.new { self.personalizar_parametros('tipo_articulo_id') || self.personalizar_parametros('all') }
   attribute :nombre,                             if: Proc.new { self.personalizar_parametros('nombre') || self.personalizar_parametros('all') }
@@ -28,11 +28,12 @@ class ArticuloSerializer < ActiveModel::Serializer
   attribute :cantidades,                         if: Proc.new { self.personalizar_parametros('cantidades') || self.personalizar_parametros('all') }
   attribute :calcular_saco,                      if: Proc.new { self.personalizar_parametros('calcular_saco') || self.personalizar_parametros('all') }
 
+  attribute :costos,                             if: Proc.new { self.personalizar_parametros('costos')}
+
 
   def otros_costos
     object.otros_costos || 0
   end
-
 
   def contenido_articulos
     serialize_parser(object.contenido_articulos, {all: true})
@@ -120,4 +121,21 @@ class ArticuloSerializer < ActiveModel::Serializer
     return cantidades
   end
   
+  def costos
+    contenido = object.contenido_articulos
+
+    obj = {}
+    
+    obj["#{object.medida}"]            = {}
+    obj["#{object.medida}"]["costo"]   = object.costo_principal
+    obj["#{object.medida}"]["precio"]  = object.precio_principal
+
+    contenido.each do |conte|
+      obj["#{conte.medida}"]           = {}
+      obj["#{conte.medida}"]["costo"]  = conte.costo
+      obj["#{conte.medida}"]["precio"] = conte.precio
+    end
+    obj
+  end
+
 end

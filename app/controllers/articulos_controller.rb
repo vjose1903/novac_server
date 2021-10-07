@@ -3,44 +3,22 @@ class ArticulosController < ApplicationController
 
   # GET /articulos
   def index
-    # @articulos = Articulo.all
-    @articulos = []
-    fecha = params["fecha"] 
-    Articulo.all.each do |articulo|
-      articuloSelect = MantenimientoArticulo.get_one_articulo_by_date(fecha, articulo["id"])
-      puts "articuloSelect ==> ".magenta + "#{articuloSelect.to_json}"
-      articuloSelect = articuloSelect.first if articuloSelect.kind_of?(Array)
-
-      if articulo["estado"] == true
-        @articulos.push(Articulo.parseal(articuloSelect))
-      end
-    end
-    render json: @articulos
+    return Response.new(params, nil, Articulo.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
   end
 
-  def getArticuloCosto
-    id = params["id"]
-    tipo = params["tipo"]
-    articulo = Articulo.find_by_id(id)
+  # GET /articulos/1
+  def show
+    return Response.new(params, nil, @articulo, nil, get_parametros_opcionales).send_response self
+    # puts "aquiiiii"
+    # fecha = params["fecha"] 
+    # articulo = Articulo.completar_campos_articulo(fecha, params[:id])
+    # # articulo = Articulo.parseal(@articulo)
 
-    
-    costo = articulo.costo_principal
-    precio = articulo.precio_principal
+    # if articulo["estado"] == false
+    #   articulo = { "nombre": "Este articulo esta desactivado." }
+    # end
 
-    obj={
-      id: articulo.id
-    }
-
-    if articulo["medida"] == "Quintal" || articulo["medida"] == "Saco"
-      obj["costo"] = articulo.contenido_articulos[0]["costo"]
-      obj["precio"] = articulo.contenido_articulos[0]["precio"]
-    elsif articulo["medida"] == "Libra"
-      obj["costo"] = articulo["costo_principal"]
-      obj["precio"] = articulo["precio_principal"]
-    end
-    
-
-    render json: obj
+    # render json: articulo
   end
 
 
@@ -158,25 +136,45 @@ class ArticulosController < ApplicationController
     resultado.send_response self
   end
 
-  # GET /articulos/1
-  def show
-    puts "aquiiiii"
-    fecha = params["fecha"] 
-    articulo = Articulo.completar_campos_articulo(fecha, params[:id])
-    # articulo = Articulo.parseal(@articulo)
-
-    if articulo["estado"] == false
-      articulo = { "nombre": "Este articulo esta desactivado." }
-    end
-
-    render json: articulo
-  end
+  
 
 
   # DELETE /articulos/1
   def destroy
     resultado = borrar_entidad(@articulo)
     resultado.send_response self
+  end
+
+  def get_parametros_opcionales 
+    return {
+      all: params['all'] || false,
+      id: params['id'] || false,
+      imagen_id: params['imagen_id'] || false,
+      tipo_articulo_id: params['tipo_articulo_id'] || false,
+      nombre: params['nombre'] || false,
+      costo_principal: params['costo_principal'] || false,
+      precio_principal: params['precio_principal'] || false,
+      existencia: params['existencia'] || false,
+      aviso_existencia: params['aviso_existencia'] || false,
+      codigo: params['codigo'] || false,
+      fecha_ingreso: params['fecha_ingreso'] || false,
+      medida: params['medida'] || false,
+      is_detallable: params['is_detallable'] || false,
+      medida_alerta: params['medida_alerta'] || false,
+      calcular_itbis: params['calcular_itbis'] || false,
+      estado: params['estado'] || false,
+      is_combo: params['is_combo'] || false,
+      otros_costos: params['otros_costos'] || false,
+      vendido_en: params['vendido_en'] || false,
+      is_materia_prima: params['is_materia_prima'] || false,
+      contenido_articulos: params['contenido_articulos'] || false,
+      formulas_productos_terminados: params['formulas_productos_terminados'] || false,
+      descripcion: params['descripcion'] || false,
+      contenido: params['contenido'] || false,
+      cantidades: params['cantidades'] || false,
+      calcular_saco: params['calcular_saco'] || false,
+      costos: params['costos'] || false,
+    }
   end
 
 

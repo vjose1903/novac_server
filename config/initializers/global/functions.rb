@@ -5,8 +5,8 @@ class Response
 	def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 		@paginate_class = Paginator.new(params)
 
-		@res = {status:status_, data: data,  msg: msg_, total_registros: 0, total_paginas: 0}
-
+		@res = {status:status_, data: data,  msg: msg_}
+		
 		set_data(data, parametros_opcionales) if data && parametros_opcionales
 	end
 	
@@ -25,7 +25,7 @@ class Response
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
 		
 		@paginate_class.parse_pagination(data) 
-
+		puts "parametros_opcionales ==> ".red + "#{parametros_opcionales}"
 		data_ = parametros_opcionales.nil? ? @paginate_class.get_data(): serialize_parser(@paginate_class.get_data(), parametros_opcionales)
 		
 		@res[:data]              = data_
