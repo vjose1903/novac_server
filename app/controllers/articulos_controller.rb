@@ -1,5 +1,5 @@
 class ArticulosController < ApplicationController
-  before_action :set_articulo, only: [:show, :update, :destroy]
+  before_action :set_articulo, only: [:show, :update, :destroy, :checkIfExcede]
 
   # GET /articulos
   def index
@@ -39,32 +39,21 @@ class ArticulosController < ApplicationController
 
   # PATCH/PUT /articulos/1
   def update
-    puts "toyaquiii".red
     crear_actualizar_articulo
   end
-
-
-
-  def getContenidos
-    id = params["id"]
-    articulo = Articulo.find_by_id(id)
-    contenido = Articulo.calcularContenidos(articulo)
-    
-
-    render json: contenido
-  end
-
+  
   def checkIfExcede
-    id = params["id"]
-    cantidad = params["cantidad"]
-    articulo = Articulo.find_by_id(id)
+    excede = @articulo.existencia.to_f < params["cantidad"].to_f
 
-    if articulo.existencia.to_f < cantidad.to_f
-      res = true
-    else
-      res = false
-    end
-    render json: { excede: res }
+    puts " "
+    puts " "
+    puts "params[cantidad].to_f     ==> ".blue + "#{params["cantidad"].to_f}"
+    puts "@articulo.existencia.to_f ==> ".yellow + "#{@articulo.existencia.to_f}"
+    puts "EXCEDE                    ==> ".magenta + "#{excede}"
+    puts " "
+    puts " "
+
+    return Response.new(params, nil, excede, nil, nil).send_response self
   end
 
   def getIngredientesFormula

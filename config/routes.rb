@@ -82,7 +82,6 @@ Rails.application.routes.draw do
   get "articulos/ingredientes/:id" => "articulos#getIngredientesFormula" #
 
   # articulos
-  get "articulos/get/contenidos/:id" => "articulos#getContenidos" #
   get "articulos/check_excede/:id" => "articulos#checkIfExcede" #
   get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados" #
   get "articulosF" => "articulos#getArticulosFormateados"
