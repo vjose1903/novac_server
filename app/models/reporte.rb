@@ -422,14 +422,14 @@ class Reporte < ApplicationRecord
         condicion = params["condicion"]
         desde = params["desde"]
         hasta = params["hasta"]
+        formas_pago = params["formas_pago"]
 
         ventas_temp = []
+        where_formas = "forma_pago IN #{formas_pago}"
         query={}
         if tipo == '1'
             query['fecha_equivalente'] = DateTime.now.beginning_of_day..DateTime.now.end_of_day
-            if condicion != 'todos'
-                query['condicion'] = condicion 
-            end
+            query['condicion'] = condicion  if condicion != 'todos'
         elsif tipo == '2'
             query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
             if condicion != 'todos'
@@ -462,12 +462,10 @@ class Reporte < ApplicationRecord
 
         ventas = CabeceraFactura.joins("LEFT JOIN clientes ON cabecera_facturas.cliente_id = clientes.id")
         .joins("LEFT JOIN documentos_de_identidad doc ON cabecera_facturas.cliente_id = doc.cliente_id and doc.principal = true")
-        .select(select_).where(query)
+        .select(select_).where(query).where(where_formas)
         .order("cabecera_facturas.fecha_equivalente ASC").each do |cf| 
             total_ventas += cf['total_factura']
         end
-
-        # ventas_temp = CabeceraFactura.where(query).order('id ASC')
 
         # ventas=[]
         # total_ventas=0
@@ -489,8 +487,6 @@ class Reporte < ApplicationRecord
             
         #     ventas.push(att)
         # end
-        my_print_log("total_ventas ---> ".red + "#{total_ventas}")
-        my_print_log("ventas ---> ".yellow + "#{ventas.to_json}")
         
 
         obj = { body: ventas, total: total_ventas , sub_t:''}
