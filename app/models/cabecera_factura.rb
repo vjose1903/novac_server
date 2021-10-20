@@ -109,6 +109,7 @@ class CabeceraFactura < ApplicationRecord
     is_contado = factura.is_contado
     my_print_log('is_contado===> '.red + "#{is_contado}" ) 
 
+    pago_ = []
     pago_ = DetalleRecibo.where({ cabecera_factura_id: factura_id }).as_json unless is_contado
 
     my_print_log('pago_'.red ) 
@@ -118,7 +119,7 @@ class CabeceraFactura < ApplicationRecord
 
     my_print_log('LA FACTURA YA HA RECIBIDO PAGOS'.red) if pago_ && pago_.length > 0
 
-    return is_contado || pago_.length > 0 ? true : false
+    return is_contado ? true : pago_.length > 0 
   end
 
   # ====================================================================================================
