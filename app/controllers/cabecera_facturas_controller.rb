@@ -162,58 +162,65 @@ class CabeceraFacturasController < ApplicationController
     CabeceraFactura.transaction do
       att = cabecera_factura_params
 
-      resultCliente = { :error => false }
+      num_factura_valid = CabeceraFactura.find_by_numero_factura(@numero_factura).nil?
 
-      resultAgregarNota = { :error => false }
+      if num_factura_valid
+        resultCliente     = { :error => false }
+        resultAgregarNota = { :error => false }
 
-      if att["condicion"] == "Crédito" && att["tipo"] == "venta" || att["is_viaje"]
-        resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"], "+")
-      end
+        if att["condicion"] == "Crédito" && att["tipo"] == "venta" || att["is_viaje"]
+          resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"], "+")
+        end
 
-      # NOTA DE CREDITO
-      if att["is_nota"] && att["tipo_factura_id"] == 5
-        resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
-        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
-      end
+        # NOTA DE CREDITO
+        if att["is_nota"] && att["tipo_factura_id"] == 5
+          resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
+          resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
+        end
 
-      # NOTA DE DEBITO
-      if att["is_nota"] && att["tipo_factura_id"] == 4
-        resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
-        resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
-      end
+        # NOTA DE DEBITO
+        if att["is_nota"] && att["tipo_factura_id"] == 4
+          resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
+          resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
+        end
 
-      if resultCliente[:error]
-        render json: resultCliente, status: 400
-        raise ActiveRecord::Rollback
-      elsif resultAgregarNota[:error]
-        render json: resultAgregarNota, status: 400
-        raise ActiveRecord::Rollback
+        if resultCliente[:error]
+          render json: resultCliente, status: 400
+          raise ActiveRecord::Rollback
+        elsif resultAgregarNota[:error]
+          render json: resultAgregarNota, status: 400
+          raise ActiveRecord::Rollback
+        else
+          today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+
+          if today_cuadre.empty?
+            att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
+            att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
+          else
+            att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : CabeceraFactura.calculateNextDay
+            att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
+          end
+
+          att["numero_comprobante"] = @numero_comprobante.upcase
+          att["numero_factura"] = @numero_factura
+
+          @cabecera_factura = CabeceraFactura.new(att)
+
+          # return render json: { msg: "pruebas", body: cabecera }
+          # raise ActiveRecord::Rollback
+          
+          unless @cabecera_factura.save
+            # render json: @cabecera_factura, status: :created, location: @cabecera_factura
+            render json: @cabecera_factura.errors, status: :unprocessable_entity
+          else
+            update_secuencia
+          end
+        end
       else
-        today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
-
-        if today_cuadre.empty?
-          att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
-          att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
-        else
-          att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : CabeceraFactura.calculateNextDay
-          att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
-        end
-
-        att["numero_comprobante"] = @numero_comprobante.upcase
-        att["numero_factura"] = @numero_factura
-
-        @cabecera_factura = CabeceraFactura.new(att)
-
-        # return render json: { msg: "pruebas", body: cabecera }
-        # raise ActiveRecord::Rollback
-        
-        unless @cabecera_factura.save
-          # render json: @cabecera_factura, status: :created, location: @cabecera_factura
-          render json: @cabecera_factura.errors, status: :unprocessable_entity
-        else
-          update_secuencia
-        end
+        render json: { :error => true, :msg => "El número de factura ya existe.", :status => 400 }, status: :unprocessable_entity
       end
+
+      
     end
   end
 
