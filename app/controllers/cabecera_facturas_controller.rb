@@ -162,7 +162,7 @@ class CabeceraFacturasController < ApplicationController
     CabeceraFactura.transaction do
       att = cabecera_factura_params
 
-      num_factura_valid = CabeceraFactura.where({numero_factura: @numero_factura, tipo: att["tipo"] }).blank?
+      num_factura_valid = CabeceraFactura.where({numero_factura: @numero_factura, tipo: att["tipo"], tipo_factura_id: att["tipo_factura_id"] }).blank?
 
       if num_factura_valid
         resultCliente     = { :error => false }
