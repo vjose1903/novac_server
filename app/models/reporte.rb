@@ -37,15 +37,16 @@ class Reporte < ApplicationRecord
     end
 
     # ---------------------------------------------------------------------------------------------------------
-    def self.buscar_cliente(factura, max_lengt)
+    def self.buscar_cliente(factura, max_lengt, retornar)
         cliente = {}
         if !factura["cliente_id"].nil? 
-            cli = Cliente.find_by_id(factura["cliente_id"])
+            cli = factura.cliente
+
             tempNom = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
             longitud= tempNom.length
-
-            cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom
-            cliente["rnc"] = DocumentoDeIdentidad.where({ principal: true, cliente_id: cli["id"] })[0]["documento"]
+            
+            cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes('nombre')
+            cliente["rnc"] = cli.documentos_de_identidad.where({ principal: true })[0]["documento"] if retornar.my_includes('rnc')
         else
             if !factura["NoCliente_nombre"].nil?
                 cliente["nombre"] = factura["NoCliente_nombre"]
@@ -130,7 +131,7 @@ class Reporte < ApplicationRecord
 
         # numero_comprobante IN ('B0200005287')
 
-        obj = { body: cuentas, total: (total_cuentas), sub_t: "Cliente: #{ buscar_cliente(query, 48)["nombre"] }"}
+        obj = { body: cuentas, total: (total_cuentas), sub_t: "Cliente: #{ buscar_cliente(query, 48, ['nombre'])["nombre"] }"}
         return obj
         
     end
@@ -267,7 +268,7 @@ class Reporte < ApplicationRecord
             att = recibo.attributes
             total_recibido += recibo['total']
 
-            client = buscar_cliente(att, 39)
+            client = buscar_cliente(recibo, 39, ['nombre'])
             att['cliente_nombre'] = client['nombre']
             att['tipo_recibo'] = att["vehiculo_id"] ? 'Viaje' : 'Normal'
             factura = getInfoFactura(recibo, ['numero_comprobante'])

@@ -175,18 +175,15 @@ class CabeceraFactura < ApplicationRecord
 
   # ====================================================================================================
 
-  def self.verificateFacturaHasPagos(factura, id=nil)
-    factura_id = id ? id : factura['id']
-    is_contado = factura.is_contado
-    pago_ = DetalleRecibo.where({ cabecera_factura_id: factura_id }).as_json unless is_contado
-    my_print_log('pago_'.red ) 
-    my_print_log("#{pago_.to_json}" ) 
+  def self.verificateFacturaHasPagos(factura)
 
-    
+    pagos = DetalleRecibo.where({ cabecera_factura_id: factura['id'] }).as_json
 
-    my_print_log('LA FACTURA YA HA RECIBIDO PAGOS'.red) if pago_ && pago_.length > 0
+    my_print_log('pagos'.red + "#{pagos.to_json}" ) 
 
-    return is_contado || pago_.length > 0 ? true : false
+    my_print_log('LA FACTURA YA HA RECIBIDO PAGOS'.red) if pagos && pagos.length > 0
+
+    return pagos.length > 0 
   end
 
   # ====================================================================================================
@@ -201,9 +198,10 @@ class CabeceraFactura < ApplicationRecord
   
   # ====================================================================================================
   
-  def self.verificateCanUpdateViaje(factura, id=nil)
-    factura_id = id ? id : factura['id']
-    ha_recibido_pagos = verificateFacturaHasPagos(factura, factura_id) 
+  def self.verificateCanUpdateViaje(factura)
+    my_print_log('verificateCanUpdateViaje ')
+
+    ha_recibido_pagos = verificateFacturaHasPagos(factura) 
 
     my_print_log('VIAJE NO HA RECIBIDO PAGOS'.green) if !ha_recibido_pagos
 
@@ -217,6 +215,7 @@ class CabeceraFactura < ApplicationRecord
 
     my_print_log('factura --> ', factura.to_json)
     my_print_log('------------------------------------------------ ')
+
     if factura
       if last_cuadre.nil? || comparar_fecha(factura[:fecha_equivalente].to_s, last_cuadre[:created_at].to_s, ">=")
 
@@ -230,7 +229,11 @@ class CabeceraFactura < ApplicationRecord
         
       else
         
+        puts "AQUIIIIIIIIIIII ".yellow
+
         can_update = verificateCanUpdateViaje(factura)
+
+        my_print_log('can_update ' + "#{can_update}")
 
         msg_ = 'La factura si puede ser editada.'
 
