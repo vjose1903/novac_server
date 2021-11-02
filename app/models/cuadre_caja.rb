@@ -2,6 +2,8 @@ class CuadreCaja < ApplicationRecord
   belongs_to :user
 
   def self.makecuadre(current_user, params)
+    res = Response.new
+
     fecha = params["fecha"] ? params["fecha"] : DateTime.now    
     cuadre = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").to_a
     
@@ -48,7 +50,8 @@ class CuadreCaja < ApplicationRecord
         att = cuadre.attributes
         att['usuario']= current_user.nombre.titleize + " " + current_user.apellido.titleize
 
-        return { :error => false, :msg => "Cuadre realizado correctamente", :body => att, :status => 200 }
+        res.set_data(att)
+        res.add_msg("Cuadre realizado correctamente")
       end
     else
 
@@ -65,8 +68,16 @@ class CuadreCaja < ApplicationRecord
         numero_reporte: cuadre[0]["numero_reporte"],
         reimprimir: true,
       }
-      return { :error => false, :msg => "Cuadre buscado correctamente", :body => obj, :status => 200 }
+
+      res.set_data(obj)
+      res.add_msg("Cuadre buscado correctamente")
+
+
+      
+
     end
+
+    return res
   end
 
   # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

@@ -27,6 +27,7 @@ es:
     suplidor_p: "Suplidores"
     user: "Empleado"
     user_p: "Empleados"
+    cuadre_caja: "Cuadre de caja"
 
   errors:
     format: "%{message}"

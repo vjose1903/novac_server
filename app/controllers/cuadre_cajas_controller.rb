@@ -1,65 +1,47 @@
 class CuadreCajasController < ApplicationController
-  before_action :set_cuadre_caja, only: [:show, :update, :destroy]
+  before_action :set_cuadre, only: [:show, :destroy]
 
   # GET /cuadre_cajas
-  def index
-    # @cuadre_cajas = CuadreCaja.all
-
-    # render json: @cuadre_cajas
-  end
-  
-  def createCuadre
-    CuadreCaja.transaction do
-      
-      cuadre_caja = CuadreCaja.makecuadre(current_user, params)
-    
-      # raise ActiveRecord::Rollback
-      # return render json: {msg:'pruebas'}, status: 400
-    
-      render json: cuadre_caja, status: cuadre_caja[:status]
-
-    end
+  def index    
+    return Response.new(nil, CuadreCaja.all.where({ estado: true}).order('id DESC'), nil, {}).send_response self
   end
 
   # GET /cuadre_cajas/1
   def show
-    render json: @cuadre_caja
+    return Response.new(nil, @cuadre_caja, nil, {}).send_response self
   end
 
+  
   # POST /cuadre_cajas
   def create
-    @cuadre_caja = CuadreCaja.new(cuadre_caja_params)
-
-    if @cuadre_caja.save
-      render json: @cuadre_caja, status: :created, location: @cuadre_caja
-    else
-      render json: @cuadre_caja.errors, status: :unprocessable_entity
-    end
+    resultado = CuadreCaja.makecuadre(current_user, params)
+    resultado.send_response self
   end
 
-  # PATCH/PUT /cuadre_cajas/1
-  def update
-    if @cuadre_caja.update(cuadre_caja_params)
-      render json: @cuadre_caja
-    else
-      render json: @cuadre_caja.errors, status: :unprocessable_entity
-    end
+  def check_today_cuadre
+    today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day}).empty?
+    puts "bool: ".red + "#{{ :existe_cuadre_hoy => !today_cuadre }}"
+    return Response.new(nil, { :existe_cuadre_hoy => !today_cuadre }, nil, {}).send_response self
   end
 
   # DELETE /cuadre_cajas/1
   def destroy
-    @cuadre_caja.destroy
+    resultado = borrar_entidad(@cuadre_caja)
+    resultado.send_response self
   end
 
   private
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_cuadre_caja
-    @cuadre_caja = CuadreCaja.find(params[:id])
+  def set_cuadre
+    respuesta = set_entidad(CuadreCaja, params)
+    @cuadre_caja = respuesta.get_data
+      
+    return respuesta.send_response self if @cuadre_caja.nil?
   end
 
   # Only allow a trusted parameter "white list" through.
-  def cuadre_caja_params
+  def cuadre_params
     params.require(:cuadre_caja).permit(:user_id, :total_general, :total_venta_credito, :total_venta_contado, :total_recibo_ingreso, :total_anterior)
   end
 end
