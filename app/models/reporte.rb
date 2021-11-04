@@ -40,7 +40,9 @@ class Reporte < ApplicationRecord
     def self.buscar_cliente(factura, max_lengt, retornar)
         cliente = {}
         if !factura["cliente_id"].nil? 
-            cli = factura.cliente
+
+            cli = factura.cliente if (factura.instance_of? CabeceraFactura) || (factura.instance_of? RecibosIngreso)
+            cli = Cliente.find_by_id(factura['cliente_id']) unless (factura.instance_of? CabeceraFactura) && (factura.instance_of? RecibosIngreso)
 
             tempNom = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
             longitud= tempNom.length
@@ -100,7 +102,6 @@ class Reporte < ApplicationRecord
         # cuentas_temp = CabeceraFactura.where(query).where("balance >= 1").order('id ASC')
         total_cuentas = 0
         cuentas = []
-
         inicio_select = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante'}"  
 
         select_ = ""
