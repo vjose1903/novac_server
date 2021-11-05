@@ -7,7 +7,6 @@ Rails.application.routes.draw do
   resources :incidencias
   resources :incidencia
   resources :vehiculos
-  resources :cuadre_cajas
   resources :detalles_produccion
   resources :producciones
   resources :detalle_conduces
@@ -34,6 +33,13 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
   resources :reportes
 
+  resources :cuadre_cajas do
+    collection do
+      post "custom" => "cuadre_cajas#create"
+      get "check_today_cuadre" => "cuadre_cajas#check_today_cuadre"
+    end
+  end
+
   resources :documentos_de_identidad do 
     collection do
       get "persona" => "application#getPersonasOfDocumento"
@@ -58,9 +64,6 @@ Rails.application.routes.draw do
   get "reporte/:tipo_reporte" => "reportes#getReportes"
   # - CUENTAS POR COBRAR --------------------------------------------------------------
   # get "reporte/cuentas/cobrar/:tipo/:cliente_id" => "reportes#getCuentasCobrar"
-
-  # Cuadre caja
-  post "cuadre_cajas/custom" => "cuadre_cajas#createCuadre"
   
   # vehiculos
   get "vehiculos/filtro/:arg" => "vehiculos#getVehiculosFiltrados"
@@ -102,9 +105,6 @@ Rails.application.routes.draw do
 
   # clientes
   get "clientes/filtro/:arg" => "clientes#getClientesFiltrados"
-
-  
-  
 
   # notas 
   get "cabecera_facturas/custom/get_cantidad_devuelto/:aplicadaA" => "cabecera_facturas#getCantidadDevuelto"

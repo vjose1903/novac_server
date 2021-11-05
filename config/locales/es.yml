@@ -28,6 +28,7 @@ es:
     user: "Empleado"
     user_p: "Empleados"
     articulo: "Articulo"
+    cuadre_caja: "Cuadre de caja"
 
   errors:
     format: "%{message}"
