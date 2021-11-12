@@ -20,8 +20,9 @@ class CuadreCajasController < ApplicationController
 
   def check_today_cuadre
     today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day}).empty?
-    puts "bool: ".red + "#{{ :existe_cuadre_hoy => !today_cuadre }}"
-    return Response.new(nil, { :existe_cuadre_hoy => !today_cuadre }, nil, {}).send_response self
+    res = { :existe_cuadre_hoy => !today_cuadre }
+    puts "res --> ".red + "#{res.to_json}"
+    return Response.new(nil, res.to_json , nil, {}).send_response self
   end
 
   # DELETE /cuadre_cajas/1
