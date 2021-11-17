@@ -3,12 +3,12 @@ class CuadreCajasController < ApplicationController
 
   # GET /cuadre_cajas
   def index    
-    return Response.new(nil, CuadreCaja.all.where({ estado: true}).order('id DESC'), nil, {}).send_response self
+    return Response.new(params, nil, CuadreCaja.all.order('id DESC'), nil, {}).send_response self
   end
 
   # GET /cuadre_cajas/1
   def show
-    return Response.new(nil, @cuadre_caja, nil, {}).send_response self
+    return Response.new(params, nil, @cuadre_caja, nil, {}).send_response self
   end
 
   
@@ -20,9 +20,7 @@ class CuadreCajasController < ApplicationController
 
   def check_today_cuadre
     today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day}).empty?
-    res = { :existe_cuadre_hoy => !today_cuadre }
-    puts "res --> ".red + "#{res.to_json}"
-    return Response.new(nil, res.to_json , nil, {}).send_response self
+    return Response.new(params, nil, { existe_cuadre_hoy: !today_cuadre } , nil, {}).send_response self
   end
 
   # DELETE /cuadre_cajas/1

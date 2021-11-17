@@ -4,9 +4,11 @@ require 'net/smtp'
 class Response
 	def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 		@paginate_class = Paginator.new(params)
+		puts "@paginate_class => ".yellow + "#{@paginate_class.to_json}"
 
 		@res = {status:status_, data: data,  msg: msg_}
-		
+		puts "data => ".yellow + "#{data.to_json}"
+		puts "parametros_opcionales => ".blue + "#{parametros_opcionales}"
 		set_data(data, parametros_opcionales) if data && parametros_opcionales
 	end
 	
