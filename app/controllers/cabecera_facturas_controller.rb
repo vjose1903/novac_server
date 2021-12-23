@@ -56,7 +56,7 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def getFacturasByParams
-    resultado = CabeceraFactura.get_facturas_params(params, set_paginate_options(params))
+    resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
     resultado.send_response self
   end
 

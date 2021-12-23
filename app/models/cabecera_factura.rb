@@ -22,6 +22,7 @@ class CabeceraFactura < ApplicationRecord
     notas = CabeceraFactura.where({ aplicada_a: aplicadaA })
 
     notas.each do |nota|
+
       arrayDetalle = DetalleFactura.where({ cabecera_factura_id: nota["id"] })
 
       arrayDetalle.each do |detalle|
@@ -60,99 +61,76 @@ class CabeceraFactura < ApplicationRecord
       is_adelantada = params[:is_adelantada].to_boolean
       fact_de = params[:fact_de] ? params[:fact_de] : "venta"
 
-      puts "campoNum       : ".cyan + "#{campoNum}"
-      puts "is_adelantada  : ".red + "#{is_adelantada}"
-      puts "valor_des      : ".yellow + "#{valor_des}"
-      puts "tipo_factura_id: ".green + "#{tipo_factura_id}"
-      puts "is_adelantada  : ".blue + "#{is_adelantada}"
-
-      # page = params["page"]
-      # per_page = params["per_page"]
-      # paginado = params["paginado"] === "true" ? true : false
-
+      # puts "campoNum       : ".cyan + "#{campoNum}"
+      # puts "is_adelantada  : ".red + "#{is_adelantada}"
+      # puts "valor_des      : ".yellow + "#{valor_des}"
+      # puts "tipo_factura_id: ".green + "#{tipo_factura_id}"
+      
       campo = FacturasParams.get_campo_by_param(campoNum)
       valor_des = FacturasParams.parse_valor_by_param(campoNum, valor_des)
       limit_ = campo == "last_50" ? 50 : nil
 
-      # cabe_ = CabeceraFactura.get_facturas_venta_by_params(campo, valor_des, tipo_factura_id, is_adelantada)
+      valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
 
-      # if paginado
+      where_ = "cabecera_facturas.tipo = '#{fact_de}' and cabecera_facturas.is_adelantada = #{is_adelantada} "
 
-      #   facturas = cabe_.to_a.my_paginate(page, per_page)
-      #   puts "facturas --> ".red + "#{facturas.to_json}"
-      #   facturas["data"].each do |factura|
-      #     @usuario_ = User.find_by_id(factura["user_id"])
-      #     cabecera_parsed = parsearData(factura, false, is_adelantada)
-      #     factura = cabecera_parsed unless cabecera_parsed.nil?
-      #   end
-      # else
-      #   cabe = cabe_
+      where_ = "detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades "  if is_adelantada
 
-      #   cabe.each do |factura|
-      #     @usuario_ = User.find_by_id(factura["user_id"])
-      #     cabecera_parsed = parsearData(factura, false, is_adelantada)
-      #     facturas.push(cabecera_parsed) unless cabecera_parsed.nil?
-      #   end
-      # end
-
-      valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}'"
-
-      where_ = "WHERE tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
-
-      where_ += "and #{campo} = #{valor_where}" unless campo == "last_50"
+      where_ += "and cabecera_facturas.#{campo} = #{valor_where} "              unless campo == "last_50"
       
-      where_ += "and tipo_factura_id = #{tipo_factura_id}" unless tipo_factura_id == "0"
+      where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"    unless tipo_factura_id == "0"
 
 
-      facturas = CabeceraFactura
-      .joins("inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id")
-      .where(where)
-      .order("cabecera_facturas.id DESC")
-      .limit(limit_).to_a
+      joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
+
+      joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
 
 
+      facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
+      
       if facturas.length > 0
-        puts "facturas.length > 0 ".yellow 
-        # res.set_data(facturas, {all: true}, params)
-        res.set_data(facturas)
+        #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        facturas_ = []
+        facturas.each do |factura|
+          objFactura = factura.attributes
+          objFactura['detalle_facturas'] = []
+
+          factura.detalle_facturas.each do |detalle|
+            articuloSelect             = Articulo.find_by_id(detalle["articulo_id"])
+            unidad                     = detalle["unidad"].split(" ")
+            objDetalle                 =  detalle.attributes
+
+            objDetalle["se_calcula_saco"] = Articulo.checkFechaCalcularSaco(factura["fecha_equivalente"], articuloSelect)
+            
+            if unidad.length > 1
+              if objDetalle["se_calcula_saco"]
+                objDetalle["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)#{objDetalle["calcular_saco"] ? '' : '*'}"
+              else
+                objDetalle["descripcion"] = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
+              end
+              
+              objDetalle["unidad"] = "#{unidad[0]}"
+              objDetalle["peso_saco"] = unidad[2]
+            else
+              objDetalle["descripcion"] = "#{articuloSelect["nombre"]}"
+              objDetalle["unidad"] = detalle["unidad"]
+            end
+            objDetalle["codigo"] = articuloSelect["codigo"]
+
+            objFactura['detalle_facturas'].push(objDetalle)
+            
+          end
+          facturas_.push(objFactura)
+          
+        end
+        #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+        res.set_data(facturas_)
       else
         res.set_data([])
-        res.add_msg("No existe facturas con las especificaciones introducidas")
+        res.add_msg("No existe facturas con las especificaciones introducidas") unless is_adelantada
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-      # select_ = 'SELECT cabecera_facturas.id, tipo_factura_id ,tipo_facturas.descripcion as tipo_factura, suplidor_id, cliente_id, user_id, fecha_equivalente, fecha_vencimiento,
-      # fecha_valida, numero_comprobante, numero_factura, condicion, forma_pago, total_factura, itbis, descuento, cabecera_facturas.estado, tipo, cabecera_facturas.created_at, cabecera_facturas.updated_at, 
-      # cabecera_facturas."Bruto", cabecera_facturas."NoCliente_nombre", cabecera_facturas."NoCliente_direccion", pagada, cabecera_facturas.vendedor_id, cabecera_facturas.balance, cabecera_facturas.devuelta, cabecera_facturas.is_adelantada, cabecera_facturas.is_nota, cabecera_facturas.aplicada_a,
-      # cabecera_facturas.tiene_nota,cabecera_facturas.is_viaje,cabecera_facturas.fecha_completada, cabecera_facturas.fecha_viaje, CONCAT(users.nombre, ' + "' '" + ", users.apellido)as usuario"
-
-      # from_ = "FROM cabecera_facturas ca"
-      # joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id
-      # inner join users on cabecera_facturas.user_id = users.id"
-      # where_ = ""
-      # limit_ = ""
-      # order_ = "ORDER BY cabecera_facturas.id DESC"
-      
-      # if tipo_factura_id == 0 || tipo_factura_id == "0"
-      #   if campo == "numero_comprobante"
-      #     where_ = "WHERE #{campo} = '#{valor_des}' and tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
-      #   elsif campo == "last_50"
-      #     where_ = "WHERE tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
-      #     limit_ = "LIMIT 50"
-      #   else
-      #     puts "entre aquiii".red
-      #     where_ = "WHERE #{campo} = #{valor_des} and tipo = #{fact_de} and is_adelantada = #{is_adelantada}"
-      #   end
-      # else
-      #   if campo == "numero_comprobante"
-      #     where_ = "WHERE #{campo} = '#{valor_des}' and tipo = #{fact_de} and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
-      #   else
-      #     where_ = "WHERE #{campo} = #{valor_des} and tipo = #{fact_de} and tipo_factura_id = #{tipo_factura_id} and is_adelantada = #{is_adelantada}"
-      #   end
-      # end
-
-      # query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
-
-      # return my_query(query)
 
       return res
     end
@@ -215,6 +193,7 @@ class CabeceraFactura < ApplicationRecord
 
     my_print_log('factura --> ', factura.to_json)
     my_print_log('------------------------------------------------ ')
+
 
     if factura
       if last_cuadre.nil? || comparar_fecha(factura[:fecha_equivalente].to_s, last_cuadre[:created_at].to_s, ">=")

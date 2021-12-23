@@ -40,6 +40,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
   
   def tipo_factura
+    puts "TOY AQUIIIII".yellow
     object.tipo_factura.descripcion.titleize
   end
 

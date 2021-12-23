@@ -11,7 +11,6 @@ class CabeceraConduce < ApplicationRecord
 
   # ========================================================================================================================
   def self.parsearData(objeto)
-    puts "--------------- inicio parsearData ---------------"
 
     begin
       obj                       = objeto.attributes
@@ -31,7 +30,6 @@ class CabeceraConduce < ApplicationRecord
       objD = {}
 
       articuloSelect = Articulo.find_by_id(detalle_conduce["articulo_id"])
-
       unidad = detalle_conduce["unidad"].split(" ")
 
       if unidad.length > 1
@@ -57,9 +55,6 @@ class CabeceraConduce < ApplicationRecord
     obj["detalle_conduces"] = []
     obj["detalle_conduces"] = detalleConduce
 
-    puts "--------------- fin parsearData ---------------"
-    puts ""
-    puts ""
     return obj
   end
 

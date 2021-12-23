@@ -26,6 +26,7 @@ class CabeceraConducesController < ApplicationController
       @cabecera_conduce.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
 
       if @cabecera_conduce.save
+        
         continuar = procesosDetalle
 
         if continuar[:error]
@@ -50,15 +51,19 @@ class CabeceraConducesController < ApplicationController
 
   def procesosDetalle
     res = { :error => false , :msg => '' , :status => 200}
+
     params["detalle_conduces_attributes"].each do |detalle_conduce|
       if detalle_conduce["detalle_factura_id"]
         detalleFactAdelantada = DetalleFactura.find_by_id(detalle_conduce["detalle_factura_id"])
+        
         factAdelantada = CabeceraFactura.find_by_id(detalleFactAdelantada["cabecera_factura_id"])
-
+        
         if factAdelantada["is_adelantada"]
+          
           detalleFactAdelantada.retirado = detalleFactAdelantada.retirado + detalle_conduce["cantidad_en_unidades"]
-
+          
           unless detalleFactAdelantada.save!
+            
             return { :error => true , :msg => detalleFactAdelantada.errors , :status => :unprocessable_entity}
           end
         end
