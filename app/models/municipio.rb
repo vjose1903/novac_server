@@ -7,13 +7,13 @@ class Municipio < ApplicationRecord
     res = Response.new
 
     unless params["id"]
-      municipio = Municipio.new
+      municipio             = Municipio.new
     else
-      municipio = Municipio.find_by_id(params["id"])
+      municipio             = Municipio.find_by_id(params["id"])
     end
 
-    municipio.nombre = params["nombre"]
-    municipio.provincia_id = params["provincia_id"]
+    municipio.nombre        = params["nombre"]
+    municipio.provincia_id  = params["provincia_id"]
 
     municipio.valid?
 

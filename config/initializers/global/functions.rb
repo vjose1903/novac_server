@@ -4,11 +4,11 @@ require 'net/smtp'
 class Response
 	def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 		@paginate_class = Paginator.new(params)
-		puts "@paginate_class => ".yellow + "#{@paginate_class.to_json}"
+		# puts "@paginate_class => ".yellow + "#{@paginate_class.to_json}"
 
 		@res = {status:status_, data: data,  msg: msg_}
-		puts "data => ".yellow + "#{data.to_json}"
-		puts "parametros_opcionales => ".blue + "#{parametros_opcionales}"
+		# puts "data => ".yellow + "#{data.to_json}"
+		# puts "parametros_opcionales => ".blue + "#{parametros_opcionales}"
 		set_data(data, parametros_opcionales) if data && parametros_opcionales
 	end
 	
@@ -27,7 +27,7 @@ class Response
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
 		
 		@paginate_class.parse_pagination(data) 
-		puts "parametros_opcionales ==> ".red + "#{parametros_opcionales}"
+		# puts "parametros_opcionales ==> ".red + "#{parametros_opcionales}"
 		data_ = parametros_opcionales.nil? ? @paginate_class.get_data(): serialize_parser(@paginate_class.get_data(), parametros_opcionales)
 		
 		@res[:data]              = data_
@@ -136,13 +136,9 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def set_entidad(modelo, params, key="id")
-	puts ":::::: set_entidad:::::: ".yellow
 	res = Response.new
 	where = { "#{key}": params[key]}
 	entidad = modelo.where(where) 
-
-	puts "entidad ".red + "#{entidad.to_json}"
-	puts "entidad.first ".red + "#{entidad.first.to_json}"
 
 	unless entidad.length == 0
 		res.set_data(entidad.first)

@@ -13,15 +13,15 @@ class DocumentoDeIdentidad < ApplicationRecord
     res = Response.new
 
     unless params["id"]
-      documento = DocumentoDeIdentidad.new
+      documento              = DocumentoDeIdentidad.new
     else
-      documento = DocumentoDeIdentidad.find_by_id(params["id"])
+      documento              = DocumentoDeIdentidad.find_by_id(params["id"])
     end
 
-    documento.descripcion = params["descripcion"]
-    documento.documento = params["documento"]
-    documento.principal = params["principal"]
-    documento.origen = padre
+    documento.descripcion    = params["descripcion"]
+    documento.documento      = params["documento"]
+    documento.principal      = params["principal"]
+    documento.origen         = padre
 
     documento.valid?
 

@@ -10,52 +10,69 @@ class CabeceraConduce < ApplicationRecord
   accepts_nested_attributes_for :detalle_conduces, :allow_destroy => true
 
   # ========================================================================================================================
-  def self.parsearData(objeto)
 
-    begin
-      obj                       = objeto.attributes
-      obj["cliente"]            = serialize_parser(objeto.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true})
-      obj["user"]               = serialize_parser(objeto.user,    {nombre: true, apellido: true})
-      obj["numero_conduce"]     = objeto.numero_conduce
-    rescue
-      obj = objeto
-    end
+  def self.create_update_conduce(params, articulo_antiguo, is_save=false)
+    CabeceraConduce.transaction do
+      res = Response.new
 
-    @tipoFactura = TipoFactura.find_by_id(obj["tipo_factura_id"])
-
-    arrayDetalle = DetalleConduce.where({ cabecera_conduce_id: obj["id"] })
-    detalleConduce = []
-
-    arrayDetalle.each do |detalle_conduce|
-      objD = {}
-
-      articuloSelect = Articulo.find_by_id(detalle_conduce["articulo_id"])
-      unidad = detalle_conduce["unidad"].split(" ")
-
-      if unidad.length > 1
-        objD["descripcion"]             = "#{articuloSelect["nombre"]} (#{unidad[2]} LBS)"
-        objD["unidad"]                  = "#{unidad[0]}"
-        objD["peso_saco"]               = unidad[2]
+      unless params["id"]
+        conduce                    = CabeceraConduce.new()
       else
-        objD["descripcion"]             = "#{articuloSelect["nombre"]}"
-        objD["unidad"]                  = detalle_conduce["unidad"]
+        conduce                    = CabeceraConduce.find_by_id(params["id"])
       end
 
-      objD["detalle_Factura_id"]        = detalle_conduce["detalle_Factura_id"]
-      objD["cabecera_conduce_id"]       = detalle_conduce["cabecera_conduce_id"]
-      objD["articulo"]                  = articuloSelect["nombre"]
-      objD["articulo_id"]               = articuloSelect["id"]
-      objD["cantidad"]                  = detalle_conduce["cantidad"]
-      objD["cantidad_en_unidades"]      = detalle_conduce["cantidad_en_unidades"]
-      objD["id"]                        = detalle_conduce["id"]
+      conduce.numero_conduce       = SecuenciaFactura.find_secuencia(15)
+      conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
+      conduce.cliente_id           = params["cliente_id"]
+      conduce.user_id              = get_current_user['id']
 
-      detalleConduce.push(objD)
+      params["detalle_conduces"]   = params["detalle_conduces_attributes"] if params["detalle_conduces_attributes"]
+      
+      dependencias = [
+        {modelo: DetalleConduce, key_object: "detalle_conduces", padre: conduce},
+      ]
+      
+      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
+        conduce.detalle_conduces   = dependencia_data if key_object == 'detalle_conduces'
+      }
+
+      if res.status_valid && conduce.errors.empty? && (!is_save || (is_save && conduce.save!))
+
+        res                        = updateSecuencias()
+        
+        if res.status_valid
+          res.set_data(serialize_parser(conduce, {all: true}))  
+          action = params["id"] ? 'actualizado' : 'creado'
+          res.add_msg("Conduce #{action} correctamente.")
+          
+        else
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
+      else
+        res.add_msgs(conduce.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+      
+      return res
+      raise ActiveRecord::Rollback unless conduce.errors.empty? 
+    end
+  end
+  
+  
+  def self.updateSecuencias
+    res                          = Response.new
+    
+    secuencia_conduce            = SecuenciaFactura.find_by_id(15)
+    actual                       = secuencia_conduce.secuencia
+    secuencia_conduce.secuencia  = actual + 1
+    
+    unless secuencia_conduce.save!
+      res.add_msg("Error actualizando la secuencia de los conduces.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    obj["detalle_conduces"] = []
-    obj["detalle_conduces"] = detalleConduce
-
-    return obj
+    return res
   end
 
   # ========================================================================================================================

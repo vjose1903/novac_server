@@ -42,22 +42,16 @@ class Articulo < ApplicationRecord
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
     Articulo.transaction do
 
-      ant_articulo               =  articulo_antiguo.nil? ? nil : articulo_antiguo
-      ant_articulo_contenido     =  articulo_antiguo.nil? ? nil : articulo_antiguo.contenido_articulos
-      ant_articulo_formula       =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
-
-      puts " "
-      puts "ant_articulo_contenido ==> ".green + "#{ant_articulo_contenido.to_json}"
-      puts " "
-      puts "ant_articulo_formula ==> ".green + "#{ant_articulo_formula.to_json}"
-      puts " "
+      ant_articulo                              =  articulo_antiguo.nil? ? nil : articulo_antiguo
+      ant_articulo_contenido                    =  articulo_antiguo.nil? ? nil : articulo_antiguo.contenido_articulos
+      ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
 
       res = Response.new
       
       unless params["id"]
-        articulo = Articulo.new()
+        articulo                                = Articulo.new()
       else
-        articulo = Articulo.find_by_id(params["id"])
+        articulo                                = Articulo.find_by_id(params["id"])
         articulo.checkSacoSistema(params) if articulo.nombre == 'Saco sistema'
       end
 

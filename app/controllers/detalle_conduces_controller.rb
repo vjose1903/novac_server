@@ -4,7 +4,6 @@ class DetalleConducesController < ApplicationController
   # GET /detalle_conduces
   def index
     @detalle_conduces = DetalleConduce.all
-
     render json: @detalle_conduces
   end
 
