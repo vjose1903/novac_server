@@ -162,31 +162,34 @@ class Articulo < ApplicationRecord
     arg        = params["arg"]
     fecha      = "#{params["fecha"]}:00"
     
-    where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado         = true"
+    where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
     
     signo      = params["is_compra"].to_boolean ? "!=" : "="
     tipo_id    = params["is_compra"].to_boolean ? "3" : params["tipo"]
     
     where += " AND articulos.tipo_articulo_id #{signo} #{tipo_id}" if params["tipo"] != "todos"
 
-
+    
     articulos_ = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
     .order("articulos.id ASC")
 
+    
     articulos = []
-
+    
     articulos_.map { |articulo|
-
+      
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
-
+      
       if fecha < fecha_ultima_edicion_articulo
-
+        
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC") 
         
-        unless hist.blank?
+        if hist.blank?
+          articulos.push(articulo) 
+        else
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           articulos.push(Articulo.new(historico.dup)) 
         end
@@ -195,7 +198,7 @@ class Articulo < ApplicationRecord
       end
       
     }
-
+    
     if articulos.length > 0
       res.set_data(articulos, {all: true})
     else
@@ -205,20 +208,6 @@ class Articulo < ApplicationRecord
     end
 
     return res
-  end
-
-  
-  # =====================================================================================================================
-  def self.completar_campos_articulo(fecha , id)
-    articulo = MantenimientoArticulo.get_one_articulo_by_date(fecha, id)[0]
-
-    articulo["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: id })
-    if articulo["is_combo"]
-      articulo["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: id })
-    end
-    articulo["contenido"]  = calcularContenidos(articulo)
-    articulo["cantidades"] = calcularCantidades(articulo)
-    return articulo
   end
 
   # =====================================================================================================================
@@ -242,7 +231,7 @@ class Articulo < ApplicationRecord
   end
   # =====================================================================================================================
   def self.parsealHistorico(objeto)
-    
+    puts "parsealHistorico --> ".green + "#{objeto.to_json}"
 
     objeto["descripcion"]              = objeto["descripcion"]
     objeto["contenido_articulos"]      = objeto["contenido_articulos"]
@@ -261,16 +250,15 @@ class Articulo < ApplicationRecord
     puts "======= ".red * 10
     puts "CALCULAR CONTENIDOS ".red + "#{articulo["nombre"]}"
     puts "======= ".red * 10
+    puts "======= ".green + "#{articulo.to_json}"
 
     begin
       contenido = articulo.contenido_articulos
     rescue
       contenido = articulo["contenido_articulos"]
     end
+
     contenidos = {}
-
-    puts "contenido ==> ".blue + "#{contenido.to_json}"
-
     
     if contenido.length == 0
       puts " ---------------- CONTENIDO 0 ----------------".yellow 

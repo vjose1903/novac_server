@@ -110,7 +110,7 @@ class Cliente < ApplicationRecord
   end
     # =========================================================================================================================================================
     
-  def self.CalculateBalanceCLiente(id, totalFactura, operacion)
+  def self.calculateBalanceCliente(id, totalFactura, operacion)
 
     unless id
       return { :error => false, :balance => 0 }

@@ -28,6 +28,11 @@ class CabeceraFacturasController < ApplicationController
     render json: cabecera
   end
   
+  def getFacturasByParams
+    resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
+    resultado.send_response self
+  end
+
   def updateFacturaById
     CabeceraFactura.transaction do
       id = params[:id]
@@ -55,10 +60,6 @@ class CabeceraFacturasController < ApplicationController
     render json: CabeceraFactura.verificateCanUpdate(id)
   end
 
-  def getFacturasByParams
-    resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
-    resultado.send_response self
-  end
 
   def getViajesSinCompletar
     arg = params["arg"]
@@ -88,16 +89,19 @@ class CabeceraFacturasController < ApplicationController
 
   def getFacturasByClienteIdAndEstado
     cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada]).to_a
+    puts "=======".cyan + "#{cabe.to_json}" 
     cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params[:id], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
-
+    
     cabe.concat cabe_viajes_contado_deviendo
-
+    
     cabecera = []
     cabe.each do |factura|
       @usuario_ = User.find_by_id(factura["user_id"])
-
+      
       cabecera.push(parsearData(factura))
     end
+    
+    puts "cabecera".cyan + "#{cabecera.to_json}" 
 
     render json: cabecera
   end
@@ -114,18 +118,18 @@ class CabeceraFacturasController < ApplicationController
         resultAgregarNota = { :error => false }
 
         if att["condicion"] == "Crédito" && att["tipo"] == "venta" || att["is_viaje"]
-          resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"], "+")
+          resultCliente = Cliente.calculateBalanceCliente(att["cliente_id"], att["total_factura"], "+")
         end
 
         # NOTA DE CREDITO
         if att["is_nota"] && att["tipo_factura_id"] == 5
-          resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
+          resultCliente = Cliente.calculateBalanceCliente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
           resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
         end
 
         # NOTA DE DEBITO
         if att["is_nota"] && att["tipo_factura_id"] == 4
-          resultCliente = Cliente.CalculateBalanceCLiente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
+          resultCliente = Cliente.calculateBalanceCliente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
           resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
         end
 
@@ -216,6 +220,7 @@ class CabeceraFacturasController < ApplicationController
 
       unless continuar
         articuloSelect    = MantenimientoArticulo.get_one_articulo_by_date(objeto["fecha_equivalente"], articuloSelect["id"])
+        puts "articuloSelect ".magenta + "#{articuloSelect.to_json}"
         articuloSelect    = articuloSelect[0]
       end
 
@@ -372,6 +377,8 @@ class CabeceraFacturasController < ApplicationController
     obj["cliente"] = cliente
     obj["tipo_factura"] = @tipoFactura.descripcion.titleize
     obj["tiene_nota"] = objeto["tiene_nota"]
+    puts "mmg 00".magenta + "#{objeto}"
+    puts "mmg ".magenta + "#{objeto['is_viaje']}"
     obj["is_viaje"] = objeto["is_viaje"]
     obj["fecha_equivalente"] = objeto["fecha_equivalente"]
     obj["fecha_completada"] = objeto["fecha_completada"]

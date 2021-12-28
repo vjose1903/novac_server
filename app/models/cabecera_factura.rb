@@ -87,13 +87,20 @@ class CabeceraFactura < ApplicationRecord
 
 
       facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
-      
+      puts "======== mmg".red + "#{facturas.to_json}"
       if facturas.length > 0
         #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         facturas_ = []
         facturas.each do |factura|
           objFactura = factura.attributes
           objFactura['detalle_facturas'] = []
+          objFactura['usuario'] = "#{factura.user.nombre.titleize} #{factura.user.apellido.titleize}" 
+
+          if !objFactura["vendedor_id"].nil?
+            vendedor_ = User.get_vendedor_by_id(objFactura["vendedor_id"])[0]
+            vendedor = "#{vendedor_["nombre"].titleize} #{vendedor_["apellido"].titleize}"
+            objFactura["vendedor"] = vendedor
+          end
 
           factura.detalle_facturas.each do |detalle|
             articuloSelect             = Articulo.find_by_id(detalle["articulo_id"])
@@ -249,7 +256,7 @@ class CabeceraFactura < ApplicationRecord
         calculo_para_balancear_cliente = factura_nueva[:total_factura] - factura_original[:total_factura]
         puts "calculo_para_balancear_cliente ==> ".yellow + "#{calculo_para_balancear_cliente.to_json}"
 
-        resultCliente = Cliente.CalculateBalanceCLiente(factura_original[:cliente_id], calculo_para_balancear_cliente, "+")
+        resultCliente = Cliente.calculateBalanceCliente(factura_original[:cliente_id], calculo_para_balancear_cliente, "+")
         return {:error => true,  :msg => resultCliente[:msg] ,:status => resultCliente[:status] } if resultCliente[:error]
       end
       
@@ -385,56 +392,44 @@ class CabeceraFactura < ApplicationRecord
     return res
   end
 
-
   # ====================================================================================================
-  def self.payFacturas(facturas)
-    res = { error: false, msg: "facturas actualizadas" }
-
-    facturas["detalle_recibos_attributes"].each do |f|
-      factura_a_pagar = CabeceraFactura.find_by_id(f["cabecera_factura_id"])
+  def self.payFactura(factura_id, recibo)
+    CabeceraFactura.transaction do
+      res               = Response.new
+      factura_a_pagar   = CabeceraFactura.find_by_id(factura_id)
 
       if factura_a_pagar["tiene_nota"]
-        monto_editado_por_notas = 0
+        monto_editado_por_notas                = 0
         notas = CabeceraFactura.where({ aplicada_a: factura_a_pagar["numero_comprobante"] })
+
         notas.each do |nota|
           if nota["tipo_factura_id"] === 5
-            monto_editado_por_notas = monto_editado_por_notas - nota["total_factura"].abs
+            monto_editado_por_notas            = monto_editado_por_notas - nota["total_factura"].abs
           elsif nota["tipo_factura_id"] === 4
-            monto_editado_por_notas = monto_editado_por_notas + nota["total_factura"].abs
+            monto_editado_por_notas            = monto_editado_por_notas + nota["total_factura"].abs
           end
         end
-        factura_a_pagar["balance"] = factura_a_pagar["balance"] + monto_editado_por_notas
+        # factura_a_pagar["balance"]     = factura_a_pagar["balance"] + monto_editado_por_notas ( OJO )
+
+        # si la factura tiene una nota le quito el valor modificado
+        factura_a_pagar["balance"]             = factura_a_pagar["balance"] - monto_editado_por_notas
       end
 
-      # si la factura tiene una nota le quito el valor modificado
-      if factura_a_pagar["tiene_nota"]
-        factura_a_pagar["balance"] = factura_a_pagar["balance"] - monto_editado_por_notas
-      end
-
-      newBalance = factura_a_pagar["balance"] - f["deposito"]
-
-      # si la factura tiene una nota le agrego el valor modificado
-      if factura_a_pagar["tiene_nota"]
-        balance = factura_a_pagar["balance"] + monto_editado_por_notas
-      else
-        balance = factura_a_pagar["balance"]
-      end
-
-      comprobacion_mayor_cero =  balance - f["deposito"] 
+      newBalance                               = factura_a_pagar["balance"] - recibo["deposito"]
       
-      if f["deposito"] == balance || comprobacion_mayor_cero < 1
-        unless factura_a_pagar.update({ balance: newBalance, pagada: true, fecha_completada: DateTime.now })
-          res = { error: true, msg: factura_a_pagar.errors }
-          return res
-        end
-      else
-        unless factura_a_pagar.update({ balance: newBalance })
-          res = { error: true, msg: factura_a_pagar.errors }
-          return res
-        end
+      is_pago_total                            = newBalance < 1 || recibo["deposito"] == factura_a_pagar["balance"]
+
+      factura_a_pagar.balance                  = newBalance >= 1 ? newBalance : 0
+      factura_a_pagar.pagada                   = true           if is_pago_total
+      factura_a_pagar.fecha_completada         = DateTime.now   if is_pago_total
+
+      unless factura_a_pagar.save!
+        res.add_msgs(factura_a_pagar.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
+
+      return res 
     end
-    return res
   end
 
   # =====================================================================================================================
@@ -479,7 +474,7 @@ class CabeceraFactura < ApplicationRecord
         descripcion = tipo_nota.descripcion.split(" ")[2]
 
         factura['total_factura'] += nota['total_factura']
-        factura['balance'] += nota['total_factura']
+        factura['balance']       += nota['total_factura']
         # if descripcion == 'credito'
         #     att['total_factura'] -= nota['total_factura']
         # elsif descripcion == 'contado'
@@ -493,31 +488,26 @@ class CabeceraFactura < ApplicationRecord
 end
 
   # =====================================================================================================================
-  def self.calculateBalanceFactura(id, montoRecibido, num_fila)
-    puts " -------------- Inicio CalculateBalanceFactura -------------- "
+  def self.calculateNextBalanceFactura(id, montoRecibido)
+    res = Response.new
 
-    factura = CabeceraFactura.find_by_id(id)
-    balance = factura["balance"]
+      factura           = CabeceraFactura.find_by_id(id)
+      balance           = factura["balance"]
 
-    total_facturado = factura["total_factura"]
+      # total_facturado   = factura["total_factura"]
+      # total_facturado   = recalcularMonto(factura)["total_facturado"] if factura.tiene_nota
 
-    if factura.tiene_nota
+      sumatoria         = 0
 
-      total_facturado = recalcularMonto(factura)
-    end
+      if montoRecibido.to_f > balance
+        res.add_msg("El monto ingresado para la factura: #{factura.numero_comprobante}, es mayor al balance de la factura")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      else
+        sumatoria = (balance - montoRecibido.to_f).to_d.truncate(2).to_f
+        res.set_data({ :balance => sumatoria, :balance_anterior => balance })
+      end
 
-
-    sumatoria = 0
-
-    if montoRecibido.to_f > balance
-      return { :error => true, :msg => "El monto ingresado para la factura: #{factura.numero_comprobante}, es mayor al balance de la factura", :status => 400 }
-    else
-      sumatoria = balance - montoRecibido.to_f
-    end
-
-    sumatoria = sumatoria.to_d.truncate(2).to_f
-
-    return { :error => false, :balance => sumatoria, :balance_anterior => balance }
+    return res 
   end
 
   # =====================================================================================================================

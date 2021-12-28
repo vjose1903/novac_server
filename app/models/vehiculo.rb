@@ -34,16 +34,28 @@ class Vehiculo < ApplicationRecord
 
       else
         if !vehiculo["nombre_no_empleado"].nil?
-          usuario["nombre"] = vehiculo["nombre_no_empleado"]
+          usuario["nombre"]   = vehiculo["nombre_no_empleado"]
           usuario["apellido"] = vehiculo["apellido_no_empleado"]
           usuario["telefono"] = vehiculo["telefono_no_empleado"]
         end
       end
-      vehiculo['propietario']=usuario
+      vehiculo['propietario'] = usuario
     end
 
     puts "--------------- FIN parsear ---------------"
     return vehiculos
   end
   # ==========================================================================================
+
+  def aumentarCantViaje
+    res                = Response.new
+    
+    unless self.update({ cantidad_viajes: self.cantidad_viajes + 1 })
+      res.add_msgs(self.errors.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res 
+  end
+
 end

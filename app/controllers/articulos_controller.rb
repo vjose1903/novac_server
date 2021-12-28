@@ -9,16 +9,6 @@ class ArticulosController < ApplicationController
   # GET /articulos/1
   def show
     return Response.new(params, nil, @articulo, nil, get_parametros_opcionales).send_response self
-    # puts "aquiiiii"
-    # fecha = params["fecha"] 
-    # articulo = Articulo.completar_campos_articulo(fecha, params[:id])
-    # # articulo = Articulo.parseal(@articulo)
-
-    # if articulo["estado"] == false
-    #   articulo = { "nombre": "Este articulo esta desactivado." }
-    # end
-
-    # render json: articulo
   end
 
 
@@ -29,6 +19,12 @@ class ArticulosController < ApplicationController
     resultado = Articulo.create_update_articulo(parametros, @articulo, true)
 		resultado.send_response self
 	end
+
+  def getArticulosFiltrados
+    resultado = Articulo.filtrarArticulo(params)
+    resultado.send_response self
+  end
+
 
 
   # POST /articulos
@@ -120,10 +116,6 @@ class ArticulosController < ApplicationController
     render json: aArticulos
   end
 
-  def getArticulosFiltrados
-    resultado = Articulo.filtrarArticulo(params)
-    resultado.send_response self
-  end
 
   
 

@@ -21,7 +21,7 @@ class CabeceraConducesController < ApplicationController
 
   # POST /cabecera_conduces
   def create
-    @articulo = nil
+    @cabecera_conduce = nil
     crear_actualizar_conduce
   end
 

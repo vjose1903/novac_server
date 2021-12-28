@@ -4,35 +4,100 @@ class RecibosIngreso < ApplicationRecord
   belongs_to :cliente
   belongs_to :vehiculo, optional: true
 
+  
   has_many :detalle_recibos, dependent: :destroy
   attribute :detalle_recibos
   accepts_nested_attributes_for :detalle_recibos, :allow_destroy => true
 
-  attribute :vehiculo
-  attribute :user
-  attribute :cliente
-  attribute :tipo_factura
-  attribute :detalle_recibos
+  validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
+  
   
   # =========================================================================================================================================================
+  def self.create_update_recibo(params, is_save=false)
+    RecibosIngreso.transaction do
+      res = Response.new
 
-  # def self.filtrarRecibos(arg)
-  #   arg = arg === " " ? "" : arg
-  #   select_ = "SELECT r.id"
-  #   from_ = "FROM recibos_ingresos r"
-  #   joins_ = "inner join detalle_recibos dr on r.id = dr.recibos_ingreso_id
-  #             inner join cabecera_facturas cf on cf.id = dr.cabecera_factura_id
-  #             inner join clientes c on c.id = r.cliente_id"
-  #   where_ = "where lower(r.numero_recibo || ' ' || c.nombre || ' ' || c.apellido || ' ' || cf.numero_comprobante) like lower('%#{arg}%') AND r.estado = true"
-  #   order_ = "ORDER BY r.id DESC"
-  #   group_ = "GROUP BY r.id"
+      unless params["id"]
+        recibo                     = RecibosIngreso.new()
+      else
+        recibo                     = RecibosIngreso.find_by_id(params["id"])
+      end
 
-  #   query = "#{select_} #{from_} #{joins_} #{where_} #{group_} #{order_}"
+      today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+      
+      fecha_equivalente            = params["fecha_equivalente"] ? params["fecha_equivalente"] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
+      
+      
+      recibo.user_id               = get_current_user['id']
+      recibo.fecha_equivalente     = fecha_equivalente
+      recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
+      recibo.cliente_id            = params["cliente_id"]
+      recibo.chofer                = params["chofer"]
+      recibo.total                 = params["total"]
+      recibo.forma_pago            = params["forma_pago"]
+      recibo.tipo_factura_id       = params["tipo_factura_id"]
+      recibo.devuelta              = params["devuelta"]
+      recibo.estado                = params["estado"]
+      recibo.vehiculo_id           = params["vehiculo_id"]
+      recibo.estado                = params["estado"]
 
-  #   my_query(query)
-  # end
+      params["detalle_recibos"]    = params["detalle_recibos_attributes"] if params["detalle_recibos_attributes"]
+      
+      dependencias = [
+        {modelo: DetalleRecibo, key_object: "detalle_recibos", padre: recibo},
+        {modelo: Incidencia,    key_object: "incidencias",     padre: recibo}
+      ]
+      
+      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
+        recibo.detalle_recibos   = dependencia_data if key_object == 'detalle_recibos'
+        recibo.incidencias       = dependencia_data if key_object == 'incidencias'
+      }
 
+      if res.status_valid && recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
+        res_valid                = updateSecuencias()
+        res_valid                = params.vehiculo.aumentarCantViaje                        if res_valid.status_valid && !params['vehiculo_id'].nil?
+
+        if res_valid.status_valid
+
+          res.set_data(serialize_parser(recibo, {all: true}))
+          action = params["id"] ? 'actualizado' : 'creado'
+          res.add_msg("Recibo #{action} correctamente.")
+          
+        else
+          res.add_msgs(res_valid.get_msgs)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
+      else
+        res.add_msgs(recibo.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+      
+      return res
+      raise ActiveRecord::Rollback unless recibo.errors.empty? 
+
+    end
+  end
+
+  # =========================================================================================================================================================
+
+  def self.updateSecuencias
+    res                          = Response.new
+    
+    secuencia_recibo             = SecuenciaFactura.find_by_id(17)
+    actual                       = secuencia_recibo.secuencia
+    secuencia_recibo.secuencia   = actual + 1
+    
+    unless secuencia_recibo.save!
+      res.add_msg("Error actualizando la secuencia de los recibos.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+
+  # =========================================================================================================================================================
   def self.filtrarRecibos(arg, params)
     res = Response.new(params)
 
@@ -80,7 +145,7 @@ class RecibosIngreso < ApplicationRecord
         render json: resultFactura.errors, status: 400
       end
 
-      resultCliente = Cliente.CalculateBalanceCLiente(recibo_["cliente_id"], detalle["deposito"], "+")
+      resultCliente = Cliente.calculateBalanceCliente(recibo_["cliente_id"], detalle["deposito"], "+")
 
       if resultCliente[:error]
         res = { :error => true, :msg => resultCliente[:msg] }
@@ -122,20 +187,6 @@ class RecibosIngreso < ApplicationRecord
     return my_query(query)
   end
 
-  # ===================================================================================================================================================
-  def self.find_secuencia
-    actual_secuencia_recibo = SecuenciaFactura.find_by_tipo_factura_id(17)
-
-    if actual_secuencia_recibo == [] || actual_secuencia_recibo == nil
-      next_secuencia_recibo = 1
-    else
-      next_secuencia_recibo = actual_secuencia_recibo["secuencia"] + 1
-    end
-
-    numero_secuencia = ("%05d" % next_secuencia_recibo)
-
-    return numero_secuencia
-  end
   # ========================================================================================================================
 
   def self.parsearData(data)

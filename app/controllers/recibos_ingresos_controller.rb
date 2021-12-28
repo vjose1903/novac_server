@@ -28,32 +28,9 @@ class RecibosIngresosController < ApplicationController
 
   
   def getRecibosFiltrados
-
     arg = params["arg"]
     resultado = RecibosIngreso.filtrarRecibos(arg, set_paginate_options(params))
     resultado.send_response self
-    # arg = params["arg"]
-    # page = params["page"]
-    # per_page = params["per_page"]
-    # paginado = params["paginado"] === "true" ? true : false
-
-    # recibos_ = []
-    # recibos = RecibosIngreso.filtrarRecibos(arg)
-
-    # recibos.each do |item|
-    #   recibo = RecibosIngreso.find_by_id(item["id"])
-    #   recibos_.push(RecibosIngreso.parsearData(recibo))
-    # end
-
-    # res = []
-
-    # if paginado
-    #   res = recibos_.to_a.my_paginate(page, per_page)
-    # else
-    #   res = recibos_
-    # end
-
-    # render json: res
   end
   
   # GET /recibos_ingresos/1
@@ -75,92 +52,17 @@ class RecibosIngresosController < ApplicationController
     end
   end
 
+  def crear_actualizar_recibo
+		parametros = params
+		parametros["id"] = params["id"] if params["id"]
+
+    resultado = RecibosIngreso.create_update_recibo(parametros, true)
+		resultado.send_response self
+	end
+
   # POST /recibos_ingresos
   def create
-    RecibosIngreso.transaction do
-      att = recibos_ingreso_params
-
-      existe_incidencia = false
-      if params["incidencia"]
-        @incidencia = Incidencia.new(att["incidencia"])
-        existe_incidencia = true
-      end
-
-      att.except(:incidencia)
-      @recibos_ingreso = RecibosIngreso.new(att)
-
-      today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
-      
-      if today_cuadre.empty?
-        @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
-      else
-        @recibos_ingreso.fecha_equivalente = att["fecha_equivalente"] ? att["fecha_equivalente"] : CabeceraFactura.calculateNextDay
-      end
-
-      @recibos_ingreso.numero_recibo = RecibosIngreso.find_secuencia
-
-      if @recibos_ingreso.save!
-        actual_secuencia_recibo = SecuenciaFactura.find_by_tipo_factura_id(17)
-
-        unless actual_secuencia_recibo.update({ secuencia: @recibos_ingreso.numero_recibo })
-          render json: actual_secuencia_recibo.errors, status: :unprocessable_entity
-        else
-          if existe_incidencia
-            # incidencia_ = Incidencia.find_by_id(@incidencia["id"])
-            # if incidencia_
-            #   unless incidencia_.save!
-            #     render json: incidencia_.errors, status: :unprocessable_entity
-            #   end
-            # else
-            unless @incidencia.save!
-              render json: @incidencia.errors, status: :unprocessable_entity
-              raise ActiveRecord::Rollback
-            end
-            # end
-          end
-
-          detalles = DetalleRecibo.CreateDetalleRecibo(@recibos_ingreso)
-          
-          if detalles[0][:error]
-            render json: { msg: detalles[0][:msg] }, :status => :unprocessable_entity
-            raise ActiveRecord::Rollback
-          end
-          
-          if params["vehiculo_id"]
-            vehiculo = Vehiculo.find_by_id(params["vehiculo_id"])
-            
-            unless vehiculo.update({ cantidad_viajes: vehiculo.cantidad_viajes + 1 })
-              render json: vehiculo.errors, status: :unprocessable_entity
-              raise ActiveRecord::Rollback
-            end
-          end
-          
-          
-          @recibos_ingreso.detalle_recibos = detalles
-          
-          unless @recibos_ingreso.save!
-            render json: @recibos_ingreso.errors, :status => :unprocessable_entity
-            raise ActiveRecord::Rollback
-          end
-
-          continuar = CabeceraFactura.payFacturas(recibos_ingreso_params)
-          unless continuar[:error]
-            respuesta = @recibos_ingreso
-
-            respuesta.cliente.balance = Cliente.find_by_id(@recibos_ingreso.cliente_id).balance
-            res = RecibosIngreso.parsearData(respuesta)
-
-            render json: res.to_json, status: :created, location: @recibos_ingreso
-          else
-            render json: continuar[:msg], status: :unprocessable_entity
-            raise ActiveRecord::Rollback
-          end
-        end
-      else
-        render json: @recibos_ingreso.errors, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
-      end
-    end
+    crear_actualizar_recibo
   end
 
   def revertirRecibos

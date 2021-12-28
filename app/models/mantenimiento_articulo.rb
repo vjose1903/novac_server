@@ -64,7 +64,9 @@ class MantenimientoArticulo < ApplicationRecord
       return res 
     end
   end
-  
+
+  # 2021-12-27 09:53:06.892
+  # 2021-12-23 14:43:02.006
   # ============================================================================================================================================================
   
   def self.get_historico_by_date_mayor_or_menor(date, articulo_id, operador, order)
@@ -109,7 +111,9 @@ class MantenimientoArticulo < ApplicationRecord
 
         puts "articulo --> ".cyan + "#{articulo}"
 
-        historico.push(Articulo.parsealHistorico(articulo))
+        # historico.push(Articulo.parsealHistorico(articulo))
+        # historico.push(serialize_parser(articulo,{}))
+        historico.push(articulo)
       end
     end
 
@@ -171,7 +175,7 @@ class MantenimientoArticulo < ApplicationRecord
       end
     end
 
-    articuloHistorico["contenido_articulos_attributes"] = contents
+    articuloHistorico["contenido_articulos"] = contents
     
     if historico["ant_isCombo"]
       fomulaS = []
@@ -185,7 +189,7 @@ class MantenimientoArticulo < ApplicationRecord
         }
       end
 
-      articuloHistorico["formulas_productos_terminados_attributes"] = fomulaS
+      articuloHistorico["formulas_productos_terminados"] = fomulaS
     end
 
     return articuloHistorico
