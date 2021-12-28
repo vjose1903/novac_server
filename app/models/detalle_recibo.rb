@@ -33,6 +33,7 @@ class DetalleRecibo < ApplicationRecord
       detalle_recibo.errors.delete(:recibos_ingreso) if !is_save
       
       res_valid                                 = detalle_recibo.ajustarBalanceCliente
+      res_valid                                 = detalle_recibo.set_last_recibo_no_ultimo                          if res_valid.status_valid
       res_valid                                 = CabeceraFactura.payFactura(params["cabecera_factura_id"], params) if res_valid.status_valid
 
       if res_valid.status_valid && detalle_recibo.errors.empty? && (!is_save || (is_save && detalle_recibo.save!))
@@ -49,6 +50,38 @@ class DetalleRecibo < ApplicationRecord
     return res
   end
   
+  #  --------------------------------------------------------------------------------------------------------------------------------
+  
+  def set_last_recibo_no_ultimo
+    res = Response.new
+    
+    last_recibo = DetalleRecibo
+    .joins("inner join recibos_ingresos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id")
+    .where("detalle_recibos.cabecera_factura_id=#{self.cabecera_factura_id} and detalle_recibos.is_ultimo = true")
+    .order("detalle_recibos.created_at DESC")
+    .limit(1)
+
+    unless last_recibo.blank? 
+      last_recibo = last_recibo[0]
+      
+      unless last_recibo.update({ is_ultimo: false })
+        res.add_msgs(last_recibo.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+    end
+
+    return res 
+  end
+
+
+  #  --------------------------------------------------------------------------------------------------------------------------------
+
+  def self.get_last_recibo_by_cabecera_factura(id_cabecera)
+
+    
+
+    return last_recibo
+  end
   #  --------------------------------------------------------------------------------------------------------------------------------
   
   def ajustarBalanceCliente

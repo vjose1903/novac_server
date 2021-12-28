@@ -9,7 +9,7 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
   attribute :fecha_equivalente,                   if: Proc.new { self.personalizar_parametros('fecha_equivalente') || self.personalizar_parametros('all') }
   attribute :estado,                              if: Proc.new { self.personalizar_parametros('estado') || self.personalizar_parametros('all') }
   attribute :vehiculo_id,                         if: Proc.new { self.personalizar_parametros('vehiculo_id') || self.personalizar_parametros('all') }
-  attribute :incidencia,                          if: Proc.new { self.personalizar_parametros('incidencia') || self.personalizar_parametros('all') }
+  attribute :incidencias,                         if: Proc.new { self.personalizar_parametros('incidencias') || self.personalizar_parametros('all') }
   attribute :numero_recibo,                       if: Proc.new { self.personalizar_parametros('numero_recibo') || self.personalizar_parametros('all') }
   attribute :detalle_recibos,                     if: Proc.new { self.personalizar_parametros('detalle_recibos') || self.personalizar_parametros('all') }
   
@@ -19,7 +19,7 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
   attribute :detalle_recibos,                     if: Proc.new { self.personalizar_parametros('detalle_recibos') || self.personalizar_parametros('all') }
 
   def cliente
-    serialize_parser(object.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true})
+    serialize_parser(object.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true})
   end
   
   def user
@@ -30,10 +30,13 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
     serialize_parser(object.detalle_recibos, {all: true})
   end
 
+  def incidencias
+    serialize_parser(object.incidencias, {all: true})
+  end
+
   def chofer
     unless object.chofer.nil?
       chofer_ = User.find_by_id(object.chofer)
-      puts "chofer_==> ".red + "#{chofer_}"
       serialize_parser(chofer_, {id:true, nombre: true, apellido: true, documentos_de_identidad: true,})
     else
       nil

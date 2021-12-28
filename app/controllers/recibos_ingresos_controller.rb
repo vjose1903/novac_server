@@ -1,19 +1,17 @@
 class RecibosIngresosController < ApplicationController
   before_action :set_recibos_ingreso, only: [:show, :update, :destroy]
-  before_action :set_last_recibo_no_ultimo, only: [:create]
+
 
   # GET /recibos_ingresos
   def index
-    @recibos_ingresos = RecibosIngreso.all
-    recibos_ingresos = []
-
-    @recibos_ingresos.each do |detalle|
-      recibos_ingresos.push(RecibosIngreso.parsearData(detalle))
-    end
-
-    render json: recibos_ingresos
+    return Response.new(params, nil, RecibosIngreso.where({estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
   end
-  
+
+  # GET /recibos_ingresos/1
+  def show
+    return Response.new(params, nil, @recibos_ingreso, nil, get_parametros_opcionales).send_response self
+  end
+
   def getRecibosLimit
     cant = params["cant"]
     recibos = []
@@ -33,24 +31,7 @@ class RecibosIngresosController < ApplicationController
     resultado.send_response self
   end
   
-  # GET /recibos_ingresos/1
-  def show
-    render json: @recibos_ingreso
-  end
 
-  def set_last_recibo_no_ultimo
-    params["detalle_recibos_attributes"].each_with_index do |d, idx|
-      last_pago_info = RecibosIngreso.get_last_recibo_of_cabecera_factura(d["cabecera_factura_id"])[0]
-
-      if last_pago_info
-        ultimo_pago = DetalleRecibo.find_by_id(last_pago_info["id"])
-
-        unless ultimo_pago.update({ is_ultimo: false })
-          return [{ error: true, msg: ultimo_pago.errors, status: :unprocessable_entity }]
-        end
-      end
-    end
-  end
 
   def crear_actualizar_recibo
 		parametros = params
@@ -118,9 +99,34 @@ class RecibosIngresosController < ApplicationController
 
   private
 
+
+  def get_parametros_opcionales 
+    return {
+      all:                 params['all'] || false,
+      user_id:             params['user_id'] ||false,
+      cliente_id:          params['cliente_id'] ||false,
+      total:               params['total'] ||false,
+      forma_pago:          params['forma_pago'] ||false,
+      tipo_factura_id:     params['tipo_factura_id'] ||false,
+      devuelta:            params['devuelta'] ||false,
+      fecha_equivalente:   params['fecha_equivalente'] ||false,
+      estado:              params['estado'] ||false,
+      vehiculo_id:         params['vehiculo_id'] ||false,
+      incidencias:         params['incidencias'] ||false,
+      numero_recibo:       params['numero_recibo'] ||false,
+      detalle_recibos:     params['detalle_recibos'] ||false,
+      chofer:              params['chofer'] ||false,
+      cliente:             params['cliente'] ||false,
+      user:                params['user'] ||false,
+      detalle_recibos:     params['detalle_recibos'] ||false,
+    }
+  end
+
   # Use callbacks to share common setup or constraints between actions.
   def set_recibos_ingreso
-    @recibos_ingreso = RecibosIngreso.find(params[:id])
+    respuesta = set_entidad(RecibosIngreso, params)
+    @recibos_ingreso = respuesta.get_data
+    return respuesta.send_response self if @recibos_ingreso.nil?
   end
 
   # Only allow a trusted parameter "white list" through.

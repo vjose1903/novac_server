@@ -2,7 +2,6 @@ class Incidencia < ApplicationRecord
 
     belongs_to :origen, polymorphic: true
 
-
     def self.crear_actualizar_incidencia(params, padre, is_save=false)
         res = Response.new
     

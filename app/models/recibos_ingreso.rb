@@ -6,8 +6,8 @@ class RecibosIngreso < ApplicationRecord
 
   
   has_many :detalle_recibos, dependent: :destroy
-  attribute :detalle_recibos
-  accepts_nested_attributes_for :detalle_recibos, :allow_destroy => true
+
+  has_many :incidencias, :as => :origen, dependent: :destroy, class_name: "Incidencia"
 
   validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
   
@@ -40,8 +40,6 @@ class RecibosIngreso < ApplicationRecord
       recibo.estado                = params["estado"]
       recibo.vehiculo_id           = params["vehiculo_id"]
       recibo.estado                = params["estado"]
-
-      params["detalle_recibos"]    = params["detalle_recibos_attributes"] if params["detalle_recibos_attributes"]
       
       dependencias = [
         {modelo: DetalleRecibo, key_object: "detalle_recibos", padre: recibo},
@@ -172,19 +170,6 @@ class RecibosIngreso < ApplicationRecord
     recibos = []
     recibos = RecibosIngreso.all.order('id DESC').limit(cant)
     return recibos
-  end
-
-  # ===================================================================================================================================================
-  def self.get_last_recibo_of_cabecera_factura(id_cabecera)
-    select_ = "SELECT dr.id, is_ultimo, recibos_ingreso_id, ri.cliente_id as cliente_id"
-    from_ = "FROM detalle_recibos dr"
-    joins_ = "inner join recibos_ingresos ri on ri.id = dr.recibos_ingreso_id"
-    where_ = "WHERE cabecera_factura_id=#{id_cabecera}"
-    order_ = "ORDER BY dr.created_at DESC"
-    limit_ = "LIMIT 1"
-
-    query = "#{select_} #{from_} #{joins_} #{where_} #{order_} #{limit_}"
-    return my_query(query)
   end
 
   # ========================================================================================================================
