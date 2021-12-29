@@ -79,7 +79,7 @@ Rails.application.routes.draw do
   # recibos de ingresos
   get "recibos_ingresos/filtro/:arg" => "recibos_ingresos#getRecibosFiltrados"
   get "recibos_ingresos/revertir/:tipo/:id" => "recibos_ingresos#revertirRecibos" #
-  get "recibos_ingresos/get/:cant" => "recibos_ingresos#getRecibosLimit" #
+  
 
   # produccion
   get "articulos/ingredientes/:id" => "articulos#getIngredientesFormula" #

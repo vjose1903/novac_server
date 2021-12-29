@@ -74,7 +74,7 @@ end
 
 class Paginator
 	def initialize(params)
-		puts "params: ".red + "#{params.to_json}"
+		# puts "params: ".red + "#{params.to_json}"
 		@paginate_options = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
 		@data_paginated={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
 		set_pagination_options(params)

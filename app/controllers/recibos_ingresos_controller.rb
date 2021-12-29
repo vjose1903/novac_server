@@ -12,18 +12,6 @@ class RecibosIngresosController < ApplicationController
     return Response.new(params, nil, @recibos_ingreso, nil, get_parametros_opcionales).send_response self
   end
 
-  def getRecibosLimit
-    cant = params["cant"]
-    recibos = []
-    recibos_temp = RecibosIngreso.get_last_recibos(cant)
-    
-    recibos_temp.each do |item|
-      recibos.push(RecibosIngreso.parsearData(item))
-    end
-    render json: recibos
-  end
-  
-
   
   def getRecibosFiltrados
     arg = params["arg"]
@@ -31,70 +19,35 @@ class RecibosIngresosController < ApplicationController
     resultado.send_response self
   end
   
-
-
+  
   def crear_actualizar_recibo
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
-
+    
     resultado = RecibosIngreso.create_update_recibo(parametros, true)
 		resultado.send_response self
 	end
-
+  
   # POST /recibos_ingresos
   def create
     crear_actualizar_recibo
   end
 
-  def revertirRecibos
-    RecibosIngreso.transaction do
-      id_ = params["id"]
-      tipo_ = params["tipo"]
-
-      puede_continuar = false
-      
-      if tipo_ ==='by_factura'
-        last_recibo_info = RecibosIngreso.get_last_recibo_of_cabecera_factura(id_)[0]
-        
-        if last_recibo_info["is_ultimo"]
-          puede_continuar = true
-        end
-      else
-        puede_continuar = true
-      end
-
-      if puede_continuar
-        recibo_id = tipo_ === "by_factura" ? last_recibo_info["recibos_ingreso_id"] : id_
-        
-        revertirResponse = RecibosIngreso.procesoRevertirRecibo(recibo_id)
-        
-        if revertirResponse[:error]
-          render json: revertirResponse, status: 400
-          raise ActiveRecord::Rollback
-        end
-  
-        msg = tipo_ === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
-        
-        render json: { msg: msg }, status: 200
-      else
-        msg_ = tipo_ === "by_factura" ? "No se puede revertir esta transacción." : "Error anulando Recibo de ingreso."
-        render json: { msg: msg_ }, status: 400
-      end
-    end
-  end
-
   # PATCH/PUT /recibos_ingresos/1
   def update
-    if @recibos_ingreso.update(recibos_ingreso_params)
-      render json: @recibos_ingreso
-    else
-      render json: @recibos_ingreso.errors, status: :unprocessable_entity
-    end
+    crear_actualizar_recibo
   end
+  
+  def revertirRecibos
+    resultado = RecibosIngreso.revertirRecibo(params)
+    resultado.send_response self
+  end
+
 
   # DELETE /recibos_ingresos/1
   def destroy
-    @recibos_ingreso.destroy
+    resultado = borrar_entidad(@recibos_ingreso)
+    resultado.send_response self
   end
 
   private

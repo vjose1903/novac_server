@@ -47,10 +47,10 @@ class Vehiculo < ApplicationRecord
   end
   # ==========================================================================================
 
-  def aumentarCantViaje
+  def ajustarCantViaje(signo)
     res                = Response.new
-    
-    unless self.update({ cantidad_viajes: self.cantidad_viajes + 1 })
+    newCant = signo == "+" ? self.cantidad_viajes + 1 : self.cantidad_viajes - 1
+    unless self.update({ cantidad_viajes: newCant})
       res.add_msgs(self.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

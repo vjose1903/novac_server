@@ -89,7 +89,6 @@ class CabeceraFacturasController < ApplicationController
 
   def getFacturasByClienteIdAndEstado
     cabe = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params[:id], params[:pagada]).to_a
-    puts "=======".cyan + "#{cabe.to_json}" 
     cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params[:id], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
     
     cabe.concat cabe_viajes_contado_deviendo
@@ -101,7 +100,6 @@ class CabeceraFacturasController < ApplicationController
       cabecera.push(parsearData(factura))
     end
     
-    puts "cabecera".cyan + "#{cabecera.to_json}" 
 
     render json: cabecera
   end

@@ -17,7 +17,7 @@ class DetalleRecibo < ApplicationRecord
     res_valid                                   = CabeceraFactura.calculateNextBalanceFactura(params["cabecera_factura_id"], params["deposito"])
     calculo_cabecera                            = res_valid.get_data
     
-    if res_valid.status_valid 
+    if res_valid.status_valid
       
       detalle_recibo.balance_anterior_factura   = calculo_cabecera[:balance_anterior]
       detalle_recibo.balance_factura            = calculo_cabecera[:balance]
@@ -55,19 +55,11 @@ class DetalleRecibo < ApplicationRecord
   def set_last_recibo_no_ultimo
     res = Response.new
     
-    last_recibo = DetalleRecibo
-    .joins("inner join recibos_ingresos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id")
-    .where("detalle_recibos.cabecera_factura_id=#{self.cabecera_factura_id} and detalle_recibos.is_ultimo = true")
-    .order("detalle_recibos.created_at DESC")
-    .limit(1)
+    last_recibo = DetalleRecibo.get_last_recibo_by_cabecera_factura(self.cabecera_factura_id)
 
-    unless last_recibo.blank? 
-      last_recibo = last_recibo[0]
-      
-      unless last_recibo.update({ is_ultimo: false })
-        res.add_msgs(last_recibo.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
+    if !last_recibo.nil? && last_recibo.update({ is_ultimo: false })
+      res.add_msgs(last_recibo.errors.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
     return res 
@@ -78,9 +70,13 @@ class DetalleRecibo < ApplicationRecord
 
   def self.get_last_recibo_by_cabecera_factura(id_cabecera)
 
-    
+    last_recibo = DetalleRecibo
+    .joins("inner join recibos_ingresos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id")
+    .where("detalle_recibos.cabecera_factura_id=#{id_cabecera} and detalle_recibos.is_ultimo = true")
+    .order("detalle_recibos.created_at DESC")
+    .limit(1)
 
-    return last_recibo
+    return last_recibo[0]
   end
   #  --------------------------------------------------------------------------------------------------------------------------------
   
@@ -91,7 +87,7 @@ class DetalleRecibo < ApplicationRecord
     resultCliente = Cliente.calculateBalanceCliente(cabecera_factura.cliente_id, self.deposito, "-")
     
     if resultCliente[:error]
-      res.add_msgs(resultCliente[:msg])
+      res.add_msg(resultCliente[:msg])
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
     

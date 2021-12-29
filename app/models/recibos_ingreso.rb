@@ -54,7 +54,7 @@ class RecibosIngreso < ApplicationRecord
       if res.status_valid && recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
         res_valid                = updateSecuencias()
-        res_valid                = params.vehiculo.aumentarCantViaje                        if res_valid.status_valid && !params['vehiculo_id'].nil?
+        res_valid                = params.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
 
         if res_valid.status_valid
 
@@ -104,7 +104,7 @@ class RecibosIngreso < ApplicationRecord
     .joins("inner join cabecera_facturas on cabecera_facturas.id = detalle_recibos.cabecera_factura_id")
     .joins("inner join clientes on clientes.id = recibos_ingresos.cliente_id")
     .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
-    .order("recibos_ingresos.id").to_a
+    .order("recibos_ingresos.id DESC").to_a
 
     if recibos.length > 0
       puts "recibos.length > 0 ".yellow 
@@ -114,95 +114,113 @@ class RecibosIngreso < ApplicationRecord
       res.add_msg("No existen recibos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-
+    
     return res
   end
   
   # ===================================================================================================================================================
-
-  def self.procesoRevertirRecibo(id)
-    res = { :error => false, :msg => '' }
-
+  
+  def self.puedeRevertir(params)
+    # TODO: seguir aqui
+    last_cuadre = CuadreCaja.all.last
     
-    recibo_ = RecibosIngreso.find_by_id(id)
+    if last_cuadre.nil? || comparar_fecha(self.fecha_equivalente.to_s, last_cuadre[:created_at].to_s, ">=")
 
-    recibo_.detalle_recibos.each do |detalle|
-      resultFactura = CabeceraFactura.find_by_id(detalle["cabecera_factura_id"])
-
-      obj = { balance: detalle["balance_anterior_factura"] }
-
-      if resultFactura.fecha_completada
-        obj["fecha_completada"] = nil
+      if params["tipo"] === 'by_factura'
+        @last_recibo      = DetalleRecibo.get_last_recibo_by_cabecera_factura(params["id"])
+        puede_continuar   = true if !@last_recibo.nil? && @last_recibo.is_ultimo
+      else
+        puede_continuar   = true
       end
 
-      if resultFactura.pagada
-        obj["pagada"] = false
+      if params["tipo"] === 'by_factura'
+        todas_son_ultima = self.detalle_recibos.all? { |detalle| detalle.is_ultimo } 
+
+      else
+
       end
 
-      unless resultFactura.update(obj)
-        render json: resultFactura.errors, status: 400
-      end
 
-      resultCliente = Cliente.calculateBalanceCliente(recibo_["cliente_id"], detalle["deposito"], "+")
-
-      if resultCliente[:error]
-        res = { :error => true, :msg => resultCliente[:msg] }
-      end
-    end
-    
-    if recibo_["vehiculo_id"]
-      vehiculo = Vehiculo.find_by_id(recibo_["vehiculo_id"])
-      
-      unless vehiculo.update({ cantidad_viajes: vehiculo.cantidad_viajes - 1 })
-        res = { :error => true, :msg => vehiculo.errors }
-      end
-    end
-    
-    unless recibo_.destroy
-      res = { :error => true, :msg => recibo_.errors }
+    else
+      res.add_msg("El recibo no puede ser anulado, por que no es del dia de hoy.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return res
   end
 
   # ===================================================================================================================================================
-  def self.get_last_recibos(cant)
-    recibos = []
-    recibos = RecibosIngreso.all.order('id DESC').limit(cant)
-    return recibos
+  
+  def self.revertirRecibo(params)
+    RecibosIngreso.transaction do
+      res = Response.new
+      
+      if RecibosIngreso.puedeRevertir(params)
+
+        recibo_id         = params["tipo"] === "by_factura" ? @last_recibo.recibos_ingreso_id : params["id"]
+        recibo_a_anular   = RecibosIngreso.find_by_id(recibo_id)
+        res_valid         = recibo_a_anular.procesoRevertirRecibo
+        
+        if res_valid.status_valid && recibo_a_anular.destroy
+          msg = params["tipo"] === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
+          res.add_msg(msg)
+        else
+          res.add_msgs(res_valid.get_msgs)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+        
+      else
+        msg = params["tipo"] === "by_factura" ? "No se puede revertir esta transacción." : "Error anulando Recibo de ingreso."
+        res.add_msg(msg)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+      return res
+    end
   end
 
-  # ========================================================================================================================
-
-  def self.parsearData(data)
-    begin
-      obj                    = data.attributes
-      obj["cliente"]         = serialize_parser(data.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true})
-      obj["user"]            = serialize_parser(data.user,    {nombre: true, apellido: true})
-
-    rescue
-      obj = data
-    end
-
-    detalles = []
-    data.detalle_recibos.to_a.each do |detalle|
-      objD = detalle.attributes
-      factura = CabeceraFactura.find_by_id(detalle["cabecera_factura_id"])
-
-      objD["total_factura"] = factura["total_factura"]
-      detalles.push(objD)
-    end
-
-    if data.chofer
-      chofer_ = User.find_by_id(data.chofer)
-      chofer_ = serialize_parser(chofer_, {id:true, nombre: true, apellido: true, documentos_de_identidad: true,})
-    end
-
-    obj["chofer"] = chofer_
-    obj["detalle_recibos"] = detalles
-
+  # ===================================================================================================================================================
+  
+  def procesoRevertirRecibo
+    res_valid     = Response.new
+    array_valid=[]
     
+    self.detalle_recibos.each  do |item|
+      res_temp    = RecibosIngreso.revertirReciboDetalle(item, self)
 
-    return obj
+      return res_temp unless res_temp.status_valid
+    end
+
+    res_valid     = params.vehiculo.ajustarCantViaje("-") unless self.vehiculo_id.nil?
+
+    return res_valid
+  end
+
+  # ===================================================================================================================================================
+
+  def self.revertirReciboDetalle(detalle, recibo)
+    res = Response.new
+
+    cabecera_factura = detalle.cabecera_factura
+
+    obj                       = { balance: detalle["balance_anterior_factura"] }
+
+    obj["fecha_completada"]   = nil   if cabecera_factura.fecha_completada
+    obj["pagada"]             = false if cabecera_factura.pagada
+
+    if cabecera_factura.update(obj)
+
+      resultCliente           = Cliente.calculateBalanceCliente(recibo.cliente_id, detalle["deposito"], "+")
+  
+      if resultCliente[:error]
+        res.add_msgs(resultCliente.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+    else
+      res.add_msgs(cabecera_factura.errors.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+    
+    return res
   end
 end
