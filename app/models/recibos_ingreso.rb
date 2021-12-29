@@ -110,7 +110,6 @@ class RecibosIngreso < ApplicationRecord
       puts "recibos.length > 0 ".yellow 
       res.set_data(recibos, {all: true})
     else
-      res.set_data([])
       res.add_msg("No existen recibos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

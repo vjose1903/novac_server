@@ -4,11 +4,8 @@ require 'net/smtp'
 class Response
 	def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 		@paginate_class = Paginator.new(params)
-		# puts "@paginate_class => ".yellow + "#{@paginate_class.to_json}"
 
 		@res = {status:status_, data: data,  msg: msg_}
-		# puts "data => ".yellow + "#{data.to_json}"
-		# puts "parametros_opcionales => ".blue + "#{parametros_opcionales}"
 		set_data(data, parametros_opcionales) if data && parametros_opcionales
 	end
 	
@@ -25,9 +22,8 @@ class Response
 
 		# paginate = nil
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
-		
-		@paginate_class.parse_pagination(data) 
-		# puts "parametros_opcionales ==> ".red + "#{parametros_opcionales}"
+		@paginate_class.paginate_data(data) 
+
 		data_ = parametros_opcionales.nil? ? @paginate_class.get_data(): serialize_parser(@paginate_class.get_data(), parametros_opcionales)
 		
 		@res[:data]              = data_
@@ -74,7 +70,6 @@ end
 
 class Paginator
 	def initialize(params)
-		# puts "params: ".red + "#{params.to_json}"
 		@paginate_options = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
 		@data_paginated={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
 		set_pagination_options(params)
@@ -84,10 +79,12 @@ class Paginator
 		@paginate_options["page"]     = params['page']       if params && !params['page'].nil?
 		@paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
 		@paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
+
 	end
 	
 	
-	def parse_pagination(data)
+	def paginate_data(data)
+
 		@data_paginated["data"] = data
 		@data_paginated = paginate(data) if @paginate_options["paginado"]
 	end
@@ -125,7 +122,7 @@ end
 	
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
-	pde = {"page" => params['page'], "per_page" => params['per_page'], "paginado" => params['paginado']}
+	pde = {"page" => params['page']|| 0, "per_page" => params['per_page'] || 0, "paginado" => params['paginado'].to_boolean || false}
 	return pde
 end
 # ---------------------------------------------------------------------------------------------------------
@@ -175,7 +172,6 @@ def borrar_entidad(obj)
 		obj.destroy
 	rescue => exception
 		obj.estado = false
-		puts "============ EDITANDO ESTADO ============".yellow
 		unless obj.save!
 			res.set_status(HTTP_STATUS_CODE[:conflict])
 			res.add_msg("Error borrando #{obj.model_name.element}.")

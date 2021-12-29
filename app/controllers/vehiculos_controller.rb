@@ -21,27 +21,9 @@ class VehiculosController < ApplicationController
 
   
   def getVehiculosFiltrados
-    
     arg = params["arg"]
-
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-
-    vehiculos_ = Vehiculo.filtrarVehiculo(arg)
-    
-    vehiculos = Vehiculo.parsear(vehiculos_)
-
-    res = []
-
-    if paginado
-      res = vehiculos.to_a.my_paginate(page, per_page)
-    else
-      res = vehiculos
-    end
-
-
-    render json: res
+    resultado = Vehiculo.filtrarVehiculo(arg, set_paginate_options(params))
+    resultado.send_response self
   end
 
   # POST /vehiculos

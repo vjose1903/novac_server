@@ -8,16 +8,27 @@ class Vehiculo < ApplicationRecord
   # =====================================================================================================================
 
   
-  def self.filtrarVehiculo(arg)
-    arg = arg === " " ? "" : arg
-    select_ = "SELECT v.*"
-    from_ = "FROM vehiculos v "
-    joins_ = "left join users u on v.user_id = u.id"
-    where_ = "where  lower(coalesce(u.nombre, '') || ' ' || coalesce(u.apellido, '') || ' ' || v.marca || ' ' || v.modelo || ' ' || coalesce(v.nombre_no_empleado, '') || ' ' || coalesce(v.apellido_no_empleado, '')) like lower('%#{arg}%') AND v.estado = true"
+  def self.filtrarVehiculo(arg, params)
+    res = Response.new(params)
+    puts "###################".magenta
+    puts "###################".magenta
+    puts "###################".magenta
+    puts "###################".magenta
 
-    query = "#{select_} #{from_} #{joins_} #{where_}"
+    vehiculos = Vehiculo
+    .joins("left join users on vehiculos.user_id = users.id")
+    .where("lower(coalesce(users.nombre, '') || ' ' || coalesce(users.apellido, '') || ' ' || vehiculos.marca || ' ' || vehiculos.modelo || ' ' || coalesce(vehiculos.nombre_no_empleado, '') || ' ' || coalesce(vehiculos.apellido_no_empleado, '')) like lower('%#{arg}%') AND vehiculos.estado = true")
+    .order("vehiculos.id DESC").to_a
 
-    my_query(query)
+    if vehiculos.length > 0
+      puts "AQUIIIIII".yellow
+      res.set_data(vehiculos, {all: true})
+    else
+      res.add_msg("No existen vehiculos con las especificaciones introducidas")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+    
+    return res
   end
   
   def self.parsear(vehiculos)

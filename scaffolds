@@ -94,4 +94,5 @@ rails generate serializer articulo
 rails generate serializer contenido_articulo
 rails generate serializer formulas_productos_terminado
 rails generate serializer incidencias
+rails generate serializer vehiculos
 
