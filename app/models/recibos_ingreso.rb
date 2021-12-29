@@ -54,7 +54,7 @@ class RecibosIngreso < ApplicationRecord
       if res.status_valid && recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
         res_valid                = updateSecuencias()
-        res_valid                = params.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
+        res_valid                = recibo.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
 
         if res_valid.status_valid
 
@@ -120,32 +120,39 @@ class RecibosIngreso < ApplicationRecord
   
   # ===================================================================================================================================================
   
-  def self.puedeRevertir(params)
-    # TODO: seguir aqui
-    last_cuadre = CuadreCaja.all.last
+  def self.puedeAnular(params)
+    res                 = Response.new
+    last_cuadre         = CuadreCaja.all.last
     
-    if last_cuadre.nil? || comparar_fecha(self.fecha_equivalente.to_s, last_cuadre[:created_at].to_s, ">=")
+    last_recibo         = DetalleRecibo.get_last_recibo_by_cabecera_factura(params["id"])
+    recibo_id           = params["tipo"] === "by_factura" ? last_recibo.recibos_ingreso_id : params["id"]
+    @recibo_a_anular    = RecibosIngreso.find_by_id(recibo_id)
+    
+    if !@recibo_a_anular.nil?
+      if last_cuadre.nil? || comparar_fecha(@recibo_a_anular.fecha_equivalente.to_s, last_cuadre[:created_at].to_s, ">=")
 
-      if params["tipo"] === 'by_factura'
-        @last_recibo      = DetalleRecibo.get_last_recibo_by_cabecera_factura(params["id"])
-        puede_continuar   = true if !@last_recibo.nil? && @last_recibo.is_ultimo
+        if params["tipo"] === 'by_factura'
+          if last_recibo.nil? || (!last_recibo.nil? && !last_recibo.is_ultimo)
+            res.add_msg("Solo puede anular el último recibo realizado a esta factura.")
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+        elsif params["tipo"] === 'by_id'
+          unless @recibo_a_anular.detalle_recibos.all? { |detalle| detalle.is_ultimo }
+            res.add_msg("Solo puede anular el último recibo realizado a una factura, este recibo contiene una o varias facturas que tienen recibos mas recientes.")
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+        end
+
       else
-        puede_continuar   = true
+        res.add_msg("El recibo no puede ser anulado, por que no es del dia de hoy.")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-
-      if params["tipo"] === 'by_factura'
-        todas_son_ultima = self.detalle_recibos.all? { |detalle| detalle.is_ultimo } 
-
-      else
-
-      end
-
-
     else
-      res.add_msg("El recibo no puede ser anulado, por que no es del dia de hoy.")
+      res.add_msg("Error buscando el recibo de ingreso solicitado.")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
+    return res 
   end
 
   # ===================================================================================================================================================
@@ -154,14 +161,12 @@ class RecibosIngreso < ApplicationRecord
     RecibosIngreso.transaction do
       res = Response.new
       
-      if RecibosIngreso.puedeRevertir(params)
-
-        recibo_id         = params["tipo"] === "by_factura" ? @last_recibo.recibos_ingreso_id : params["id"]
-        recibo_a_anular   = RecibosIngreso.find_by_id(recibo_id)
-        res_valid         = recibo_a_anular.procesoRevertirRecibo
+      res_valid           = RecibosIngreso.puedeAnular(params)
+      if res_valid.status_valid
+        res_valid         = @recibo_a_anular.procesoRevertirRecibo
         
-        if res_valid.status_valid && recibo_a_anular.destroy
-          msg = params["tipo"] === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
+        if res_valid.status_valid && @recibo_a_anular.destroy
+          msg             = params["tipo"] === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
           res.add_msg(msg)
         else
           res.add_msgs(res_valid.get_msgs)
@@ -169,8 +174,7 @@ class RecibosIngreso < ApplicationRecord
         end
         
       else
-        msg = params["tipo"] === "by_factura" ? "No se puede revertir esta transacción." : "Error anulando Recibo de ingreso."
-        res.add_msg(msg)
+        res.add_msgs(res_valid.get_msgs)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
@@ -190,7 +194,7 @@ class RecibosIngreso < ApplicationRecord
       return res_temp unless res_temp.status_valid
     end
 
-    res_valid     = params.vehiculo.ajustarCantViaje("-") unless self.vehiculo_id.nil?
+    res_valid     = self.vehiculo.ajustarCantViaje("-") unless self.vehiculo_id.nil?
 
     return res_valid
   end

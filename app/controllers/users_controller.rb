@@ -25,7 +25,7 @@ class UsersController < ApplicationController
   def crear_actualizar_user
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
-    puts "params --> ".yellow + "#{params.to_json}"
+    
     resultado = User.crear_actualizar_user(parametros, true)
 		resultado.send_response self
 	end
