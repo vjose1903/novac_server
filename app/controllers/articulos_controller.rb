@@ -5,12 +5,15 @@ class ArticulosController < ApplicationController
   def index
     return Response.new(params, nil, Articulo.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
   end
-
+  
   # GET /articulos/1
   def show
     return Response.new(params, nil, @articulo, nil, get_parametros_opcionales).send_response self
   end
-
+  
+  def getStock
+    return Response.new(params, nil, { stock: Articulo.all.where({ estado: true}).count } , nil, get_parametros_opcionales).send_response self
+  end
 
   def crear_actualizar_articulo
 		parametros = params
@@ -25,8 +28,6 @@ class ArticulosController < ApplicationController
     resultado.send_response self
   end
 
-
-
   # POST /articulos
   def create
     @articulo = nil
@@ -40,14 +41,6 @@ class ArticulosController < ApplicationController
   
   def checkIfExcede
     excede = @articulo.existencia.to_f < params["cantidad"].to_f
-
-    puts " "
-    puts " "
-    puts "params[cantidad].to_f     ==> ".blue + "#{params["cantidad"].to_f}"
-    puts "@articulo.existencia.to_f ==> ".yellow + "#{@articulo.existencia.to_f}"
-    puts "EXCEDE                    ==> ".magenta + "#{excede}"
-    puts " "
-    puts " "
 
     return Response.new(params, nil, excede, nil, nil).send_response self
   end
@@ -98,11 +91,6 @@ class ArticulosController < ApplicationController
       aArticulos.push(obj)
     end
     render json: aArticulos
-  end
-
-  def getcountArticulos
-    cantidad = Articulo.all.count()
-    render json: cantidad
   end
 
 

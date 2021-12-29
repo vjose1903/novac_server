@@ -202,7 +202,6 @@ class Articulo < ApplicationRecord
     if articulos.length > 0
       res.set_data(articulos, {all: true})
     else
-      res.set_data([])
       res.add_msg("No existen articulos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

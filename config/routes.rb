@@ -87,13 +87,11 @@ Rails.application.routes.draw do
   # articulos
   get "articulos/check_excede/:id" => "articulos#checkIfExcede" #
   get "articulos/filtro/:arg" => "articulos#getArticulosFiltrados" #
-  get "articulosF" => "articulos#getArticulosFormateados"
   
   get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getOneArticuloByDate" #
   get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
   get "articulos/custom/productos_terminados" => "articulos#getProductosTerminados" #
-  get "articulos/tipo_nombre/:tipo/:nombre" => "articulos#getArticuloByNameObyCodigo"
-  get "articulos/custom/cantidad_inventario" => "articulos#getcountArticulos"
+  get "articulos/custom/stock" => "articulos#getStock"
   
   # suplidores
   get "nombreSuplidores" => "suplidores#getNombresSuplidores"

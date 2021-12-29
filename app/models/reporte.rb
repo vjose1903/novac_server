@@ -221,7 +221,7 @@ class Reporte < ApplicationRecord
         inventario_temp = calcularCantidades(inventario_temp)
         
         inventario = inventario_temp.sort_by! { |k| k["nombre"]}
-        cantidad_articulos = Articulo.all.count()
+        cantidad_articulos = Articulo.all.where({ estado: true}).count
 
         obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
         
