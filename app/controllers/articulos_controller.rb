@@ -45,33 +45,9 @@ class ArticulosController < ApplicationController
     return Response.new(params, nil, excede, nil, nil).send_response self
   end
 
-  def getIngredientesFormula
-    id = params["id"]
-    articulo = Articulo.find_by_id(id)
-    if articulo.nil?
-      render json: { msg: "El articulo buscado no esta creado" }, status: 400
-    elsif articulo.tipo_articulo_id != 3
-      render json: { msg: "El tipo de articulo buscado no es un producto terminado" }, status: 400
-    else
-      formula = FormulasProductosTerminado.where({ articulo_id: articulo.id })
-      ingredientes = []
-
-      formula.each do |f|
-        articulo_ingrediente = Articulo.find_by_id(f.articulo_combo)
-        ingredientes.push({
-          articulo_id: articulo_ingrediente.id,
-          nombre: articulo_ingrediente.nombre,
-          cantidad: f.cantidad,
-          existencia: Articulo.calcularCantidades(articulo_ingrediente),
-          contenido: Articulo.calcularContenidos(articulo_ingrediente),
-        })
-      end
-      render json: ingredientes
-    end
-  end
 
   def getMateriasPrimas
-    articulos = Articulo.where({ is_materia_prima: true })
+    articulos = Articulo.where({ is_materia_prima: true , estado: true})
 
     aArticulos = []
     articulos.each do |arti|
@@ -92,19 +68,6 @@ class ArticulosController < ApplicationController
     end
     render json: aArticulos
   end
-
-
-  def getProductosTerminados
-    articulos = Articulo.where({ tipo_articulo_id: 3 })
-
-    aArticulos = []
-    articulos.each do |arti|
-      aArticulos.push(Articulo.parseal(arti))
-    end
-    render json: aArticulos
-  end
-
-
   
 
 

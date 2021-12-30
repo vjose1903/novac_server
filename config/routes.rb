@@ -81,8 +81,6 @@ Rails.application.routes.draw do
   get "recibos_ingresos/revertir/:tipo/:id" => "recibos_ingresos#revertirRecibos" #
   
 
-  # produccion
-  get "articulos/ingredientes/:id" => "articulos#getIngredientesFormula" #
 
   # articulos
   get "articulos/check_excede/:id" => "articulos#checkIfExcede" #
@@ -90,7 +88,6 @@ Rails.application.routes.draw do
   
   get "articulos/historico/:date/:articulo_id" => "mantenimiento_articulos#getOneArticuloByDate" #
   get "articulos/custom/materias_primas" => "articulos#getMateriasPrimas" #
-  get "articulos/custom/productos_terminados" => "articulos#getProductosTerminados" #
   get "articulos/custom/stock" => "articulos#getStock"
   
   # suplidores
