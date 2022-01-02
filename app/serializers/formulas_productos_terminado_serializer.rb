@@ -5,6 +5,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   attribute :costo,                     if: Proc.new { self.personalizar_parametros('costo') || self.personalizar_parametros('all') }
   attribute :articulo_combo,            if: Proc.new { self.personalizar_parametros('articulo_combo') || self.personalizar_parametros('all') }
   attribute :precio,                    if: Proc.new { self.personalizar_parametros('precio') || self.personalizar_parametros('all') }
+  attribute :medida,                    if: Proc.new { self.personalizar_parametros('medida') || self.personalizar_parametros('all') }
 
   attribute :nombre,                    if: Proc.new { self.personalizar_parametros('nombre') || self.personalizar_parametros('all') }
   attribute :existencia,                if: Proc.new { self.personalizar_parametros('existencia') || self.personalizar_parametros('all') }

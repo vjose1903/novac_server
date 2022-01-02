@@ -1,6 +1,32 @@
+
+
 HTTP_STATUS_CODE = Rack::Utils::SYMBOL_TO_STATUS_CODE
 
 DIAS = ['Lunes', 'Martes', 'Miercoles', 'Jueves',  'Viernes', 'Sabado', 'Domingo']
+
+module TipoArticulos
+	VETERINARIA         = '1'
+	MATERIA_PRIMA       = '2'
+	PRODUCTO_TERMINADO  = '3'
+	OTRO                = '4'
+
+	def self.veterinaria
+		return VETERINARIA
+	end
+
+	def self.materia_prima
+		return MATERIA_PRIMA
+	end
+
+	def self.producto_terminado
+		return PRODUCTO_TERMINADO
+	end
+
+	def self.otro
+		return OTRO
+	end
+
+end
 
 module Documentos
 	CEDULA = 'cedula'

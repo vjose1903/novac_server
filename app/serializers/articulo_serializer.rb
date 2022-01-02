@@ -28,7 +28,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   attribute :cantidades,                         if: Proc.new { self.personalizar_parametros('cantidades') || self.personalizar_parametros('all') }
   attribute :calcular_saco,                      if: Proc.new { self.personalizar_parametros('calcular_saco') || self.personalizar_parametros('all') }
 
-  attribute :costos,                             if: Proc.new { self.personalizar_parametros('costos')}
+  attribute :costos,                             if: Proc.new { self.personalizar_parametros('costos') || self.personalizar_parametros('all') }
 
 
   def otros_costos

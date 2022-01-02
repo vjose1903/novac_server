@@ -78,6 +78,7 @@ rails g model config_entidad has_user:boolean tipo:string
 rails g migration AddEntidadToTablas 
 
 rails g migration AddCamposToIncidencias 
+rails g migration AddCamposToFormulasProductosTerminados
 
 
 rails generate serializer cliente

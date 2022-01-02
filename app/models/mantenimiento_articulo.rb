@@ -8,10 +8,9 @@ class MantenimientoArticulo < ApplicationRecord
     MantenimientoArticulo.transaction do
       res = Response.new
 
-      usuario_actual         = get_current_user
-      historico              = MantenimientoArticulo.new()
-      secuencia              = (MantenimientoArticulo.last.id + 1) || 0
-
+      usuario_actual                         = get_current_user
+      historico                              = MantenimientoArticulo.new()
+      secuencia                              = (MantenimientoArticulo.last.id + 1) || 0
 
       historico.articulo_id                  = parametros["id"]
       historico.user_id                      = usuario_actual.id
@@ -31,28 +30,24 @@ class MantenimientoArticulo < ApplicationRecord
       historico.calcular_saco                = parametros["calcular_saco"] 
       historico.secuencia                    = secuencia
 
-
       contenidos.to_a.each do |contenido|
         if contenido["referencia"]
-          historico["ant_medidaHijo"]         = contenido["medida"]
-          historico["ant_costoHijo"]          = contenido["costo"]
-          historico["ant_precioHijo"]         = contenido["precio"]
-          historico["ant_cantidadHijo"]       = contenido["cantidad"]
-          historico["ant_idHijo"]             = contenido["id"]
-          historico["ant_referenciaHijo"]     = contenido["referencia"]
+          historico["ant_medidaHijo"]        = contenido["medida"]
+          historico["ant_costoHijo"]         = contenido["costo"]
+          historico["ant_precioHijo"]        = contenido["precio"]
+          historico["ant_cantidadHijo"]      = contenido["cantidad"]
+          historico["ant_idHijo"]            = contenido["id"]
+          historico["ant_referenciaHijo"]    = contenido["referencia"]
         else
-          historico["ant_medidaPadre"]        = contenido["medida"]
-          historico["ant_costoPadre"]         = contenido["costo"]
-          historico["ant_precioPadre"]        = contenido["precio"]
-          historico["ant_cantidadPadre"]      = contenido["cantidad"]
-          historico["ant_idPadre"]            = contenido["id"]
-          historico["ant_referenciaPadre"]    = contenido["referencia"]
+          historico["ant_medidaPadre"]       = contenido["medida"]
+          historico["ant_costoPadre"]        = contenido["costo"]
+          historico["ant_precioPadre"]       = contenido["precio"]
+          historico["ant_cantidadPadre"]     = contenido["cantidad"]
+          historico["ant_idPadre"]           = contenido["id"]
+          historico["ant_referenciaPadre"]   = contenido["referencia"]
         end
       end
       
-      puts "historico ".red  + "#{historico.to_json}"
-      puts "historico.errors ".red  + "#{historico.errors.to_json}"
-
       res_formula = MantenimientoFormula.add_historico(formulas, secuencia)
 
       unless res_formula.status_valid && historico.save! 

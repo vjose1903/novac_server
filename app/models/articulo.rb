@@ -2,10 +2,8 @@ class Articulo < ApplicationRecord
   belongs_to :tipo_articulo
   belongs_to :imagen, optional: true
 
-  has_many :contenido_articulos
-  accepts_nested_attributes_for :contenido_articulos
-  has_many :formulas_productos_terminados
-  accepts_nested_attributes_for :formulas_productos_terminados
+  has_many :contenido_articulos,           dependent: :destroy
+  has_many :formulas_productos_terminados, dependent: :destroy
   
   # has_many :imagen
 
@@ -77,9 +75,6 @@ class Articulo < ApplicationRecord
 
       # imagen_attributes
 
-      params["contenido_articulos"]             = params["contenido_articulos_attributes"]           if params["contenido_articulos_attributes"]
-      params["formulas_productos_terminados"]   = params["formulas_productos_terminados_attributes"] if params["formulas_productos_terminados_attributes"]
-      
       dependencias = [
         {modelo: FormulasProductosTerminado, key_object: "formulas_productos_terminados", padre: articulo},
         {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
@@ -162,12 +157,14 @@ class Articulo < ApplicationRecord
     arg        = params["arg"]
     fecha      = "#{params["fecha"]}:00"
     
-    where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true"
+    where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
     
     signo      = params["is_compra"].to_boolean ? "!=" : "="
     tipo_id    = params["is_compra"].to_boolean ? "3" : params["tipo"]
     
-    where += " AND articulos.tipo_articulo_id #{signo} #{tipo_id} " if params["tipo"] != "todos"
+    where += "AND articulos.tipo_articulo_id #{signo} #{tipo_id} " if params["tipo"] != "todos"
+
+    where += "OR ( articulos.is_materia_prima = true AND articulos.estado = true) " if params["tipo"] == TipoArticulos.materia_prima
     
     articulos_ = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
@@ -190,6 +187,7 @@ class Articulo < ApplicationRecord
           articulos.push(articulo) 
         else
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
+          puts "historico.dup ".yellow + "#{historico.dup.to_json}"
           articulos.push(Articulo.new(historico.dup)) 
         end
       else

@@ -31,6 +31,7 @@ class FormulasProductosTerminado < ApplicationRecord
     formula.articulo_combo    = params["articulo_combo"]
     formula.precio            = params["precio"]
     formula.costo             = params["costo"]
+    formula.medida            = params["medida"]
     
     formula.valid?
     
