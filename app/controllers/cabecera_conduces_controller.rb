@@ -15,16 +15,16 @@ class CabeceraConducesController < ApplicationController
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
 
-    resultado = CabeceraConduce.create_update_conduce(parametros, @cabecera_conduce, true)
+    resultado = CabeceraConduce.create_update_conduce(parametros, true)
 		resultado.send_response self
 	end
 
   # POST /cabecera_conduces
   def create
-    @cabecera_conduce = nil
     crear_actualizar_conduce
   end
 
+  # PATCH/PUT /cabecera_conduces/1
   def update
     crear_actualizar_articulo
   end
@@ -59,9 +59,4 @@ class CabeceraConducesController < ApplicationController
     }
   end
 
-  # Only allow a trusted parameter "white list" through.
-  def cabecera_conduce_params
-    params.require(:cabecera_conduce).permit(:user_id, :cliente_id, :numero_conduce, :fecha_equivalente,
-                                              detalle_conduces_attributes: [:cabecera_conduce_id, :detalle_factura_id, :articulo_id, :cantidad, :cantidad_en_unidades, :unidad])
-  end
 end

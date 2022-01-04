@@ -41,6 +41,19 @@ class ArticulosController < ApplicationController
   
   def checkIfExcede
     excede = @articulo.existencia.to_f < params["cantidad"].to_f
+    puts " "
+    puts " "
+    puts " "
+    puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>".red
+    puts @articulo.nombre
+    puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>".red
+    puts " "
+    puts " @articulo.existencia ".green + "#{@articulo.existencia.to_f}"
+    puts " params[cantidad].to_f ".yellow + "#{params["cantidad"].to_f}"
+    puts " "
+    puts " excede ".yellow + "#{excede}"
+    puts " "
+    puts " "
 
     return Response.new(params, nil, excede, nil, nil).send_response self
   end

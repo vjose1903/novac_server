@@ -183,6 +183,21 @@ def borrar_entidad(obj)
 end
 
 # ---------------------------------------------------------------------------------------------------------
+def updateSecuencias(tipo_secuencia_id)
+    res                         = Response.new
+    
+    secuenciaBackend            = SecuenciaFactura.find_by_id(tipo_secuencia_id)
+    actual                      = secuenciaBackend.secuencia
+    secuenciaBackend.secuencia  = actual + 1
+    
+    unless secuenciaBackend.save!
+      res.add_msg("Error actualizando la secuencia.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+# ---------------------------------------------------------------------------------------------------------
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
 	dependencias.each do |dependencia|

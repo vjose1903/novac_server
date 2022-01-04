@@ -53,7 +53,7 @@ class RecibosIngreso < ApplicationRecord
 
       if res.status_valid && recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
-        res_valid                = updateSecuencias()
+        res_valid                = updateSecuencias(17)
         res_valid                = recibo.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
 
         if res_valid.status_valid
@@ -76,23 +76,6 @@ class RecibosIngreso < ApplicationRecord
       raise ActiveRecord::Rollback unless recibo.errors.empty? 
 
     end
-  end
-
-  # =========================================================================================================================================================
-
-  def self.updateSecuencias
-    res                          = Response.new
-    
-    secuencia_recibo             = SecuenciaFactura.find_by_id(17)
-    actual                       = secuencia_recibo.secuencia
-    secuencia_recibo.secuencia   = actual + 1
-    
-    unless secuencia_recibo.save!
-      res.add_msg("Error actualizando la secuencia de los recibos.")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
-    return res
   end
 
   # =========================================================================================================================================================

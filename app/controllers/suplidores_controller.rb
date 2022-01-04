@@ -56,9 +56,4 @@ class SuplidoresController < ApplicationController
     
     return respuesta.send_response self if @suplidor.nil?
   end
-
-  # Only allow a trusted parameter "white list" through.
-  def suplidor_params
-    params.require(:suplidor).permit(:nombre, :telefono, :estado, :direccion, :email, :documentos_de_identidad)
-  end
 end

@@ -79,6 +79,7 @@ rails g migration AddEntidadToTablas
 
 rails g migration AddCamposToIncidencias 
 rails g migration AddCamposToFormulasProductosTerminados
+rails g migration AddCamposToArticulos
 
 
 rails generate serializer cliente
@@ -96,4 +97,6 @@ rails generate serializer contenido_articulo
 rails generate serializer formulas_productos_terminado
 rails generate serializer incidencias
 rails generate serializer vehiculos
+rails generate serializer produccion
+rails generate serializer detalle_produccion
 

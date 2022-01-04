@@ -2,7 +2,7 @@ class ProvinciasController < ApplicationController
   before_action :set_provincia, only: [:show, :update, :destroy]
 
   def crear_actualizar_provincia
-    parametros = provincia_params
+    parametros = params
     parametros["id"] = params["id"] if params["id"]
 
     resultado = Provincia.crear_actualizar_provincia(parametros, true)
@@ -46,8 +46,4 @@ class ProvinciasController < ApplicationController
       @provincia = Provincia.find(params[:id])
     end
 
-    # Only allow a trusted parameter "white list" through.
-    def provincia_params
-      params.require(:provincia).permit(:nombre)
-    end
 end

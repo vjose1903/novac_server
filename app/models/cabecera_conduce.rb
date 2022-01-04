@@ -11,7 +11,7 @@ class CabeceraConduce < ApplicationRecord
 
   # ========================================================================================================================
 
-  def self.create_update_conduce(params, articulo_antiguo, is_save=false)
+  def self.create_update_conduce(params, is_save=false)
     CabeceraConduce.transaction do
       res = Response.new
 
@@ -38,7 +38,7 @@ class CabeceraConduce < ApplicationRecord
 
       if res.status_valid && conduce.errors.empty? && (!is_save || (is_save && conduce.save!))
 
-        res                        = updateSecuencias()
+        res                        = updateSecuencias(15)
         
         if res.status_valid
           res.set_data(serialize_parser(conduce, {all: true}))  
@@ -46,6 +46,7 @@ class CabeceraConduce < ApplicationRecord
           res.add_msg("Conduce #{action} correctamente.")
           
         else
+          res.add_msgs(res.get_msgs)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 
@@ -57,22 +58,6 @@ class CabeceraConduce < ApplicationRecord
       return res
       raise ActiveRecord::Rollback unless conduce.errors.empty? 
     end
-  end
-  
-  
-  def self.updateSecuencias
-    res                          = Response.new
-    
-    secuencia_conduce            = SecuenciaFactura.find_by_id(15)
-    actual                       = secuencia_conduce.secuencia
-    secuencia_conduce.secuencia  = actual + 1
-    
-    unless secuencia_conduce.save!
-      res.add_msg("Error actualizando la secuencia de los conduces.")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
-    return res
   end
 
   # ========================================================================================================================

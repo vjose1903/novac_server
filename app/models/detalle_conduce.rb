@@ -62,7 +62,7 @@ class DetalleConduce < ApplicationRecord
 
 
   def procesos_detalle
-    res = Response.new(nil, HTTP_STATUS_CODE[:ok])
+    res = Response.new()
     
     if self.detalle_factura_id
       detalleFactura              = self.detalle_factura
@@ -99,7 +99,6 @@ class DetalleConduce < ApplicationRecord
     else
       return res
     end
-
-    
   end
+
 end

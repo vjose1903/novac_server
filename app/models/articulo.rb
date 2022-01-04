@@ -7,7 +7,7 @@ class Articulo < ApplicationRecord
   
   # has_many :imagen
 
-  validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { case_sensitive: false, :message => "Articulo ya esta registrado" }
+  validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Articulo ya esta registrado" }, :if => :estado
   validates :medida,              presence: { :message => "Medida articulo no puede estar vacio." }
   validates :vendido_en,          presence: { :message => "Debe de especificar en que medida se vende el articulo." }
   validates :costo_principal,     presence: { :message => "El costo del articulo no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del articulo debe de ser mayor a 0." }
@@ -16,11 +16,6 @@ class Articulo < ApplicationRecord
   # before_validation :otras_validaciones
 
   def otras_validaciones
-    if self.tipo_articulo.descripcion.downcase != "producto terminado" && self.medida.downcase != "unidad" && self.medida.downcase != "quintal"
-        self.contenido_articulos.each do |contenido_articulo|
-          self.errors.add(:base, "")
-        end
-    end
   end
 
 
@@ -84,7 +79,13 @@ class Articulo < ApplicationRecord
         articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
-      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty?  && articulo.save! 
+
+      
+      puts "res.status_valid ".red + "#{res.status_valid}"
+      puts "articulo ".blue + "#{articulo.errors.to_json}"
+
+      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid?&& articulo.save! 
+
 
       if res.status_valid && articulo.errors.empty? 
         # puts "ant_articulo ==> ".red + "#{ant_articulo.to_json}"
@@ -238,7 +239,7 @@ class Articulo < ApplicationRecord
     return objeto
   end
 
-  def calcularContenidos(articulo, sacos = true )
+  def self.calcularContenidos(articulo, sacos = true )
 
     contenido = articulo.contenido_articulos
     contenidos = {}
@@ -271,7 +272,7 @@ class Articulo < ApplicationRecord
     contenidos
   end
 
-  def calcularCantidades(articulo)
+  def self.calcularCantidades(articulo)
     contenido = articulo.contenido_articulos
 
     existencia = articulo["existencia"].nil? ? 0 : articulo["existencia"]

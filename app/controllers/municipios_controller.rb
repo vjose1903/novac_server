@@ -2,7 +2,7 @@ class MunicipiosController < ApplicationController
 	before_action :set_municipio, only: [:show, :update, :destroy]
 
 	def crear_actualizar_municipio
-		parametros = municipio_params
+		parametros = params
 		parametros["id"] = params["id"] if params["id"]
 
 		resultado = Municipio.crear_actualizar_municipio(parametros, true)
@@ -40,8 +40,4 @@ class MunicipiosController < ApplicationController
 			@municipio = Municipio.find(params[:id])
 		end
 
-		# Only allow a trusted parameter "white list" through.
-		def municipio_params
-			params.require(:municipio).permit(:nombre)
-		end
 end

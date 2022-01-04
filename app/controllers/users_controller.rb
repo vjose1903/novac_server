@@ -77,8 +77,4 @@ class UsersController < ApplicationController
     
     return respuesta.send_response self if @user.nil?
   end
-
-  def user_params
-    params.require(:user).permit(:id, :nombre, :usuario, :estado, :cedula, :apellido, :sexo, :fotoPerfil, :telefono, :email, :fecha_nacimiento, :role, :imagen, :documentos_de_identidad )
-  end
 end

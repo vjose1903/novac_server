@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_12_31_164527) do
+ActiveRecord::Schema.define(version: 2022_01_03_183801) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,6 +37,7 @@ ActiveRecord::Schema.define(version: 2021_12_31_164527) do
     t.datetime "updated_at", null: false
     t.boolean "is_materia_prima"
     t.boolean "calcular_saco"
+    t.index ["estado", "nombre"], name: "index_articulos_on_estado_and_nombre", unique: true, where: "(estado = true)"
     t.index ["imagen_id"], name: "index_articulos_on_imagen_id"
     t.index ["tipo_articulo_id"], name: "index_articulos_on_tipo_articulo_id"
   end

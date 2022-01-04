@@ -52,10 +52,4 @@ class ClientesController < ApplicationController
       
     return respuesta.send_response self if @cliente.nil?
   end
-
-  # Only allow a trusted parameter "white list" through.
-  def cliente_params
-    params.require(:cliente).permit(:imagen_id, :nombre, :estado, :apellido, :limite_credito, :telefono, :direccion, :sexo,
-                                    :maximo_credito, :vendedor_id, :balance, :documentos_de_identidad)
-  end
 end

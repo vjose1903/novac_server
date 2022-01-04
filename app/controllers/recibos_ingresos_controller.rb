@@ -81,11 +81,4 @@ class RecibosIngresosController < ApplicationController
     @recibos_ingreso = respuesta.get_data
     return respuesta.send_response self if @recibos_ingreso.nil?
   end
-
-  # Only allow a trusted parameter "white list" through.
-  def recibos_ingreso_params
-    params.fetch(:recibos_ingreso).permit(:user_id, :cliente_id, :chofer, :total, :forma_pago, :tipo_factura_id, :devuelta, :fecha_equivalente, :estado,
-                                          :vehiculo_id, :incidencia, :numero_recibo,
-                                          detalle_recibos_attributes: [:recibos_ingreso_id, :balance_anterior_factura, :balance_factura, :cabecera_factura_id, :pago_total, :deposito, :descripcion, :pago_a_tiempo, :recibo])
-  end
 end

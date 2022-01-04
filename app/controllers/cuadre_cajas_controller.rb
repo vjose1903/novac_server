@@ -39,8 +39,4 @@ class CuadreCajasController < ApplicationController
     return respuesta.send_response self if @cuadre_caja.nil?
   end
 
-  # Only allow a trusted parameter "white list" through.
-  def cuadre_params
-    params.require(:cuadre_caja).permit(:user_id, :total_general, :total_venta_credito, :total_venta_contado, :total_recibo_ingreso, :total_anterior)
-  end
 end
