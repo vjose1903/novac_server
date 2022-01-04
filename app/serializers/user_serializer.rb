@@ -29,6 +29,7 @@ class UserSerializer < ActiveModel::Serializer
   def nombreCompleto
     nombreCompleto = "#{object.nombre.capitalize}" 
     nombreCompleto += " #{object.apellido.capitalize}" unless object.apellido.blank?
+    nombreCompleto
   end
 
   def apellido
