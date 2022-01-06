@@ -10,14 +10,13 @@ class Produccion < ApplicationRecord
   def self.create_update_produccion(params, is_save=false)
     Produccion.transaction do
       res = Response.new
-      usuario_actual                      = get_current_user
+      
       unless params["id"]
         produccion                        = Produccion.new()
       else
         produccion                        = Produccion.find_by_id(params["id"])
       end
-
-      produccion.user_id                  = usuario_actual.id
+      produccion.user_id                  = get_current_user['id']
       produccion.numero                   = SecuenciaFactura.find_secuencia(16)
       produccion.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
 

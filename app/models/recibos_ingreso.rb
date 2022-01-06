@@ -87,6 +87,7 @@ class RecibosIngreso < ApplicationRecord
     .joins("inner join cabecera_facturas on cabecera_facturas.id = detalle_recibos.cabecera_factura_id")
     .joins("inner join clientes on clientes.id = recibos_ingresos.cliente_id")
     .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
+    .group("recibos_ingresos.id")
     .order("recibos_ingresos.id DESC").to_a
 
     if recibos.length > 0
@@ -197,8 +198,8 @@ class RecibosIngreso < ApplicationRecord
 
       resultCliente           = Cliente.calculateBalanceCliente(recibo.cliente_id, detalle["deposito"], "+")
   
-      if resultCliente[:error]
-        res.add_msgs(resultCliente.errors.to_a)
+      unless resultCliente.status_valid
+        res.add_msg(resultCliente.get_msgs.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 

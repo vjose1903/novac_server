@@ -1,58 +1,37 @@
 class SecuenciaComprobante < ApplicationRecord
   def self.get_paquete_rnc_by_estado(tipo_factura_id, estado)
-    puts " -------------- Inicio get_paquete_rnc_by_estado -------------- "
+    res = Response.new
 
     tipoFac = TipoFactura.find_by_id(tipo_factura_id)
 
-    select_ = "select *, true as is_paquete"
-    from_ = "from secuencia_comprobantes"
-    where_ = "where estado = #{estado} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
-    order_ = "ORDER BY created_at ASC LIMIT 1"
-    query = "#{select_} #{from_} #{where_} #{order_}"
-    paquete = my_query(query)[0]
+    paquete = SecuenciaComprobante
+    .select("secuencia_comprobantes.* ,true as is_paquete")
+    .where("estado = #{estado} AND usado = false AND tipo_factura_id = #{tipo_factura_id}")
+    .order("created_at ASC").limit(1)
 
-    if paquete == [] || paquete == nil
-      existen_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
-      if existen_siguientes[:bool]
-        activar_nuevo_paquete(tipo_factura_id)
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => false, :msg => "correcto, siguiente paquete", :body => existen_siguientes[:Paquete], :status => 200 } #respuesta correcta
+    if paquete.blank?
+      res_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
+
+      if res_siguientes.status_valid
+        res_activar = activar_nuevo_paquete(tipo_factura_id, res_siguientes.get_data)
+        return res_activar
       end
 
-      existen_anteriores = ver_si_existen_paquetes_previos(tipo_factura_id)
-      if existen_anteriores
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => true, :msg => "Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de comprar mas.", :body => [], :status => 404 }
+      res_anteriores = ver_si_existen_paquetes_previos(tipo_factura_id)
+
+      if res_anteriores.status_valid
+        res.add_msg("Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de solicitar mas.")
       else
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => true, :msg => "No se han solicitado paquetes de comprobantes para #{tipoFac["descripcion"]}", :body => [], :status => 404 }
+        res.add_msg("No se han solicitado paquetes de comprobantes para #{tipoFac["descripcion"]}.")
       end
-      #
-    elsif paquete["secuencia"] == paquete["hasta"]
-      puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-      return { :error => false, :msg => "Ultimo comprobante de este paquete", :body => paquete, :status => 200 }
-      #
-    elsif paquete["secuencia"] > paquete["hasta"]
-      select_ = "select *, true as is_paquete"
-      from_ = "from secuencia_comprobantes"
-      where_ = "where estado = #{false} AND usado = #{false} AND tipo_factura_id = #{tipo_factura_id}"
-      order_ = "ORDER BY created_at ASC LIMIT 1"
-      newQuery = "#{select_} #{from_} #{where_} #{order_}"
-      nuevoPaquete = my_query(newQuery)[0]
-
-      if nuevoPaquete == [] || nuevoPaquete == nil
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => true, :msg => "Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de comprar mas.", :body => [], :status => 404 }
-      else
-        # return { :error => true, :msg => "Existen errores en la base de datos, secuencia no pertene al paquete de NCF seleccionado", :body => [], :status => 404 }
-        puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-        return { :error => false, :msg => "siguiente paquete", :body => nuevoPaquete, :status => 200 }
-      end
-      #
+      
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
     else
-      puts " -------------- fin get_paquete_rnc_by_estado -------------- "
-      return { :error => false, :msg => "correcto", :body => paquete, :status => 200 }
+      res.set_data(paquete.first)
+      return res
     end
+
   end
 
   # ============================================================================================================================================================
@@ -76,103 +55,100 @@ class SecuenciaComprobante < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.get_paquetes_por_activar(tipo_factura_id)
-    puts " -------------- Inicio get_paquetes_por_activar -------------- "
-    tipoFac = TipoFactura.find_by_id(tipo_factura_id)
+    res = Response.new
+    
+    paquete = SecuenciaComprobante
+    .select("secuencia_comprobantes.* ,true as is_paquete")
+    .where("estado = false AND usado = false AND tipo_factura_id = #{tipo_factura_id}")
+    .order("created_at ASC").limit(1)
 
-    select_ = "select *"
-    from_ = "from secuencia_comprobantes"
-    where_ = "where estado = #{false} AND usado != #{true} AND tipo_factura_id = #{tipo_factura_id}"
-    order_ = "ORDER BY created_at ASC LIMIT 1"
-    newQuery = "#{select_} #{from_} #{where_} #{order_}"
-    nuevoPaquete = my_query(newQuery)[0]
-
-    if nuevoPaquete == [] || nuevoPaquete == nil
-      puts " -------------- fin get_paquetes_por_activar -------------- "
-      return { :continuar => false }
+    unless paquete.blank?
+      res.set_data(paquete.first)
     else
-      puts " -------------- fin get_paquetes_por_activar -------------- "
-      return { :continuar => true, :body => nuevoPaquete }
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
+
+    return res 
   end
 
   # ============================================================================================================================================================
   def self.aumentar_secuencia_comprobante(paquete_id)
-    puts " -------------- inicio aumentar_secuencia_comprobante -------------- "
-    paquete = SecuenciaComprobante.find_by_id(paquete_id)
-
-    sigue = { :error => false, :msg => "", :status => 200 }
+    res              = Response.new
+    
+    paquete          = SecuenciaComprobante.find_by_id(paquete_id)
 
     if paquete["secuencia"] == paquete["hasta"]
-      nuevoPac = get_paquetes_por_activar(paquete["tipo_factura_id"])
+      res_nuevo      = get_paquetes_por_activar(paquete["tipo_factura_id"])
 
-      if nuevoPac[:continuar]
-        newPac = SecuenciaComprobante.find_by_id(nuevoPac[:body]["id"])
+      if res_nuevo.status_valid
+        newPac       = res_nuevo.get_data
+
         unless newPac.update({ estado: true })
-          sigue = { :error => true, :msg => "Error activando nuevo paquete", :status => :unprocessable_entity }
+          res.add_msg("Error activando nuevo paquete de comprobantes.")
+          res.set_status(HTTP_STATUS_CODE[:conflict])
         end
       end
-
+      
       paquete.update({ estado: false, usado: true })
     else
       unless paquete.update({ secuencia: paquete[:secuencia] + 1 })
-        sigue = { :error => true, :msg => "Error aumentando el paquete de comprobantes", :status => :unprocessable_entity }
+        res.add_msg("Error aumentando el paquete de comprobantes.")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     end
-    puts " -------------- fin aumentar_secuencia_comprobante -------------- "
-    return sigue
+    
+    return res
   end
 
   # ============================================================================================================================================================
-  def self.activar_nuevo_paquete(tipo_factura)
-    puts " -------------- inicio activar_nuevo_paquete -------------- "
-    sigue = true
-    nuevoPac = get_paquetes_por_activar(tipo_factura)
-    if nuevoPac[:continuar]
-      newPac = SecuenciaComprobante.find_by_id(nuevoPac[:body]["id"])
-      unless newPac.update({ estado: true })
-        sigue = false
+  def self.activar_nuevo_paquete(tipo_factura, nuevo_paquete = {})
+    res = Response.new
+
+    puts "nuevo_paquete        --> ".red + "#{nuevo_paquete.to_json}"
+    puts "nuevo_paquete.blank? --> ".magenta + "#{nuevo_paquete.blank?}"
+
+    res_nuevo = get_paquetes_por_activar(tipo_factura) if nuevo_paquete.blank?
+    puts "BUSCANDO EL NUEVO PAQUETE".green if nuevo_paquete.blank?
+
+    if !nuevo_paquete.blank? || res_nuevo.status_valid 
+      newPac = nuevo_paquete.blank? ? res_nuevo.get_data : nuevo_paquete
+      if newPac.update({ estado: true })
+        res.set_data(newPac)
+      else
+        res.add_msg("Error activando el siguiente paquete de comprobantes registrado.")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     end
-    puts " -------------- fin activar_nuevo_paquete -------------- "
-    return sigue
+    
+    return res
   end
 
   # ============================================================================================================================================================
   def self.ver_si_existen_paquetes_previos(tipo_factura_id)
-    puts " -------------- inicio ver_si_existen_paquetes_previos -------------- "
-    select_ = "select *, true as is_paquete"
-    from_ = "from secuencia_comprobantes"
-    where_ = "where estado = false AND usado = true AND tipo_factura_id = #{tipo_factura_id}"
-    query = "#{select_} #{from_} #{where_}"
-    paquete = my_query(query)[0]
+    res = Response.new
 
-    if paquete == [] || paquete == nil
-      puts " -------------- fin ver_si_existen_paquetes_previos -------------- "
-      return false
-    else
-      puts " -------------- fin ver_si_existen_paquetes_previos -------------- "
-      return true
-    end
+    paquete = SecuenciaComprobante.where("estado = false AND usado = true AND tipo_factura_id = #{tipo_factura_id}")
+
+    res.set_status(HTTP_STATUS_CODE[:conflict]) if paquete.blank?
+
+    return res 
   end
 
   # ============================================================================================================================================================
   def self.ver_si_existen_paquetes_posteriores(tipo_factura_id)
-    puts " -------------- inicio ver_si_existen_paquetes_posteriores -------------- "
+    res = Response.new
+    
+    paquete = SecuenciaComprobante
+    .where("estado = false AND usado = false AND tipo_factura_id = #{tipo_factura_id}")
+    .order("created_at ASC").limit(1)
 
-    select_ = "select *"
-    from_ = "from secuencia_comprobantes"
-    where_ = "where estado = false AND usado = false AND tipo_factura_id = #{tipo_factura_id}"
-    order_ = "ORDER BY created_at ASC LIMIT 1"
-    query = "#{select_} #{from_} #{where_} #{order_}"
-    paquete = my_query(query)[0]
-
-    if paquete == [] || paquete == nil
-      puts " -------------- fin ver_si_existen_paquetes_posteriores -------------- "
-      return { :bool => false, :Paquete => {} }
+    unless paquete.blank?
+      res.set_data(paquete.first)
     else
-      puts " -------------- fin ver_si_existen_paquetes_posteriores -------------- "
-      return { :bool => true, :Paquete => paquete }
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
+
+    return res 
   end
 
   # ============================================================================================================================================================

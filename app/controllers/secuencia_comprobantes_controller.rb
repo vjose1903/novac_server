@@ -51,8 +51,8 @@ class SecuenciaComprobantesController < ApplicationController
   end
   
   def getPaqueteRncByEstado
-    paquete = SecuenciaComprobante.get_paquete_rnc_by_estado(params[:id], params[:estado])
-    render json: paquete, status: paquete[:status]
+    resultado = SecuenciaComprobante.get_paquete_rnc_by_estado(params["id"], params["estado"])
+    resultado.send_response self
   end
   
   # PATCH/PUT /secuencia_comprobantes/1

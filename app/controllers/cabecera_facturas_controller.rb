@@ -2,8 +2,8 @@ include ActionView::Helpers::NumberHelper
 
 class CabeceraFacturasController < ApplicationController
   before_action :set_cabecera_factura, only: [:show, :update, :destroy]
-  before_action :find_secuencia, only: [:create]
-  before_action :find_user, only: [:create]
+  # before_action :find_secuencia, only: [:create]
+  # before_action :find_user, only: [:create]
 
   # GET /cabecera_facturas
   def index
@@ -105,71 +105,75 @@ class CabeceraFacturasController < ApplicationController
   end
 
   # POST /cabecera_facturas
+
   def create
-    CabeceraFactura.transaction do
-      att = cabecera_factura_params
+    resultado = CabeceraFactura.create_factura(params, true)
+		resultado.send_response self
+	end
 
-      num_factura_valid = CabeceraFactura.where({numero_factura: @numero_factura, tipo: att["tipo"], tipo_factura_id: att["tipo_factura_id"] }).blank?
+  # def create
+  #   CabeceraFactura.transaction do
+  #     att = cabecera_factura_params
 
-      if num_factura_valid
-        resultCliente     = { :error => false }
-        resultAgregarNota = { :error => false }
+  #     num_factura_valid = CabeceraFactura.where({numero_factura: @numero_factura, tipo: att["tipo"], tipo_factura_id: att["tipo_factura_id"] }).blank?
 
-        if att["condicion"] == "Crédito" && att["tipo"] == "venta" || att["is_viaje"]
-          resultCliente = Cliente.calculateBalanceCliente(att["cliente_id"], att["total_factura"], "+")
-        end
+  #     if num_factura_valid
+  #       resultCliente     = { :error => false }
+  #       resultAgregarNota = { :error => false }
 
-        # NOTA DE CREDITO
-        if att["is_nota"] && att["tipo_factura_id"] == 5
-          resultCliente = Cliente.calculateBalanceCliente(att["cliente_id"], att["total_factura"].to_f.abs, "-")
-          resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
-        end
+  #       if att["condicion"] == "Crédito" && att["tipo"] == "venta" || att["is_viaje"]
+  #         resultCliente = Cliente.calculateBalanceCliente_(att["cliente_id"], att["total_factura"], "+")
+  #       end
 
-        # NOTA DE DEBITO
-        if att["is_nota"] && att["tipo_factura_id"] == 4
-          resultCliente = Cliente.calculateBalanceCliente(att["cliente_id"], att["total_factura"].to_f.abs, "+")
-          resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura(@factura_aplicada_id, att)
-        end
+  #       # NOTA DE CREDITO
+  #       if att["is_nota"] && att["tipo_factura_id"] == 5
+  #         resultCliente = Cliente.calculateBalanceCliente_(att["cliente_id"], att["total_factura"].to_f.abs, "-")
+  #         resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura_(@factura_aplicada_id, att)
+  #       end
 
-        if resultCliente[:error]
-          render json: resultCliente, status: 400
-          raise ActiveRecord::Rollback
-        elsif resultAgregarNota[:error]
-          render json: resultAgregarNota, status: 400
-          raise ActiveRecord::Rollback
-        else
-          today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+  #       # NOTA DE DEBITO
+  #       if att["is_nota"] && att["tipo_factura_id"] == 4
+  #         resultCliente = Cliente.calculateBalanceCliente_(att["cliente_id"], att["total_factura"].to_f.abs, "+")
+  #         resultAgregarNota = CabeceraFactura.agregarNotaACabeceraFactura_(@factura_aplicada_id, att)
+  #       end
 
-          if today_cuadre.empty?
-            att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
-            att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
-          else
-            att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : CabeceraFactura.calculateNextDay
-            att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
-          end
+  #       if resultCliente[:error]
+  #         render json: resultCliente, status: 400
+  #         raise ActiveRecord::Rollback
+  #       elsif resultAgregarNota[:error]
+  #         render json: resultAgregarNota, status: 400
+  #         raise ActiveRecord::Rollback
+  #       else
+  #         today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
-          att["numero_comprobante"] = @numero_comprobante.upcase
-          att["numero_factura"] = @numero_factura
+  #         if today_cuadre.empty?
+  #           att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : DateTime.now
+  #           att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
+  #         else
+  #           att["fecha_equivalente"] = att["fecha_equivalente"] ? att["fecha_equivalente"] : CabeceraFactura.calculateNextDay
+  #           att["fecha_completada"] = att["condicion"] === "Contado" && !att["is_viaje"] ? att["fecha_equivalente"] : nil
+  #         end
 
-          @cabecera_factura = CabeceraFactura.new(att)
+  #         att["numero_comprobante"] = @numero_comprobante.upcase
+  #         att["numero_factura"] = @numero_factura
 
-          # return render json: { msg: "pruebas", body: cabecera }
-          # raise ActiveRecord::Rollback
+  #         @cabecera_factura = CabeceraFactura.new(att)
+
+  #         # return render json: { msg: "pruebas", body: cabecera }
+  #         # raise ActiveRecord::Rollback
           
-          unless @cabecera_factura.save
-            # render json: @cabecera_factura, status: :created, location: @cabecera_factura
-            render json: @cabecera_factura.errors, status: :unprocessable_entity
-          else
-            update_secuencia
-          end
-        end
-      else
-        render json: { :error => true, :msg => "El número de factura ya existe.", :status => 400 }, status: :unprocessable_entity
-      end
-
-      
-    end
-  end
+  #         unless @cabecera_factura.save
+  #           # render json: @cabecera_factura, status: :created, location: @cabecera_factura
+  #           render json: @cabecera_factura.errors, status: :unprocessable_entity
+  #         else
+  #           update_secuencia
+  #         end
+  #       end
+  #     else
+  #       render json: { :error => true, :msg => "El número de factura ya existe.", :status => 400 }, status: :unprocessable_entity
+  #     end
+  #   end
+  # end
 
   def articuloWasEdited(articulo)
     if calculateDateUTC(articulo["updated_at"]) != calculateDateUTC(articulo["created_at"]) 
@@ -309,7 +313,7 @@ class CabeceraFacturasController < ApplicationController
 
             if factura_tipo != 4 || factura_tipo != "4"
               if articuloSelect["nombre"] != 'Transporte'
-                res_mov = CabeceraFactura.movimientos_de_inventario(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
+                # res_mov = MovimientosInventario.movimientos_de_inventario_(articuloSelect, objD["cantidad_en_unidades"], params[:FACTURA_DE], 'facturacion' , @cabecera_factura, current_user)
 
                 if res_mov[:error]
                   return {:error => false, :msg=> res_mov[:msg] , :status => 400}
@@ -446,7 +450,7 @@ class CabeceraFacturasController < ApplicationController
       actualizando = { :error => false, :msg => "", :status => 200 }
 
       if @actual_paquete_comprobante["is_paquete"]
-        actualizando = SecuenciaComprobante.aumentar_secuencia_comprobante(@actual_paquete_comprobante["id"])
+        actualizando = SecuenciaComprobante.aumentar_secuencia_comprobante_(@actual_paquete_comprobante["id"])
       end
 
       unless actualizando["error"]
@@ -537,7 +541,7 @@ class CabeceraFacturasController < ApplicationController
   def cabecera_factura_params
     params.require(:cabecera_factura).permit(:tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_equivalente, :fecha_vencimiento, :fecha_valida, :numero_comprobante, :numero_factura, :condicion, :Bruto, :forma_pago, :total_factura, :itbis, :descuento, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :costoYgasto,
                                               :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :aplicada_a, :tiene_nota,
-                                              :is_completada, :is_viaje, :fecha_viaje,
+                                              :is_viaje, :fecha_viaje,
                                               detalle_facturas_attributes: [:cabecera_factura_id, :id, :unidad, :articulo_id, :cantidad, :total, :descuento_valor, :descuento_porciento, :itbis, :precio, :descuento_valor, :retirado,
                                                                             :retirado_en_venta, :cantidad_en_unidades, :calcular_saco, :detalle_factura_nota])
   end

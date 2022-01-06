@@ -15,7 +15,9 @@ class MovimientosInventariosController < ApplicationController
 
   # POST /movimientos_inventarios
   def create
-    ActiveRecord::Base.transaction do
+    MovimientosInventario.transaction do
+      # res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, "-", padre.fecha_equivalente.strftime("%d/%m/%Y"), 'conduce', padre)
+
       @movimientos_inventario = MovimientosInventario.new(movimientos_inventario_params)
       m = movimientos_inventario_params
 

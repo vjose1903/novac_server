@@ -1,4 +1,7 @@
 class MovimientosInventario < ApplicationRecord
+  belongs_to :articulo
+  belongs_to :user
+
   def self.movimientos_de_inventario(accion, articulo, medida, cantidad)
     if cantidad == nil
       cantidad = 0
@@ -77,5 +80,70 @@ class MovimientosInventario < ApplicationRecord
         return mov
       end
     end
+  end
+
+
+
+  # --------------------------------------------------------------------------------------------------------------------------------
+  
+  def self.movimientos_de_inventario_(movimiento, operador, fecha_movimiento, accion, padre )
+    res        = Response.new
+    articulo   = Articulo.find_by_id(movimiento["articulo_id"])
+
+    if articulo.nombre != 'Transporte'
+
+    
+      mov      = eval("#{articulo["existencia"]} #{operador} #{movimiento["cantidad_en_unidades"]}")
+
+      if operador == "-" # --------- SALIDA ---------
+        if mov < 0
+          res.add_msg("Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. ")
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          return res 
+        end
+      end
+      # fecha_fact = fecha_movimiento.fecha_equivalente.strftime("%d/%m/%Y")
+
+
+      motivo = ""
+
+      motivo = "#{operador == "+" ? "Compra" : "Venta"} de mercancia en la factura con el ncf: #{padre['numero_comprobante']} de la fecha #{fecha_movimiento}" if accion == 'factura'
+      motivo = "Salida de mercancia en el conduce con el número: #{padre['numero_conduce']} de la fecha #{fecha_movimiento}" if accion == 'conduce'
+      motivo = padre.motivo if accion == 'movimiento'
+
+      movimientos_inventario                          = MovimientosInventario.new()
+      
+      movimientos_inventario.user_id                  = get_current_user["id"]
+      movimientos_inventario.articulo_id              = movimiento["articulo_id"]
+      movimientos_inventario.cantidad                 = movimiento["cantidad"]
+      movimientos_inventario.cantidad_en_unidades     = movimiento["cantidad_en_unidades"]
+      movimientos_inventario.accion                   = operador == "+" ? "entrada" : "salida"
+      movimientos_inventario.motivo                   = motivo
+      movimientos_inventario.medida                   = movimiento["medida"] || movimiento["unidad"]
+      movimientos_inventario.tipo_salida              = accion == 'movimiento' ? padre.tipo_salida : nil
+      
+      puts "movimientos_inventario ".yellow  + "#{movimientos_inventario.to_json}"
+      unless movimientos_inventario.save!
+        res.add_msgs(movimientos_inventario.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        return res
+      end
+
+      articulo.existencia = mov
+      
+      if articulo.save!
+        puts "::::::::::::::::::::::::::::::::::::::::::"
+        puts "::::                                  ::::"
+        puts "::::         #{operador == "-" ? "SALIDA " : "ENTRADA"} EXITOSA           ::::"
+        puts "::::                                  ::::"
+        puts "::::::::::::::::::::::::::::::::::::::::::"
+      else
+        res.add_msgs(articulo.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+      
+    end
+
+    return res
   end
 end

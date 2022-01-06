@@ -1,13 +1,7 @@
 class CabeceraConduce < ApplicationRecord
   belongs_to :user
   belongs_to :cliente
-
-  attribute :user
-  attribute :cliente
-
   has_many :detalle_conduces, dependent: :destroy
-  attribute :detalle_conduces
-  accepts_nested_attributes_for :detalle_conduces, :allow_destroy => true
 
   # ========================================================================================================================
 
@@ -25,8 +19,6 @@ class CabeceraConduce < ApplicationRecord
       conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       conduce.cliente_id           = params["cliente_id"]
       conduce.user_id              = get_current_user['id']
-
-      params["detalle_conduces"]   = params["detalle_conduces_attributes"] if params["detalle_conduces_attributes"]
       
       dependencias = [
         {modelo: DetalleConduce, key_object: "detalle_conduces", padre: conduce},

@@ -29,7 +29,7 @@ class DetalleConduce < ApplicationRecord
     
     detalle_conduce.errors.delete(:cabecera_conduce) if !is_save
 
-    res_proceso                            = detalle_conduce.procesos_detalle
+    res_proceso                            = detalle_conduce.procesos_detalle(params, padre)
 
     if res_proceso.status_valid && detalle_conduce.errors.empty? && (!is_save || (is_save && detalle_conduce.save!))
       res.set_data(detalle_conduce)
@@ -61,7 +61,7 @@ class DetalleConduce < ApplicationRecord
   end
 
 
-  def procesos_detalle
+  def procesos_detalle(params, padre)
     res = Response.new()
     
     if self.detalle_factura_id
@@ -80,19 +80,11 @@ class DetalleConduce < ApplicationRecord
     end
     
     if res.status_valid
-      articulo = self.articulo
-      mov      = articulo.existencia - self.cantidad_en_unidades
+      res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, "-", padre.fecha_equivalente.strftime("%d/%m/%Y"), 'conduce', padre)
       
-      if mov < 0
-        res.add_msg("Cantidad introducida para el articulo #{articulo.nombre.titleize} ahora excede la cantidad disponible en inventario. ") 
+      unless res_movimiento.status_valid
+        res.add_msgs(res_movimiento.get_msgs.to_a) 
         res.set_status(HTTP_STATUS_CODE[:conflict])
-      else
-
-        unless articulo.update({ existencia: mov })
-          res.add_msgs(articulo.errors.to_a)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
-        end
-
       end
 
       return res

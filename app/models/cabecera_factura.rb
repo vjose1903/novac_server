@@ -4,13 +4,205 @@ class CabeceraFactura < ApplicationRecord
   belongs_to :cliente, optional: true
   belongs_to :user
 
-  attribute :cliente
-  attribute :suplidor
-  attribute :tipo_factura
-
   has_many :detalle_facturas, dependent: :destroy
-  attribute :detalle_facturas
-  accepts_nested_attributes_for :detalle_facturas, :allow_destroy => true
+
+  # ===================================================================================================================================================
+  def self.create_factura(params , is_save=false)
+    CabeceraFactura.transaction do
+      res                                  = Response.new
+      res_secuencias                       = CabeceraFactura.find_secuencias(params)
+
+      if res_secuencias.status_valid
+
+        data_secuencias                    = res_secuencias.get_data
+        num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params["tipo"], tipo_factura_id: params["tipo_factura_id"] }).blank?
+        
+        if num_factura_blank
+          
+          res_valid                        = Response.new
+          
+          if params["condicion"] == "Crédito" && params["tipo"] == "venta" || params["is_viaje"]
+            res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
+          end
+          
+          # NOTA DE CREDITO
+          if res_valid.status_valid && params["is_nota"] && params["tipo_factura_id"] == 5
+            res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"].to_f.abs, "-")
+            res_valid                      = CabeceraFactura.agregar_nota_a_CabeceraFactura(params["factura_id"], params)                       if res_valid.status_valid
+          end
+          
+          # NOTA DE DEBITO
+          if res_valid.status_valid && params["is_nota"] && params["tipo_factura_id"] == 4
+            res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"].to_f.abs, "+")
+            res_valid                      = CabeceraFactura.agregar_nota_a_CabeceraFactura(params["factura_id"], params)                       if res_valid.status_valid
+          end
+          
+          if res_valid.status_valid
+
+            today_cuadre                              = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+            cabecera_factura                          = CabeceraFactura.new()
+          
+            cabecera_factura.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : today_cuadre.blank? ? DateTime.now : CabeceraFactura.calculateNextDay
+            cabecera_factura.fecha_completada         = params["condicion"] === "Contado" && !params["is_viaje"] ? params["fecha_equivalente"] : nil
+            cabecera_factura.user_id                  = get_current_user["id"]
+            cabecera_factura.numero_comprobante       = data_secuencias[:numero_comprobante]
+            cabecera_factura.numero_factura           = data_secuencias[:numero_factura]
+            cabecera_factura.estado                   = true
+
+            cabecera_factura.tipo_factura_id          = params["tipo_factura_id"]
+            cabecera_factura.suplidor_id              = params["suplidor_id"]
+            cabecera_factura.cliente_id               = params["cliente_id"]
+            cabecera_factura.fecha_viaje              = params["fecha_viaje"]
+            cabecera_factura.fecha_vencimiento        = params["fecha_vencimiento"]
+            cabecera_factura.fecha_valida             = params["fecha_valida"]
+            cabecera_factura.condicion                = params["condicion"]
+            cabecera_factura.forma_pago               = params["forma_pago"]
+            cabecera_factura.total_factura            = params["total_factura"]
+            cabecera_factura.itbis                    = params["itbis"]
+            cabecera_factura.descuento                = params["descuento"]
+            cabecera_factura.Bruto                    = params["Bruto"]
+            cabecera_factura.tipo                     = params["tipo"]
+            cabecera_factura.NoCliente_nombre         = params["NoCliente_nombre"]
+            cabecera_factura.NoCliente_direccion      = params["NoCliente_direccion"]
+            cabecera_factura.costoYgasto              = params["costoYgasto"]
+            cabecera_factura.pagada                   = params["pagada"]
+            cabecera_factura.vendedor_id              = params["vendedor_id"]
+            cabecera_factura.balance                  = params["balance"]
+            cabecera_factura.devuelta                 = params["devuelta"]
+            cabecera_factura.is_adelantada            = params["is_adelantada"]
+            cabecera_factura.is_nota                  = params["is_nota"]
+            cabecera_factura.is_viaje                 = params["is_viaje"]
+            cabecera_factura.tiene_nota               = params["tiene_nota"]
+            cabecera_factura.aplicada_a               = params["aplicada_a"]
+
+            # TODO: seguir aqui poniendo las dependencias
+            dependencias = [ {modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura} ]
+            
+            res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
+              cabecera_factura.detalle_facturas   = dependencia_data if key_object == 'detalle_facturas'
+            }
+
+            if res.status_valid && cabecera_factura.errors.empty? && (!is_save || (is_save && cabecera_factura.save!))
+
+              res_valid                = CabeceraFactura.update_secuencias(params, data_secuencias)
+      
+              if res_valid.status_valid
+      
+                # res.set_data(serialize_parser(cabecera_factura, {all: true}))
+                res.set_data(cabecera_factura, {all: true})
+                res.add_msg("factura creada correctamente.")
+              else
+                res.add_msgs(res_valid.get_msgs)
+                res.set_status(HTTP_STATUS_CODE[:conflict])
+              end
+      
+            else
+              res.add_msgs(cabecera_factura.errors.to_a)
+              res.set_status(HTTP_STATUS_CODE[:conflict])
+            end
+
+          else
+            res.add_msgs(res_valid.get_msgs)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+  
+        else
+          res.add_msg("El número de factura ya existe.")
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
+      else
+        res.add_msgs(res_secuencias.get_msgs.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+      
+      return res 
+      raise ActiveRecord::Rollback unless res.status_valid
+
+    end
+  end
+  # ===================================================================================================================================================
+  def self.find_secuencias(params)
+    res = Response.new
+
+    data_secuencias = { 
+      :actual_paquete_comprobante => nil,
+      :actual_secuencia_factura   => nil,
+      :numero_factura             => nil,
+      :numero_comprobante         => nil,
+    }
+
+    if params["tipo"] == "venta" || params["is_nota"]
+      
+      res_actual_paquete                           = SecuenciaComprobante.get_paquete_rnc_by_estado(params["tipo_factura_id"], true)
+
+      return res_actual_paquete unless res_actual_paquete.status_valid
+
+      data_secuencias[:actual_paquete_comprobante] = res_actual_paquete.get_data
+      next_secuencia_comprobante = data_secuencias[:actual_paquete_comprobante]["secuencia"]
+    end
+
+    tipoFactura = TipoFactura.find_by_id(params["tipo_factura_id"])
+
+    data_secuencias[:actual_secuencia_factura]     = SecuenciaFactura.find_by_tipo_factura_id(params["tipo_factura_id"]) if params["tipo"] == "venta" || params["is_nota"]
+    data_secuencias[:actual_secuencia_factura]     = SecuenciaFactura.find_by_tipo_factura_id(params["FACTURA_DE"])      if params["tipo"] == "compra"
+    data_secuencias[:numero_factura]               = data_secuencias[:actual_secuencia_factura]["secuencia"] + 1
+
+    if params["FACTURA_DE"] == 14 # COMPRA
+      data_secuencias[:numero_comprobante]         = cabecera_factura_params["numero_comprobante"].upcase
+    else # VENTA / NOTAS
+      data_secuencias[:numero_comprobante]         = "B#{tipoFactura["referencia"]}#{"%08d" % next_secuencia_comprobante}"
+    end
+
+    res.set_data(data_secuencias)
+    return res 
+  end
+
+  # ===================================================================================================================================================
+  def self.update_secuencias(params, data_secuencias)
+    res   = Response.new
+    if params["FACTURA_DE"] == 14
+      # --------- COMPRA ---------
+      unless data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
+        res.add_msg("Error actualizando la tabla de secuencia de Factura Compra")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+    else
+      # --------- VENTA / NOTA ---------
+      puts "data_secuencias[:actual_paquete_comprobante][:is_paquete] ".magenta + "#{data_secuencias[:actual_paquete_comprobante][:is_paquete]}" 
+
+      res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if data_secuencias[:actual_paquete_comprobante][:is_paquete]
+
+      if res_aumento.status_valid
+        
+        unless data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
+          res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+        
+      else
+        res.add_msgs(res_aumento.get_msgs.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+    end
+
+    return res
+  end
+  # ===================================================================================================================================================
+
+  def self.ajustarBalanceCliente(params)
+    res = Response.new
+
+    resultCliente    = Cliente.calculate_balance_cliente(params.cliente_id, params["total_factura"], "")
+    
+    unless resultCliente.status_valid
+      res.add_msg(resultCliente.get_msgs.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+    
+    return res 
+  end
+
   # ===================================================================================================================================================
   def is_contado
     return self.condicion == 'Contado'
@@ -256,7 +448,7 @@ class CabeceraFactura < ApplicationRecord
         calculo_para_balancear_cliente = factura_nueva[:total_factura] - factura_original[:total_factura]
         puts "calculo_para_balancear_cliente ==> ".yellow + "#{calculo_para_balancear_cliente.to_json}"
 
-        resultCliente = Cliente.calculateBalanceCliente(factura_original[:cliente_id], calculo_para_balancear_cliente, "+")
+        resultCliente = Cliente.calculate_balance_cliente(factura_original[:cliente_id], calculo_para_balancear_cliente, "+")
         return {:error => true,  :msg => resultCliente[:msg] ,:status => resultCliente[:status] } if resultCliente[:error]
       end
       
@@ -286,7 +478,8 @@ class CabeceraFactura < ApplicationRecord
             # (objArticulo,cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_) 
 
           # si voy a editar una factura de compra buscar el movimiento de inventario que se genero cuando se compro la factura y borrarlo
-          CabeceraFactura.movimientos_de_inventario(art, detalle['cantidad_en_unidades'], @factura_de, 'editar_factura', factura_original, user_current)
+          operador = @factura_de == 14 ? "+" : "-"
+          MovimientosInventario.movimientos_de_inventario_(detalle, operador, factura_original[:fecha_equivalente], 'factura', factura_original)
         end
         
       end
@@ -329,67 +522,6 @@ class CabeceraFactura < ApplicationRecord
     detalle_['cabecera_factura_id']    = fact_id
     
     return detalle_
-  end
-  
-  # ====================================================================================================
-  
-  def self.movimientos_de_inventario(objArticulo, cantidad_en_unidades, factura_de, tipo, cabecera_factura, user_)
-
-    res = { :error => false, :msg => '' }
-    articulo = Articulo.find_by_id(objArticulo["id"])
-    
-    operador = factura_de == 13 ? '-' : '+' 
-    puts "cantidad_en_unidades --------------> ".blue + "#{cantidad_en_unidades}"
-    puts "articulo --------------------------> ".red + "#{articulo.to_json}"
-    puts "articulo[existencia] --------------> ".yellow + "#{articulo["existencia"]}"
-
-    mov = eval("#{articulo["existencia"]} #{operador} #{cantidad_en_unidades}")
-
-    if factura_de == 13
-      # --------- VENTA ---------
-      if articulo.nombre != 'Transporte'
-        if mov < 0
-
-          mensaje = "Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. "
-          return { :error => true, msg: mensaje }
-        end
-      end
-    else
-      # --------- COMPRA ---------
-      fecha_fact = cabecera_factura.fecha_equivalente.strftime("%d/%m/%Y")
-
-      obj = {
-        user_id: user_.id,
-        articulo_id: articulo["id"],
-        cantidad: cantidad_en_unidades,
-        accion: "entrada",
-        motivo: "Compra de mercancia en la factura con el ncf: " + cabecera_factura['numero_comprobante'] + " de la fecha " + fecha_fact,
-        medida: "Unidades",
-        tipo_salida: nil,
-      }
-
-      movimientos_inventario = MovimientosInventario.new(obj)
-
-      unless movimientos_inventario.save!
-        return { :error => true, msg:movimientos_inventario.errors }
-      end
-    end
-    if articulo.nombre != 'Transporte'
-      articulo.existencia = mov
-      
-      if articulo.save!
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-        puts "::::                                  ::::"
-        puts "::::         #{factura_de == 13?'VENTA ' : 'COMPRA'} EXITOSA           ::::"
-        puts "::::                                  ::::"
-        puts "::::::::::::::::::::::::::::::::::::::::::"
-      else
-        return { :error => true, msg: articulo.errors }
-        
-      end
-    end
-
-    return res
   end
 
   # ====================================================================================================
@@ -476,7 +608,7 @@ class CabeceraFactura < ApplicationRecord
         factura['total_factura'] += nota['total_factura']
         factura['balance']       += nota['total_factura']
         # if descripcion == 'credito'
-        #     att['total_factura'] -= nota['total_factura']
+        #     params['total_factura'] -= nota['total_factura']
         # elsif descripcion == 'contado'
         # end
     end
@@ -493,12 +625,14 @@ end
 
       factura           = CabeceraFactura.find_by_id(id)
       balance           = factura["balance"]
+      puts "factura ".yellow + "#{factura.to_json}"
 
       # total_facturado   = factura["total_factura"]
       # total_facturado   = recalcularMonto(factura)["total_facturado"] if factura.tiene_nota
 
       sumatoria         = 0
-
+      puts "montoRecibido ".red + "#{montoRecibido}"
+      puts "balance       ".green + "#{balance}"
       if montoRecibido.to_f > balance
         res.add_msg("El monto ingresado para la factura: #{factura.numero_comprobante}, es mayor al balance de la factura")
         res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -511,42 +645,19 @@ end
   end
 
   # =====================================================================================================================
-
-  # =====================================================================================================================
-  def self.agregarNotaACabeceraFactura(id, nota)
-    puts " -------------- Inicio agregarNotaACabeceraFactura -------------- "
-
-    factura = CabeceraFactura.find_by_id(id)
+  def self.agregar_nota_a_CabeceraFactura(id, nota)
+    res                 = Response.new
+    factura             = CabeceraFactura.find_by_id(id)
+    recalculo           = CabeceraFactura.recalcularMonto(factura)
     
-    monto_editado_por_notas = 0
-    notas = CabeceraFactura.where({ aplicada_a: factura["numero_comprobante"] })
-    notas.each do |nota|
-      if nota["tipo_factura_id"] === 5
-        monto_editado_por_notas = monto_editado_por_notas - (nota["total_factura"].to_d).abs
-      elsif nota["tipo_factura_id"] === 4
-        monto_editado_por_notas = monto_editado_por_notas + (nota["total_factura"].to_d).abs
-      end
-    end
-    puts "factura['total_factura'] --> ".red + "#{factura["total_factura"]}"
-    puts "monto_editado_por_notas --> ".red + "#{monto_editado_por_notas}"
-
-    chequeo = factura["total_factura"] + monto_editado_por_notas
-
-    puts "CHEQUEO --> ".red + "#{chequeo}"
-    puts "NOTA['TOTAL_FACTURA'] --> ".red + "#{ (nota["total_factura"].to_d).abs }"
-    
-    if chequeo < 1 || (nota["total_factura"].to_d).abs == chequeo 
-      factura.estado = false
-    end
-    
-    factura.tiene_nota = true
+    factura.estado      = false  if recalculo[:total_facturado] < 1 || (nota["total_factura"].to_d).abs == recalculo[:total_facturado] 
+    factura.tiene_nota  = true
 
     unless factura.save!
-      puts " -------------- fin agregarNotaACabeceraFactura -------------- "
-      return { :error => true, :msg => "Error agregando nota la factura", :status => 400 }
-    else
-      puts " -------------- fin agregarNotaACabeceraFactura -------------- "
-      return { :error => false, :tiene_nota => true }
+      res.add_msg("Error agregando nota la factura")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
+
+    return res 
   end
 end

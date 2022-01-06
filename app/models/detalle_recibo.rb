@@ -16,6 +16,7 @@ class DetalleRecibo < ApplicationRecord
     
     res_valid                                   = CabeceraFactura.calculateNextBalanceFactura(params["cabecera_factura_id"], params["deposito"])
     calculo_cabecera                            = res_valid.get_data
+
     
     if res_valid.status_valid
       
@@ -48,6 +49,7 @@ class DetalleRecibo < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
     return res
+    raise ActiveRecord::Rollback unless res.status_valid
   end
   
   #  --------------------------------------------------------------------------------------------------------------------------------
@@ -56,8 +58,8 @@ class DetalleRecibo < ApplicationRecord
     res = Response.new
     
     last_recibo = DetalleRecibo.get_last_recibo_by_cabecera_factura(self.cabecera_factura_id)
-
-    if !last_recibo.nil? && last_recibo.update({ is_ultimo: false })
+    
+    if !last_recibo.nil? && !last_recibo.update({ is_ultimo: false })
       res.add_msgs(last_recibo.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -84,10 +86,10 @@ class DetalleRecibo < ApplicationRecord
     res = Response.new
 
     cabecera_factura = self.cabecera_factura
-    resultCliente = Cliente.calculateBalanceCliente(cabecera_factura.cliente_id, self.deposito, "-")
+    resultCliente    = Cliente.calculate_balance_cliente(cabecera_factura.cliente_id, self.deposito, "-")
     
-    if resultCliente[:error]
-      res.add_msg(resultCliente[:msg])
+    unless resultCliente.status_valid
+      res.add_msg(resultCliente.get_msgs.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
     

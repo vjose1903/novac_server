@@ -34,9 +34,10 @@ class Cliente < ApplicationRecord
       cliente.vendedor_id          = params["vendedor_id"]
       cliente.balance              = params["balance"] ? params["balance"] : 0
       cliente.estado               = true
-
       
-      if cliente.errors.empty? && cliente.valid?
+      cliente.valid?
+      
+      if cliente.errors.empty? 
         dependencias = [{modelo:DocumentoDeIdentidad, key_object:"documentos_de_identidad", padre:cliente}]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
@@ -51,7 +52,6 @@ class Cliente < ApplicationRecord
         end
       end
       
-      puts "cliente.errors.to_a ==>  ".red  + "#{cliente.errors.to_a}"
       unless cliente.errors.empty?
         
         res.add_msgs(cliente.errors.to_a)
@@ -110,36 +110,27 @@ class Cliente < ApplicationRecord
   end
     # =========================================================================================================================================================
     
-  def self.calculateBalanceCliente(id, totalFactura, operacion)
+  def self.calculate_balance_cliente(id, totalFactura, operacion)
 
-    unless id
-      return { :error => false, :balance => 0 }
-    else  
-      cliente = Cliente.find_by_id(id)
-      balance = 0
-      
-      balance = cliente["balance"] unless cliente["balance"].nil?
-        
+    res = Response.new
 
-      sumatoria = 0
-      if operacion == "+"
-        sumatoria = balance + totalFactura.to_f
-      else
-        if totalFactura.to_f > balance
-          return { :error => true, :msg => "El monto ingresado es mayor al balance del cliente", :status => 400 }
-        else
-          sumatoria = balance - totalFactura.to_f
-        end
-      end
-      sumatoria = sumatoria.to_d.truncate(2).to_f
-
-      unless cliente.update({ balance: sumatoria })
-        return { :error => true, :msg => "Error actualizanco el balance del cliente", :status => 400 }
-      else
-        return { :error => false, :balance => sumatoria }
-      end
-
+    cliente          = Cliente.find_by_id(id)
+    balance          = cliente["balance"].nil? ? 0 : cliente["balance"]
+    
+    if operacion == "-" && totalFactura.to_f > balance
+      res.add_msg("El monto ingresado es mayor al balance del cliente")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
     end
+    
+    new_balance      = eval "#{balance} #{operacion} #{totalFactura.to_f}"
+    new_balance      = new_balance.to_d.truncate(2).to_f
+    
+    unless cliente.update({ balance: new_balance })
+      res.add_msgs(cliente.errors.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+    return res
   end
 
 end

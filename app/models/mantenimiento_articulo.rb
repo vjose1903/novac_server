@@ -8,12 +8,12 @@ class MantenimientoArticulo < ApplicationRecord
     MantenimientoArticulo.transaction do
       res = Response.new
 
-      usuario_actual                         = get_current_user
+      
       historico                              = MantenimientoArticulo.new()
       secuencia                              = (MantenimientoArticulo.last.id + 1) || 0
 
       historico.articulo_id                  = parametros["id"]
-      historico.user_id                      = usuario_actual.id
+      historico.user_id                      = get_current_user['id']
       historico.ant_nombre                   = parametros["nombre"]
       historico.ant_tipoArticuloId           = parametros["tipo_articulo_id"]
       historico.ant_medida                   = parametros["medida"]
@@ -65,14 +65,6 @@ class MantenimientoArticulo < ApplicationRecord
   # ============================================================================================================================================================
   
   def self.get_historico_by_date_mayor_or_menor(date, articulo_id, operador, order)
-    # select_ = "select *, tipo_articulos.descripcion as descripcion"
-    # from_ = "from mantenimiento_articulos"
-    # joins_ = 'inner join tipo_articulos on mantenimiento_articulos."ant_tipoArticuloId"= tipo_articulos.id'
-    # where_ = "where mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}"
-    # order_ = "ORDER BY mantenimiento_articulos.id #{order}"
-    # query = "#{select_} #{from_} #{joins_} #{where_} #{order_} limit 1"
-    puts "date ==> ".red + "#{date}"
-
     historico = MantenimientoArticulo
     .where("mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}")
     .order("mantenimiento_articulos.id #{order}").limit(1)
