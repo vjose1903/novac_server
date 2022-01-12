@@ -1,15 +1,15 @@
 class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
-  attribute :id,                        if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :articulo_id,               if: Proc.new { self.personalizar_parametros('articulo_id') || self.personalizar_parametros('all') }
-  attribute :cantidad,                  if: Proc.new { self.personalizar_parametros('cantidad') || self.personalizar_parametros('all') }
-  attribute :costo,                     if: Proc.new { self.personalizar_parametros('costo') || self.personalizar_parametros('all') }
-  attribute :articulo_combo,            if: Proc.new { self.personalizar_parametros('articulo_combo') || self.personalizar_parametros('all') }
-  attribute :precio,                    if: Proc.new { self.personalizar_parametros('precio') || self.personalizar_parametros('all') }
-  attribute :medida,                    if: Proc.new { self.personalizar_parametros('medida') || self.personalizar_parametros('all') }
+  attribute :id,                        if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :articulo_id,               if: Proc.new { self.get_param('articulo_id') || self.get_param('all') }
+  attribute :cantidad,                  if: Proc.new { self.get_param('cantidad') || self.get_param('all') }
+  attribute :costo,                     if: Proc.new { self.get_param('costo') || self.get_param('all') }
+  attribute :articulo_combo,            if: Proc.new { self.get_param('articulo_combo') || self.get_param('all') }
+  attribute :precio,                    if: Proc.new { self.get_param('precio') || self.get_param('all') }
+  attribute :medida,                    if: Proc.new { self.get_param('medida') || self.get_param('all') }
 
-  attribute :nombre,                    if: Proc.new { self.personalizar_parametros('nombre') || self.personalizar_parametros('all') }
-  attribute :existencia,                if: Proc.new { self.personalizar_parametros('existencia') || self.personalizar_parametros('all') }
-  attribute :contenido,                 if: Proc.new { self.personalizar_parametros('contenido') || self.personalizar_parametros('all') }
+  attribute :nombre,                    if: Proc.new { self.get_param('nombre') || self.get_param('all') }
+  attribute :existencia,                if: Proc.new { self.get_param('existencia') || self.get_param('all') }
+  attribute :contenido,                 if: Proc.new { self.get_param('contenido') || self.get_param('all') }
 
   def nombre
     @articulo_combo = Articulo.find_by_id(object.articulo_combo)
@@ -87,7 +87,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   end
   
 
-  def personalizar_parametros(col)
+  def get_param(col)
     return @instance_options[:"#{col}"]
   end
 end

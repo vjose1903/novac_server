@@ -1,46 +1,49 @@
 class CabeceraFacturaSerializer < ActiveModel::Serializer
-  attribute :id,                                             if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :tipo_factura_id,                                if: Proc.new { self.personalizar_parametros('tipo_factura_id') || self.personalizar_parametros('all') }
-  attribute :suplidor_id,                                    if: Proc.new { self.personalizar_parametros('suplidor_id') || self.personalizar_parametros('all') }
-  attribute :cliente_id,                                     if: Proc.new { self.personalizar_parametros('cliente_id') || self.personalizar_parametros('all') }
-  attribute :user_id,                                        if: Proc.new { self.personalizar_parametros('user_id') || self.personalizar_parametros('all') }
-  attribute :fecha_viaje,                                    if: Proc.new { self.personalizar_parametros('fecha_viaje') || self.personalizar_parametros('all') }
-  attribute :fecha_equivalente,                              if: Proc.new { self.personalizar_parametros('fecha_equivalente') || self.personalizar_parametros('all') }
-  attribute :fecha_vencimiento,                              if: Proc.new { self.personalizar_parametros('fecha_vencimiento') || self.personalizar_parametros('all') }
-  attribute :fecha_valida,                                   if: Proc.new { self.personalizar_parametros('fecha_valida') || self.personalizar_parametros('all') }
-  attribute :fecha_completada,                               if: Proc.new { self.personalizar_parametros('fecha_completada') || self.personalizar_parametros('all') }
-  attribute :numero_comprobante,                             if: Proc.new { self.personalizar_parametros('numero_comprobante') || self.personalizar_parametros('all') }
-  attribute :numero_factura,                                 if: Proc.new { self.personalizar_parametros('numero_factura') || self.personalizar_parametros('all') }
-  attribute :condicion,                                      if: Proc.new { self.personalizar_parametros('condicion') || self.personalizar_parametros('all') }
-  attribute :forma_pago,                                     if: Proc.new { self.personalizar_parametros('forma_pago') || self.personalizar_parametros('all') }
-  attribute :total_factura,                                  if: Proc.new { self.personalizar_parametros('total_factura') || self.personalizar_parametros('all') }
-  attribute :itbis,                                          if: Proc.new { self.personalizar_parametros('itbis') || self.personalizar_parametros('all') }
-  attribute :descuento,                                      if: Proc.new { self.personalizar_parametros('descuento') || self.personalizar_parametros('all') }
-  attribute :Bruto,                                          if: Proc.new { self.personalizar_parametros('Bruto') || self.personalizar_parametros('all') }
-  attribute :estado,                                         if: Proc.new { self.personalizar_parametros('estado') || self.personalizar_parametros('all') }
-  attribute :tipo,                                           if: Proc.new { self.personalizar_parametros('tipo') || self.personalizar_parametros('all') }
-  attribute :NoCliente_nombre,                               if: Proc.new { self.personalizar_parametros('NoCliente_nombre') || self.personalizar_parametros('all') }
-  attribute :NoCliente_direccion,                            if: Proc.new { self.personalizar_parametros('NoCliente_direccion') || self.personalizar_parametros('all') }
-  attribute :costoYgasto,                                    if: Proc.new { self.personalizar_parametros('costoYgasto') || self.personalizar_parametros('all') }
-  attribute :pagada,                                         if: Proc.new { self.personalizar_parametros('pagada') || self.personalizar_parametros('all') }
-  attribute :vendedor_id,                                    if: Proc.new { self.personalizar_parametros('vendedor_id') || self.personalizar_parametros('all') }
-  attribute :balance,                                        if: Proc.new { self.personalizar_parametros('balance') || self.personalizar_parametros('all') }
-  attribute :devuelta,                                       if: Proc.new { self.personalizar_parametros('devuelta') || self.personalizar_parametros('all') }
-  attribute :is_adelantada,                                  if: Proc.new { self.personalizar_parametros('is_adelantada') || self.personalizar_parametros('all') }
-  attribute :is_nota,                                        if: Proc.new { self.personalizar_parametros('is_nota') || self.personalizar_parametros('all') }
-  attribute :is_viaje,                                       if: Proc.new { self.personalizar_parametros('is_viaje') || self.personalizar_parametros('all') }
-  attribute :tiene_nota,                                     if: Proc.new { self.personalizar_parametros('tiene_nota') || self.personalizar_parametros('all') }
-  attribute :aplicada_a,                                     if: Proc.new { self.personalizar_parametros('aplicada_a') || self.personalizar_parametros('all') }
+  attribute :id,                                             if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :tipo_factura_id,                                if: Proc.new { self.get_param('tipo_factura_id') || self.get_param('all') }
+  attribute :suplidor_id,                                    if: Proc.new { self.get_param('suplidor_id') || self.get_param('all') }
+  attribute :cliente_id,                                     if: Proc.new { self.get_param('cliente_id') || self.get_param('all') }
+  attribute :user_id,                                        if: Proc.new { self.get_param('user_id') || self.get_param('all') }
+  attribute :fecha_viaje,                                    if: Proc.new { self.get_param('fecha_viaje') || self.get_param('all') }
+  attribute :fecha_equivalente,                              if: Proc.new { self.get_param('fecha_equivalente') || self.get_param('all') }
+  attribute :fecha_vencimiento,                              if: Proc.new { self.get_param('fecha_vencimiento') || self.get_param('all') }
+  attribute :fecha_valida,                                   if: Proc.new { self.get_param('fecha_valida') || self.get_param('all') }
+  attribute :fecha_completada,                               if: Proc.new { self.get_param('fecha_completada') || self.get_param('all') }
+  attribute :numero_comprobante,                             if: Proc.new { self.get_param('numero_comprobante') || self.get_param('all') }
+  attribute :numero_factura,                                 if: Proc.new { self.get_param('numero_factura') || self.get_param('all') }
+  attribute :condicion,                                      if: Proc.new { self.get_param('condicion') || self.get_param('all') }
+  attribute :forma_pago,                                     if: Proc.new { self.get_param('forma_pago') || self.get_param('all') }
+  attribute :total_factura,                                  if: Proc.new { self.get_param('total_factura') || self.get_param('all') }
+  attribute :itbis,                                          if: Proc.new { self.get_param('itbis') || self.get_param('all') }
+  attribute :descuento,                                      if: Proc.new { self.get_param('descuento') || self.get_param('all') }
+  attribute :Bruto,                                          if: Proc.new { self.get_param('Bruto') || self.get_param('all') }
+  attribute :estado,                                         if: Proc.new { self.get_param('estado') || self.get_param('all') }
+  attribute :tipo,                                           if: Proc.new { self.get_param('tipo') || self.get_param('all') }
+  attribute :NoCliente_nombre,                               if: Proc.new { self.get_param('NoCliente_nombre') || self.get_param('all') }
+  attribute :NoCliente_direccion,                            if: Proc.new { self.get_param('NoCliente_direccion') || self.get_param('all') }
+  attribute :costoYgasto,                                    if: Proc.new { self.get_param('costoYgasto') || self.get_param('all') }
+  attribute :pagada,                                         if: Proc.new { self.get_param('pagada') || self.get_param('all') }
+  attribute :vendedor_id,                                    if: Proc.new { self.get_param('vendedor_id') || self.get_param('all') }
+  attribute :balance,                                        if: Proc.new { self.get_param('balance') || self.get_param('all') }
+  attribute :devuelta,                                       if: Proc.new { self.get_param('devuelta') || self.get_param('all') }
+  attribute :is_adelantada,                                  if: Proc.new { self.get_param('is_adelantada') || self.get_param('all') }
+  attribute :is_nota,                                        if: Proc.new { self.get_param('is_nota') || self.get_param('all') }
+  attribute :is_viaje,                                       if: Proc.new { self.get_param('is_viaje') || self.get_param('all') }
+  attribute :tiene_nota,                                     if: Proc.new { self.get_param('tiene_nota') || self.get_param('all') }
+  attribute :aplicada_a,                                     if: Proc.new { self.get_param('aplicada_a') || self.get_param('all') }
 
-  attribute :tipo_factura,                                   if: Proc.new { self.personalizar_parametros('tipo_factura') || self.personalizar_parametros('all') }
+  attribute :tipo_factura,                                   if: Proc.new { self.get_param('tipo_factura') || self.get_param('all') }
   
-  attribute :detalle_facturas,                               if: Proc.new { self.personalizar_parametros('detalle_facturas') || self.personalizar_parametros('all') }
-  attribute :cliente,                                        if: Proc.new { !object.cliente.nil? && (self.personalizar_parametros('cliente') || self.personalizar_parametros('all')) }
-  attribute :suplidor,                                       if: Proc.new { !object.suplidor.nil? && (self.personalizar_parametros('suplidor') || self.personalizar_parametros('all')) }
+  attribute :detalle_facturas,                               if: Proc.new { self.get_param('detalle_facturas') || self.get_param('all') }
+  attribute :cliente,                                        if: Proc.new { self.get_param('cliente') || self.get_param('all') }
+  attribute :suplidor,                                       if: Proc.new { self.get_param('suplidor') || self.get_param('all') }
+  attribute :usuario,                                        if: Proc.new { self.get_param('usuario') || self.get_param('all') }
+  attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
+  attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
+  attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
 
   
   def tipo_factura
-    puts "TOY AQUIIIII".yellow
     object.tipo_factura.descripcion.titleize
   end
 
@@ -48,24 +51,74 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     serialize_parser(object.detalle_facturas, {all: true})
   end
 
+  
   def cliente
     cliente = {}
-    cliente["nombre"]            = object.cliente.nombre
-    cliente["telefono"]          = object.cliente.telefono
-    cliente["direccion"]         = object.cliente.direccion
-    cliente["rnc"]               = object.cliente.documentos_de_identidad.find_by_principal(true)["documento"]
+    unless object.cliente.blank?
+      cliente["nombre"]            = object.cliente.nombre.capitalize 
+      cliente["nombre"]           += " #{object.cliente.apellido.capitalize}" unless object.cliente.apellido.blank?
+      cliente["telefono"]          = object.cliente.telefono
+      cliente["direccion"]         = object.cliente.direccion
+      cliente["rnc"]               = object.cliente.documentos_de_identidad.find_by_principal(true)["documento"]
+    end
     cliente
   end
-
+  
   def suplidor
     suplidor = {}
-    suplidor["nombre"]            = object.suplidor.nombre
-    suplidor["direccion"]         = object.suplidor.direccion
-    suplidor["rnc"]               = object.suplidor.documentos_de_identidad.find_by_principal(true)["documento"]
+    unless object.suplidor.blank?
+      suplidor["nombre"]            = object.suplidor.nombre.capitalize 
+      suplidor["direccion"]         = object.suplidor.direccion
+      suplidor["rnc"]               = object.suplidor.documentos_de_identidad.find_by_principal(true)["documento"]
+    end
     suplidor
   end
   
-  def personalizar_parametros(col)
+  def usuario
+    usuario = "#{object.user.nombre.capitalize}" 
+    usuario += " #{object.user.apellido.capitalize}" unless object.user.apellido.blank?
+    usuario
+  end
+
+  def vendedor
+    vendedor = ""
+    if object.vendedor_id
+      user_vendedor = User.find_by_id(object.vendedor_id)
+      vendedor = "#{user_vendedor.nombre.capitalize}" 
+      vendedor += " #{user_vendedor.apellido.capitalize}" unless user_vendedor.apellido.blank?
+      vendedor
+    end
+    vendedor
+  end
+
+  def notas
+    notas = CabeceraFactura.where({ aplicada_a: object.numero_comprobante })
+    serialize_parser(notas, {all: true})  unless notas.blank?
+    notas
+  end
+
+  def pagos
+    pago_          = DetalleRecibo.where({ cabecera_factura_id: object.id }).order('id DESC')
+    pago_parseo    = []
+
+    if pago_.length > 0
+      pago_parseo  = pago_.map do |detalle_recibo|
+
+        detalle_recibo   = detalle_recibo.as_json
+        recibo           = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
+
+        detalle_recibo["numero_recibo"]     = recibo["numero_recibo"]
+        detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
+        detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
+        detalle_recibo
+      end
+    end
+
+    pago_parseo
+
+  end
+
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 

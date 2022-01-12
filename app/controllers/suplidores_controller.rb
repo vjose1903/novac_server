@@ -3,12 +3,12 @@ class SuplidoresController < ApplicationController
 
   # GET /suplidores
   def index    
-    return Response.new(params, nil, Suplidor.all.where({ estado: true}).order('id DESC'), nil, {}).send_response self
+    return Response.new(params, nil, Suplidor.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
   end
 
   # GET /suplidores/1
   def show
-    return Response.new(params, nil, @suplidor, nil, {}).send_response self
+    return Response.new(params, nil, @suplidor, nil, {all: true}).send_response self
   end 
 
   def getNombresSuplidores

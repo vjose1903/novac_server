@@ -1,22 +1,22 @@
 class UserSerializer < ActiveModel::Serializer
 
-  attribute :id,                        if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :nombre,                    if: Proc.new { self.personalizar_parametros('nombre') || self.personalizar_parametros('all') }
-  attribute :usuario,                   if: Proc.new { self.personalizar_parametros('usuario') || self.personalizar_parametros('all') }
-  attribute :estado,                    if: Proc.new { self.personalizar_parametros('estado') || self.personalizar_parametros('all') }
-  attribute :apellido,                  if: Proc.new { self.personalizar_parametros('apellido') || self.personalizar_parametros('all') }
-  attribute :sexo,                      if: Proc.new { self.personalizar_parametros('sexo') || self.personalizar_parametros('all') }
-  # attribute :fotoPerfil,                if: Proc.new { self.personalizar_parametros('fotoPerfil') || self.personalizar_parametros('all') }
-  attribute :telefono,                  if: Proc.new { self.personalizar_parametros('telefono') || self.personalizar_parametros('all') }
-  attribute :email,                     if: Proc.new { self.personalizar_parametros('email') || self.personalizar_parametros('all') }
-  attribute :fecha_nacimiento,          if: Proc.new { self.personalizar_parametros('fecha_nacimiento') || self.personalizar_parametros('all') }
-  attribute :role,                      if: Proc.new { self.personalizar_parametros('role') || self.personalizar_parametros('all') }
-  attribute :imagen,                    if: Proc.new { self.personalizar_parametros('imagen') || self.personalizar_parametros('all') }
-  attribute :sign_in_count,               if: Proc.new { self.personalizar_parametros('sign_in_count') || self.personalizar_parametros('all') }
-  attribute :documentos_de_identidad,   if: Proc.new { self.personalizar_parametros('documentos_de_identidad') || self.personalizar_parametros('all') }
+  attribute :id,                        if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :nombre,                    if: Proc.new { self.get_param('nombre') || self.get_param('all') }
+  attribute :usuario,                   if: Proc.new { self.get_param('usuario') || self.get_param('all') }
+  attribute :estado,                    if: Proc.new { self.get_param('estado') || self.get_param('all') }
+  attribute :apellido,                  if: Proc.new { self.get_param('apellido') || self.get_param('all') }
+  attribute :sexo,                      if: Proc.new { self.get_param('sexo') || self.get_param('all') }
+  # attribute :fotoPerfil,                if: Proc.new { self.get_param('fotoPerfil') || self.get_param('all') }
+  attribute :telefono,                  if: Proc.new { self.get_param('telefono') || self.get_param('all') }
+  attribute :email,                     if: Proc.new { self.get_param('email') || self.get_param('all') }
+  attribute :fecha_nacimiento,          if: Proc.new { self.get_param('fecha_nacimiento') || self.get_param('all') }
+  attribute :role,                      if: Proc.new { self.get_param('role') || self.get_param('all') }
+  attribute :imagen,                    if: Proc.new { self.get_param('imagen') || self.get_param('all') }
+  attribute :sign_in_count,               if: Proc.new { self.get_param('sign_in_count') || self.get_param('all') }
+  attribute :documentos_de_identidad,   if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
 
-  attribute :nombreCompleto,            if: Proc.new { self.personalizar_parametros('nombreCompleto')  }
-  attribute :vendedor_id,               if: Proc.new { self.personalizar_parametros('vendedor_id')  }
+  attribute :nombreCompleto,            if: Proc.new { self.get_param('nombreCompleto')  }
+  attribute :vendedor_id,               if: Proc.new { self.get_param('vendedor_id')  }
 
   # def fotoPerfil
   #   nil
@@ -44,7 +44,7 @@ class UserSerializer < ActiveModel::Serializer
     object.id
   end
 
-  def personalizar_parametros(col)
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 end

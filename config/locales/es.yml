@@ -29,6 +29,7 @@ es:
     user_p: "Empleados"
     articulo: "Articulo"
     cuadre_caja: "Cuadre de caja"
+    cabecera_factura: "Factura"
 
   errors:
     format: "%{message}"

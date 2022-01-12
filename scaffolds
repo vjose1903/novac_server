@@ -77,9 +77,6 @@ rails g model config_entidad has_user:boolean tipo:string
 
 rails g migration AddEntidadToTablas 
 
-rails g migration AddCamposToIncidencias 
-rails g migration AddCamposToFormulasProductosTerminados
-rails g migration AddCamposToMovimientosInventarios
 
 
 rails generate serializer cliente
@@ -88,15 +85,7 @@ rails generate serializer documento_de_identidad
 rails generate serializer suplidor
 rails generate serializer recibos_ingreso
 rails generate serializer detalle_recibo
-rails generate serializer cabecera_factura
 rails generate serializer cabecera_conduce
 rails generate serializer detalle_conduce
+rails generate serializer cabecera_factura
 rails generate serializer detalle_factura
-rails generate serializer articulo
-rails generate serializer contenido_articulo
-rails generate serializer formulas_productos_terminado
-rails generate serializer incidencias
-rails generate serializer vehiculos
-rails generate serializer produccion
-rails generate serializer detalle_produccion
-

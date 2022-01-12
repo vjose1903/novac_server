@@ -4,13 +4,13 @@ class CostoFletesController < ApplicationController
 
   # GET /costo_fletes
   def index
-    return Response.new(params, nil, CostoFlete.all.where({estado: true}).order('id DESC'), nil, {}).send_response self
+    return Response.new(params, nil, CostoFlete.all.where({estado: true}).order('id DESC'), nil, {all: true}).send_response self
     
   end
   
   # GET /costo_fletes/1
   def show
-    return Response.new(params, nil, @costo_flete, nil, {}).send_response self    
+    return Response.new(params, nil, @costo_flete, nil, {all: true}).send_response self    
   end
 
   def crear_actualizar_costo

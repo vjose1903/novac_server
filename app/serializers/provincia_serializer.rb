@@ -1,9 +1,9 @@
 class ProvinciaSerializer < ActiveModel::Serializer
   attributes :id, :nombre
 
-  attribute :municipios, if: Proc.new { self.personalizar_parametros('municipios') }
+  attribute :municipios, if: Proc.new { self.get_param('municipios') }
 
-  def personalizar_parametros(col)
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 end

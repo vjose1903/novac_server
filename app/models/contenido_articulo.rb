@@ -17,7 +17,7 @@ class ContenidoArticulo < ApplicationRecord
       contenido                 = ContenidoArticulo.find_by_id(params["id"])
     end
     
-    contenido.referencia        = params["referencia"]
+    contenido.referencia        = params["referencia"] || nil
     contenido.costo             = params["costo"]
     contenido.precio            = params["precio"]
     contenido.cantidad          = params["cantidad"]

@@ -1,13 +1,13 @@
 class CabeceraConduceSerializer < ActiveModel::Serializer
-  attribute :id,                                 if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :user_id,                            if: Proc.new { self.personalizar_parametros('user_id') || self.personalizar_parametros('all') }
-  attribute :cliente_id,                         if: Proc.new { self.personalizar_parametros('cliente_id') || self.personalizar_parametros('all') }
-  attribute :numero_conduce,                     if: Proc.new { self.personalizar_parametros('numero_conduce') || self.personalizar_parametros('all') }
-  attribute :fecha_equivalente,                  if: Proc.new { self.personalizar_parametros('fecha_equivalente') || self.personalizar_parametros('all') }
-  attribute :detalle_conduces,                   if: Proc.new { self.personalizar_parametros('detalle_conduces') || self.personalizar_parametros('all') }
+  attribute :id,                                 if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :user_id,                            if: Proc.new { self.get_param('user_id') || self.get_param('all') }
+  attribute :cliente_id,                         if: Proc.new { self.get_param('cliente_id') || self.get_param('all') }
+  attribute :numero_conduce,                     if: Proc.new { self.get_param('numero_conduce') || self.get_param('all') }
+  attribute :fecha_equivalente,                  if: Proc.new { self.get_param('fecha_equivalente') || self.get_param('all') }
+  attribute :detalle_conduces,                   if: Proc.new { self.get_param('detalle_conduces') || self.get_param('all') }
 
-  attribute :cliente,                            if: Proc.new { self.personalizar_parametros('cliente') || self.personalizar_parametros('all') }
-  attribute :user,                               if: Proc.new { self.personalizar_parametros('user') || self.personalizar_parametros('all') }
+  attribute :cliente,                            if: Proc.new { self.get_param('cliente') || self.get_param('all') }
+  attribute :user,                               if: Proc.new { self.get_param('user') || self.get_param('all') }
 
   def detalle_conduces
     serialize_parser(object.detalle_conduces, {all: true})
@@ -21,7 +21,7 @@ class CabeceraConduceSerializer < ActiveModel::Serializer
     serialize_parser(object.user, {nombre: true, apellido: true})
   end
   
-  def personalizar_parametros(col)
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 end

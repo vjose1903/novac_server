@@ -1,10 +1,10 @@
 class IncidenciasSerializer < ActiveModel::Serializer
-  attribute :id,                            if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :referencia,                    if: Proc.new { self.personalizar_parametros('referencia') || self.personalizar_parametros('all') }
-  attribute :descripcion,                   if: Proc.new { self.personalizar_parametros('descripcion') || self.personalizar_parametros('all') }
+  attribute :id,                            if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :referencia,                    if: Proc.new { self.get_param('referencia') || self.get_param('all') }
+  attribute :descripcion,                   if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
   
 
-  def personalizar_parametros(col)
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 end

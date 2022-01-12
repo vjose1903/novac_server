@@ -24,7 +24,7 @@ class Response
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
 		@paginate_class.paginate_data(data) 
 
-		data_ = parametros_opcionales.nil? ? @paginate_class.get_data(): serialize_parser(@paginate_class.get_data(), parametros_opcionales)
+		data_ = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
 		
 		@res[:data]              = data_
 		@res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()

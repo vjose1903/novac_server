@@ -6,6 +6,9 @@ class Suplidor < ApplicationRecord
 
   accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true  
 
+  validates :nombre,              presence: { :message => "Nombre del suplidor no puede estar vacio." },      uniqueness: { scope: :estado, case_sensitive: false, :message => "Suplidor ya esta registrado" }, :if => :estado
+  validates :direccion,           presence: { :message => "Dirección del suplidor no puede estar vacio." }
+
 
   def self.create_update_suplidor(params , is_save=false)
     Suplidor.transaction do

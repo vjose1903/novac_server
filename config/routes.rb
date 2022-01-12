@@ -80,58 +80,57 @@ Rails.application.routes.draw do
 
   resources :articulos do
     collection do
-      get "check_excede/:id" => "articulos#checkIfExcede" #
-      get "filtro/:arg" => "articulos#getArticulosFiltrados" #
-      get "historico/:date/:articulo_id" => "mantenimiento_articulos#getOneArticuloByDate" #
-      get "custom/materias_primas" => "articulos#getMateriasPrimas" #
-      get "custom/stock" => "articulos#getStock"
+      get "check_excede/:id"              => "articulos#checkIfExcede" #
+      get "filtro/:arg"                   => "articulos#getArticulosFiltrados" #
+      get "historico/:date/:articulo_id"  => "mantenimiento_articulos#getOneArticuloByDate" #
+      get "custom/materias_primas"        => "articulos#getMateriasPrimas" #
+      get "custom/stock"                  => "articulos#getStock"
     end
   end
 
   resources :recibos_ingresos do
     collection do
-      get "filtro/:arg" => "recibos_ingresos#getRecibosFiltrados"
-      get "revertir/:tipo/:id" => "recibos_ingresos#revertirRecibos" 
+      get "filtro/:arg"                   => "recibos_ingresos#getRecibosFiltrados"
+      get "revertir/:tipo/:id"            => "recibos_ingresos#revertirRecibos" 
     end
   end
 
   resources :suplidores do
     collection do
-      get "filtro/:arg" => "suplidores#getSuplidoresFiltrados"
+      get "filtro/:arg"                   => "suplidores#getSuplidoresFiltrados"
     end
   end
 
   resources :clientes do
     collection do
-      get "filtro/:arg" => "clientes#getClientesFiltrados"
+      get "filtro/:arg"                   => "clientes#getClientesFiltrados"
     end
   end
 
   resources :cabecera_facturas do
     collection do
       # notas 
-      get "custom/get_cantidad_devuelto/:aplicadaA" => "cabecera_facturas#getCantidadDevuelto"
+      get "custom/get_cantidad_devuelto/:aplicadaA"               => "cabecera_facturas#getCantidadDevuelto"
 
       # cabecera facturas
-      get "cliente/:id/pagada/:pagada" => "cabecera_facturas#getFacturasByClienteIdAndEstado"
-      get "cliente/:id" => "cabecera_facturas#getFacturasByClienteId"
-      get "params/:campo/:valor/:tipo_factura_id/:is_adelantada" => "cabecera_facturas#getFacturasByParams"
-      post "anular_factura/:id" => "cabecera_facturas#cancelarFactura"
-      get "custom/viajes/:estado/:arg" => "cabecera_facturas#getViajesSinCompletar"
-      patch "custom/update/:id" => "cabecera_facturas#updateFacturaById"
-      get "custom/canUpdate/:id" => "cabecera_facturas#verificateCanUpdateById"
-      get "custom/getinfo" => "cabecera_facturas#getInfoFacturas"
+      get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
+      get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
+      get "params/:campo/:valor/:tipo_factura_id/:is_adelantada"  => "cabecera_facturas#getFacturasByParams"
+      post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
+      get "custom/viajes/:estado/:arg"                            => "cabecera_facturas#getViajesSinCompletar"
+      patch "custom/update/:id"                                   => "cabecera_facturas#updateFacturaById"
+      get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
     end
   end
 
   resources :secuencia_comprobantes do
     collection do
-      get "custom/:id/:estado" => "secuencia_comprobantes#getPaqueteRncByEstado"
-      get "filtro/:arg" => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
+      get "custom/:id/:estado"  => "secuencia_comprobantes#getPaqueteRncByEstado"
+      get "filtro/:arg"         => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
     end
   end
   
-  post "ruta/test"             => "application#testFunction"
+  post "ruta/test"              => "application#testFunction"
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
                                         sessions: "devise_token_auth/sessions",

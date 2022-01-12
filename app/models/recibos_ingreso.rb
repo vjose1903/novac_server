@@ -196,7 +196,7 @@ class RecibosIngreso < ApplicationRecord
 
     if cabecera_factura.update(obj)
 
-      resultCliente           = Cliente.calculateBalanceCliente(recibo.cliente_id, detalle["deposito"], "+")
+      resultCliente           = Cliente.calculate_balance_cliente(recibo.cliente_id, detalle["deposito"], "+")
   
       unless resultCliente.status_valid
         res.add_msg(resultCliente.get_msgs.to_a)

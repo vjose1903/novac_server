@@ -1,15 +1,15 @@
 class DetalleConduceSerializer < ActiveModel::Serializer
-  attribute :id,                                 if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :cabecera_conduce_id,                if: Proc.new { self.personalizar_parametros('cabecera_conduce_id') || self.personalizar_parametros('all') }
-  attribute :detalle_factura_id,                 if: Proc.new { self.personalizar_parametros('detalle_factura_id') || self.personalizar_parametros('all') }
-  attribute :articulo_id,                        if: Proc.new { self.personalizar_parametros('articulo_id') || self.personalizar_parametros('all') }
-  attribute :cantidad,                           if: Proc.new { self.personalizar_parametros('cantidad') || self.personalizar_parametros('all') }
-	attribute :cantidad_en_unidades,               if: Proc.new { self.personalizar_parametros('cantidad_en_unidades') || self.personalizar_parametros('all') }
+  attribute :id,                                 if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :cabecera_conduce_id,                if: Proc.new { self.get_param('cabecera_conduce_id') || self.get_param('all') }
+  attribute :detalle_factura_id,                 if: Proc.new { self.get_param('detalle_factura_id') || self.get_param('all') }
+  attribute :articulo_id,                        if: Proc.new { self.get_param('articulo_id') || self.get_param('all') }
+  attribute :cantidad,                           if: Proc.new { self.get_param('cantidad') || self.get_param('all') }
+	attribute :cantidad_en_unidades,               if: Proc.new { self.get_param('cantidad_en_unidades') || self.get_param('all') }
   
-	attribute :articulo,                           if: Proc.new { self.personalizar_parametros('articulo') || self.personalizar_parametros('all') }
-  attribute :descripcion,                        if: Proc.new { self.personalizar_parametros('descripcion') || self.personalizar_parametros('all') }
-  attribute :unidad,                             if: Proc.new { self.personalizar_parametros('unidad') || self.personalizar_parametros('all') }
-	attribute :peso_saco,                          if: Proc.new { self.personalizar_parametros('peso_saco') || self.personalizar_parametros('all') }
+	attribute :articulo,                           if: Proc.new { self.get_param('articulo') || self.get_param('all') }
+  attribute :descripcion,                        if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
+  attribute :unidad,                             if: Proc.new { self.get_param('unidad') || self.get_param('all') }
+	attribute :peso_saco,                          if: Proc.new { self.get_param('peso_saco') || self.get_param('all') }
   
   def articulo
     object.articulo.nombre
@@ -29,7 +29,7 @@ class DetalleConduceSerializer < ActiveModel::Serializer
     peso_saco                 = @unidad_en_turno.length > 1 ? @unidad_en_turno[2] : nil
   end
 	
-  def personalizar_parametros(col)
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 end

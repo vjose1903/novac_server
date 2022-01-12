@@ -1,42 +1,55 @@
 class ArticuloSerializer < ActiveModel::Serializer
   attribute :id
-  attribute :imagen_id,                          if: Proc.new { self.personalizar_parametros('imagen_id') || self.personalizar_parametros('all') }
-  attribute :tipo_articulo_id,                   if: Proc.new { self.personalizar_parametros('tipo_articulo_id') || self.personalizar_parametros('all') }
-  attribute :nombre,                             if: Proc.new { self.personalizar_parametros('nombre') || self.personalizar_parametros('all') }
-  attribute :costo_principal,                    if: Proc.new { self.personalizar_parametros('costo_principal') || self.personalizar_parametros('all') }
-  attribute :precio_principal,                   if: Proc.new { self.personalizar_parametros('precio_principal') || self.personalizar_parametros('all') }
-  attribute :existencia,                         if: Proc.new { self.personalizar_parametros('existencia') || self.personalizar_parametros('all') }
-  attribute :aviso_existencia,                   if: Proc.new { self.personalizar_parametros('aviso_existencia') || self.personalizar_parametros('all') }
-  attribute :codigo,                             if: Proc.new { self.personalizar_parametros('codigo') || self.personalizar_parametros('all') }
-  attribute :fecha_ingreso,                      if: Proc.new { self.personalizar_parametros('fecha_ingreso') || self.personalizar_parametros('all') }
-  attribute :medida,                             if: Proc.new { self.personalizar_parametros('medida') || self.personalizar_parametros('all') }
-  attribute :is_detallable,                      if: Proc.new { self.personalizar_parametros('is_detallable') || self.personalizar_parametros('all') }
-  attribute :medida_alerta,                      if: Proc.new { self.personalizar_parametros('medida_alerta') || self.personalizar_parametros('all') }
-  attribute :calcular_itbis,                     if: Proc.new { self.personalizar_parametros('calcular_itbis') || self.personalizar_parametros('all') }
-  attribute :estado,                             if: Proc.new { self.personalizar_parametros('estado') || self.personalizar_parametros('all') }
-  attribute :is_combo,                           if: Proc.new { self.personalizar_parametros('is_combo') || self.personalizar_parametros('all') }
-  attribute :otros_costos,                       if: Proc.new { self.personalizar_parametros('otros_costos') || self.personalizar_parametros('all') }
-  attribute :vendido_en,                         if: Proc.new { self.personalizar_parametros('vendido_en') || self.personalizar_parametros('all') }
-  attribute :is_materia_prima,                   if: Proc.new { self.personalizar_parametros('is_materia_prima') || self.personalizar_parametros('all') }
+  attribute :imagen_id,                          if: Proc.new { self.get_param('imagen_id') || self.get_param('all') }
+  attribute :tipo_articulo_id,                   if: Proc.new { self.get_param('tipo_articulo_id') || self.get_param('all') }
+  attribute :nombre,                             if: Proc.new { self.get_param('nombre') || self.get_param('all') }
+  attribute :costo_principal,                    if: Proc.new { self.get_param('costo_principal') || self.get_param('all') }
+  attribute :precio_principal,                   if: Proc.new { self.get_param('precio_principal') || self.get_param('all') }
+  attribute :existencia,                         if: Proc.new { self.get_param('existencia') || self.get_param('all') }
+  attribute :aviso_existencia,                   if: Proc.new { self.get_param('aviso_existencia') || self.get_param('all') }
+  attribute :codigo,                             if: Proc.new { self.get_param('codigo') || self.get_param('all') }
+  attribute :fecha_ingreso,                      if: Proc.new { self.get_param('fecha_ingreso') || self.get_param('all') }
+  attribute :medida,                             if: Proc.new { self.get_param('medida') || self.get_param('all') }
+  attribute :is_detallable,                      if: Proc.new { self.get_param('is_detallable') || self.get_param('all') }
+  attribute :medida_alerta,                      if: Proc.new { self.get_param('medida_alerta') || self.get_param('all') }
+  attribute :calcular_itbis,                     if: Proc.new { self.get_param('calcular_itbis') || self.get_param('all') }
+  attribute :estado,                             if: Proc.new { self.get_param('estado') || self.get_param('all') }
+  attribute :is_combo,                           if: Proc.new { self.get_param('is_combo') || self.get_param('all') }
+  attribute :otros_costos,                       if: Proc.new { self.get_param('otros_costos') || self.get_param('all') }
+  attribute :vendido_en,                         if: Proc.new { self.get_param('vendido_en') || self.get_param('all') }
+  attribute :is_materia_prima,                   if: Proc.new { self.get_param('is_materia_prima') || self.get_param('all') }
 
-  attribute :contenido_articulos,                if: Proc.new { self.personalizar_parametros('contenido_articulos') || self.personalizar_parametros('all') }
-  attribute :formulas_productos_terminados,      if: Proc.new { self.personalizar_parametros('formulas_productos_terminados') || self.personalizar_parametros('all') }
+  attribute :contenido_articulos,                if: Proc.new { self.get_param('contenido_articulos') || self.get_param('all') }
+  attribute :formulas_productos_terminados,      if: Proc.new { self.get_param('formulas_productos_terminados') || self.get_param('all') }
 
-  attribute :descripcion,                        if: Proc.new { self.personalizar_parametros('descripcion') || self.personalizar_parametros('all') }
+  attribute :descripcion,                        if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
 
-  attribute :contenido,                          if: Proc.new { self.personalizar_parametros('contenido') || self.personalizar_parametros('all') }
-  attribute :cantidades,                         if: Proc.new { self.personalizar_parametros('cantidades') || self.personalizar_parametros('all') }
-  attribute :calcular_saco,                      if: Proc.new { self.personalizar_parametros('calcular_saco') || self.personalizar_parametros('all') }
+  attribute :contenido,                          if: Proc.new { self.get_param('contenido') || self.get_param('all') }
+  attribute :cantidades,                         if: Proc.new { self.get_param('cantidades') || self.get_param('all') }
+  attribute :calcular_saco,                      if: Proc.new { self.get_param('calcular_saco') || self.get_param('all') }
 
-  attribute :costos,                             if: Proc.new { self.personalizar_parametros('costos') || self.personalizar_parametros('all') }
+  attribute :costos,                             if: Proc.new { self.get_param('costos') || self.get_param('all') }
 
 
   def otros_costos
     object.otros_costos || 0
   end
 
+  def precio_principal
+    object.precio_principal
+  end
+
   def contenido_articulos
-    serialize_parser(object.contenido_articulos, {all: true})
+    historicos = self.get_param('historicos')
+
+    if historicos.empty?
+      contenido = object.contenido_articulos
+    else
+      articulo = historicos.find  { |item| item["id"] == object.id }
+      contenido = articulo["contenido_articulos"] || articulo.contenido_articulos 
+    end
+    
+    serialize_parser(contenido, {all: true})
   end
   
   def formulas_productos_terminados
@@ -56,7 +69,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
 
-  def personalizar_parametros(col)
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 

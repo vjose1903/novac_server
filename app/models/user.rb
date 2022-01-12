@@ -11,9 +11,14 @@ class User < ApplicationRecord
 
   devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
   
-  validates :usuario,  presence: { :message => "Usuario no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "El nombre de usuario ya esta registrado" }
-  validates :telefono, presence: { :message => "Telefono no puede estar vacio." }
-  validates :email,    presence: { :message => "Email no puede estar vacio." },   uniqueness: { case_sensitive: false, :message => "El email introducido ya esta registrado" }
+  validates :usuario,             presence: { :message => "Usuario no puede estar vacio." },                  uniqueness: { case_sensitive: false, :message => "El nombre de usuario ya esta registrado" }
+  validates :telefono,            presence: { :message => "Telefono no puede estar vacio." }
+  validates :email,               presence: { :message => "Email no puede estar vacio." },                    uniqueness: { case_sensitive: false, :message => "El email introducido ya esta registrado" }
+  validates :nombre,              presence: { :message => "Nombre del empleado no puede estar vacio." },      uniqueness: { scope: :estado, case_sensitive: false, :message => "Empleado ya esta registrado" }, :if => :estado
+  validates :apellido,            presence: { :message => "Apellido del empleado no puede estar vacio." }
+  validates :sexo,                presence: { :message => "Sexo del empleado no puede estar vacio." }
+  validates :fecha_nacimiento,    presence: { :message => "Fecha de nacimiento del empleado no puede estar vacia." }
+  validates :role,                presence: { :message => "Role de nacimiento del empleado no puede estar vacio." }
 
   include DeviseTokenAuth::Concerns::User
 

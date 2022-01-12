@@ -13,8 +13,7 @@ class DetalleFactura < ApplicationRecord
     res = Response.new
 
     detalle_factura                           = DetalleFactura.new
-    
-    
+
     detalle_factura.articulo_id               = params["articulo_id"]
     detalle_factura.unidad                    = params["unidad"]
     detalle_factura.total                     = params["total"]
@@ -29,8 +28,9 @@ class DetalleFactura < ApplicationRecord
     detalle_factura.descuento_porciento       = params["descuento_porciento"]
     detalle_factura.calcular_saco             = params["calcular_saco"]
     detalle_factura.detalle_factura_nota      = params["detalle_factura_nota"]
+    detalle_factura.cabecera_factura_id       = padre["id"] if is_save
     detalle_factura.valid?
-    
+
     detalle_factura.errors.delete(:cabecera_factura) if !is_save
     
     res_proceso                               = detalle_factura.procesos_detalle(params, padre)
@@ -66,18 +66,55 @@ class DetalleFactura < ApplicationRecord
 
   #  --------------------------------------------------------------------------------------------------------------------------------
   def procesos_detalle(params, cabecera)
-    res      = Response.new
-    operador = cabecera.tipo == "compra" ? "+" : "-"
+    res            = Response.new
+    begin
+      operador     = cabecera.tipo == "compra" ? "+" : "-"
+      fecha        = cabecera.fecha_equivalente
+    rescue => exception
+      operador     = cabecera["tipo"] == "compra" ? "+" : "-"
+      fecha        = cabecera["fecha_equivalente"] 
+    end
 
-    res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, operador, cabecera.fecha_equivalente, 'factura', cabecera )
-
+    res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, operador, fecha, 'factura', cabecera )
+    
     unless res_movimiento.status_valid
       res.add_msgs(res_movimiento.get_msgs.to_a) 
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-
+    
     return res 
   end
+  
+  #  --------------------------------------------------------------------------------------------------------------------------------
+  def self.anular_detalles(detalle)
+    res              = Response.new
+    articulo         = detalle.articulo
+    mov              = (articulo.existencia + detalle.cantidad_en_unidades)
+    
+    if articulo.update({ existencia: mov }) && !detalle.destroy
+      res.add_msgs(articulo.errors.to_a) 
+      res.add_msgs(detalle.errors.to_a) 
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+    
+    return res
+  end
 
+  #  --------------------------------------------------------------------------------------------------------------------------------
 
+  def self.proceso_editar_detalles(factura_nueva, factura_original)
+    res                = Response.new
+    
+    factura_original.detalle_facturas.each do |detalle|
+      res_anular       = DetalleFactura.anular_detalles(detalle)
+      return res_anular unless res_anular.status_valid
+    end
+    
+    factura_nueva['detalle_facturas'].each do |detalle|
+      factura_nueva["fecha_equivalente"] = factura_original.fecha_equivalente
+      res_temp = self.crear_detalle_factura(detalle, factura_nueva, true)
+      return res_temp unless res_temp.status_valid
+    end
+    return res
+  end
 end

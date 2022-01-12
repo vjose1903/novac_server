@@ -92,8 +92,7 @@ class MovimientosInventario < ApplicationRecord
 
     if articulo.nombre != 'Transporte'
 
-    
-      mov      = eval("#{articulo["existencia"]} #{operador} #{movimiento["cantidad_en_unidades"]}")
+      mov      = eval("#{articulo.existencia} #{operador} #{movimiento["cantidad_en_unidades"]}")
 
       if operador == "-" # --------- SALIDA ---------
         if mov < 0
@@ -122,7 +121,6 @@ class MovimientosInventario < ApplicationRecord
       movimientos_inventario.medida                   = movimiento["medida"] || movimiento["unidad"]
       movimientos_inventario.tipo_salida              = accion == 'movimiento' ? padre.tipo_salida : nil
       
-      puts "movimientos_inventario ".yellow  + "#{movimientos_inventario.to_json}"
       unless movimientos_inventario.save!
         res.add_msgs(movimientos_inventario.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -131,7 +129,9 @@ class MovimientosInventario < ApplicationRecord
 
       articulo.existencia = mov
       
+      
       if articulo.save!
+
         puts "::::::::::::::::::::::::::::::::::::::::::"
         puts "::::                                  ::::"
         puts "::::         #{operador == "-" ? "SALIDA " : "ENTRADA"} EXITOSA           ::::"

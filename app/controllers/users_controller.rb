@@ -13,7 +13,7 @@ class UsersController < ApplicationController
 
 
   def show
-    return Response.new(params, nil, @cliente, nil, {}).send_response self
+    return Response.new(params, nil, @cliente, nil, get_parametros_opcionales).send_response self
   end
 
   def getUsuariosFiltrados

@@ -1,11 +1,18 @@
 class Cliente < ApplicationRecord
+  
   belongs_to :imagen, optional: true
   accepts_nested_attributes_for :imagen
 
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
-  accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
 
-
+  validates :nombre,              presence: { :message => "Nombre del cliente no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Cliente ya esta registrado" }, :if => :estado
+  validates :apellido,            presence: { :message => "Apellido del cliente no puede estar vacio." }
+  validates :telefono,            presence: { :message => "Telefono del cliente no puede estar vacio." }
+  validates :sexo,                presence: { :message => "Sexo del cliente no puede estar vacio." }
+  validates :limite_credito,      presence: { :message => "Dias de crédito del cliente no puede estar vacio." }
+  validates :maximo_credito,      presence: { :message => "Cantidad de crédito del cliente no puede estar vacio." }
+  validates :vendedor_id,         presence: { :message => "Debe de seleccionar un vendedor para el cliente." }
+  validates :direccion,           presence: { :message => "Direccion del cliente no puede estar vacio." }
 
   def init
     self.balance = 0 unless self.balance

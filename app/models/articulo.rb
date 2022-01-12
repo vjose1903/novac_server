@@ -5,7 +5,11 @@ class Articulo < ApplicationRecord
   has_many :contenido_articulos,           dependent: :destroy
   has_many :formulas_productos_terminados, dependent: :destroy
   
+  attribute :contenido_articulos
+  attribute :formulas_productos_terminados
+
   # has_many :imagen
+  accepts_nested_attributes_for :contenido_articulos
 
   validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Articulo ya esta registrado" }, :if => :estado
   validates :medida,              presence: { :message => "Medida articulo no puede estar vacio." }
@@ -81,18 +85,13 @@ class Articulo < ApplicationRecord
       }
 
       
-      puts "res.status_valid ".red + "#{res.status_valid}"
-      puts "articulo ".blue + "#{articulo.errors.to_json}"
 
       res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid?&& articulo.save! 
 
 
       if res.status_valid && articulo.errors.empty? 
-        # puts "ant_articulo ==> ".red + "#{ant_articulo.to_json}"
-        # puts "ant_articulo.nil? ==> ".red + "#{ant_articulo.nil?}"
         
         if ant_articulo.nil?
-          # puts ":::::::::::::: ENRTROOOOOO ::::::::::::::".yellow
           ant_articulo             = articulo
           ant_articulo_contenido   = ant_articulo.contenido_articulos
           ant_articulo_formula     = ant_articulo.formulas_productos_terminados
@@ -154,7 +153,6 @@ class Articulo < ApplicationRecord
 
   def self.filtrarArticulo(params)
     res        = Response.new(set_paginate_options(params))
-    puts "params ".yellow + "#{params.to_json}"
     arg        = params["arg"]
     fecha      = "#{params["fecha"]}:00"
     
@@ -174,31 +172,40 @@ class Articulo < ApplicationRecord
 
     
     articulos = []
-    
+    historicos = []
     articulos_.map { |articulo|
       
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
       
       if fecha < fecha_ultima_edicion_articulo
-        
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC") 
         
         if hist.blank?
           articulos.push(articulo) 
+          historicos.push(articulo)
         else
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
-          puts "historico.dup ".yellow + "#{historico.dup.to_json}"
-          articulos.push(Articulo.new(historico.dup)) 
+          historicos.push(historico)
+          
+          articulos.push(Articulo.new(historico)) 
         end
       else
+        puts "#############".red
+        puts "#############".red
+        puts "#############".red
+        puts "#############".red
+        puts "#############".red
+        puts "#############".red
         articulos.push(articulo) 
+        historicos.push(articulo)
       end
       
     }
     
     if articulos.length > 0
-      res.set_data(articulos, {all: true})
+      res.set_data(articulos, {all: true, historicos: historicos})
+      # res.set_data(articulos)
     else
       res.add_msg("No existen articulos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -228,7 +235,6 @@ class Articulo < ApplicationRecord
   end
   # =====================================================================================================================
   def self.parsealHistorico(objeto)
-    puts "parsealHistorico --> ".green + "#{objeto.to_json}"
 
     objeto["descripcion"]              = objeto["descripcion"]
     objeto["contenido_articulos"]      = objeto["contenido_articulos"]

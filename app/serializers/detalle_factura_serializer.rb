@@ -1,48 +1,33 @@
 class DetalleFacturaSerializer < ActiveModel::Serializer
 
 
-  attribute :id,                                         if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :cabecera_factura_id,                        if: Proc.new { self.personalizar_parametros('cabecera_factura_id') || self.personalizar_parametros('all') }
-  attribute :articulo_id,                                if: Proc.new { self.personalizar_parametros('articulo_id') || self.personalizar_parametros('all') }
-  attribute :total,                                      if: Proc.new { self.personalizar_parametros('total') || self.personalizar_parametros('all') }
-  attribute :descuento_valor,                            if: Proc.new { self.personalizar_parametros('descuento_valor') || self.personalizar_parametros('all') }
-  attribute :descuento_porciento,                        if: Proc.new { self.personalizar_parametros('descuento_porciento') || self.personalizar_parametros('all') }
-  attribute :itbis,                                      if: Proc.new { self.personalizar_parametros('itbis') || self.personalizar_parametros('all') }
-  attribute :cantidad,                                   if: Proc.new { self.personalizar_parametros('cantidad') || self.personalizar_parametros('all') }
-  attribute :cantidad_en_unidades,                       if: Proc.new { self.personalizar_parametros('cantidad_en_unidades') || self.personalizar_parametros('all') }
-  attribute :retirado,                                   if: Proc.new { self.personalizar_parametros('retirado') || self.personalizar_parametros('all') }
-  attribute :retirado_en_venta,                          if: Proc.new { self.personalizar_parametros('retirado_en_venta') || self.personalizar_parametros('all') }
-  attribute :calcular_saco,                              if: Proc.new { self.personalizar_parametros('calcular_saco') || self.personalizar_parametros('all') }
-  attribute :detalle_factura_nota,                       if: Proc.new { self.personalizar_parametros('detalle_factura_nota') || self.personalizar_parametros('all') }
+  attribute :id,                                         if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :articulo_id,                                if: Proc.new { self.get_param('articulo_id') || self.get_param('all') }
+  attribute :total,                                      if: Proc.new { self.get_param('total') || self.get_param('all') }
+  attribute :descuento_valor,                            if: Proc.new { self.get_param('descuento_valor') || self.get_param('all') }
+  attribute :descuento_porciento,                        if: Proc.new { self.get_param('descuento_porciento') || self.get_param('all') }
+  attribute :itbis,                                      if: Proc.new { self.get_param('itbis') || self.get_param('all') }
+  attribute :cantidad,                                   if: Proc.new { self.get_param('cantidad') || self.get_param('all') }
+  attribute :cantidad_en_unidades,                       if: Proc.new { self.get_param('cantidad_en_unidades') || self.get_param('all') }
+  attribute :retirado,                                   if: Proc.new { self.get_param('retirado') || self.get_param('all') }
+  attribute :retirado_en_venta,                          if: Proc.new { self.get_param('retirado_en_venta') || self.get_param('all') }
+  attribute :calcular_saco,                              if: Proc.new { self.get_param('calcular_saco') || self.get_param('all') }
+  attribute :detalle_factura_nota,                       if: Proc.new { self.get_param('detalle_factura_nota') || self.get_param('all') }
   
-  attribute :se_calcula_saco,                            if: Proc.new { self.personalizar_parametros('se_calcula_saco') || self.personalizar_parametros('all') }
-
-  attribute :articulo,                                   if: Proc.new { self.personalizar_parametros('articulo') || self.personalizar_parametros('all') }
-  attribute :precio,                                     if: Proc.new { self.personalizar_parametros('precio') || self.personalizar_parametros('all') }
-  attribute :costo,                                      if: Proc.new { self.personalizar_parametros('costo') || self.personalizar_parametros('all') }
-  attribute :tipo,                                       if: Proc.new { self.personalizar_parametros('tipo') || self.personalizar_parametros('all') }
-  attribute :codigo,                                     if: Proc.new { self.personalizar_parametros('codigo') || self.personalizar_parametros('all') }
-  attribute :descripcion,                                if: Proc.new { self.personalizar_parametros('descripcion') || self.personalizar_parametros('all') }
-  attribute :unidad,                                     if: Proc.new { self.personalizar_parametros('unidad') || self.personalizar_parametros('all') }
-  attribute :peso_saco,                                  if: Proc.new { self.personalizar_parametros('peso_saco') || self.personalizar_parametros('all') }
+  attribute :articulo,                                   if: Proc.new { self.get_param('articulo') || self.get_param('all') }
+  attribute :se_calcula_saco,                            if: Proc.new { self.get_param('se_calcula_saco') || self.get_param('all') }
+  attribute :precio,                                     if: Proc.new { self.get_param('precio') || self.get_param('all') }
+  attribute :costo,                                      if: Proc.new { self.get_param('costo') || self.get_param('all') }
+  attribute :tipo,                                       if: Proc.new { self.get_param('tipo') || self.get_param('all') }
+  attribute :codigo,                                     if: Proc.new { self.get_param('codigo') || self.get_param('all') }
+  attribute :descripcion,                                if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
+  attribute :unidad,                                     if: Proc.new { self.get_param('unidad') || self.get_param('all') }
+  attribute :peso_saco,                                  if: Proc.new { self.get_param('peso_saco') || self.get_param('all') }
+  attribute :contenidos,                                  if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
 
   def articulo
-    @articuloSelect     = object.articulo
-    continuar           = false
-    # continuar           = articuloWasEdited(@articuloSelect)
-    
-    @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(object.cabecera_factura.fecha_equivalente, @articuloSelect["id"])[0] unless continuar
-    puts "@articuloSelect:  ".green + "#{@articuloSelect}"
-    puts "@articuloSelect:  ".red + "#{@articuloSelect.to_hash}"
+    @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0] 
     @articuloSelect["nombre"]
-  end
-
-  def precio
-    @articuloSelect["precio_principal"]
-  end
-
-  def costo
-    @articuloSelect["costo_principal"]
   end
 
   def tipo
@@ -50,26 +35,92 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   end
 
   def se_calcula_saco
-    "se_calcula_saco"
+    @se_calcula_saco = checkSeCalcularSaco(object.cabecera_factura.fecha_equivalente, @articuloSelect)
   end
   
   def codigo
-    @articuloSelect["codigo"]
+    object.articulo.codigo
   end
 
   def descripcion
-    "descripcion"
+    unidad                     = object.unidad.split(" ")
+    
+    if unidad.length > 1
+      if @se_calcula_saco
+        descripcion            = "#{@articuloSelect["nombre"]} (#{unidad[2]} LBS)#{object.calcular_saco ? '' : '*'}"
+      else
+        descripcion            = "#{@articuloSelect["nombre"]} (#{unidad[2]} LBS)"
+      end
+      
+      @peso_saco               = unidad[2]
+    else
+      descripcion              = "#{@articuloSelect["nombre"]}"
+    end
+
+    descripcion
   end
+
   
   def unidad
     unidad = object.unidad.split(" ")[0]
   end
   
   def peso_saco
-    "peso_saco"
+    @peso_saco
   end
 
-  def personalizar_parametros(col)
+  def contenidos
+    calcularContenidos(object.articulo, true)
+  end
+
+
+  def checkSeCalcularSaco(fecha, articulo)
+    res = false
+    
+    saco = Articulo.find_by_nombre("Saco sistema")
+    unless saco.nil?
+      is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
+      res = is_correct && articulo["calcular_saco"] 
+    end
+
+    return res
+  end
+
+  def calcularContenidos(articulo, sacos)
+
+    contenido = articulo.contenido_articulos
+    contenidos = {}
+
+    if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
+      [100, 50, 25].each do |c|
+        contenidos["Saco_#{c}"] = c 
+      end
+    end
+
+    contenidos[articulo["medida"]] = contenido.length == 0 ? 1 : contenido.first["cantidad"]
+    contenidos[contenido.first["medida"]] = 1 if contenido.length > 0
+
+
+    if contenido.length == 2
+
+      cantPrincipal = 1
+      cantHijo = 1
+      cantPadre = 1
+
+      contenido.each do |conte|
+        cantPrincipal *= conte["cantidad"]
+        cantPadre = conte["cantidad"] if conte["referencia"] != nil
+      end
+
+      contenidos[articulo["medida"]] = cantPrincipal
+      contenidos[contenido[0]["medida"]] = cantPadre
+      contenidos[contenido[1]["medida"]] = cantHijo
+    end
+    contenidos
+  end
+
+
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 

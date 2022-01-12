@@ -75,31 +75,23 @@ class MantenimientoArticulo < ApplicationRecord
   # ============================================================================================================================================================
   def self.get_one_articulo_by_date(date, articulo_id)
 
-
-    fecha_factura = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
-    fecha_factura_parsed = fecha_factura + ":59"
-
-    historico = []
-    articulo  = Articulo.find_by_id(articulo_id)
-    fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"])
-
+    fecha_factura                   = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
+    fecha_factura_parsed            = fecha_factura + ":59"
+    
+    historico                       = []
+    articulo                        = Articulo.find_by_id(articulo_id)
+    fecha_ultima_edicion_articulo   = calculateDateUTC(articulo["updated_at"])
+    
     if fecha_factura_parsed >= fecha_ultima_edicion_articulo
       historico.push(Articulo.parseal(articulo))
     else
-      
-      hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, "<=", "DESC")
-      hist = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, ">=", "ASC") if hist.empty?
+      hist        = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, "<=", "DESC")
+      hist        = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, ">=", "ASC")   if hist.blank?
       
       if hist.blank?
-        
         historico.push(Articulo.parseal(articulo))
       else
-        articulo = crearArticuloHistorico(hist.first, articulo)
-
-        puts "articulo --> ".cyan + "#{articulo}"
-
-        # historico.push(Articulo.parsealHistorico(articulo))
-        # historico.push(serialize_parser(articulo,{}))
+        articulo  = crearArticuloHistorico(hist.first, articulo)
         historico.push(articulo)
       end
     end
@@ -109,7 +101,6 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.crearArticuloHistorico(historico, articulo)
-    
     
     contenidoArticulo = articulo.contenido_articulos
     
@@ -140,6 +131,7 @@ class MantenimientoArticulo < ApplicationRecord
       contenidoArticulo.each do |contenido|
         conte = {}
         if contenido["referencia"]
+          puts "-------HIJO-------".yellow
           conte["costo"]          = historico["ant_costoHijo"]
           conte["precio"]         = historico["ant_precioHijo"]
           conte["cantidad"]       = historico["ant_cantidadHijo"]
@@ -149,6 +141,7 @@ class MantenimientoArticulo < ApplicationRecord
           conte["condicion"]      = contenido["condicion"]
           conte["articulo_id"]    = contenido["articulo_id"]
         else
+          puts "-------PADRE-------".yellow
           conte["costo"]          = historico["ant_costoPadre"]
           conte["precio"]         = historico["ant_precioPadre"]
           conte["cantidad"]       = historico["ant_cantidadPadre"]
@@ -158,11 +151,13 @@ class MantenimientoArticulo < ApplicationRecord
           conte["referencia"]     = contenido["referencia"]
           conte["condicion"]      = contenido["condicion"]
         end
-        contents.push(conte)
+        puts "conte ".cyan + "#{conte.to_json}"
+        contents.push(ContenidoArticulo.new(conte))
       end
     end
-
+    
     articuloHistorico["contenido_articulos"] = contents
+    puts "articuloHistorico[contenido_articulos] ".blue + "#{articuloHistorico["contenido_articulos"].to_json}"
     
     if historico["ant_isCombo"]
       fomulaS = []

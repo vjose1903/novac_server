@@ -1,12 +1,12 @@
 class SuplidorSerializer < ActiveModel::Serializer
   
-  attribute :id,                            if: Proc.new { self.personalizar_parametros('id') || self.personalizar_parametros('all') }
-  attribute :nombre,                        if: Proc.new { self.personalizar_parametros('nombre') || self.personalizar_parametros('all') }
-  attribute :telefono,                      if: Proc.new { self.personalizar_parametros('telefono') || self.personalizar_parametros('all') }
-  attribute :direccion,                     if: Proc.new { self.personalizar_parametros('direccion') || self.personalizar_parametros('all') }
-  attribute :email,                         if: Proc.new { self.personalizar_parametros('email') || self.personalizar_parametros('all') }
-  attribute :estado,                        if: Proc.new { self.personalizar_parametros('estado') || self.personalizar_parametros('all') }
-  attribute :documentos_de_identidad,       if: Proc.new { self.personalizar_parametros('documentos_de_identidad') || self.personalizar_parametros('all') }
+  attribute :id,                            if: Proc.new { self.get_param('id') || self.get_param('all') }
+  attribute :nombre,                        if: Proc.new { self.get_param('nombre') || self.get_param('all') }
+  attribute :telefono,                      if: Proc.new { self.get_param('telefono') || self.get_param('all') }
+  attribute :direccion,                     if: Proc.new { self.get_param('direccion') || self.get_param('all') }
+  attribute :email,                         if: Proc.new { self.get_param('email') || self.get_param('all') }
+  attribute :estado,                        if: Proc.new { self.get_param('estado') || self.get_param('all') }
+  attribute :documentos_de_identidad,       if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
 
   def documentos_de_identidad
     documentos = []
@@ -16,7 +16,7 @@ class SuplidorSerializer < ActiveModel::Serializer
     documentos
   end
 
-  def personalizar_parametros(col)
+  def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
 end
