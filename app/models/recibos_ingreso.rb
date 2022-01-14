@@ -33,23 +33,34 @@ class RecibosIngreso < ApplicationRecord
       recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
       recibo.cliente_id            = params["cliente_id"]
       recibo.chofer                = params["chofer"]
-      recibo.total                 = params["total"]
       recibo.forma_pago            = params["forma_pago"]
       recibo.tipo_factura_id       = params["tipo_factura_id"]
-      recibo.devuelta              = params["devuelta"]
       recibo.estado                = params["estado"]
       recibo.vehiculo_id           = params["vehiculo_id"]
       recibo.estado                = params["estado"]
+
+      recibo.devuelta              = params["devuelta"]
+      recibo.total                 = params["total"]
       
       dependencias = [
         {modelo: DetalleRecibo, key_object: "detalle_recibos", padre: recibo},
         {modelo: Incidencia,    key_object: "incidencias",     padre: recibo}
       ]
-      
+
+      devoluciones = []
+
       res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
-        recibo.detalle_recibos   = dependencia_data if key_object == 'detalle_recibos'
-        recibo.incidencias       = dependencia_data if key_object == 'incidencias'
+        
+        recibo.detalle_recibos   = dependencia_data[:detalles]      if key_object == 'detalle_recibos'
+        devoluciones             = dependencia_data[:devoluciones]  if key_object == 'detalle_recibos'
+        recibo.incidencias       = dependencia_data                  if key_object == 'incidencias'
       }
+
+      total_por_detalle          = recibo.detalle_recibos.map { |item| item.deposito }
+      total_calculado            = total_por_detalle.inject { |item, acu| item + acu }
+
+      recibo.devuelta            = params["total"] - total_calculado
+      recibo.total               = total_calculado
 
       if res.status_valid && recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
@@ -57,8 +68,12 @@ class RecibosIngreso < ApplicationRecord
         res_valid                = recibo.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
 
         if res_valid.status_valid
+          data = {"recibo": serialize_parser(recibo, {all: true}) }
+          data = { **data, "devoluciones": devoluciones } unless devoluciones.blank?
 
-          res.set_data(serialize_parser(recibo, {all: true}))
+          puts "data ".yellow + "#{data}"
+
+          res.set_data(data)
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Recibo #{action} correctamente.")
           
@@ -164,6 +179,8 @@ class RecibosIngreso < ApplicationRecord
       return res
     end
   end
+  # 12111.0
+
 
   # ===================================================================================================================================================
   
@@ -173,7 +190,6 @@ class RecibosIngreso < ApplicationRecord
     
     self.detalle_recibos.each  do |item|
       res_temp    = RecibosIngreso.revertirReciboDetalle(item, self)
-
       return res_temp unless res_temp.status_valid
     end
 
@@ -190,7 +206,6 @@ class RecibosIngreso < ApplicationRecord
     cabecera_factura = detalle.cabecera_factura
 
     obj                       = { balance: detalle["balance_anterior_factura"] }
-
     obj["fecha_completada"]   = nil   if cabecera_factura.fecha_completada
     obj["pagada"]             = false if cabecera_factura.pagada
 
