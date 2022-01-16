@@ -43,7 +43,6 @@ module DeviseTokenAuth
         @resource = find_resource(field, q_value)
       end
 
-      puts "@resource --> ".red + "#{@resource.to_json}"
 
 
       if !@resource.nil? and @resource[:estado] == "I"
@@ -127,7 +126,6 @@ module DeviseTokenAuth
     end
 
     def render_create_success
-      puts "ENTROO".yellow
       datos = {
         success: true,
         data: resource_data(resource_json: @resource.token_validation_response),

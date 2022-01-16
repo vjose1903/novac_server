@@ -71,8 +71,6 @@ class RecibosIngreso < ApplicationRecord
           data = {"recibo": serialize_parser(recibo, {all: true}) }
           data = { **data, "devoluciones": devoluciones } unless devoluciones.blank?
 
-          puts "data ".yellow + "#{data}"
-
           res.set_data(data)
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Recibo #{action} correctamente.")
@@ -106,7 +104,6 @@ class RecibosIngreso < ApplicationRecord
     .order("recibos_ingresos.id DESC").to_a
 
     if recibos.length > 0
-      puts "recibos.length > 0 ".yellow 
       res.set_data(recibos, {all: true})
     else
       res.add_msg("No existen recibos con las especificaciones introducidas")

@@ -10,10 +10,6 @@ class Vehiculo < ApplicationRecord
   
   def self.filtrarVehiculo(arg, params)
     res = Response.new(params)
-    puts "###################".magenta
-    puts "###################".magenta
-    puts "###################".magenta
-    puts "###################".magenta
 
     vehiculos = Vehiculo
     .joins("left join users on vehiculos.user_id = users.id")
@@ -21,7 +17,6 @@ class Vehiculo < ApplicationRecord
     .order("vehiculos.id DESC").to_a
 
     if vehiculos.length > 0
-      puts "AQUIIIIII".yellow
       res.set_data(vehiculos, {all: true})
     else
       res.add_msg("No existen vehiculos con las especificaciones introducidas")
@@ -32,10 +27,8 @@ class Vehiculo < ApplicationRecord
   end
   
   def self.parsear(vehiculos)
-    puts "--------------- INICIO parsear ---------------"
     vehiculos.each do |vehiculo|
       
-      puts "vehiculo ==>".red + "#{vehiculo.to_json}"
       usuario={}
       if !vehiculo["user_id"].nil? 
         user = User.find_by_id(vehiculo["user_id"])
@@ -53,7 +46,6 @@ class Vehiculo < ApplicationRecord
       vehiculo['propietario'] = usuario
     end
 
-    puts "--------------- FIN parsear ---------------"
     return vehiculos
   end
   # ==========================================================================================

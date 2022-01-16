@@ -191,12 +191,6 @@ class Articulo < ApplicationRecord
           articulos.push(Articulo.new(historico)) 
         end
       else
-        puts "#############".red
-        puts "#############".red
-        puts "#############".red
-        puts "#############".red
-        puts "#############".red
-        puts "#############".red
         articulos.push(articulo) 
         historicos.push(articulo)
       end

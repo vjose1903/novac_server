@@ -2,16 +2,21 @@ include ActionView::Helpers::NumberHelper
 
 class CabeceraFacturasController < ApplicationController
   before_action :set_cabecera_factura, only: [:show, :update, :destroy]
+  before_action :get_saco_sistema, only: [:index, :show]
   # GET /cabecera_facturas
   def index    
-    return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, {all: true, saco_sistema: @saco}).send_response self
   end
   
   # GET /cabecera_facturas/1
   def show
-    return Response.new(params, nil, @cabecera_factura, nil, {all: true}).send_response self
+    return Response.new(params, nil, @cabecera_factura, nil, {all: true, saco_sistema: @saco}).send_response self
   end
   
+  def get_saco_sistema
+    @saco = Articulo.find_by_nombre("Saco sistema")
+  end
+
   def getFacturasByParams
     resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
     resultado.send_response self

@@ -48,17 +48,24 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def detalle_facturas
-    serialize_parser(object.detalle_facturas, {all: true})
+    saco = self.get_param('saco_sistema')
+
+    serialize_parser(object.detalle_facturas, {all: true, saco_sistema: saco})
   end
 
   
   def cliente
     cliente = {}
-    unless object.cliente.blank?
-      cliente["nombre"]            = object.cliente.nombre.capitalize 
-      cliente["nombre"]           += " #{object.cliente.apellido.capitalize}" unless object.cliente.apellido.blank?
-      cliente["telefono"]          = object.cliente.telefono
-      cliente["direccion"]         = object.cliente.direccion
+    if object.cliente.blank?
+      cliente["nombre"]            = object.NoCliente_nombre
+      cliente["direccion"]         = object.NoCliente_direccion
+      cliente["rnc"]               = "----------"
+    else
+      client_                      = object.cliente.attributes
+      cliente["nombre"]            = client_["nombre"].capitalize 
+      cliente["nombre"]           += " #{client_["apellido"].capitalize}" unless client_["apellido"].blank?
+      cliente["telefono"]          = client_["telefono"]
+      cliente["direccion"]         = client_["direccion"]
       cliente["rnc"]               = object.cliente.documentos_de_identidad.find_by_principal(true)["documento"]
     end
     cliente
@@ -67,57 +74,68 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   def suplidor
     suplidor = {}
     unless object.suplidor.blank?
-      suplidor["nombre"]            = object.suplidor.nombre.capitalize 
-      suplidor["direccion"]         = object.suplidor.direccion
+      supli_                        = object.suplidor.attributes
+      suplidor["nombre"]            = supli_["nombre"].capitalize 
+      suplidor["direccion"]         = supli_["direccion"]
       suplidor["rnc"]               = object.suplidor.documentos_de_identidad.find_by_principal(true)["documento"]
     end
     suplidor
   end
   
   def usuario
-    usuario = "#{object.user.nombre.capitalize}" 
-    usuario += " #{object.user.apellido.capitalize}" unless object.user.apellido.blank?
+    user_   = object.user.attributes
+    usuario = "#{user_["nombre"].capitalize}" 
+    usuario += " #{user_["apellido"].capitalize}" unless user_["apellido"].blank?
     usuario
   end
 
   def vendedor
     vendedor = ""
     if object.vendedor_id
-      user_vendedor = User.find_by_id(object.vendedor_id)
-      vendedor = "#{user_vendedor.nombre.capitalize}" 
-      vendedor += " #{user_vendedor.apellido.capitalize}" unless user_vendedor.apellido.blank?
+      user_vendedor = User.find_by_id(object.vendedor_id).attributes
+      vendedor = "#{user_vendedor["nombre"].capitalize}" 
+      vendedor += " #{user_vendedor["apellido"].capitalize}" unless user_vendedor["apellido"].blank?
       vendedor
     end
     vendedor
   end
 
   def notas
-    notas = CabeceraFactura.where({ aplicada_a: object.numero_comprobante })
-    serialize_parser(notas, {all: true})  unless notas.blank?
+    notas = []
+    if object.tiene_nota
+      notas = CabeceraFactura.where({ aplicada_a: object.numero_comprobante })
+      serialize_parser(notas, {all: true})  unless notas.blank?
+    end
     notas
   end
 
   def pagos
-    pago_          = DetalleRecibo.where({ cabecera_factura_id: object.id }).order('id DESC')
     pago_parseo    = []
+    
+    if ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
+      pago_          = DetalleRecibo.where({ cabecera_factura_id: object.id }).order('id DESC')
 
-    if pago_.length > 0
-      pago_parseo  = pago_.map do |detalle_recibo|
-
-        detalle_recibo   = detalle_recibo.as_json
-        recibo           = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
-
-        detalle_recibo["numero_recibo"]     = recibo["numero_recibo"]
-        detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
-        detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
-        detalle_recibo
+      if pago_.length > 0
+        pago_parseo  = pago_.map do |detalle_recibo|
+          
+          detalle_recibo   = detalle_recibo.as_json
+          recibo           = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
+          
+          detalle_recibo["numero_recibo"]     = recibo["numero_recibo"]
+          detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
+          detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
+          detalle_recibo
+        end
       end
+
     end
-
     pago_parseo
-
   end
 
+
+
+
+  
   def get_param(col)
 		return @instance_options[:"#{col}"]
 	end

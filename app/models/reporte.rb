@@ -149,8 +149,6 @@ class Reporte < ApplicationRecord
 
         query = {}
         query['estado'] = true
-        puts "desde => ".red + "#{desde}"
-        puts "hasta => ".red + "#{hasta}"
         query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if tipo == '2'
     
         
@@ -401,7 +399,6 @@ class Reporte < ApplicationRecord
         plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
         productos.each do |producto|
             medida_mostrar = ""
-            puts "producto => #{producto['contenido']}".red
             producto['contenido'].each do |key, value|
                 articulo = Articulo.find_by_id(producto[:id])
 

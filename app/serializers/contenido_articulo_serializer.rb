@@ -10,9 +10,6 @@ class ContenidoArticuloSerializer < ActiveModel::Serializer
   attribute :calcular_itbis,             if: Proc.new { self.get_param('calcular_itbis') || self.get_param('all') }
 
   def precio
-    puts " ============== "
-    puts object.precio
-    puts " ============== "
 
     object.precio
   end

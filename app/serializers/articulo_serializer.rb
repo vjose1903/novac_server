@@ -20,7 +20,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   attribute :is_materia_prima,                   if: Proc.new { self.get_param('is_materia_prima') || self.get_param('all') }
 
   attribute :contenido_articulos,                if: Proc.new { self.get_param('contenido_articulos') || self.get_param('all') }
-  attribute :formulas_productos_terminados,      if: Proc.new { self.get_param('formulas_productos_terminados') || self.get_param('all') }
+  attribute :formulas_productos_terminados,      if: Proc.new { object.is_combo && (self.get_param('formulas_productos_terminados') || self.get_param('all')) }
 
   attribute :descripcion,                        if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
 
@@ -43,13 +43,13 @@ class ArticuloSerializer < ActiveModel::Serializer
     historicos = self.get_param('historicos')
 
     if historicos.empty?
-      contenido = object.contenido_articulos
+      @contenido = object.contenido_articulos
     else
       articulo = historicos.find  { |item| item["id"] == object.id }
-      contenido = articulo["contenido_articulos"] || articulo.contenido_articulos 
+      @contenido = articulo["contenido_articulos"] || articulo.contenido_articulos 
     end
     
-    serialize_parser(contenido, {all: true})
+    serialize_parser(@contenido, {all: true})
   end
   
   def formulas_productos_terminados
@@ -75,7 +75,7 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def calcularContenidos(articulo, sacos)
 
-    contenido = articulo.contenido_articulos
+    
     contenidos = {}
 
     if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
@@ -84,58 +84,56 @@ class ArticuloSerializer < ActiveModel::Serializer
       end
     end
 
-    contenidos[articulo["medida"]] = contenido.length == 0 ? 1 : contenido.first["cantidad"]
-    contenidos[contenido.first["medida"]] = 1 if contenido.length > 0
+    contenidos[articulo["medida"]] = @contenido.length == 0 ? 1 : @contenido.first["cantidad"]
+    contenidos[@contenido.first["medida"]] = 1 if @contenido.length > 0
 
 
-    if contenido.length == 2
+    if @contenido.length == 2
 
       cantPrincipal = 1
       cantHijo = 1
       cantPadre = 1
 
-      contenido.each do |conte|
+      @contenido.each do |conte|
         cantPrincipal *= conte["cantidad"]
         cantPadre = conte["cantidad"] if conte["referencia"] != nil
       end
 
       contenidos[articulo["medida"]] = cantPrincipal
-      contenidos[contenido[0]["medida"]] = cantPadre
-      contenidos[contenido[1]["medida"]] = cantHijo
+      contenidos[@contenido[0]["medida"]] = cantPadre
+      contenidos[@contenido[1]["medida"]] = cantHijo
     end
     contenidos
   end
 
   def calcularCantidades(articulo)
-    contenido = articulo.contenido_articulos
 
     existencia = articulo["existencia"].nil? ? 0 : articulo["existencia"]
 
     cantidades = {}
     
-    cantidades[articulo["medida"]] = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
-    cantidades[contenido.first["medida"]] = existencia if contenido.length > 0
+    cantidades[articulo["medida"]] = @contenido.length == 0 ? existencia : (existencia / @contenido.first["cantidad"])
+    cantidades[@contenido.first["medida"]] = existencia if @contenido.length > 0
 
-    if contenido.length == 2
+    if @contenido.length == 2
 
       maxCant = 1
       cantPadre = 1
 
-      contenido.each do |conte|
+      @contenido.each do |conte|
         maxCant = conte["cantidad"] * maxCant
         cantPadre = conte["cantidad"] if conte["condicion"] == "hijo"
       end
 
       cantidades[articulo["medida"]] = (existencia / maxCant)
-      cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
-      cantidades[contenido[1]["medida"]] = existencia
+      cantidades[@contenido[0]["medida"]] = (existencia / cantPadre)
+      cantidades[@contenido[1]["medida"]] = existencia
     end
 
     return cantidades
   end
   
   def costos
-    contenido = object.contenido_articulos
 
     obj = {}
     
@@ -143,7 +141,7 @@ class ArticuloSerializer < ActiveModel::Serializer
     obj["#{object.medida}"]["costo"]   = object.costo_principal
     obj["#{object.medida}"]["precio"]  = object.precio_principal
 
-    contenido.each do |conte|
+    @contenido.each do |conte|
       obj["#{conte.medida}"]           = {}
       obj["#{conte.medida}"]["costo"]  = conte.costo
       obj["#{conte.medida}"]["precio"] = conte.precio

@@ -21,8 +21,35 @@ class ApplicationController < ActionController::API
 
   def testFunction
 
-    prueba = RecibosIngreso.puedeAnular(params)
-    prueba.send_response self
+    # prueba = RecibosIngreso.puedeAnular(params)
+    # prueba.send_response self
+
+    # =================================================================
+    # PONER LOS ARTICULOS QUE TENGAN FORMULAS COMO COMBO
+    # =================================================================
+    res = Response.new
+    #  -------------------------------------------------------------------------------------
+    formulas = FormulasProductosTerminado.all
+
+    formulas.each do |formula|
+      puts "formula.articulo".red + "#{formula.articulo.contenido_articulos.to_json} "
+    end
+
+    # articulos = Articulo.joins("inner join formulas_productos_terminados on formulas_productos_terminados.articulo_id = articulos.id").group("articulos.id")
+
+    # articulos.each do |artic|
+    #   artic.is_combo = true
+    #   unless artic.save!
+    #     res.add_msg("ERROR")
+    #     res.add_msgs(artic.errors.to_a)
+    #     return res
+    #   end
+    # end
+
+    # res.set_data(articulos)
+    # res.send_response self
+
+    #  -------------------------------------------------------------------------------------
 
     # a = CabeceraFactura.find_by_id(3244)
     # puts ":::::::: a".red + "#{a.to_json}"

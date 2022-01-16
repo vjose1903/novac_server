@@ -85,7 +85,6 @@ class Cliente < ApplicationRecord
     .order("clientes.id ASC").to_a
 
     if clientes.length > 0  
-      puts "clientes.length > 0 ".yellow 
       res.set_data(clientes, {all: true})
     else
       res.set_data([])
@@ -104,7 +103,6 @@ class Cliente < ApplicationRecord
       balanceCalc = sumBalance[0]['balance']
       
       if balanceCalc != cliente.balance
-        puts "----- BALANCE DISTINTO -------".red 
         cliente.balance = balanceCalc
         
         unless cliente.save!

@@ -85,8 +85,6 @@ class User < ApplicationRecord
         end
       end
       
-      puts "user ==>  ".red  + "#{user.to_json}"
-      puts "user.errors.to_a ==>  ".red  + "#{user.errors.to_a}"
       unless user.errors.empty?
         
         res.add_msgs(user.errors.to_a)
@@ -111,9 +109,6 @@ class User < ApplicationRecord
 
     if users.length > 0
       res.set_data(users, {all: true})
-      puts " "
-      puts "res==> ".red + "#{res.get_data().to_json}"
-      puts " "
     else
       res.set_data([])
       res.add_msg("No existe empleado con las especificaciones introducidas")

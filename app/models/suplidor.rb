@@ -51,7 +51,6 @@ class Suplidor < ApplicationRecord
         
       end
       
-      puts "res --> ".green + "#{res.to_json}"
       return res
     end
 
@@ -68,7 +67,6 @@ class Suplidor < ApplicationRecord
     .order("suplidores.id ASC").to_a
 
     if suplidores.length > 0
-      puts "suplidores.length > 0 ".yellow 
       res.set_data(suplidores, {all: true})
     else
       res.set_data([])

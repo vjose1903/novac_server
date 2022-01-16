@@ -93,8 +93,10 @@ class CabeceraFactura < ApplicationRecord
               res_valid                = CabeceraFactura.update_secuencias(params, data_secuencias)
       
               if res_valid.status_valid
-                res.set_data(cabecera_factura, {all: true})
-                res.add_msg("factura creada correctamente.")
+                saco = Articulo.find_by_nombre("Saco sistema")
+                res.set_data(cabecera_factura, {all: true, saco_sistema: saco})
+                realizando = params["tipo_factura_id"] == 5 ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
+                res.add_msg("#{realizando} creada correctamente.")
               else
                 res.add_msgs(res_valid.get_msgs.to_a)
                 res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -173,7 +175,6 @@ class CabeceraFactura < ApplicationRecord
       end
     else
       # --------- VENTA / NOTA ---------
-      puts "data_secuencias[:actual_paquete_comprobante][:is_paquete] ".magenta + "#{data_secuencias[:actual_paquete_comprobante][:is_paquete]}" 
 
       res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if data_secuencias[:actual_paquete_comprobante][:is_paquete]
 
@@ -260,7 +261,8 @@ class CabeceraFactura < ApplicationRecord
       facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
       
       if facturas.length > 0
-        res.set_data(facturas, {all: true})
+        saco = Articulo.find_by_nombre("Saco sistema")
+        res.set_data(facturas, {all: true, saco_sistema: saco})
       else
         res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada
         res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -285,7 +287,8 @@ class CabeceraFactura < ApplicationRecord
 
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true})
+      saco = Articulo.find_by_nombre("Saco sistema")
+      res.set_data(cabeceras, {all: true, saco_sistema: saco})
     else
       res.add_msg("No existen facturas con las especificaciones introducidas") 
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -307,7 +310,8 @@ class CabeceraFactura < ApplicationRecord
     cabeceras.concat cabe_viajes_contado_deviendo
     
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true})
+      saco = Articulo.find_by_nombre("Saco sistema")
+      res.set_data(cabeceras, {all: true, saco_sistema: saco})
     else
       res.add_msg("El cliente buscado no tiene facturas pendientes.") 
       res.set_status(HTTP_STATUS_CODE[:not_found])
@@ -384,7 +388,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict]) if !verificacion[:can_update]
       end
 
-      res.data({canUpdate}) unless msg_.nil?
+      res.data({canUpdate: true}) unless msg_.nil?
       res.add_msg(msg_) unless msg_.nil?
     else      
       res.add_msg("No se encuentra la factura a editar, contactar a Victor José Vásquez.")
@@ -432,7 +436,7 @@ class CabeceraFactura < ApplicationRecord
 
           if factura_original.save!
             res.add_msg("Factura editada correctamente.")
-            res.set_data(factura_original, {all: true})
+            # res.set_data(factura_original, {all: true})  # OJO si lo voy a descomentar tengo que ponerle el saco sistema
           else
             res.add_msgs(factura_original.errors.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])

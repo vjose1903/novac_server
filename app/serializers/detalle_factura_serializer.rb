@@ -26,7 +26,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :contenidos,                                  if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
 
   def articulo
-    @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0] 
+    @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0]
     @articuloSelect["nombre"]
   end
 
@@ -76,8 +76,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
 
   def checkSeCalcularSaco(fecha, articulo)
     res = false
-    
-    saco = Articulo.find_by_nombre("Saco sistema")
+    saco = self.get_param('saco_sistema')
     unless saco.nil?
       is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
       res = is_correct && articulo["calcular_saco"] 

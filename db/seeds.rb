@@ -246,25 +246,16 @@ modelos.each do |modelo|
 end
 
 PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
-  puts " "
-  puts "------".green * 20
-  puts "provincia_seed ==> ".green + "#{provincia_seed.to_json}"
   
   provincia_db = Provincia.find_by_nombre(provincia_seed[:nombre])
-  puts "provincia_db ==> ".cyan + "#{provincia_db.to_json}" if provincia_db.nil?
   
   provincia_db = Provincia.create({nombre: provincia_seed[:nombre]}) if provincia_db.nil?
-  puts "provincia_db ==> ".red + "#{provincia_db.to_json}" 
   
   provincia_seed[:municipios].each do |municipio_seed|
-    puts "------".yellow * 20
-    puts "provincia_db ==> ".yellow + "#{provincia_db.to_json}" if provincia_db.nil?
     if Municipio.find_by_nombre(municipio_seed).nil?
-      puts "municipio_seed ==> ".yellow + "#{municipio_seed}"
       Municipio.create({nombre: municipio_seed, provincia_id: provincia_db[:id]})
     end
   end
-  puts "------".yellow * 20
   
 end 
 

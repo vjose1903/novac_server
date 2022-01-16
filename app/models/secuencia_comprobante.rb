@@ -37,7 +37,6 @@ class SecuenciaComprobante < ApplicationRecord
   # ============================================================================================================================================================
 
   def self.filtrar_ncf(arg)
-    puts " -------------- Inicio filtrar_ncf -------------- "
 
     arg = arg === " " ? "" : arg
 
@@ -49,7 +48,6 @@ class SecuenciaComprobante < ApplicationRecord
 
     query = "#{select_} #{from_} #{joins_} #{where_} #{order_}"
 
-    puts " -------------- fin filtrar_ncf -------------- "
     my_query(query)
   end
 
@@ -104,11 +102,8 @@ class SecuenciaComprobante < ApplicationRecord
   def self.activar_nuevo_paquete(tipo_factura, nuevo_paquete = {})
     res = Response.new
 
-    puts "nuevo_paquete        --> ".red + "#{nuevo_paquete.to_json}"
-    puts "nuevo_paquete.blank? --> ".magenta + "#{nuevo_paquete.blank?}"
 
     res_nuevo = get_paquetes_por_activar(tipo_factura) if nuevo_paquete.blank?
-    puts "BUSCANDO EL NUEVO PAQUETE".green if nuevo_paquete.blank?
 
     if !nuevo_paquete.blank? || res_nuevo.status_valid 
       newPac = nuevo_paquete.blank? ? res_nuevo.get_data : nuevo_paquete
@@ -153,7 +148,6 @@ class SecuenciaComprobante < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.validar_rango(id, paquete_ingresando, tipo)
-    puts " -------------- inicio validar_rango -------------- "
     tipo_factura_id = paquete_ingresando["tipo_factura_id"]
 
     select_ = "select *"
@@ -168,14 +162,12 @@ class SecuenciaComprobante < ApplicationRecord
       
       if tipo === 'new'
         if paquete_ingresando["desde"] <= paquete["hasta"]
-          puts " -------------- fin validar_rango -------------- "
           return { :error => true, :msg => "Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.", :body => {}, :status => 400 }
           break
         end
       else
         if id !=  paquete["id"]
           if (paquete_ingresando["desde"] <= paquete["hasta"] && paquete_ingresando["hasta"] >= paquete["desde"]) || (paquete_ingresando["desde"] >= paquete["desde"] && paquete_ingresando["desde"] <= paquete["hasta"])
-            puts " -------------- fin validar_rango -------------- "
             return { :error => true, :msg => "Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.", :body => {}, :status => 400 }
             break
           end
@@ -184,7 +176,6 @@ class SecuenciaComprobante < ApplicationRecord
       end
       
     end
-    puts " -------------- fin validar_rango -------------- "
     return { :error => false }
   end
 
