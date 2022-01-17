@@ -27,27 +27,27 @@ class ApplicationController < ActionController::API
     # =================================================================
     # PONER LOS ARTICULOS QUE TENGAN FORMULAS COMO COMBO
     # =================================================================
-    res = Response.new
-    #  -------------------------------------------------------------------------------------
-    formulas = FormulasProductosTerminado.all
+    # res = Response.new
+    # #  -------------------------------------------------------------------------------------
+    # formulas = FormulasProductosTerminado.all
 
-    formulas.each do |formula|
-      puts "formula.articulo".red + "#{formula.articulo.contenido_articulos.to_json} "
-    end
-
-    # articulos = Articulo.joins("inner join formulas_productos_terminados on formulas_productos_terminados.articulo_id = articulos.id").group("articulos.id")
-
-    # articulos.each do |artic|
-    #   artic.is_combo = true
-    #   unless artic.save!
-    #     res.add_msg("ERROR")
-    #     res.add_msgs(artic.errors.to_a)
-    #     return res
-    #   end
+    # formulas.each do |formula|
+    #   puts "formula.articulo".red + "#{formula.articulo.contenido_articulos.to_json} "
     # end
 
-    # res.set_data(articulos)
-    # res.send_response self
+    articulos = Articulo.joins("inner join formulas_productos_terminados on formulas_productos_terminados.articulo_id = articulos.id").group("articulos.id")
+
+    articulos.each do |artic|
+      artic.is_combo = true
+      unless artic.save!
+        res.add_msg("ERROR")
+        res.add_msgs(artic.errors.to_a)
+        return res
+      end
+    end
+
+    res.set_data(articulos)
+    res.send_response self
 
     #  -------------------------------------------------------------------------------------
 
