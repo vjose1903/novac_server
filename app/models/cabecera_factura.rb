@@ -155,7 +155,7 @@ class CabeceraFactura < ApplicationRecord
     data_secuencias[:numero_factura]               = data_secuencias[:actual_secuencia_factura]["secuencia"] + 1
 
     if params["FACTURA_DE"] == 14 # COMPRA
-      data_secuencias[:numero_comprobante]         = cabecera_factura_params["numero_comprobante"].upcase
+      data_secuencias[:numero_comprobante]         = params["numero_comprobante"].upcase
     else # VENTA / NOTAS
       data_secuencias[:numero_comprobante]         = "B#{tipoFactura["referencia"]}#{"%08d" % next_secuencia_comprobante}"
     end
