@@ -67,7 +67,6 @@ class RecibosIngresosController < ApplicationController
       vehiculo_id:         params['vehiculo_id'] ||false,
       incidencias:         params['incidencias'] ||false,
       numero_recibo:       params['numero_recibo'] ||false,
-      detalle_recibos:     params['detalle_recibos'] ||false,
       chofer:              params['chofer'] ||false,
       cliente:             params['cliente'] ||false,
       user:                params['user'] ||false,
