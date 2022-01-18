@@ -16,6 +16,7 @@ class CuadreCaja < ApplicationRecord
       .where( { tipo: "venta", condicion: "Contado", is_viaje: false  })
 
       ventas_contado.each do |factura|
+        my_print_log("factura ".red + "#{factura.to_json}")
         ventas_contado_total_facturado_ = ventas_contado_total_facturado_ + factura.total_factura
       end
       
