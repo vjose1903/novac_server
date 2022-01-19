@@ -50,7 +50,7 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura                          = CabeceraFactura.new()
           
             cabecera_factura.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : today_cuadre.blank? ? DateTime.now : CabeceraFactura.calculateNextDay
-            cabecera_factura.fecha_completada         = params["condicion"] === "Contado" && !params["is_viaje"] ? params["fecha_equivalente"] : nil
+            cabecera_factura.fecha_completada         = params["condicion"] == "Contado" && !params["is_viaje"] ? cabecera_factura.fecha_equivalente : nil
             cabecera_factura.user_id                  = get_current_user["id"]
             cabecera_factura.numero_comprobante       = data_secuencias[:numero_comprobante]
             cabecera_factura.numero_factura           = data_secuencias[:numero_factura]
