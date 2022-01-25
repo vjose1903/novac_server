@@ -436,7 +436,9 @@ class CabeceraFactura < ApplicationRecord
 
           if factura_original.save!
             res.add_msg("Factura editada correctamente.")
-            # res.set_data(factura_original, {all: true})  # OJO si lo voy a descomentar tengo que ponerle el saco sistema
+            saco = Articulo.find_by_nombre("Saco sistema")
+            factura_editada                = CabeceraFactura.find_by_id(params["id"])
+            res.set_data(factura_editada, {all: true, saco_sistema: saco})
           else
             res.add_msgs(factura_original.errors.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])

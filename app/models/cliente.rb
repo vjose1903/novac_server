@@ -133,8 +133,11 @@ class Cliente < ApplicationRecord
     new_balance      = eval "#{balance} #{operacion} #{totalFactura.to_f}"
     new_balance      = new_balance.to_d.truncate(2).to_f
     cliente.balance  = new_balance
-    
-    unless cliente.save!
+
+    cliente.valid?
+
+    # unless cliente.errors.empty? || !cliente.save!
+    unless cliente.errors.empty? 
       res.add_msgs(cliente.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

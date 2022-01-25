@@ -49,7 +49,6 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
   def detalle_facturas
     saco = self.get_param('saco_sistema')
-
     serialize_parser(object.detalle_facturas, {all: true, saco_sistema: saco})
   end
 

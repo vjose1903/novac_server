@@ -53,36 +53,37 @@ class RecibosIngreso < ApplicationRecord
         
         recibo.detalle_recibos   = dependencia_data[:detalles]      if key_object == 'detalle_recibos'
         devoluciones             = dependencia_data[:devoluciones]  if key_object == 'detalle_recibos'
-        recibo.incidencias       = dependencia_data                  if key_object == 'incidencias'
+        recibo.incidencias       = dependencia_data                 if key_object == 'incidencias'
       }
+      if res.status_valid
+        total_por_detalle          = recibo.detalle_recibos.map { |item| item.deposito }
+        total_calculado            = total_por_detalle.inject { |item, acu| item + acu }
 
-      total_por_detalle          = recibo.detalle_recibos.map { |item| item.deposito }
-      total_calculado            = total_por_detalle.inject { |item, acu| item + acu }
+        recibo.devuelta            = params["total"] - total_calculado
+        recibo.total               = total_calculado
+        
+        if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
-      recibo.devuelta            = params["total"] - total_calculado
-      recibo.total               = total_calculado
+          res_valid                = updateSecuencias(17)
+          res_valid                = recibo.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
 
-      if res.status_valid && recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
+          if res_valid.status_valid
+            data = {"recibo": serialize_parser(recibo, {all: true}) }
+            data = { **data, "devoluciones": devoluciones } unless devoluciones.blank?
 
-        res_valid                = updateSecuencias(17)
-        res_valid                = recibo.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
+            res.set_data(data)
+            action = params["id"] ? 'actualizado' : 'creado'
+            res.add_msg("Recibo #{action} correctamente.")
+            
+          else
+            res.add_msgs(res_valid.get_msgs)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
 
-        if res_valid.status_valid
-          data = {"recibo": serialize_parser(recibo, {all: true}) }
-          data = { **data, "devoluciones": devoluciones } unless devoluciones.blank?
-
-          res.set_data(data)
-          action = params["id"] ? 'actualizado' : 'creado'
-          res.add_msg("Recibo #{action} correctamente.")
-          
         else
-          res.add_msgs(res_valid.get_msgs)
+          res.add_msgs(recibo.errors.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
-
-      else
-        res.add_msgs(recibo.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
       
       return res
@@ -209,7 +210,6 @@ class RecibosIngreso < ApplicationRecord
     if cabecera_factura.update(obj)
 
       resultCliente           = Cliente.calculate_balance_cliente(recibo.cliente_id, detalle["deposito"], "+")
-  
       unless resultCliente.status_valid
         res.add_msg(resultCliente.get_msgs.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
