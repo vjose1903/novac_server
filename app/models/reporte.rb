@@ -47,8 +47,8 @@ class Reporte < ApplicationRecord
             tempNom = "#{cli["nombre"]}".titleize + " #{cli["apellido"]}".titleize
             longitud= tempNom.length
             
-            cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes('nombre')
-            cliente["rnc"] = cli.documentos_de_identidad.where({ principal: true })[0]["documento"] if retornar.my_includes('rnc')
+            cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes_str('nombre')
+            cliente["rnc"] = cli.documentos_de_identidad.where({ principal: true })[0]["documento"] if retornar.my_includes_str('rnc')
         else
             if !factura["NoCliente_nombre"].nil?
                 cliente["nombre"] = factura["NoCliente_nombre"]

@@ -216,8 +216,12 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 class Array
-	def my_includes(str)
+	def my_includes_str(str)
 		return  self.any? { |i| [str].include? i }
+	end
+
+	def my_includes_obj(key, value)
+		return  self.any? { |item| item[key] = value }
 	end
 end
 
