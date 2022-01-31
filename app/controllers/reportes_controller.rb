@@ -63,7 +63,7 @@ class ReportesController < ApplicationController
         }
 
         respuesta = Reporte.estructura_reporte(titulo, tipo, body[:body], body[:total], mostrar_sub_titulo, tipo_tabla)
-
+        my_print_log("------------ TERMINO ------------".red)
         render json: respuesta, status: :ok
     end
 
