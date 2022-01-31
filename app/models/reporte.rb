@@ -3,7 +3,9 @@ class Reporte < ApplicationRecord
     def self.estructura_reporte(titulo, _tipo_reporte, content, total_, sub_titulo_, tipo_tabla)
 
         current_user     = get_current_user
-        temp_Emp         = current_user.nombre.titleize + " " + current_user.apellido.titleize
+
+        temp_Emp         = current_user.nombre.titleize
+        temp_Emp        += " #{current_user.apellido.titleize}" unless current_user.apellido.blank?
         longitud         = temp_Emp.length
 
         # maximo de caracteres 15
