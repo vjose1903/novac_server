@@ -197,14 +197,13 @@ class Reporte < ApplicationRecord
 
     # ---------------------------------------------------------------------------------------------------------
     def self.calcularCantidades(articulos)
-        array=[]
-        plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
+        array                         =[]
+        plural                        = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
         articulos.each do |articulo|
             obj                       = articulo.attributes
             obj["cantidades"]         = Articulo.calcularCantidades(articulo)
-            # cant = number_with_delimiter(obj["cantidades"][articulo['medida']] , :precision => 2, :delimiter => ",", :separator => ".")
             
-            cant = number_with_delimiter( ("%.2f" % obj["cantidades"][articulo['medida']]).gsub(',','.'))
+            cant                      = number_with_delimiter( ("%.2f" % obj["cantidades"][articulo['medida']]).gsub(',','.'))
             obj['cantidad_principal'] = "#{cant} #{cant.to_i == 1 ? articulo['medida'] : plural[articulo['medida'].to_sym]}"
             array.push(obj)
         end
@@ -233,7 +232,8 @@ class Reporte < ApplicationRecord
 
 
         obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
-        
+        my_print_log("obj ".red + "#{obj}")
+        my_print_log("obj ".red + "#{obj.to_json}")
         return obj
     end
     
