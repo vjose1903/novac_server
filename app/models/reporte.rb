@@ -213,13 +213,24 @@ class Reporte < ApplicationRecord
 
     # ---------------------------------------------------------------------------------------------------------
     def self.get_inventario(params)
-        inventario_temp = []
-        query={}
-        inventario_temp = Articulo.all
-        inventario_temp = calcularCantidades(inventario_temp)
+        # inventario_temp = []
+        # query={}
+        # inventario_temp = Articulo.all
+        # inventario_temp = calcularCantidades(inventario_temp)
         
-        inventario = inventario_temp.sort_by! { |k| k["nombre"]}
-        cantidad_articulos = Articulo.all.where({ estado: true}).count
+        # inventario = inventario_temp.sort_by! { |k| k["nombre"]}
+        # cantidad_articulos = Articulo.all.where({ estado: true}).count
+        
+        # obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
+        
+        inventario_temp    = []
+        inventario_temp    = Articulo.all.where({estado: true}).order('nombre ASC')
+        inventario_temp    = calcularCantidades(inventario_temp)
+        cantidad_articulos = inventario_temp.length
+        inventario         = inventario_temp.sort_by! { |k| k["nombre"]}
+        
+        # inventario = serialize_parser(inventario_temp, {all: true, historicos: []})
+
 
         obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
         

@@ -100,7 +100,7 @@ class Articulo < ApplicationRecord
         res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
         
         if res_historico.status_valid
-          # res.set_data(serialize_parser(articulo,{}))
+          
           res.set_data(articulo)        
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Articulo #{action} correctamente.")
