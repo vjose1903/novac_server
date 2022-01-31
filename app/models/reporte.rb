@@ -18,8 +18,6 @@ class Reporte < ApplicationRecord
             tipo_tabla: tipo_tabla,
             contenido_reporte: content,
         }
-
-        my_print_log("obj ".yellow + "#{obj}")
         
         return obj
     end
