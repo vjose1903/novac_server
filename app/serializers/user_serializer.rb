@@ -22,6 +22,10 @@ class UserSerializer < ActiveModel::Serializer
   #   nil
   # end 
 
+  def fecha_nacimiento
+    formatearFecha(object.fecha_nacimiento.to_s, 1)
+  end 
+
   def nombre
     object.nombre.capitalize
   end 

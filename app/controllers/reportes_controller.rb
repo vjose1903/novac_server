@@ -19,17 +19,15 @@ class ReportesController < ApplicationController
             # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
             body = Reporte.get_cuentas_cobrar(params)
             titulo = "Reporte de cuentas por cobrar #{ params["tipo"] == '1' ? 'por cliente' : '' } #{ params["tipo"] == '1'? '': params["tipo"] == '2' ? '- DETALLADO -' : '- AGRUPADO -' }"
-            if params["tipo"] == '1'
-                tipo = 'cxc'
-            elsif params["tipo"] == '2'
-                tipo = 'cxc_ant_detallado'
-            else 
-                tipo = 'cxc_ant_agrupado'
-            end
+
+            tipo = 'cxc'               if params["tipo"] == '1'
+            tipo = 'cxc_ant_detallado' if params["tipo"] == '2'
+            tipo = 'cxc_ant_agrupado'  if params["tipo"] != '2' && params["tipo"] != '1'
+            
             
         elsif tipo_reporte==='inventario'
             # ------------------- REPORTE DE INVENTARIO --------------------
-            body = Reporte.get_inventario(params)
+            body   = Reporte.get_inventario(params)
             titulo = "Reporte de inventario"
 
         elsif tipo_reporte==='recibos'

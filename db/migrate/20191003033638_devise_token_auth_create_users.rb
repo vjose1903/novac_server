@@ -43,7 +43,7 @@ class DeviseTokenAuthCreateUsers < ActiveRecord::Migration[5.2]
       t.string :sexo
       t.string :telefono
       t.string :email
-      t.string :fecha_nacimiento
+      t.date :fecha_nacimiento
       t.boolean :estado
       t.string :role
 

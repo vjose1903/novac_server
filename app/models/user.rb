@@ -63,7 +63,7 @@ class User < ApplicationRecord
       user.sexo                   = params["sexo"]
       user.telefono               = params["telefono"]
       user.email                  = params["email"]
-      user.fecha_nacimiento       = params["fecha_nacimiento"]
+      user.fecha_nacimiento       = Date.parse params["fecha_nacimiento"]
       user.role                   = params["role"]
       user.password               = params["password"] if params["password"]
       user.password_confirmation  = params["password"] if params["password"]

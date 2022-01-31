@@ -10,7 +10,7 @@ class MantenimientoArticulo < ApplicationRecord
 
       
       historico                              = MantenimientoArticulo.new()
-      secuencia                              = (MantenimientoArticulo.last.id + 1) || 0
+      secuencia                              = MantenimientoArticulo.last.nil? ? 0 : (MantenimientoArticulo.last.id + 1)
 
       historico.articulo_id                  = parametros["id"]
       historico.user_id                      = get_current_user['id']
