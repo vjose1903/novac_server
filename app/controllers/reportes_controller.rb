@@ -62,7 +62,7 @@ class ReportesController < ApplicationController
             sub_t: body[:sub_t]
         }
 
-        render json: Reporte.estructura_reporte(titulo , tipo, body[:body], body[:total], mostrar_sub_titulo, tipo_tabla, current_user)
+        render json: Reporte.estructura_reporte(titulo, tipo, body[:body], body[:total], mostrar_sub_titulo, tipo_tabla)
     end
 
 end

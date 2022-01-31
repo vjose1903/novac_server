@@ -1,8 +1,11 @@
 class Reporte < ApplicationRecord
     # ---------------------------------------------------------------------------------------------------------
-    def self.estructura_reporte(titulo, _tipo_reporte, content, total_ ,sub_titulo_ ,tipo_tabla ,current_user)
-        temp_Emp = current_user.nombre.titleize + " " + current_user.apellido.titleize
-        longitud= temp_Emp.length
+    def self.estructura_reporte(titulo, _tipo_reporte, content, total_, sub_titulo_, tipo_tabla)
+
+        current_user     = get_current_user
+        temp_Emp         = current_user.nombre.titleize + " " + current_user.apellido.titleize
+        longitud         = temp_Emp.length
+
         # maximo de caracteres 15
         obj= {
             titulo_reporte:titulo,
@@ -15,6 +18,8 @@ class Reporte < ApplicationRecord
             tipo_tabla: tipo_tabla,
             contenido_reporte: content,
         }
+
+        my_print_log("obj ".yellow + "#{obj}")
         
         return obj
     end
@@ -232,8 +237,6 @@ class Reporte < ApplicationRecord
 
 
         obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
-        my_print_log("obj ".red + "#{obj}")
-        my_print_log("obj ".red + "#{obj.to_json}")
         return obj
     end
     
