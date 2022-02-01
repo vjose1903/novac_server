@@ -144,6 +144,9 @@ class MovimientosInventario < ApplicationRecord
       puts "----- 10 -----".red
       articulo.existencia = mov
       
+      articulo.valid?
+      puts "articulo ".green + "#{articulo.to_json}"
+      puts "articulo.errors.to_a ".red + "#{articulo.errors.to_a}"
       
       if articulo.save!
         puts "----- 11 -----".red

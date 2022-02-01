@@ -118,9 +118,11 @@ class Cliente < ApplicationRecord
   def self.calculate_balance_cliente(id, totalFactura, operacion, ignoreMontoMayor=false)
 
     res = Response.new
+    puts "id -> ".red + "#{id}"
 
     cliente          = Cliente.find_by_id(id)
-    balance          = cliente["balance"].nil? ? 0 : cliente["balance"]
+    puts "cliente -> ".red + "#{cliente.to_json}"
+    balance          = cliente.balance.nil? ? 0 : cliente.balance
     
     if operacion == "-" && totalFactura.to_f > balance
       unless ignoreMontoMayor

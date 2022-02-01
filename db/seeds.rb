@@ -6,7 +6,7 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-users =
+usuarios =
   [
     {
       "nombre": "Mari",
@@ -25,7 +25,7 @@ users =
     {
       "nombre": "ADM",
       "usuario": "adm01",
-      "apellido": " ",
+      "apellido": "01",
       "sexo": "i",
       "telefono": "(809) 573-0060",
       "email": "admagroindustrialsrl@gmail.com",
@@ -38,7 +38,7 @@ users =
     },
   ]
 
-users.each do |user|
+usuarios.each do |user|
   if User.find_by_usuario(user[:usuario]).nil?
     User.create(user)
   end
@@ -157,7 +157,7 @@ tipos_factura = [
   },
   {
     "referencia": nil,
-    "descripcion": "Venta",
+    "descripcion": "Venta Contado",
   },
   {
     "referencia": nil,
@@ -174,6 +174,10 @@ tipos_factura = [
   {
     "referencia": nil,
     "descripcion": "Recibo_ingreso",
+  },
+  {
+    "referencia": nil,
+    "descripcion": "Venta Credito",
   },
 ]
 

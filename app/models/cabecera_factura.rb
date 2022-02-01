@@ -22,7 +22,7 @@ class CabeceraFactura < ApplicationRecord
       if res_secuencias.status_valid
 
         data_secuencias                    = res_secuencias.get_data
-        num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params["tipo"], tipo_factura_id: params["tipo_factura_id"] }).blank?
+        num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params["tipo"], tipo_factura_id: params["tipo_factura_id"], condicion: params['condicion']}).blank?
         
         if num_factura_blank
           
@@ -124,10 +124,11 @@ class CabeceraFactura < ApplicationRecord
       
       return res 
       raise ActiveRecord::Rollback unless res.status_valid
-
     end
   end
+
   # ===================================================================================================================================================
+
   def self.find_secuencias(params)
     res = Response.new
 
@@ -150,8 +151,7 @@ class CabeceraFactura < ApplicationRecord
 
     tipoFactura = TipoFactura.find_by_id(params["tipo_factura_id"])
 
-    data_secuencias[:actual_secuencia_factura]     = SecuenciaFactura.find_by_tipo_factura_id(params["tipo_factura_id"]) if params["tipo"] == "venta" || params["is_nota"]
-    data_secuencias[:actual_secuencia_factura]     = SecuenciaFactura.find_by_tipo_factura_id(params["FACTURA_DE"])      if params["tipo"] == "compra"
+    data_secuencias[:actual_secuencia_factura]     = SecuenciaFactura.find_by_tipo_factura_id(params["FACTURA_DE"]) 
     data_secuencias[:numero_factura]               = data_secuencias[:actual_secuencia_factura]["secuencia"] + 1
 
     if params["FACTURA_DE"] == 14 # COMPRA

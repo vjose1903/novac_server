@@ -93,7 +93,7 @@ class Paginator
 		page      = @paginate_options["page"].to_i
 		per_page  = @paginate_options["per_page"].to_i
 
-		inicio    = (1 - page).abs * per_page
+		inicio    = (page - 1).abs * per_page
 		
 		itemsPaginated = items[inicio, per_page]
 		
