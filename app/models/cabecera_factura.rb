@@ -95,6 +95,7 @@ class CabeceraFactura < ApplicationRecord
               if res_valid.status_valid
                 saco = Articulo.find_by_nombre("Saco sistema")
                 res.set_data(cabecera_factura, {all: true, saco_sistema: saco})
+                
                 realizando = params["tipo_factura_id"] == 5 ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
                 res.add_msg("#{realizando} creada correctamente.")
               else
@@ -122,8 +123,11 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
       
+      unless res.status_valid
+        raise ActiveRecord::Rollback 
+      end
+
       return res 
-      raise ActiveRecord::Rollback unless res.status_valid
     end
   end
 

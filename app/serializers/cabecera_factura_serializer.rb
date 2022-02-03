@@ -65,7 +65,9 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       cliente["nombre"]           += " #{client_["apellido"].capitalize}" unless client_["apellido"].blank?
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]
-      cliente["rnc"]               = object.cliente.documentos_de_identidad.find_by_principal(true)["documento"]
+
+      documento                    = object.cliente.documentos_de_identidad.find_by_principal(true)
+      cliente["rnc"]               = documento.nil? ? "----------" : documento.documento
     end
     cliente
   end
@@ -76,7 +78,11 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       supli_                        = object.suplidor.attributes
       suplidor["nombre"]            = supli_["nombre"].capitalize 
       suplidor["direccion"]         = supli_["direccion"]
-      suplidor["rnc"]               = object.suplidor.documentos_de_identidad.find_by_principal(true)["documento"]
+      
+      documento                     = object.suplidor.documentos_de_identidad.find_by_principal(true)
+      suplidor["rnc"]               = documento.nil? ? "----------" : documento.documento
+
+      
     end
     suplidor
   end
