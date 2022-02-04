@@ -17,7 +17,7 @@ class Cliente < ApplicationRecord
   def init
     self.balance = 0 unless self.balance
   end
-
+  
   # =========================================================================================================================================================
 
   def self.create_update_cliente(params , is_save=false)

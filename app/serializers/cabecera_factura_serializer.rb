@@ -61,7 +61,9 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       cliente["rnc"]               = "----------"
     else
       client_                      = object.cliente.attributes
+      puts "client_ ".red + "#{client_}"
       cliente["nombre"]            = client_["nombre"].capitalize 
+
       cliente["nombre"]           += " #{client_["apellido"].capitalize}" unless client_["apellido"].blank?
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]

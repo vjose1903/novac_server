@@ -21,6 +21,11 @@ class CabeceraFacturasController < ApplicationController
     resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
     resultado.send_response self
   end
+
+  def getNotas
+    resultado = CabeceraFactura.get_notas_credito_debito(params, set_paginate_options(params))
+    resultado.send_response self
+  end
   
   def getCantidadDevuelto
     resultado = CabeceraFactura.getDetallesNotasByFactura(params)

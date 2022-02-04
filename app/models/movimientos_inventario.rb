@@ -117,6 +117,7 @@ class MovimientosInventario < ApplicationRecord
       
       motivo = ""
       
+      motivo = "#{operador == "+" ? "Entrada" : "Salida"} de mercancia por la #{accion.split("_")} con el ncf: #{padre['numero_comprobante']} de la fecha #{fecha_movimiento}" if accion.include? "nota"
       motivo = "#{operador == "+" ? "Compra" : "Venta"} de mercancia en la factura con el ncf: #{padre['numero_comprobante']} de la fecha #{fecha_movimiento}" if accion == 'factura'
       motivo = "Salida de mercancia en el conduce con el número: #{padre['numero_conduce']} de la fecha #{fecha_movimiento}" if accion == 'conduce'
       motivo = padre.motivo if accion == 'movimiento'

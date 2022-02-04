@@ -33,13 +33,13 @@ class CabeceraFactura < ApplicationRecord
           end
           
           # NOTA DE CREDITO
-          if res_valid.status_valid && params["is_nota"] && params["tipo_factura_id"] == 5
+          if res_valid.status_valid && params["is_nota"] && params["cliente_id"] && params["tipo_factura_id"] == 5
             res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"].to_f.abs, "-")
             res_valid                      = CabeceraFactura.agregar_nota_a_CabeceraFactura(params["factura_id"], params)                       if res_valid.status_valid
           end
           
           # NOTA DE DEBITO
-          if res_valid.status_valid && params["is_nota"] && params["tipo_factura_id"] == 4
+          if res_valid.status_valid && params["is_nota"] && params["cliente_id"] && params["tipo_factura_id"] == 4
             res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"].to_f.abs, "+")
             res_valid                      = CabeceraFactura.agregar_nota_a_CabeceraFactura(params["factura_id"], params)                       if res_valid.status_valid
           end
@@ -95,7 +95,7 @@ class CabeceraFactura < ApplicationRecord
               if res_valid.status_valid
                 saco = Articulo.find_by_nombre("Saco sistema")
                 res.set_data(cabecera_factura, {all: true, saco_sistema: saco})
-                
+
                 realizando = params["tipo_factura_id"] == 5 ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
                 res.add_msg("#{realizando} creada correctamente.")
               else
@@ -145,23 +145,26 @@ class CabeceraFactura < ApplicationRecord
 
     if params["tipo"] == "venta" || params["is_nota"]
       
-      res_actual_paquete                           = SecuenciaComprobante.get_paquete_rnc_by_estado(params["tipo_factura_id"], true)
+      res_actual_paquete                            = SecuenciaComprobante.get_paquete_rnc_by_estado(params["tipo_factura_id"], true)
 
       return res_actual_paquete unless res_actual_paquete.status_valid
 
-      data_secuencias[:actual_paquete_comprobante] = res_actual_paquete.get_data
-      next_secuencia_comprobante = data_secuencias[:actual_paquete_comprobante]["secuencia"]
+      data_secuencias[:actual_paquete_comprobante]  = res_actual_paquete.get_data
+      next_secuencia_comprobante                    = data_secuencias[:actual_paquete_comprobante]["secuencia"]
     end
 
     tipoFactura = TipoFactura.find_by_id(params["tipo_factura_id"])
 
-    data_secuencias[:actual_secuencia_factura]     = SecuenciaFactura.find_by_tipo_factura_id(params["FACTURA_DE"]) 
-    data_secuencias[:numero_factura]               = data_secuencias[:actual_secuencia_factura]["secuencia"] + 1
+    entidad_secuencia_id                          = !params["FACTURA_DE"].nil? ? params["FACTURA_DE"] : params["tipo_factura_id"]
+    
+    data_secuencias[:actual_secuencia_factura]    = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id) 
+    data_secuencias[:numero_factura]              = data_secuencias[:actual_secuencia_factura]["secuencia"] + 1
+    
 
     if params["FACTURA_DE"] == 14 # COMPRA
-      data_secuencias[:numero_comprobante]         = params["numero_comprobante"].upcase
+      data_secuencias[:numero_comprobante]          = params["numero_comprobante"].upcase
     else # VENTA / NOTAS
-      data_secuencias[:numero_comprobante]         = "B#{tipoFactura["referencia"]}#{"%08d" % next_secuencia_comprobante}"
+      data_secuencias[:numero_comprobante]          = "B#{tipoFactura["referencia"]}#{"%08d" % next_secuencia_comprobante}"
     end
 
     res.set_data(data_secuencias)
@@ -232,6 +235,26 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ===================================================================================================================================================
+  def self.get_notas_credito_debito(params, paginate_options)
+    CabeceraFactura.transaction do
+      res           = Response.new(paginate_options)
+      tipo_factura  = TipoFactura.find_by_id(params["tipo_factura_id"])
+
+      facturas      = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"], estado: true}).order("cabecera_facturas.id DESC").to_a
+
+      puts "facturas -> ".red + "#{facturas.to_json}"
+      
+      if facturas.length > 0
+        saco = Articulo.find_by_nombre("Saco sistema")
+        res.set_data(facturas, {all: true, saco_sistema: saco})
+      else
+        res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas") unless is_adelantada
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+      return res
+    end
+  end
+
   def self.get_facturas_by_params(params, paginate_options)
     CabeceraFactura.transaction do
       res                = Response.new(paginate_options)

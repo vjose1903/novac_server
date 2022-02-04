@@ -67,15 +67,19 @@ class DetalleFactura < ApplicationRecord
   #  --------------------------------------------------------------------------------------------------------------------------------
   def procesos_detalle(params, cabecera)
     res            = Response.new
+
     begin
-      operador     = cabecera.tipo == "compra" ? "+" : "-"
+      operador     = cabecera.tipo == "compra" || cabecera.tipo == "nota_credito" ? "+" : "-"
       fecha        = cabecera.fecha_equivalente
+      accion       = cabecera.tipo.include?("nota") ? cabecera.tipo : "factura"
     rescue => exception
-      operador     = cabecera["tipo"] == "compra" ? "+" : "-"
+      operador     = cabecera["tipo"] == "compra" || cabecera["tipo"] == "nota_credito" ? "+" : "-"
       fecha        = cabecera["fecha_equivalente"] 
+      accion       = cabecera["tipo"].include?("nota") ? cabecera["tipo"] : "factura"
     end
 
-    res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, operador, fecha, 'factura', cabecera )
+
+    res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, operador, fecha, accion, cabecera )
     
     unless res_movimiento.status_valid
       res.add_msgs(res_movimiento.get_msgs.to_a) 
