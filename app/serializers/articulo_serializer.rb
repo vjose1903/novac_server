@@ -19,7 +19,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   attribute :vendido_en,                         if: Proc.new { self.get_param('vendido_en') || self.get_param('all') }
   attribute :is_materia_prima,                   if: Proc.new { self.get_param('is_materia_prima') || self.get_param('all') }
 
-  attribute :contenido_articulos,                if: Proc.new { self.get_param('contenido_articulos') || self.get_param('all') }
+  attribute :contenido_articulos,                if: Proc.new { self.get_param('contenido_articulos') || self.get_param('costos') || self.get_param('all') }
   attribute :formulas_productos_terminados,      if: Proc.new { object.is_combo && (self.get_param('formulas_productos_terminados') || self.get_param('all')) }
 
   attribute :descripcion,                        if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
@@ -42,7 +42,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   def contenido_articulos
     historicos = self.get_param('historicos')
 
-    if historicos.empty?
+    if historicos.blank? || historicos.empty?
       @contenido = object.contenido_articulos
     else
       articulo = historicos.find  { |item| item["id"] == object.id }
@@ -140,7 +140,6 @@ class ArticuloSerializer < ActiveModel::Serializer
     obj["#{object.medida}"]            = {}
     obj["#{object.medida}"]["costo"]   = object.costo_principal
     obj["#{object.medida}"]["precio"]  = object.precio_principal
-
     @contenido.each do |conte|
       obj["#{conte.medida}"]           = {}
       obj["#{conte.medida}"]["costo"]  = conte.costo

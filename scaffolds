@@ -61,6 +61,8 @@ rails g migration ChangeIsComboToBeIsComboInArticulos
 rails g migration ChangeFileNameToBeFileNameInImagenes
  
 rails g scaffold forma_de_pago cabecera_factura:references forma_pago:string cantidad:float
+
+
 rails g scaffold provincia nombre:string
 rails g model municipio provincia:references nombre:string 
 rails g scaffold costo_flete municipio:references costo:float
@@ -89,3 +91,5 @@ rails generate serializer cabecera_conduce
 rails generate serializer detalle_conduce
 rails generate serializer cabecera_factura
 rails generate serializer detalle_factura
+
+rails g scaffold configuracion nombre_empresa:string rnc_empresa:string direccion_empresa:string telefono_empresa:string logo_empresa:string color_app:string url_servidor:string url_servidor_respaldo:string puerto_servidor:integer url_servidor_descargas:string
