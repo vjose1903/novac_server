@@ -6,7 +6,7 @@ class ReportesController < ApplicationController
         tipo_reporte = params["tipo_reporte"]
         tipo = tipo_reporte
         tipo_tabla = 'normal'
-        muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod']
+        muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod','cuentas_con_pagos']
 
         muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '1'
 

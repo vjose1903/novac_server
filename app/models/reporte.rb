@@ -62,26 +62,6 @@ class Reporte < ApplicationRecord
 
         return cliente
     end
-    # ---------------------------------------------------------------------------------------------------------
-
-    def self.get_antiguedad_saldo(factura)
-        factura['cero_to_treinta']= "-"
-        factura['treinta_uno_to_sesenta']= "-"
-        factura['sesenta_uno_to_noventa']= "-"
-        factura['noventa_uno_to_more']= "-"
-
-        if comparar_fecha( factura['fecha_equivalente'].to_s, 1.minutes.ago.to_s, '<=') && comparar_fecha( factura['fecha_equivalente'].to_s, 30.days.ago.to_s, '>=')
-            factura['cero_to_treinta'] = factura['numero_comprobante']
-        elsif comparar_fecha(factura['fecha_equivalente'].to_s , 31.days.ago.to_s,'<=')  && comparar_fecha(factura['fecha_equivalente'].to_s, 60.days.ago.to_s,'>=') 
-            factura['treinta_uno_to_sesenta']= factura['numero_comprobante']
-        elsif comparar_fecha(factura['fecha_equivalente'].to_s, 61.days.ago.to_s,'<=')  && comparar_fecha(factura['fecha_equivalente'].to_s, 90.days.ago.to_s,'>=') 
-            factura['sesenta_uno_to_noventa']= factura['numero_comprobante']
-        elsif comparar_fecha(factura['fecha_equivalente'].to_s, 91.days.ago.to_s, '<=')
-            factura['noventa_uno_to_more']= factura['numero_comprobante']
-        end
-        return factura
-    end
-    # ---------------------------------------------------------------------------------------------------------
     
     # ---------------------------------------------------------------------------------------------------------
     
@@ -111,19 +91,18 @@ class Reporte < ApplicationRecord
         select_ = ""
         if tipo == "1"
             select_ = "#{inicio_select}, cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
-            cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_pendiente" 
+            cabecera_facturas.balance as total_pendiente" 
         else
-            select_ = "#{inicio_select}, #{tipo == '3' ? 'sum' : ''}(cabecera_facturas.balance) + coalesce(sum(notas.total_factura),0) as total_pendiente,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as cero_to_treinta,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as treinta_uno_to_sesenta,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as sesenta_uno_to_noventa,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) else 0 end  )  as noventa_uno_to_more"
+            select_ = "#{inicio_select}, #{tipo == '3' ? 'sum (' : ''} cabecera_facturas.balance#{tipo == '3' ? ')' : ''} as total_pendiente,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
+            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
         end
 
         group_by = tipo == "1" ? "" : tipo == "2" ? "cabecera_facturas.id, clientes.id" : "clientes.id"
 
         CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
-        .joins("left join cabecera_facturas notas on notas.aplicada_a = cabecera_facturas.numero_comprobante")
         .select(select_).where(query).where("cabecera_facturas.balance >= 1").group(group_by)
         .order("#{tipo == '3' ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf| 
             cabeza = cf.attributes
@@ -167,24 +146,12 @@ class Reporte < ApplicationRecord
 
     # ---------------------------------------------------------------------------------------------------------
     def self.get_inventario(params)
-        # inventario_temp = []
-        # query={}
-        # inventario_temp = Articulo.all
-        # inventario_temp = calcularCantidades(inventario_temp)
-        
-        # inventario = inventario_temp.sort_by! { |k| k["nombre"]}
-        # cantidad_articulos = Articulo.all.where({ estado: true}).count
-        
-        # obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
-        
+
         inventario_temp    = []
         inventario_temp    = Articulo.all.where({estado: true}).order('nombre ASC')
         inventario_temp    = calcularCantidades(inventario_temp)
         cantidad_articulos = inventario_temp.length
         inventario         = inventario_temp.sort_by! { |k| k["nombre"]}
-        
-        # inventario = serialize_parser(inventario_temp, {all: true, historicos: []})
-
 
         obj = { body: inventario, total: 0, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
         return obj
@@ -333,13 +300,16 @@ class Reporte < ApplicationRecord
                   total:            nota.total_factura
                 })
             end
-
+            contenido_titulo = []
+            contenido_titulo.push({
+              fecha_equivalente:  cabeza_factura["fecha_equivalente"],
+              numero_comprobante: cabeza_factura["numero_comprobante"],
+              total_factura:      cabeza_factura["total_factura"],
+              balance:            cabeza_factura["balance"],
+            })
             facturas.push({
-                fecha_equivalente:  cabeza_factura["fecha_equivalente"],
-                numero_comprobante: cabeza_factura["numero_comprobante"],
-                total_factura:      cabeza_factura["total_factura"],
-                balance:            cabeza_factura["balance"],
-                contenido_grupo:    pagos_notas.sort_by! { |k| k[:fecha].to_i }
+              contenido_titulo:   contenido_titulo,
+              contenido_grupo:    pagos_notas.sort_by! { |k| k[:fecha].to_i }
             })
         end
 
@@ -347,7 +317,7 @@ class Reporte < ApplicationRecord
         cliente = Cliente.find_by_id(params["cliente_id"])
         puts "cliente ".red + "#{cliente.to_json}"
 
-        subtitulo = "Cliente: #{ cliente.nombre_completo } Facturas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
+        subtitulo = "Cliente: #{ cliente.nombre_completo }, Facturas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
         obj = { body: facturas, total: total_cuentas, sub_t: subtitulo}
         return obj
     end
@@ -395,17 +365,19 @@ class Reporte < ApplicationRecord
 
             total_grupo = calcular_cantidad_proporcional(temp_ventas)
             total_venta += total_grupo
+            
+            
 
             ventas.push({
-                titulo_grupo: tipo_articulo.descripcion,
-                total: total_grupo,
-                contenido_grupo: temp_ventas.sort_by! { |k| k['nombre']}
+              contenido_titulo:  tipo_articulo.descripcion,
+              total:             total_grupo,
+              contenido_grupo:   temp_ventas.sort_by! { |k| k['nombre']}
             })
         end
 
         ventas.push({
-            titulo_grupo: 'TOTAL GENERAL',
-            total: total_venta,
+          contenido_titulo:  'TOTAL GENERAL',
+            total:           total_venta,
             contenido_grupo: []
         })
 
@@ -459,16 +431,6 @@ class Reporte < ApplicationRecord
 
         query['tipo'] = 'venta'
         query['is_nota'] = false
-
-        # select cabecera_facturas.id, clientes.id as cliente_id,
-        # coalesce(SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,48),'Cliente contado') as cliente_nombre,
-        # coalesce(doc.documento,'-------------' ) as cliente_rnc,
-        # cabecera_facturas.numero_comprobante, cabecera_facturas.condicion, 
-        # cabecera_facturas.total_factura + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_factura
-        # from cabecera_facturas
-        # LEFT JOIN clientes ON cabecera_facturas.cliente_id = clientes.id
-        # LEFT JOIN documentos_de_identidad doc ON cabecera_facturas.cliente_id = doc.cliente_id and doc.principal = true
-        # where cabecera_facturas.fecha_equivalente::DATE BETWEEN '2021-03-01' AND '2021-03-31' AND cabecera_facturas.tipo='venta' and cabecera_facturas.is_nota=false ORDER BY cabecera_facturas.fecha_equivalente ASC
         
 
         select_ = "cabecera_facturas.id, clientes.id as cliente_id, coalesce(SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,48),'Cliente contado') as cliente_nombre,
@@ -476,7 +438,7 @@ class Reporte < ApplicationRecord
         cabecera_facturas.fecha_equivalente,
         coalesce(doc.documento,'-------------' ) as cliente_rnc,
         cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
-        cabecera_facturas.total_factura + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = cabecera_facturas.numero_comprobante) as total_factura" 
+        cabecera_facturas.total_factura" 
 
         total_ventas=0
 
@@ -486,27 +448,6 @@ class Reporte < ApplicationRecord
         .order("cabecera_facturas.fecha_equivalente ASC").each do |cf| 
             total_ventas += cf['total_factura']
         end
-
-        # ventas=[]
-        # total_ventas=0
-        # ventas_temp.each do |factura|
-        #     att = factura.attributes
-            
-        #     if att['tiene_nota']
-        #         my_print_log("total_factura ANTES DE RECALCULO ---> ".yellow + "#{att['total_factura']}")
-        #         recalculo = recalculo_por_nota(att)
-        #         att['total_factura'] = recalculo[:total_factura]
-        #         att['balance'] = recalculo[:balance]
-        #         my_print_log("total_factura DESPUES DE RECALCULO ---> ".green + "#{att['total_factura']}")
-        #     end
-
-        #     total_ventas += att['total_factura']
-        #     client = buscar_cliente(att, 48)
-        #     att['cliente_nombre'] = client['nombre']
-        #     att['cliente_rnc'] = client['rnc']
-            
-        #     ventas.push(att)
-        # end
         
 
         obj = { body: ventas, total: total_ventas , sub_t:''}
