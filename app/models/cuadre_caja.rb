@@ -1,11 +1,12 @@
 class CuadreCaja < ApplicationRecord
   belongs_to :user
 
-  def self.makecuadre(current_user, params)
-    res = Response.new
+  def self.makecuadre(params)
+    res              = Response.new
+    current_user     = get_current_user
 
-    fecha = params["fecha"] ? params["fecha"] : DateTime.now    
-    cuadre = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").to_a
+    fecha            = params["fecha"] ? params["fecha"] : DateTime.now    
+    cuadre           = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").to_a
     
 
     if cuadre.empty?
@@ -29,25 +30,25 @@ class CuadreCaja < ApplicationRecord
       recibos_ingresos_ = RecibosIngreso.where("(forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta') and fecha_equivalente::date='#{fecha}'").sum(:total)
 
       obj = {
-        user_id: current_user.id,
-        total_general: (ventas_contado_total_facturado_ + recibos_ingresos_).round(2),
-        total_venta_credito: ventas_credito_total_facturado_,
-        total_venta_contado: ventas_contado_total_facturado_,
+        user_id:              current_user.id,
+        total_general:        (ventas_contado_total_facturado_ + recibos_ingresos_).round(2),
+        total_venta_credito:  ventas_credito_total_facturado_,
+        total_venta_contado:  ventas_contado_total_facturado_,
         total_recibo_ingreso: recibos_ingresos_,
-        fecha_equivalente: DateTime.now -  (Date.today - Date.parse(params["fecha"])).to_i.day,
-        total_anterior: 0,
-        numero_reporte: CuadreCaja.find_numero_reporte,
+        fecha_equivalente:    DateTime.now -  (Date.today - Date.parse(params["fecha"])).to_i.day,
+        total_anterior:       0,
+        numero_reporte:       CuadreCaja.find_numero_reporte,
       }
       
-      cuadre = CuadreCaja.new(obj)
+      cuadre            = CuadreCaja.new(obj)
       
       CuadreCaja.transaction do
         unless cuadre.save!
           return { :error => true, :msg => cuadre.errors, :status => 400 }
         end
 
-        att = cuadre.attributes
-        att['usuario']= current_user.nombre.nombre_completo
+        att             = cuadre.attributes
+        att['usuario']  = current_user.nombre_completo
 
         res.set_data(att)
         res.add_msg("Cuadre realizado correctamente")
@@ -56,16 +57,16 @@ class CuadreCaja < ApplicationRecord
 
       user_cuadro = User.find_by_id(cuadre[0]["user_id"])
       obj = {
-        user_id: cuadre[0]["user_id"],
-        usuario: user_cuadro.nombre_completo,
-        fecha_equivalente: cuadre[0]["fecha_equivalente"],
-        total_general: cuadre[0]["total_general"],
-        total_venta_credito: cuadre[0]["total_venta_credito"],
-        total_venta_contado: cuadre[0]["total_venta_contado"],
+        user_id:              cuadre[0]["user_id"],
+        usuario:              user_cuadro.nombre_completo,
+        fecha_equivalente:    cuadre[0]["fecha_equivalente"],
+        total_general:        cuadre[0]["total_general"],
+        total_venta_credito:  cuadre[0]["total_venta_credito"],
+        total_venta_contado:  cuadre[0]["total_venta_contado"],
         total_recibo_ingreso: cuadre[0]["total_recibo_ingreso"],
-        total_anterior: cuadre[0]["total_anterior"],
-        numero_reporte: cuadre[0]["numero_reporte"],
-        reimprimir: true,
+        total_anterior:       cuadre[0]["total_anterior"],
+        numero_reporte:       cuadre[0]["numero_reporte"],
+        reimprimir:           true,
       }
 
       res.set_data(obj)

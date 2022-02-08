@@ -14,7 +14,7 @@ class CuadreCajasController < ApplicationController
   
   # POST /cuadre_cajas
   def create
-    resultado = CuadreCaja.makecuadre(current_user, params)
+    resultado = CuadreCaja.makecuadre(params)
     resultado.send_response self
   end
 

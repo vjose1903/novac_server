@@ -78,10 +78,7 @@ class Reporte < ApplicationRecord
         query['tipo'] = "venta"
         query['estado'] = true
 
-        if tipo == '1'
-            query['cliente_id'] = cliente_id 
-        end
-    
+        query['cliente_id'] = cliente_id if tipo == '1'
         
         # cuentas_temp = CabeceraFactura.where(query).where("balance >= 1").order('id ASC')
         total_cuentas = 0
