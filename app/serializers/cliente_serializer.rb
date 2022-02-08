@@ -13,10 +13,15 @@ class ClienteSerializer < ActiveModel::Serializer
   attribute :balance,                            if: Proc.new { self.get_param('balance') || self.get_param('all') }
   attribute :documentos_de_identidad,            if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
   attribute :vendedor,                           if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
+  attribute :nombre_completo
 
   def vendedor
 		vendedor = User.find_by_id(object.vendedor_id)
     serialize_parser(vendedor, {nombre: true, apellido: true, vendedor_id: true })
+	end
+
+  def nombre_completo
+		vendedor = object.nombre_completo
 	end
 
   def documentos_de_identidad

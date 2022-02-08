@@ -17,6 +17,13 @@ class Cliente < ApplicationRecord
   def init
     self.balance = 0 unless self.balance
   end
+
+  def nombre_completo
+    nombre    = self.nombre.capitalize
+    nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
+    nombre    = nombre.gsub("  ", " ").strip
+    nombre
+  end
   
   # =========================================================================================================================================================
 

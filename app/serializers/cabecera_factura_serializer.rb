@@ -61,10 +61,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       cliente["rnc"]               = "----------"
     else
       client_                      = object.cliente.attributes
-      puts "client_ ".red + "#{client_}"
-      cliente["nombre"]            = client_["nombre"].capitalize 
-
-      cliente["nombre"]           += " #{client_["apellido"].capitalize}" unless client_["apellido"].blank?
+      cliente["nombre"]            = object.cliente.nombre_completo
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]
 
@@ -91,17 +88,15 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   
   def usuario
     user_   = object.user.attributes
-    usuario = "#{user_["nombre"].capitalize}" 
-    usuario += " #{user_["apellido"].capitalize}" unless user_["apellido"].blank?
+    usuario = object.user.nombre_completo
     usuario
   end
 
   def vendedor
     vendedor = ""
     if object.vendedor_id
-      user_vendedor = User.find_by_id(object.vendedor_id).attributes
-      vendedor = "#{user_vendedor["nombre"].capitalize}" 
-      vendedor += " #{user_vendedor["apellido"].capitalize}" unless user_vendedor["apellido"].blank?
+      user_vendedor = User.find_by_id(object.vendedor_id)
+      vendedor = user_vendedor.nombre_completo
       vendedor
     end
     vendedor
@@ -129,7 +124,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
           recibo           = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
           
           detalle_recibo["numero_recibo"]     = recibo["numero_recibo"]
-          detalle_recibo["recibo_creado_por"] = "#{recibo.user["nombre"]} #{recibo.user["apellido"]}".titleize
+          detalle_recibo["recibo_creado_por"] = recibo.user.nombre_completo
           detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
           detalle_recibo
         end

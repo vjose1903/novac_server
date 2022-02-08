@@ -47,7 +47,7 @@ class CuadreCaja < ApplicationRecord
         end
 
         att = cuadre.attributes
-        att['usuario']= current_user.nombre.titleize + " " + current_user.apellido.titleize
+        att['usuario']= current_user.nombre.nombre_completo
 
         res.set_data(att)
         res.add_msg("Cuadre realizado correctamente")
@@ -57,7 +57,7 @@ class CuadreCaja < ApplicationRecord
       user_cuadro = User.find_by_id(cuadre[0]["user_id"])
       obj = {
         user_id: cuadre[0]["user_id"],
-        usuario: user_cuadro.nombre.titleize + " " + user_cuadro.apellido.titleize,
+        usuario: user_cuadro.nombre_completo,
         fecha_equivalente: cuadre[0]["fecha_equivalente"],
         total_general: cuadre[0]["total_general"],
         total_venta_credito: cuadre[0]["total_venta_credito"],

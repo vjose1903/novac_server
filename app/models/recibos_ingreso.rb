@@ -3,7 +3,6 @@ class RecibosIngreso < ApplicationRecord
   belongs_to :user
   belongs_to :cliente
   belongs_to :vehiculo, optional: true
-
   
   has_many :detalle_recibos, dependent: :destroy
 

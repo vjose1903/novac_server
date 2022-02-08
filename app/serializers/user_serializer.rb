@@ -12,11 +12,12 @@ class UserSerializer < ActiveModel::Serializer
   attribute :fecha_nacimiento,          if: Proc.new { self.get_param('fecha_nacimiento') || self.get_param('all') }
   attribute :role,                      if: Proc.new { self.get_param('role') || self.get_param('all') }
   attribute :imagen,                    if: Proc.new { self.get_param('imagen') || self.get_param('all') }
-  attribute :sign_in_count,               if: Proc.new { self.get_param('sign_in_count') || self.get_param('all') }
+  attribute :sign_in_count,             if: Proc.new { self.get_param('sign_in_count') || self.get_param('all') }
   attribute :documentos_de_identidad,   if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
 
   attribute :nombreCompleto,            if: Proc.new { self.get_param('nombreCompleto')  }
   attribute :vendedor_id,               if: Proc.new { self.get_param('vendedor_id')  }
+  attribute :nombre_completo
 
   # def fotoPerfil
   #   nil
@@ -47,6 +48,10 @@ class UserSerializer < ActiveModel::Serializer
   def vendedor_id
     object.id
   end
+
+  def nombre_completo
+		vendedor = object.nombre_completo
+	end
 
   def get_param(col)
 		return @instance_options[:"#{col}"]

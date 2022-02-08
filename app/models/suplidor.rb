@@ -9,6 +9,11 @@ class Suplidor < ApplicationRecord
   validates :nombre,              presence: { :message => "Nombre del suplidor no puede estar vacio." },      uniqueness: { scope: :estado, case_sensitive: false, :message => "Suplidor ya esta registrado" }, :if => :estado
   validates :direccion,           presence: { :message => "Dirección del suplidor no puede estar vacio." }
 
+  def nombre_completo
+    nombre    = self.nombre.capitalize
+    nombre    = nombre.gsub("  ", " ").strip
+    nombre
+  end
 
   def self.create_update_suplidor(params , is_save=false)
     Suplidor.transaction do

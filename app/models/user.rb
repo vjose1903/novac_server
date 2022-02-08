@@ -22,6 +22,13 @@ class User < ApplicationRecord
 
   include DeviseTokenAuth::Concerns::User
 
+  def nombre_completo
+    nombre    = self.nombre.capitalize
+    nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
+    nombre    = nombre.gsub("  ", " ").strip
+    nombre
+  end
+
   def self.get_vendedor_by_id(id)
     return my_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V' AND id = #{id}")
   end

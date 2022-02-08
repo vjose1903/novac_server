@@ -50,7 +50,7 @@ class ReportesController < ApplicationController
         elsif tipo_reporte==='cuentas_con_pagos'
             # ------------------- REPORTE DE CUENTAS POR COBRAR CLIENTES CON SUS PAGOS --------------------
             body = Reporte.get_cuentas_con_pagos(params)
-            titulo = "Reporte de Facturas pendientes con sus pagos"
+            titulo = "Reporte de facturas a crédito con sus pagos"
             tipo_tabla = 'agrupado'
 
         end

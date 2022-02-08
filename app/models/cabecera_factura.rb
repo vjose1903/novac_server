@@ -5,6 +5,7 @@ class CabeceraFactura < ApplicationRecord
   belongs_to :user
 
   has_many :detalle_facturas, dependent: :destroy
+  has_many :detalle_recibos, dependent: :destroy
 
   # ===================================================================================================================================================
 
