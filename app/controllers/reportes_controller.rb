@@ -54,7 +54,7 @@ class ReportesController < ApplicationController
             tipo_tabla = 'agrupado'
 
         end
-        my_print_log("body ".green + "#{body.to_json}")
+        
 
         mostrar_sub_titulo = {
             bool: muestra_sub_titulo.any? { |i| [tipo_reporte].include? i },
@@ -63,7 +63,7 @@ class ReportesController < ApplicationController
 
         respuesta = Reporte.estructura_reporte(titulo, tipo, body[:body], body[:total], mostrar_sub_titulo, tipo_tabla)
         my_print_log("------------ TERMINO ------------".red)
-        my_print_log("respuesta ".red + "#{respuesta.to_json}")
+        
         render json: respuesta, status: :ok
     end
 
