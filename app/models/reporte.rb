@@ -375,7 +375,7 @@ class Reporte < ApplicationRecord
         ventas.push({
           contenido_titulo:  'TOTAL GENERAL',
             total:           total_venta,
-            contenido_grupo: []
+            contenido_grupo: nil
         })
 
         obj = { body: ventas, total: total_venta, sub_t: sub_titulo }
