@@ -55,6 +55,9 @@ gem 'devise_token_auth'
 gem 'rack-cors'
 
 gem 'colorize'
+gem 'zlib'
+
+
 # source 'https://rubygems.org'
 # git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 

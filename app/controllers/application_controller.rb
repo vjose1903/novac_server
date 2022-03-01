@@ -21,6 +21,20 @@ class ApplicationController < ActionController::API
 
   def testFunction
 
+		res = Response.new
+
+		CabeceraFactura.all.each do |factura|
+			factura.identificador = CabeceraFactura.makeIdentificador(factura)
+			factura.save!
+		end
+
+		res.set_data("fin")
+    res.send_response self
+
+	end
+
+  def testFunction_
+
     # prueba = RecibosIngreso.puedeAnular(params)
     # prueba.send_response self
 
@@ -43,10 +57,10 @@ class ApplicationController < ActionController::API
     mantenimiento = MantenimientoFormula.select("mantenimiento_formulas.*, articulos.nombre").joins("inner join articulos on mantenimiento_formulas.articulo_id = articulos.id").order("mantenimiento_formulas.created_at desc")
     acu = 0
     mantenimiento.each do |artic|
-      
-      unless formulas_sin_repetir.any? { |item| item.articulo_id == artic.articulo_id && item.secuencia != artic.secuencia } 
 
-        obj["#{artic.articulo_id}"] = [] if obj["#{artic.articulo_id}"].blank? 
+      unless formulas_sin_repetir.any? { |item| item.articulo_id == artic.articulo_id && item.secuencia != artic.secuencia }
+
+        obj["#{artic.articulo_id}"] = [] if obj["#{artic.articulo_id}"].blank?
 
         obj["#{artic.articulo_id}"].push(artic)
 
@@ -54,11 +68,11 @@ class ApplicationController < ActionController::API
 
       end
     end
-    
-    obj.each { |key, value| 
+
+    obj.each { |key, value|
       puts "key:".red + " #{key}"
       puts "value:".green + " #{value}"
-      
+
       formula_b = FormulasProductosTerminado.where({articulo_id: key}).count()
       puts "formula_b:".yellow + " #{formula_b}"
       "-------" * 10
@@ -73,7 +87,7 @@ class ApplicationController < ActionController::API
           nueva_formula.articulo_combo     = f.articulo_combo
           nueva_formula.precio             = f.precio
           nueva_formula.medida             = "Libra"
-          
+
           nueva_formula.save!
         end
 
@@ -109,7 +123,7 @@ class ApplicationController < ActionController::API
 
     # b = serialize_parser(a,{all:true})
     # render json:  b.to_json, status: 200
-    
+
 
     # param = params[:param]
     # res = User.mudar_info(param)
@@ -127,7 +141,7 @@ class ApplicationController < ActionController::API
     documentos = DocumentoDeIdentidad.where("documento='#{filter_value}'")
     res.set_data(documentos, {persona: true})
     return res.send_response self
-  end 
+  end
 
   protected
 
@@ -151,5 +165,5 @@ class ApplicationController < ActionController::API
     devise_parameter_sanitizer.permit(:account_update, keys: permits)
   end
 
-  
+
 end

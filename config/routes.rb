@@ -21,56 +21,56 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
 
-  resources :reportes do 
+  resources :reportes do
     collection do
       get "custom/:tipo_reporte" => "reportes#getReportes"
     end
   end
-  
+
   resources :cuadre_cajas do
     collection do
       post "custom"            => "cuadre_cajas#create"
       get "check_today_cuadre" => "cuadre_cajas#check_today_cuadre"
     end
   end
-  
-  resources :documentos_de_identidad do 
+
+  resources :documentos_de_identidad do
     collection do
       get "persona"            => "application#getPersonasOfDocumento"
     end
   end
-  
-  resources :users do 
+
+  resources :users do
     collection do
       get "filtro/:arg"        => "users#getUsuariosFiltrados"
     end
   end
-  
+
   resources :costo_fletes do
     collection do
       get "filtro/:arg"        => "costo_fletes#index"
     end
   end
-  
-  resources :producciones do 
+
+  resources :producciones do
     collection do
       get "filtro/:arg"        => "producciones#getProduccionesFiltradas"
     end
   end
-  
+
   resources :vehiculos do
     collection do
       get "filtro/:arg"        => "vehiculos#getVehiculosFiltrados"
       patch "delete/:id"       => "vehiculos#deleteVehiculo" #
     end
   end
-  
+
   resources :marcas do
     collection do
       get "filtro/:arg"        => "marcas#getMarcasFiltradas"
     end
   end
-  
+
   resources :modelos do
     collection do
       get "por_marca/:marca"   => "modelos#getModelosPorMarca"
@@ -91,7 +91,7 @@ Rails.application.routes.draw do
   resources :recibos_ingresos do
     collection do
       get "filtro/:arg"                   => "recibos_ingresos#getRecibosFiltrados"
-      get "revertir/:tipo/:id"            => "recibos_ingresos#revertirRecibos" 
+      get "revertir/:tipo/:id"            => "recibos_ingresos#revertirRecibos"
     end
   end
 
@@ -109,7 +109,7 @@ Rails.application.routes.draw do
 
   resources :cabecera_facturas do
     collection do
-      # notas 
+      # notas
       get "custom/get_cantidad_devuelto/:aplicadaA"               => "cabecera_facturas#getCantidadDevuelto"
 
       # cabecera facturas
@@ -120,6 +120,7 @@ Rails.application.routes.draw do
       get "custom/viajes/:estado/:arg"                            => "cabecera_facturas#getViajesSinCompletar"
       patch "custom/update/:id"                                   => "cabecera_facturas#updateFacturaById"
       get "custom/notas"                                          => "cabecera_facturas#getNotas"
+      get "custom/comprobar_serial"                               => "cabecera_facturas#comprobarSerial"
       get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
     end
   end
@@ -130,7 +131,7 @@ Rails.application.routes.draw do
       get "filtro/:arg"         => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
     end
   end
-  
+
   post "ruta/test"              => "application#testFunction"
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {

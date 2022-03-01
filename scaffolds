@@ -34,7 +34,7 @@ rails g migration AddFechaViajesToCabeceraFacturas fecha_viaje:datetime
 rails g migration AddIsUltimoToDetalleRecibo is_ultimo:boolean
 rails g migration AddReferenciaToSecuenciaComprobante referencia:string
 rails g migration AddCamposToVehiculo nombre_no_empleado:string apellido_no_empleado:string telefono_no_empleado:string
-rails g migration AddAnioToVehiculo anio:string 
+rails g migration AddAnioToVehiculo anio:string
 rails g migration AddEstadoToVehiculo estado:boolean
 rails g migration AddIsMateriaPrimaToArticulo is_materia_prima:boolean
 rails g migration AddIsMateriaPrimaToMantenimientoArticulo is_materia_prima:boolean
@@ -50,34 +50,36 @@ rails g migration AddFechaEquivalenteToCuadreCaja fecha_equivalente:datetime
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer 
-rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer 
+rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer
+rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer
 
+
+rails g migration AddIdentificadorToCabeceraFacturas identificador:string
 rails g migration AddUnidadToDetalleConduce unidad:string
 rails g migration AddRetiradoEnLaVentaToDetalleFactura retirado_en_venta:integer
 
 rails g migration ChangeIsComboToBeIsComboInArticulos
 
 rails g migration ChangeFileNameToBeFileNameInImagenes
- 
+
 rails g scaffold forma_de_pago cabecera_factura:references forma_pago:string cantidad:float
 
 
 rails g scaffold provincia nombre:string
-rails g model municipio provincia:references nombre:string 
+rails g model municipio provincia:references nombre:string
 rails g scaffold costo_flete municipio:references costo:float
 rails g migration AddEstadoToCostoFlete
 
 rails g scaffold costo_flete_historial user:references costo_flete:references municipio:integer costo:float estado:boolean
 
-rails g migration AddCamposToSuplidor 
+rails g migration AddCamposToSuplidor
 
 rails g model entidad user:references nombre:string apellido:string direccion:string is_user:boolean is_suplidor:boolean is_cliente:boolean estado:boolean
 rails g model telefono entidad:references tipo:string valor:string
 rails g model correo_electronico entidad:references valor:string
 rails g model config_entidad has_user:boolean tipo:string
 
-rails g migration AddEntidadToTablas 
+rails g migration AddEntidadToTablas
 
 
 

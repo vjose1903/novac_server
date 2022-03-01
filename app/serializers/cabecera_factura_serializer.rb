@@ -31,9 +31,10 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :is_viaje,                                       if: Proc.new { self.get_param('is_viaje') || self.get_param('all') }
   attribute :tiene_nota,                                     if: Proc.new { self.get_param('tiene_nota') || self.get_param('all') }
   attribute :aplicada_a,                                     if: Proc.new { self.get_param('aplicada_a') || self.get_param('all') }
+  attribute :identificador,                                  if: Proc.new { self.get_param('identificador') || self.get_param('all') }
 
   attribute :tipo_factura,                                   if: Proc.new { self.get_param('tipo_factura') || self.get_param('all') }
-  
+
   attribute :detalle_facturas,                               if: Proc.new { self.get_param('detalle_facturas') || self.get_param('all') }
   attribute :cliente,                                        if: Proc.new { self.get_param('cliente') || self.get_param('all') }
   attribute :suplidor,                                       if: Proc.new { self.get_param('suplidor') || self.get_param('all') }
@@ -42,7 +43,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
 
-  
+
   def tipo_factura
     object.tipo_factura.descripcion.titleize
   end
@@ -52,12 +53,13 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     serialize_parser(object.detalle_facturas, {all: true, saco_sistema: saco})
   end
 
-  
+
   def cliente
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre
       cliente["direccion"]         = object.NoCliente_direccion
+      cliente["telefono"]          = "----------"
       cliente["rnc"]               = "----------"
     else
       client_                      = object.cliente.attributes
@@ -70,22 +72,23 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     end
     cliente
   end
-  
+
   def suplidor
     suplidor = {}
     unless object.suplidor.blank?
       supli_                        = object.suplidor.attributes
-      suplidor["nombre"]            = supli_["nombre"].capitalize 
+      suplidor["nombre"]            = supli_["nombre"].capitalize
       suplidor["direccion"]         = supli_["direccion"]
-      
+			suplidor["telefono"]          = supli_["telefono"]
+
       documento                     = object.suplidor.documentos_de_identidad.find_by_principal(true)
       suplidor["rnc"]               = documento.nil? ? "----------" : documento.documento
 
-      
+
     end
     suplidor
   end
-  
+
   def usuario
     user_   = object.user.attributes
     usuario = object.user.nombre_completo
@@ -113,16 +116,16 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
   def pagos
     pago_parseo    = []
-    
+
     if ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
       pago_          = DetalleRecibo.where({ cabecera_factura_id: object.id }).order('id DESC')
 
       if pago_.length > 0
         pago_parseo  = pago_.map do |detalle_recibo|
-          
+
           detalle_recibo   = detalle_recibo.as_json
           recibo           = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
-          
+
           detalle_recibo["numero_recibo"]     = recibo["numero_recibo"]
           detalle_recibo["recibo_creado_por"] = recibo.user.nombre_completo
           detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
@@ -137,7 +140,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
 
 
-  
+
   def get_param(col)
 		return @instance_options[:"#{col}"]
 	end

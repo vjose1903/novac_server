@@ -4,15 +4,15 @@ class CabeceraFacturasController < ApplicationController
   before_action :set_cabecera_factura, only: [:show, :update, :destroy]
   before_action :get_saco_sistema, only: [:index, :show]
   # GET /cabecera_facturas
-  def index    
+  def index
     return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, {all: true, saco_sistema: @saco}).send_response self
   end
-  
+
   # GET /cabecera_facturas/1
   def show
     return Response.new(params, nil, @cabecera_factura, nil, {all: true, saco_sistema: @saco}).send_response self
   end
-  
+
   def get_saco_sistema
     @saco = Articulo.find_by_nombre("Saco sistema")
   end
@@ -26,7 +26,12 @@ class CabeceraFacturasController < ApplicationController
     resultado = CabeceraFactura.get_notas_credito_debito(params, set_paginate_options(params))
     resultado.send_response self
   end
-  
+
+  def comprobarSerial
+    resultado = CabeceraFactura.comprobar_serial(params)
+    resultado.send_response self
+  end
+
   def getCantidadDevuelto
     resultado = CabeceraFactura.getDetallesNotasByFactura(params)
     resultado.send_response self
@@ -52,7 +57,7 @@ class CabeceraFacturasController < ApplicationController
     resultado = CabeceraFactura.create_factura(params, true)
 		resultado.send_response self
 	end
-  
+
   # PATCH /cabecera_facturas/1
   def updateFacturaById
     resultado = CabeceraFactura.updateFactura(params)
@@ -70,8 +75,8 @@ class CabeceraFacturasController < ApplicationController
   def set_cabecera_factura
     respuesta = set_entidad(CabeceraFactura, params)
     @cabecera_factura = respuesta.get_data
-      
+
     return respuesta.send_response self if @cabecera_factura.nil?
   end
-  
+
 end

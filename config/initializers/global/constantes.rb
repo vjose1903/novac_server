@@ -1,8 +1,41 @@
 
-
+PROJECT_PATH     = File.join Rails.root, '/'
+PUBLIC_PATH      = File.join Rails.root, 'public'
+ENCRIPT_SECRET   = '1234567890ABCDEF'
 HTTP_STATUS_CODE = Rack::Utils::SYMBOL_TO_STATUS_CODE
 
-DIAS = ['Lunes', 'Martes', 'Miercoles', 'Jueves',  'Viernes', 'Sabado', 'Domingo']
+
+
+DIAS             = ['Lunes', 'Martes', 'Miercoles', 'Jueves',  'Viernes', 'Sabado', 'Domingo']
+
+
+module Identificador
+	CLIENTE_ID = "1"
+	USER_ID = "2"
+	TOTAL_FACTURA = "3"
+	FECHA_EQUIVALENTE = "4"
+	CANTIDAD_ARTICULOS = "5"
+
+	def self.cliente_id
+		return CLIENTE_ID
+	end
+
+	def self.user_id
+		return USER_ID
+	end
+
+	def self.total_factura
+		return TOTAL_FACTURA
+	end
+
+	def self.fecha_equivalente
+		return FECHA_EQUIVALENTE
+	end
+
+	def self.cantidad_articulos
+		return CANTIDAD_ARTICULOS
+	end
+end
 
 module TipoArticulos
 	VETERINARIA         = '1'
@@ -65,19 +98,19 @@ module FacturasParams
   def self.cliente_id
     return CLIENTE_ID
   end
-  
+
   def self.numero_comprobante
     return NUMERO_COMPROBANTE
   end
-  
+
   def self.numero_factura
     return NUMERO_FACTURA
   end
-  
+
   def self.last_50
     return LAST_50
   end
-  
+
 
 
 

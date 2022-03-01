@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_01_06_150538) do
+ActiveRecord::Schema.define(version: 2022_02_26_191052) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -87,6 +87,7 @@ ActiveRecord::Schema.define(version: 2022_01_06_150538) do
     t.string "aplicada_a"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "identificador"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
@@ -108,6 +109,21 @@ ActiveRecord::Schema.define(version: 2022_01_06_150538) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
+  end
+
+  create_table "configuraciones", force: :cascade do |t|
+    t.string "nombre_empresa"
+    t.string "rnc_empresa"
+    t.string "direccion_empresa"
+    t.string "telefono_empresa"
+    t.string "logo_empresa"
+    t.string "logo_empresa_impresion"
+    t.string "color_app"
+    t.string "url_servidor"
+    t.string "url_servidor_respaldo"
+    t.string "url_servidor_descargas"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "contenido_articulos", force: :cascade do |t|
@@ -472,7 +488,7 @@ ActiveRecord::Schema.define(version: 2022_01_06_150538) do
     t.string "sexo"
     t.string "telefono"
     t.string "email"
-    t.string "fecha_nacimiento"
+    t.date "fecha_nacimiento"
     t.boolean "estado"
     t.string "role"
     t.json "tokens"

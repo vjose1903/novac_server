@@ -1,5 +1,6 @@
 require 'net/smtp'
-
+require "zlib"
+require 'openssl'
 
 class Response
 	def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
@@ -8,38 +9,38 @@ class Response
 		@res = {status:status_, data: data,  msg: msg_}
 		set_data(data, parametros_opcionales) if data && parametros_opcionales
 	end
-	
+
 	def set_status(status)
 		@res[:status] = status
 	end
-	
+
 	def status_valid
 		@res[:status] == HTTP_STATUS_CODE[:ok]
-		
+
 	end
 
 	def set_data(data, parametros_opcionales=nil)
 
 		# paginate = nil
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
-		@paginate_class.paginate_data(data) 
+		@paginate_class.paginate_data(data)
 
 		data_ = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
-		
+
 		@res[:data]              = data_
 		@res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()
 		@res[:total_paginas]     = @paginate_class.get_total_paginas()    if @paginate_class.is_paginated()
 
 		# paginate = nil
 		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
-		
+
 		# data = serialize_parser(data , parametros_opcionales) unless parametros_opcionales.nil?
 
 		# @res[:data]             = data
 		# @res[:total_registros]  = paginate_options["total_registros"]  if paginate_options
 		# @res[:total_paginas]    = paginate_options["total_paginas"] if paginate_options
 	end
-	
+
 	def has_data
 		!@res[:data].nil?
 	end
@@ -47,21 +48,21 @@ class Response
 	def get_data
 		@res[:data]
 	end
-	
+
 	def add_msg(msg)
-		@res[:msg].push(msg) if msg.length > 0 
+		@res[:msg].push(msg) if msg.length > 0
 	end
-	
+
 	def add_msgs(msgs)
 		msgs.each do |msg|
-			@res[:msg].push(msg) if msg.length > 0 
+			@res[:msg].push(msg) if msg.length > 0
 		end
 	end
-	
+
 	def get_msgs
 		@res[:msg]
 	end
-	
+
 	def send_response(controller)
 		controller.render json: @res.except(:status) , status: @res[:status]
 	end
@@ -74,34 +75,34 @@ class Paginator
 		@data_paginated={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
 		set_pagination_options(params)
 	end
-	
+
 	def set_pagination_options(params)
 		@paginate_options["page"]     = params['page']       if params && !params['page'].nil?
 		@paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
 		@paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
 
 	end
-	
-	
+
+
 	def paginate_data(data)
 
 		@data_paginated["data"] = data
 		@data_paginated = paginate(data) if @paginate_options["paginado"]
 	end
-	
+
 	def paginate(items)
 		page      = @paginate_options["page"].to_i
 		per_page  = @paginate_options["per_page"].to_i
 
 		inicio    = (page - 1).abs * per_page
-		
+
 		itemsPaginated = items[inicio, per_page]
-		
+
 		total_pag = (items.length.to_f / per_page.to_f).ceil
 
 		return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
 	end
-	
+
 	def is_paginated
 		@paginate_options['paginado']
 	end
@@ -109,7 +110,7 @@ class Paginator
 	def get_data()
 		@data_paginated["data"]
 	end
-	
+
 	def get_total_registros()
 		@data_paginated["total_registros"]
 	end
@@ -117,9 +118,9 @@ class Paginator
 	def get_total_paginas()
 		@data_paginated["total_paginas"]
 	end
-	
+
 end
-	
+
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
 	pde = {"page" => params['page']|| 0, "per_page" => params['per_page'] || 0, "paginado" => params['paginado'].to_boolean || false}
@@ -135,7 +136,7 @@ end
 def set_entidad(modelo, params, key="id")
 	res = Response.new
 	where = { "#{key}": params[key]}
-	entidad = modelo.where(where) 
+	entidad = modelo.where(where)
 
 	unless entidad.length == 0
 		res.set_data(entidad.first)
@@ -154,13 +155,13 @@ def traducir(key, others=nil)
 		others.keys.each do |key_|
 			others_tem[key_] = (:valor == key_ or :otro_valor == key_) ? others[key_] : I18n.t(others[key_])
 		end
-		
+
 		texto_traducido = I18n.t(key, **others_tem)
 	else
 		texto_traducido = I18n.t(key)
 	end
-	
-	texto_traducido = texto_traducido.kind_of?(Array)? texto_traducido : [texto_traducido]  
+
+	texto_traducido = texto_traducido.kind_of?(Array)? texto_traducido : [texto_traducido]
 
 	return texto_traducido.join(" ")
 end
@@ -183,13 +184,97 @@ def borrar_entidad(obj)
 end
 
 # ---------------------------------------------------------------------------------------------------------
+
+
+def encrypt(str)
+	cipher_salt1 = '013213810'
+  cipher_salt2 = '013213810'
+  cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').encrypt
+  cipher.key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(cipher_salt1, cipher_salt2, 20_000, cipher.key_len)
+  encrypted = cipher.update(str) + cipher.final
+  encrypted.unpack('H*')[0].upcase
+end
+# ---------------------------------------------------------------------------------------------------------
+
+def decrypt(str)
+  cipher_salt1 = 'some-random-salt-'
+  cipher_salt2 = 'another-random-salt-'
+  cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
+  cipher.key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(cipher_salt1, cipher_salt2, 20_000, cipher.key_len)
+  decrypted = [encrypted_str].pack('H*').unpack('C*').pack('c*')
+
+  cipher.update(decrypted) + cipher.final
+end
+
+
+# def encrypt(str)
+# 	cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').encrypt
+# 	cipher.key = Digest::SHA1.hexdigest ENCRIPT_SECRET
+# 	s = cipher.update(self) + cipher.final
+
+# 	s.unpack('H*')[0].upcase
+# end
+# # ---------------------------------------------------------------------------------------------------------
+
+# def decrypt(str)
+# 	cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
+# 	cipher.key = Digest::SHA1.hexdigest key
+# 	s = [self].pack("H*").unpack("C*").pack("c*")
+
+# 	cipher.update(s) + cipher.final
+# end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def encriptarBase64(value)
+  valor_encrip = Base64.encode64(value)
+  return valor_encrip
+end
+
+# ---------------------------------------------------------------------------------------------------------
+def desencriptarBase64(enc)
+  valor_des = Base64.decode64(enc)
+  return valor_des
+end
+
+
+# ---------------------------------------------------------------------------------------------------------
+
+def encriptarZlib(data_to_compress)
+	data_compressed = Zlib::Deflate.deflate(data_to_compress)
+	return data_compressed
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def desencriptarZlib(data_compressed)
+	uncompressed_data = Zlib::Inflate.inflate(data_compressed)
+	return uncompressed_data
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def dobleEncriptar(data_to_compress)
+	data_compressed            = encriptarZlib(data_to_compress)
+	data_doble_compressed      = encriptarBase64(data_compressed)
+	return data_doble_compressed
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def dobleDesEncriptar(data_to_compress)
+	data_doble_compressed      = desencriptarBase64(data_compressed)
+	data_uncompressed          = desencriptarZlib(data_doble_compressed)
+	return data_uncompressed
+end
+# ---------------------------------------------------------------------------------------------------------
 def updateSecuencias(tipo_secuencia_id)
     res                         = Response.new
-    
+
     secuenciaBackend            = SecuenciaFactura.find_by_id(tipo_secuencia_id)
     actual                      = secuenciaBackend.secuencia
     secuenciaBackend.secuencia  = actual + 1
-    
+
     unless secuenciaBackend.save!
       res.add_msg("Error actualizando la secuencia.")
       res.set_status(HTTP_STATUS_CODE[:conflict])
