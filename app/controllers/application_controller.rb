@@ -24,7 +24,10 @@ class ApplicationController < ActionController::API
 		res = Response.new
 
 		CabeceraFactura.all.each do |factura|
-			factura.identificador = CabeceraFactura.makeIdentificador(factura)
+			identificador         = CabeceraFactura.makeIdentificador(factura)
+			my_print_log("identificador ".red + "#{identificador}" )
+			factura.identificador = identificador
+
 			factura.save!
 		end
 
