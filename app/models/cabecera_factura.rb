@@ -620,6 +620,8 @@ class CabeceraFactura < ApplicationRecord
     factura.balance     = factura.balance - (nota["total_factura"].to_d).abs
     factura.estado      = false if factura.balance < 1
     factura.tiene_nota  = true
+		puts "aquiiiiii".yellow
+		puts "factura ".red + "#{factura.to_json}"
 
     unless factura.save!
       res.add_msgs(factura.errors.to_a)

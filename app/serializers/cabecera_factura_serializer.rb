@@ -49,8 +49,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def detalle_facturas
-    saco = self.get_param('saco_sistema')
-    serialize_parser(object.detalle_facturas, {all: true, saco_sistema: saco})
+    @saco = self.get_param('saco_sistema')
+    serialize_parser(object.detalle_facturas, {all: true, saco_sistema: @saco})
   end
 
 
@@ -106,12 +106,26 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def notas
-    notas = []
+    notas_parseo = []
+
     if object.tiene_nota
       notas = CabeceraFactura.where({ aplicada_a: object.numero_comprobante })
-      serialize_parser(notas, {all: true})  unless notas.blank?
+			if notas.length > 0
+        notas_parseo  = notas.map do | detalle_nota |
+					keys_to_pick                      = ['tipo_factura_id', 'detalle_facturas', 'id', 'total_factura', 'aplicada_a','estado', 'numero_comprobante', 'user_id']
+
+          detalle_nota_json_temp                      = detalle_nota.as_json
+					detalle_nota_json_temp['detalle_facturas']  = detalle_nota.detalle_facturas
+
+          detalle_nota_json = detalle_nota_json_temp.as_json.select { |key, value| keys_to_pick.my_includes_str(key) }
+					detalle_nota = detalle_nota_json
+          detalle_nota
+        end
+
+      end
+      # serialize_parser(notas, {all: true, saco_sistema: @saco})  unless notas.blank?
     end
-    notas
+    notas_parseo
   end
 
   def pagos
