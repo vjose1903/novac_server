@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  rolify
   extend Devise::Models
   belongs_to :imagen, optional: true
   accepts_nested_attributes_for :imagen

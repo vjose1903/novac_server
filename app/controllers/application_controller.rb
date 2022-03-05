@@ -11,6 +11,7 @@ class ApplicationController < ActionController::API
   around_action :encarsular_usuario
 
   def encarsular_usuario
+		puts "PARAMS ::::::: ".red + "#{params.to_json}"
     Thread.current[:current_user] = current_user
     begin
       yield

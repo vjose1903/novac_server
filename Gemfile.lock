@@ -215,6 +215,7 @@ GEM
       railties (>= 5.0)
     retriable (3.1.2)
     rexml (3.2.5)
+    rolify (6.0.0)
     ruby2_keywords (0.0.5)
     signet (0.16.0)
       addressable (~> 2.8)
@@ -263,6 +264,7 @@ DEPENDENCIES
   puma
   rack-cors
   rails
+  rolify
   spring
   spring-watcher-listen
   tzinfo-data

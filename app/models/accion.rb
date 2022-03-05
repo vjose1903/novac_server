@@ -1,0 +1,2 @@
+class Accion < ApplicationRecord
+end
