@@ -5,9 +5,9 @@ class CuadreCaja < ApplicationRecord
     res              = Response.new
     current_user     = get_current_user
 
-    fecha            = params["fecha"] ? params["fecha"] : DateTime.now    
+    fecha            = params["fecha"] ? params["fecha"] : DateTime.now
     cuadre           = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").to_a
-    
+
 
     if cuadre.empty?
       ventas_credito_total_facturado_ = 0
@@ -20,7 +20,7 @@ class CuadreCaja < ApplicationRecord
         my_print_log("factura ".red + "#{factura.to_json}")
         ventas_contado_total_facturado_ = ventas_contado_total_facturado_ + factura.total_factura
       end
-      
+
       ventas_credito_ = CabeceraFactura.where( "fecha_equivalente::date='#{fecha}' and lower(tipo)='venta' and  lower(condicion)='crédito'")
 
       ventas_credito_.each do |factura|
@@ -35,13 +35,13 @@ class CuadreCaja < ApplicationRecord
         total_venta_credito:  ventas_credito_total_facturado_,
         total_venta_contado:  ventas_contado_total_facturado_,
         total_recibo_ingreso: recibos_ingresos_,
-        fecha_equivalente:    DateTime.now -  (Date.today - Date.parse(params["fecha"])).to_i.day,
         total_anterior:       0,
+        fecha_equivalente:    DateTime.now -  (Date.today - Date.parse(params["fecha"])).to_i.day,
         numero_reporte:       CuadreCaja.find_numero_reporte,
       }
-      
+
       cuadre            = CuadreCaja.new(obj)
-      
+
       CuadreCaja.transaction do
         unless cuadre.save!
           return { :error => true, :msg => cuadre.errors, :status => 400 }
@@ -50,30 +50,41 @@ class CuadreCaja < ApplicationRecord
         att             = cuadre.attributes
         att['usuario']  = current_user.nombre_completo
 
+        att['contenido_reporte']  = [
+					{descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: att['total_venta_contado'] },
+					{descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', 	 valor: att['total_recibo_ingreso'] },
+					{descripcion: 'total_anterior', 	titulo: 'Total día anterior', 	 				 valor: att['total_anterior'] },
+					{descripcion: 'total_general', 		titulo: 'Total en caja', 						 valor: att['total_general'] },
+					{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: att['total_venta_credito'] },
+				]
+
         res.set_data(att)
         res.add_msg("Cuadre realizado correctamente")
       end
     else
+			cuadre = cuadre[0]
 
-      user_cuadro = User.find_by_id(cuadre[0]["user_id"])
+      user_cuadro = User.find_by_id(cuadre["user_id"])
       obj = {
-        user_id:              cuadre[0]["user_id"],
+        user_id:              cuadre["user_id"],
         usuario:              user_cuadro.nombre_completo,
-        fecha_equivalente:    cuadre[0]["fecha_equivalente"],
-        total_general:        cuadre[0]["total_general"],
-        total_venta_credito:  cuadre[0]["total_venta_credito"],
-        total_venta_contado:  cuadre[0]["total_venta_contado"],
-        total_recibo_ingreso: cuadre[0]["total_recibo_ingreso"],
-        total_anterior:       cuadre[0]["total_anterior"],
-        numero_reporte:       cuadre[0]["numero_reporte"],
+        fecha_equivalente:    cuadre["fecha_equivalente"],
+        numero_reporte:       cuadre["numero_reporte"],
         reimprimir:           true,
+        contenido_reporte: [
+					{descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: cuadre["total_venta_contado"]},
+					{descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', 	 valor: cuadre["total_recibo_ingreso"]},
+					{descripcion: 'total_anterior', 	titulo: 'Total anterior', 	 				 valor: cuadre["total_anterior"]},
+					{descripcion: 'total_general', 		titulo: 'Total en caja', 						 valor: cuadre["total_general"]},
+					{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: cuadre["total_venta_credito"]},
+				]
       }
 
       res.set_data(obj)
       res.add_msg("Cuadre buscado correctamente")
 
 
-      
+
 
     end
 

@@ -12,16 +12,16 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
   attribute :incidencias,                         if: Proc.new { self.get_param('incidencias') || self.get_param('all') }
   attribute :numero_recibo,                       if: Proc.new { self.get_param('numero_recibo') || self.get_param('all') }
   attribute :detalle_recibos,                     if: Proc.new { self.get_param('detalle_recibos') || self.get_param('all') }
-  
+
   attribute :chofer,                              if: Proc.new { self.get_param('chofer') || self.get_param('all') }
   attribute :cliente,                             if: Proc.new { self.get_param('cliente') || self.get_param('all') }
   attribute :user,                                if: Proc.new { self.get_param('user') || self.get_param('all') }
   attribute :detalle_recibos,                     if: Proc.new { self.get_param('detalle_recibos') || self.get_param('all') }
 
   def cliente
-    serialize_parser(object.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true})
+    serialize_parser(object.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true, telefono: true})
   end
-  
+
   def user
     serialize_parser(object.user, {nombre: true, apellido: true})
   end

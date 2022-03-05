@@ -14,13 +14,13 @@ class CabeceraConduceSerializer < ActiveModel::Serializer
   end
 
   def cliente
-    serialize_parser(object.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true})
+    serialize_parser(object.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, telefono: true})
   end
-  
+
   def user
-    serialize_parser(object.user, {nombre: true, apellido: true})
+    serialize_parser(object.user, {nombre: true, apellido: true, nombre_completo: true})
   end
-  
+
   def get_param(col)
 		return @instance_options[:"#{col}"]
 	end
