@@ -32,5 +32,5 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "config_entidad",           "config_entidades"
   inflect.irregular "accion",           				"acciones"
   inflect.irregular "permiso_accion",           "permisos_acciones"
-  inflect.irregular "rol_accion",           		"roles_acciones"
+  inflect.irregular "rol_permiso_accion",       "roles_permisos_acciones"
 end

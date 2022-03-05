@@ -153,3 +153,41 @@ PROVINCIAS_MUNICIPIOS=[
   { nombre: "San José de Ocoa",	municipios: ["San Jose De Ocoa", "Sabana Larga", "Rancho Arriba"] },
   { nombre: "Peravia",	municipios: ["Bani", "Nizao"] }
 ]
+
+G_ACCIONES = [
+	{nombre: 'create'},
+	{nombre: 'read'},
+	{nombre: 'update'},
+	{nombre: 'destroy'},
+
+	{nombre: 'get_stock'},
+	{nombre: 'checkIfExcede'},
+]
+
+G_PERMISOS = [
+	{nombre: 'articulo',                  controlador: 'Articulos'},
+	{nombre: 'conduce',                   controlador: 'CabeceraConduces'},
+	{nombre: 'factura',                   controlador: 'CabeceraFacturas'},
+	{nombre: 'cliente',                   controlador: 'Clientes'},
+	{nombre: 'costo_flete',               controlador: 'CostoFletes'},
+	{nombre: 'cuadre_caja',               controlador: 'CuadreCajas'},
+	{nombre: 'detalle_factura',           controlador: 'DetalleFacturas'},
+	{nombre: 'historico_produccion',      controlador: 'HistoricoProduccions'},
+	{nombre: 'imagen',                    controlador: 'Imagenes'},
+	{nombre: 'mantenimiento_articulo',    controlador: 'MantenimientoArticulos'},
+	{nombre: 'marca',                     controlador: 'Marcas'},
+	{nombre: 'modelo',                    controlador: 'Modelos'},
+	{nombre: 'movimiento_inventario',     controlador: 'MovimientosInventarios'},
+	{nombre: 'municipio',                 controlador: 'Municipios'},
+	{nombre: 'produccion',                controlador: 'Producciones'},
+	{nombre: 'provincia',                 controlador: 'Provincias'},
+	{nombre: 'recibo_ingreso',            controlador: 'RecibosIngresos'},
+	{nombre: 'reporte',                   controlador: 'Reportes'},
+	{nombre: 'secuencia_comprobante',     controlador: 'SecuenciaComprobantes'},
+	{nombre: 'suplidor',                  controlador: 'Suplidores'},
+	{nombre: 'tipo_articulo',             controlador: 'TipoArticulos'},
+	{nombre: 'tipo_factura',              controlador: 'TipoFacturas'},
+	{nombre: 'tipo_recibo',               controlador: 'TipoRecibos'},
+	{nombre: 'user',                      controlador: 'Users'},
+	{nombre: 'vehiculo',                  controlador: 'Vehiculos'},
+]

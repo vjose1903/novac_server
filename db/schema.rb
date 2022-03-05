@@ -10,10 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_26_191052) do
+ActiveRecord::Schema.define(version: 2022_03_05_155857) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "acciones", force: :cascade do |t|
+    t.string "descripcion"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
 
   create_table "articulos", force: :cascade do |t|
     t.bigint "imagen_id"
@@ -109,21 +115,6 @@ ActiveRecord::Schema.define(version: 2022_02_26_191052) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
-  end
-
-  create_table "configuraciones", force: :cascade do |t|
-    t.string "nombre_empresa"
-    t.string "rnc_empresa"
-    t.string "direccion_empresa"
-    t.string "telefono_empresa"
-    t.string "logo_empresa"
-    t.string "logo_empresa_impresion"
-    t.string "color_app"
-    t.string "url_servidor"
-    t.string "url_servidor_respaldo"
-    t.string "url_servidor_descargas"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "contenido_articulos", force: :cascade do |t|
@@ -382,6 +373,22 @@ ActiveRecord::Schema.define(version: 2022_02_26_191052) do
     t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
   end
 
+  create_table "permisos", force: :cascade do |t|
+    t.string "descripcion"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "permisos_acciones", force: :cascade do |t|
+    t.bigint "permiso_id", null: false
+    t.bigint "accion_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["accion_id"], name: "index_permisos_acciones_on_accion_id"
+    t.index ["permiso_id", "accion_id"], name: "index_permisos_acciones_on_permiso_id_and_accion_id"
+    t.index ["permiso_id"], name: "index_permisos_acciones_on_permiso_id"
+  end
+
   create_table "producciones", force: :cascade do |t|
     t.bigint "user_id"
     t.integer "numero"
@@ -416,6 +423,28 @@ ActiveRecord::Schema.define(version: 2022_02_26_191052) do
     t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"
     t.index ["vehiculo_id"], name: "index_recibos_ingresos_on_vehiculo_id"
+  end
+
+  create_table "roles", force: :cascade do |t|
+    t.string "nombre"
+    t.string "descripcion"
+    t.boolean "activo"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["nombre", "descripcion", "activo"], name: "index_roles_on_nombre_and_descripcion_and_activo", unique: true, where: "(activo = true)"
+  end
+
+  create_table "roles_permisos_acciones", force: :cascade do |t|
+    t.bigint "role_id", null: false
+    t.bigint "permiso_accion_id", null: false
+    t.string "controlador"
+    t.string "metodo"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["controlador", "metodo"], name: "index_roles_permisos_acciones_on_controlador_and_metodo"
+    t.index ["permiso_accion_id"], name: "index_roles_permisos_acciones_on_permiso_accion_id"
+    t.index ["role_id", "permiso_accion_id"], name: "index_roles_permisos_acciones_on_role_id_and_permiso_accion_id"
+    t.index ["role_id"], name: "index_roles_permisos_acciones_on_role_id"
   end
 
   create_table "secuencia_comprobantes", force: :cascade do |t|
@@ -501,6 +530,14 @@ ActiveRecord::Schema.define(version: 2022_02_26_191052) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
 
+  create_table "users_roles", id: false, force: :cascade do |t|
+    t.bigint "user_id"
+    t.bigint "role_id"
+    t.index ["role_id"], name: "index_users_roles_on_role_id"
+    t.index ["user_id", "role_id"], name: "index_users_roles_on_user_id_and_role_id"
+    t.index ["user_id"], name: "index_users_roles_on_user_id"
+  end
+
   create_table "vehiculos", force: :cascade do |t|
     t.bigint "user_id"
     t.string "marca"
@@ -551,11 +588,15 @@ ActiveRecord::Schema.define(version: 2022_02_26_191052) do
   add_foreign_key "movimientos_inventarios", "articulos"
   add_foreign_key "movimientos_inventarios", "users"
   add_foreign_key "municipios", "provincias"
+  add_foreign_key "permisos_acciones", "acciones"
+  add_foreign_key "permisos_acciones", "permisos"
   add_foreign_key "producciones", "users"
   add_foreign_key "recibos_ingresos", "clientes"
   add_foreign_key "recibos_ingresos", "tipo_facturas"
   add_foreign_key "recibos_ingresos", "users"
   add_foreign_key "recibos_ingresos", "vehiculos"
+  add_foreign_key "roles_permisos_acciones", "permisos_acciones"
+  add_foreign_key "roles_permisos_acciones", "roles"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
   add_foreign_key "users", "imagenes"
