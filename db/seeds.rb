@@ -226,7 +226,7 @@ end
 
 marcas = [
   {
-    "descripcion": "Daihatsu"    
+    "descripcion": "Daihatsu"
   },
 ]
 
@@ -238,8 +238,8 @@ end
 
 modelos = [
   {
-    "marca_id": 1,    
-    "descripcion": "Delta"    
+    "marca_id": 1,
+    "descripcion": "Delta"
   },
 ]
 
@@ -250,18 +250,60 @@ modelos.each do |modelo|
 end
 
 PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
-  
+
   provincia_db = Provincia.find_by_nombre(provincia_seed[:nombre])
-  
+
   provincia_db = Provincia.create({nombre: provincia_seed[:nombre]}) if provincia_db.nil?
-  
+
   provincia_seed[:municipios].each do |municipio_seed|
     if Municipio.find_by_nombre(municipio_seed).nil?
       Municipio.create({nombre: municipio_seed, provincia_id: provincia_db[:id]})
     end
   end
-  
-end 
+
+end
 
 
+
+G_PERMISOS.each do | permiso |
+
+	permiso_backend = Permiso.find_by_descripcion(permiso[:descripcion])
+
+	if permiso_backend.nil?
+		puts "------".red * 7
+		puts "CREANDO PERMISO: #{permiso[:descripcion]}"
+		puts "------".red * 7
+		permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre]})
+	end
+
+	puts " "
+	puts "permiso_backend ".red + "#{permiso_backend.to_json}"
+	puts " "
+
+	permiso[:acciones].each do | accion |
+		accion_backend = Accion.find_by_descripcion(accion[:descripcion])
+
+		if accion_backend.nil?
+			puts " "
+			puts "------".yellow * 7
+			puts "CREANDO ACCION #{accion[:descripcion]}"
+			puts "------".yellow * 7
+			accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo]})
+		end
+		puts "accion_backend ".red + "#{accion_backend.to_json}"
+
+		permiso_accion = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+
+		if permiso_accion.empty?
+			PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+			puts " "
+			puts "------".magenta * 7
+			puts "CREANDO PERMISO_ACCION"
+			puts "------".magenta * 7
+
+		end
+
+	end
+
+end
 

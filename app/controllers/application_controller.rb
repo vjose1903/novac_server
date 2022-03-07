@@ -5,13 +5,18 @@ class ApplicationController < ActionController::API
   before_action :configure_permitted_parameters, if: :devise_controller?
 
   # if ENV["RAILS_ENV"] != "development"
-    before_action :validateUserIsLogging!, unless: :devise_controller?
+    before_action :validateUserIsLogging!
   # end
 
   around_action :encarsular_usuario
 
+	def validateUserIsLogging!
+		unless user_signed_in?
+			render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_ssesion" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
+		end
+  end
+
   def encarsular_usuario
-		puts "PARAMS ::::::: ".red + "#{params.to_json}"
     Thread.current[:current_user] = current_user
     begin
       yield
@@ -148,11 +153,6 @@ class ApplicationController < ActionController::API
   end
 
   protected
-
-
-  def validateUserIsLogging!
-      render json: { msg: "Para realizar esta accion debe de iniciar sesión." }, status: HTTP_STATUS_CODE[:unauthorized] unless user_signed_in?
-  end
 
   def configure_permitted_parameters
     permits = [:id, :nombre, :usuario, :estado, :cedula, :apellido, :sexo, :fotoPerfil, :fotoPerfil_cache, :telefono, :email, :fecha_nacimiento, :role, :password,

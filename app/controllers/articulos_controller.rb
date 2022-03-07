@@ -5,12 +5,12 @@ class ArticulosController < ApplicationController
   def index
     return Response.new(params, nil, Articulo.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
   end
-  
+
   # GET /articulos/1
   def show
     return Response.new(params, nil, @articulo, nil, get_parametros_opcionales).send_response self
   end
-  
+
   def getStock
     return Response.new(params, nil, { stock: Articulo.all.where({ estado: true}).count } , nil, get_parametros_opcionales).send_response self
   end
@@ -38,36 +38,11 @@ class ArticulosController < ApplicationController
   def update
     crear_actualizar_articulo
   end
-  
+
   def checkIfExcede
     excede = @articulo.existencia.to_f < params["cantidad"].to_f
     return Response.new(params, nil, excede, nil, nil).send_response self
   end
-
-
-  def getMateriasPrimas
-    articulos = Articulo.where({ is_materia_prima: true , estado: true})
-
-    aArticulos = []
-    articulos.each do |arti|
-      obj = {}
-      obj["nombre"] = arti["nombre"]
-      obj["id"] = arti["id"]
-
-
-      if arti["medida"] == "Quintal" || arti["medida"] == "Saco"
-        obj["costo"] = arti.contenido_articulos[0]["costo"]
-        obj["precio"] = arti.contenido_articulos[0]["precio"]
-      elsif arti["medida"] == "Libra"
-        obj["costo"] = arti["costo_principal"]
-        obj["precio"] = arti["precio_principal"]
-      end
-
-      aArticulos.push(obj)
-    end
-    render json: aArticulos
-  end
-  
 
 
   # DELETE /articulos/1
@@ -76,7 +51,7 @@ class ArticulosController < ApplicationController
     resultado.send_response self
   end
 
-  def get_parametros_opcionales 
+  def get_parametros_opcionales
     return {
       all:                            params['all'] || false,
       id:                             params['id'] || false,

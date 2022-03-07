@@ -19,7 +19,7 @@ class VehiculosController < ApplicationController
     render json: @vehiculo
   end
 
-  
+
   def getVehiculosFiltrados
     arg = params["arg"]
     resultado = Vehiculo.filtrarVehiculo(arg, set_paginate_options(params))
@@ -28,7 +28,7 @@ class VehiculosController < ApplicationController
 
   # POST /vehiculos
   def create
-    
+
     @vehiculo = Vehiculo.new(vehiculo_params)
     @vehiculo.cantidad_viajes =0
 
@@ -49,19 +49,10 @@ class VehiculosController < ApplicationController
     end
   end
 
-  # DELETE /vehiculos/1
   def destroy
-    @vehiculo.destroy
-  end
+		is_deleted = @vehiculo.update({estado: false})
 
-  def deleteVehiculo
-    vehiculo = Vehiculo.find_by_id(params[:id])
-
-    if vehiculo.update({estado: false})
-      render json: { msg: "Vehiculo borrado" }
-    else
-      render json: { msg: "error borrando vehiculo." }
-    end
+		render json: { msg: is_deleted ? "Vehiculo borrado" : "error borrando vehiculo." }
   end
 
 

@@ -5,12 +5,12 @@ class CostoFletesController < ApplicationController
   # GET /costo_fletes
   def index
     return Response.new(params, nil, CostoFlete.all.where({estado: true}).order('id DESC'), nil, {all: true}).send_response self
-    
+
   end
-  
+
   # GET /costo_fletes/1
   def show
-    return Response.new(params, nil, @costo_flete, nil, {all: true}).send_response self    
+    return Response.new(params, nil, @costo_flete, nil, {all: true}).send_response self
   end
 
   def crear_actualizar_costo
@@ -40,14 +40,11 @@ class CostoFletesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_costo_flete
-    
-      params[:id] = params[:persona_id] if params[:persona_id] 
+
+      params[:id] = params[:persona_id] if params[:persona_id]
       respuesta = set_entidad(CostoFlete, params)
       @costo_flete = respuesta.get_data
-    
 
-
-      
       return respuesta.send_response self if @costo_flete.nil?
     end
 

@@ -10,6 +10,6 @@ class CreateRolesPermisosAcciones < ActiveRecord::Migration[6.1]
     end
 
 		add_index(:roles_permisos_acciones, [:role_id, :permiso_accion_id])
-		add_index(:roles_permisos_acciones, [:controlador, :metodo])
+		add_index(:roles_permisos_acciones, [:controlador, :metodo], unique: true, where: "(metodo IS NOT NULL)")
   end
 end

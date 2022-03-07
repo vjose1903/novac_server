@@ -16,7 +16,9 @@ ActiveRecord::Schema.define(version: 2022_03_05_155857) do
   enable_extension "plpgsql"
 
   create_table "acciones", force: :cascade do |t|
+    t.string "nombre"
     t.string "descripcion"
+    t.string "metodo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -374,6 +376,7 @@ ActiveRecord::Schema.define(version: 2022_03_05_155857) do
   end
 
   create_table "permisos", force: :cascade do |t|
+    t.string "nombre"
     t.string "descripcion"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -428,6 +431,7 @@ ActiveRecord::Schema.define(version: 2022_03_05_155857) do
   create_table "roles", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
+    t.string "ruta_defecto"
     t.boolean "activo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -441,7 +445,7 @@ ActiveRecord::Schema.define(version: 2022_03_05_155857) do
     t.string "metodo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["controlador", "metodo"], name: "index_roles_permisos_acciones_on_controlador_and_metodo"
+    t.index ["controlador", "metodo"], name: "index_roles_permisos_acciones_on_controlador_and_metodo", unique: true, where: "(metodo IS NOT NULL)"
     t.index ["permiso_accion_id"], name: "index_roles_permisos_acciones_on_permiso_accion_id"
     t.index ["role_id", "permiso_accion_id"], name: "index_roles_permisos_acciones_on_role_id_and_permiso_accion_id"
     t.index ["role_id"], name: "index_roles_permisos_acciones_on_role_id"

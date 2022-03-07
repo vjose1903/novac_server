@@ -59,7 +59,7 @@ class CabeceraFacturasController < ApplicationController
 	end
 
   # PATCH /cabecera_facturas/1
-  def updateFacturaById
+  def update
     resultado = CabeceraFactura.updateFactura(params)
 		resultado.send_response self
   end

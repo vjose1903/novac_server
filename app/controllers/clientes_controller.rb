@@ -2,19 +2,19 @@ class ClientesController < ApplicationController
   before_action :set_cliente, only: [:show, :destroy]
 
   # GET /clientes
-  def index    
+  def index
     return Response.new(params, nil, Cliente.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
   end
+
+	# GET /clientes/1
+	def show
+		return Response.new(params, nil, @cliente, nil, {all: true}).send_response self
+	end
 
   def getClientesFiltrados
     arg = params["arg"]
     resultado = Cliente.filtrarCliente(arg, set_paginate_options(params))
     resultado.send_response self
-  end
-
-  # GET /clientes/1
-  def show
-    return Response.new(params, nil, @cliente, nil, {all: true}).send_response self
   end
 
 
@@ -49,7 +49,7 @@ class ClientesController < ApplicationController
   def set_cliente
     respuesta = set_entidad(Cliente, params)
     @cliente = respuesta.get_data
-      
+
     return respuesta.send_response self if @cliente.nil?
   end
 end

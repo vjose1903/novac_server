@@ -1,5 +1,14 @@
 class MunicipiosController < ApplicationController
 	before_action :set_municipio, only: [:show, :update, :destroy]
+	# GET /municipio
+	def index
+		return Response.new(params, nil, Municipio.all, nil).send_response self
+	end
+
+	# GET /municipio/1
+	def show
+		return Response.new(params, nil, @municipio, nil).send_response self
+	end
 
 	def crear_actualizar_municipio
 		parametros = params
@@ -7,16 +16,6 @@ class MunicipiosController < ApplicationController
 
 		resultado = Municipio.crear_actualizar_municipio(parametros, true)
 		resultado.send_response self
-	end
-
-	# GET /municipio
-	def index
-		return Response.new(params, nil, Municipio.all, nil).send_response self
-	end
-	
-	# GET /municipio/1
-	def show
-		return Response.new(params, nil, @municipio, nil).send_response self
 	end
 
 	# POST /municipio

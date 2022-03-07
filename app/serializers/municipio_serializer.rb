@@ -3,7 +3,7 @@ class MunicipioSerializer < ActiveModel::Serializer
   has_one :provincia
 
   def provincia
-		ActiveModelSerializers::SerializableResource.new(object.provincia, {})
+		serialize_parser(object.provincia, {all: true})
 	end
 
 end

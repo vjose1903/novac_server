@@ -20,6 +20,8 @@ Rails.application.routes.draw do
   resources :contenido_articulos
   resources :tipo_articulos
   resources :secuencia_facturas
+  resources :permisos
+  resources :acciones
 
   resources :reportes do
     collection do
@@ -29,8 +31,7 @@ Rails.application.routes.draw do
 
   resources :cuadre_cajas do
     collection do
-      post "custom"            => "cuadre_cajas#create"
-      get "check_today_cuadre" => "cuadre_cajas#check_today_cuadre"
+      get "check_today_cuadre" => "cuadre_cajas#checkTodayCuadre"
     end
   end
 
@@ -61,7 +62,6 @@ Rails.application.routes.draw do
   resources :vehiculos do
     collection do
       get "filtro/:arg"        => "vehiculos#getVehiculosFiltrados"
-      patch "delete/:id"       => "vehiculos#deleteVehiculo" #
     end
   end
 
@@ -83,7 +83,6 @@ Rails.application.routes.draw do
       get "check_excede/:id"              => "articulos#checkIfExcede" #
       get "filtro/:arg"                   => "articulos#getArticulosFiltrados" #
       get "historico/:date/:articulo_id"  => "mantenimiento_articulos#getOneArticuloByDate" #
-      get "custom/materias_primas"        => "articulos#getMateriasPrimas" #
       get "custom/stock"                  => "articulos#getStock"
     end
   end
@@ -118,7 +117,7 @@ Rails.application.routes.draw do
       get "params/:campo/:valor/:tipo_factura_id/:is_adelantada"  => "cabecera_facturas#getFacturasByParams"
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
       get "custom/viajes/:estado/:arg"                            => "cabecera_facturas#getViajesSinCompletar"
-      patch "custom/update/:id"                                   => "cabecera_facturas#updateFacturaById"
+      patch "custom/update/:id"                                   => "cabecera_facturas#update"
       get "custom/notas"                                          => "cabecera_facturas#getNotas"
       get "custom/comprobar_serial"                               => "cabecera_facturas#comprobarSerial"
       get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
