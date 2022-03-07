@@ -31,6 +31,7 @@ Rails.application.routes.draw do
 
   resources :cuadre_cajas do
     collection do
+			post "custom"            => "cuadre_cajas#create"
       get "check_today_cuadre" => "cuadre_cajas#checkTodayCuadre"
     end
   end
