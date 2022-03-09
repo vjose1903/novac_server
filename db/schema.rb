@@ -378,6 +378,8 @@ ActiveRecord::Schema.define(version: 2022_03_05_155857) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
+    t.string "controlador"
+    t.boolean "mostrar_front"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -441,11 +443,8 @@ ActiveRecord::Schema.define(version: 2022_03_05_155857) do
   create_table "roles_permisos_acciones", force: :cascade do |t|
     t.bigint "role_id", null: false
     t.bigint "permiso_accion_id", null: false
-    t.string "controlador"
-    t.string "metodo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["controlador", "metodo"], name: "index_roles_permisos_acciones_on_controlador_and_metodo", unique: true, where: "(metodo IS NOT NULL)"
     t.index ["permiso_accion_id"], name: "index_roles_permisos_acciones_on_permiso_accion_id"
     t.index ["role_id", "permiso_accion_id"], name: "index_roles_permisos_acciones_on_role_id_and_permiso_accion_id"
     t.index ["role_id"], name: "index_roles_permisos_acciones_on_role_id"

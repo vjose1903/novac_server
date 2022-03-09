@@ -207,6 +207,7 @@ class CabeceraFactura < ApplicationRecord
       :numero_comprobante         => nil,
     }
 
+
     if params["tipo"] == "venta" || params["is_nota"]
 
       res_actual_paquete                            = SecuenciaComprobante.get_paquete_rnc_by_estado(params["tipo_factura_id"], true)
@@ -312,7 +313,7 @@ class CabeceraFactura < ApplicationRecord
         saco = Articulo.find_by_nombre("Saco sistema")
         res.set_data(facturas, {all: true, saco_sistema: saco})
       else
-        res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas") unless is_adelantada
+        res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas")
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
       return res
@@ -333,6 +334,7 @@ class CabeceraFactura < ApplicationRecord
       valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
       limit_             = campo == "last_50" ? 50 : nil
 
+
       valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
 
       where_ = "cabecera_facturas.tipo = '#{fact_de}' and cabecera_facturas.is_adelantada = #{is_adelantada} "
@@ -350,6 +352,8 @@ class CabeceraFactura < ApplicationRecord
 
 
       facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
+
+			puts "facturas ".blue + "#{facturas.to_json}"
 
       if facturas.length > 0
         saco = Articulo.find_by_nombre("Saco sistema")

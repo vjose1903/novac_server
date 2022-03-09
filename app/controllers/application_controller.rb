@@ -11,6 +11,9 @@ class ApplicationController < ActionController::API
   around_action :encarsular_usuario
 
 	def validateUserIsLogging!
+		puts " "
+		puts " ::::::: PARAMS :::::::".yellow + "#{params.to_json}"
+		puts " "
 		unless user_signed_in?
 			render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_ssesion" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
 		end

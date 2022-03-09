@@ -273,7 +273,7 @@ G_PERMISOS.each do | permiso |
 		puts "------".red * 7
 		puts "CREANDO PERMISO: #{permiso[:descripcion]}"
 		puts "------".red * 7
-		permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre]})
+		permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
 	end
 
 	puts " "
