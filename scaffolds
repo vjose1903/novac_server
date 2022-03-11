@@ -103,5 +103,7 @@ rails generate model permiso_accion permiso:references accion:references
 rails generate model rol_permiso_accion rol:references permiso_accion:references controlador:string metodo:string
 
 
+rails generate serializer role
 rails generate serializer permiso
 rails generate serializer accion
+rails generate serializer permiso_accion

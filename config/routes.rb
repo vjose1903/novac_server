@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
   resources :permisos
   resources :acciones
+  resources :roles
 
   resources :reportes do
     collection do
