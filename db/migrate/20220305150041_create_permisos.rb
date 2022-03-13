@@ -3,6 +3,7 @@ class CreatePermisos < ActiveRecord::Migration[6.1]
     create_table :permisos do |t|
       t.string :nombre
       t.string :descripcion
+      t.string :controlador
       t.timestamps
     end
   end

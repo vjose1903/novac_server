@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :detalles_facturas_notas
+  resources :facturas_aplicadas
+  resources :notas
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios

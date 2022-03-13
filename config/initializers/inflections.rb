@@ -33,4 +33,7 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "accion",           				"acciones"
   inflect.irregular "permiso_accion",           "permisos_acciones"
   inflect.irregular "rol_permiso_accion",       "roles_permisos_acciones"
+  inflect.irregular "nota",                     "notas"
+  inflect.irregular "factura_aplicada",         "facturas_aplicadas"
+  inflect.irregular "detalle_factura_nota",     "detalles_facturas_notas"
 end

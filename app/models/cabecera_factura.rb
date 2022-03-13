@@ -23,9 +23,9 @@ class CabeceraFactura < ApplicationRecord
       if res_secuencias.status_valid
 
         data_secuencias                    = res_secuencias.get_data
-        num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params["tipo"], tipo_factura_id: params["tipo_factura_id"], condicion: params['condicion']}).blank?
+        num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params["tipo"], tipo_factura_id: params["tipo_factura_id"], condicion: params['condicion']})
 
-        if num_factura_blank
+        if num_factura_blank.blank?
 
           res_valid                        = Response.new
 
@@ -34,7 +34,7 @@ class CabeceraFactura < ApplicationRecord
           end
 
           # NOTA DE CREDITO
-          if res_valid.status_valid && params["is_nota"] && params["cliente_id"] && params["tipo_factura_id"] == 5
+          if res_valid.status_valid && params["is_nota"] && params["cliente_id"] && params["tipo_factura_id"] == TiposNotasId.credito
             res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"].to_f.abs, "-")
             res_valid                      = CabeceraFactura.agregar_nota_a_CabeceraFactura(params["factura_id"], params)                       if res_valid.status_valid
           end
@@ -95,18 +95,21 @@ class CabeceraFactura < ApplicationRecord
 							if cabecera_factura.save!
 
 								res_valid                           = CabeceraFactura.update_secuencias(params, data_secuencias)
+
 								if res_valid.status_valid
-
-
 									saco = Articulo.find_by_nombre("Saco sistema")
 									res.set_data(cabecera_factura, {all: true, saco_sistema: saco})
 
-									realizando = params["tipo_factura_id"] == 5 ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
+									realizando = params["tipo_factura_id"] == TiposNotasId.credito ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
 									res.add_msg("#{realizando} creada correctamente.")
 								else
 									res.add_msgs(res_valid.get_msgs.to_a)
 									res.set_status(HTTP_STATUS_CODE[:conflict])
 								end
+
+							else
+								res.add_msgs(cabecera_factura.errors.to_a)
+								res.set_status(HTTP_STATUS_CODE[:conflict])
 							end
 
             else
@@ -247,9 +250,10 @@ class CabeceraFactura < ApplicationRecord
     else
       # --------- VENTA / NOTA ---------
 
+      res_aumento  = nil
       res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if data_secuencias[:actual_paquete_comprobante][:is_paquete]
 
-      if res_aumento.status_valid
+      if !res_aumento.nil? && res_aumento.status_valid
 
         unless data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
           res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
@@ -614,11 +618,11 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.agregar_nota_a_CabeceraFactura(id, nota)
+  def self.agregar_nota_a_CabeceraFactura(factura_aplicada)
     res                 = Response.new
-    factura             = CabeceraFactura.find_by_id(id)
+    factura             = CabeceraFactura.find_by_id(factura_aplicada["cabecera_factura_id"])
 
-    factura.balance     = factura.balance - (nota["total_factura"].to_d).abs
+    factura.balance     = factura.balance - (factura_aplicada["total"].to_d).abs
     factura.estado      = false if factura.balance < 1
     factura.tiene_nota  = true
 		puts "aquiiiiii".yellow

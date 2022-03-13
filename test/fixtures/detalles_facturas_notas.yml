@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  factura_aplicada: one
+  articulo: one
+  detalle_factura: one
+  unidad: MyString
+  cantidad: 1.5
+  cantidad_en_unidades: 1
+  itbis: 1.5
+  costo: 1.5
+  precio: 1.5
+  total: 1.5
+  descuento: 1.5
+
+two:
+  factura_aplicada: two
+  articulo: two
+  detalle_factura: two
+  unidad: MyString
+  cantidad: 1.5
+  cantidad_en_unidades: 1
+  itbis: 1.5
+  costo: 1.5
+  precio: 1.5
+  total: 1.5
+  descuento: 1.5

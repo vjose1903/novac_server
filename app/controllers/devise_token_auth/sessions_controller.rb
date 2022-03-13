@@ -11,11 +11,9 @@ module DeviseTokenAuth
     end
 
     def create
-      
+
       user = User.find_by_usuario(params[:usuario])
-      
-      
-      
+
       # if user["role"] === "V"
 
       #   return render_error(423, "Usuario es un vendedor no tiene acceso al sistema.")
@@ -25,7 +23,7 @@ module DeviseTokenAuth
 
       #   return render_error(423, "Usuario desactivado, favor de comunicarse con el administrador del sistema.")
       # end
-      
+
 
       unless user.nil?
         params[:email] = user.email

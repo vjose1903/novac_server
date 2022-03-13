@@ -74,6 +74,7 @@ module Documentos
 	end
 
 end
+
 DOCUMENTOS_DE_IDENTIDAD_VALIDOS = [Documentos.cedula, Documentos.rnc]
 
 module FacturasParams
@@ -111,12 +112,42 @@ module FacturasParams
     return LAST_50
   end
 
+end
 
 
+module TiposNotas
 
+	CREDITO = "nota_credito"
+	DEBITO  = "nota_debito"
+
+	def self.credito
+		return CREDITO
+	end
+
+	def self.debito
+		return DEBITO
+	end
+
+	def self.get_tipo(tipo)
+		return tipo == TiposNotasId.credito ? self.credito : self.debito
+	end
 
 end
 
+
+module TiposNotasId
+
+	CREDITO = 5
+	DEBITO  = 4
+
+	def self.credito
+		return CREDITO
+	end
+
+	def self.debito
+		return DEBITO
+	end
+end
 
 
 
