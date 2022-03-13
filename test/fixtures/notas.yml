@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cliente: one
+  user: one
+  tipo_factura: one
+  total: 1.5
+  identificador: MyString
+  numero_documento: 1
+  numero_comprobante: MyString
+  fecha_equivalente: 2022-03-13 12:27:34
+  estado: false
+
+two:
+  cliente: two
+  user: two
+  tipo_factura: two
+  total: 1.5
+  identificador: MyString
+  numero_documento: 1
+  numero_comprobante: MyString
+  fecha_equivalente: 2022-03-13 12:27:34
+  estado: false

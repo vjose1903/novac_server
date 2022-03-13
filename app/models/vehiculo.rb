@@ -4,10 +4,10 @@ class Vehiculo < ApplicationRecord
   def init
     self.cantidad_viajes = 0 unless self.cantidad_viajes
   end
-  
+
   # =====================================================================================================================
 
-  
+
   def self.filtrarVehiculo(arg, params)
     res = Response.new(params)
 
@@ -19,20 +19,21 @@ class Vehiculo < ApplicationRecord
     if vehiculos.length > 0
       res.set_data(vehiculos, {all: true})
     else
-      res.add_msg("No existen vehiculos con las especificaciones introducidas")
+			cantidad_registros = Vehiculo.all.count
+      res.add_msg("No existen vehiculos con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-    
+
     return res
   end
-  
+
   def self.parsear(vehiculos)
     vehiculos.each do |vehiculo|
-      
+
       usuario={}
-      if !vehiculo["user_id"].nil? 
+      if !vehiculo["user_id"].nil?
         user = User.find_by_id(vehiculo["user_id"])
-        usuario["nombre"] = "#{user["nombre"]}".titleize 
+        usuario["nombre"] = "#{user["nombre"]}".titleize
         usuario["apellido"] =  "#{user["apellido"]}".titleize
         usuario["telefono"] = user["telefono"]
 
@@ -58,7 +59,7 @@ class Vehiculo < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return res 
+    return res
   end
 
 end

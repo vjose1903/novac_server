@@ -4,7 +4,7 @@ class Suplidor < ApplicationRecord
 
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
 
-  accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true  
+  accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
 
   validates :nombre,              presence: { :message => "Nombre del suplidor no puede estar vacio." },      uniqueness: { scope: :estado, case_sensitive: false, :message => "Suplidor ya esta registrado" }, :if => :estado
   validates :direccion,           presence: { :message => "Dirección del suplidor no puede estar vacio." }
@@ -18,7 +18,7 @@ class Suplidor < ApplicationRecord
   def self.create_update_suplidor(params , is_save=false)
     Suplidor.transaction do
       res = Response.new
-      
+
       unless params["id"]
         suplidor = Suplidor.new()
       else
@@ -30,15 +30,15 @@ class Suplidor < ApplicationRecord
       suplidor.direccion         = params["direccion"]
       suplidor.email             = params["email"]
       suplidor.estado            = true
-      
-      
+
+
       if suplidor.errors.empty? && suplidor.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: suplidor }]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
+        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           suplidor.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
         }
-        
+
         if res.status_valid && suplidor.save!
           res.set_data(serialize_parser(suplidor,{all:true}))
 
@@ -46,16 +46,16 @@ class Suplidor < ApplicationRecord
           res.add_msg("Suplidor #{action} correctamente.")
         end
       end
-      
+
       unless suplidor.errors.empty?
-        
+
         res.add_msgs(suplidor.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
         return res
         raise ActiveRecord::Rollback
-        
+
       end
-      
+
       return res
     end
 
@@ -75,7 +75,8 @@ class Suplidor < ApplicationRecord
       res.set_data(suplidores, {all: true})
     else
       res.set_data([])
-      res.add_msg("No existe suplidor con las especificaciones introducidas")
+			cantidad_registros = Suplidor.all.count
+      res.add_msg("No existe suplidor con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

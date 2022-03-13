@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :detalles_facturas_notas
+  resources :facturas_aplicadas
+  resources :notas
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios
@@ -23,6 +26,12 @@ Rails.application.routes.draw do
   resources :permisos
   resources :acciones
 
+  resources :roles do
+    collection do
+      get "filtro/:arg"        => "roles#getRolesFiltrados"
+    end
+  end
+
   resources :reportes do
     collection do
       get "custom/:tipo_reporte" => "reportes#getReportes"
@@ -31,6 +40,7 @@ Rails.application.routes.draw do
 
   resources :cuadre_cajas do
     collection do
+			post "custom"            => "cuadre_cajas#create"
       get "check_today_cuadre" => "cuadre_cajas#checkTodayCuadre"
     end
   end

@@ -11,7 +11,7 @@ class User < ApplicationRecord
 
 
   devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
-  
+
   validates :usuario,             presence: { :message => "Usuario no puede estar vacio." },                  uniqueness: { case_sensitive: false, :message => "El nombre de usuario ya esta registrado" }
   validates :telefono,            presence: { :message => "Telefono no puede estar vacio." }
   validates :email,               presence: { :message => "Email no puede estar vacio." },                    uniqueness: { case_sensitive: false, :message => "El email introducido ya esta registrado" }
@@ -44,7 +44,7 @@ class User < ApplicationRecord
     if filter_key == 'role'
       return User.all.where("lower(role) like lower('%#{filter_value}%') and estado = true")
     elsif filter_key == 'cedula'
-      
+
       return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: filter_value})
     elsif filter_key == 'rnc'
       return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: filter_value})
@@ -52,13 +52,13 @@ class User < ApplicationRecord
       return User.all.where("#{filter_key} = #{filter_value} and estado = true")
     end
 
-  end  
+  end
   # =====================================================================================================================
 
   def self.crear_actualizar_user(params , is_save=false)
     User.transaction do
       res = Response.new
-      
+
       unless params["id"]
         user = User.new()
       else
@@ -77,14 +77,14 @@ class User < ApplicationRecord
       user.password_confirmation  = params["password"] if params["password"]
       user.estado                 = true
 
-      
+
       if user.errors.empty? && user.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
+        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           user.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
         }
-        
+
         if res.status_valid && user.save!
           res.set_data(serialize_parser(user, {all: true}))
 
@@ -92,9 +92,9 @@ class User < ApplicationRecord
           res.add_msg("Empleado #{action} correctamente.")
         end
       end
-      
+
       unless user.errors.empty?
-        
+
         res.add_msgs(user.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
         return res
@@ -119,7 +119,8 @@ class User < ApplicationRecord
       res.set_data(users, {all: true})
     else
       res.set_data([])
-      res.add_msg("No existe empleado con las especificaciones introducidas")
+			cantidad_registros = User.all.count
+      res.add_msg("No existe empleado con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -140,11 +141,11 @@ class User < ApplicationRecord
 
         elsif !documento.cliente.nil?
           documento.origen = documento.cliente
-          
+
         end
 
         documento.save!
-        
+
       end
       return res
     end

@@ -4,7 +4,7 @@ class RolifyCreateRoles < ActiveRecord::Migration[6.1]
       t.string :nombre
       t.string :descripcion
       t.string :ruta_defecto
-      t.boolean :activo
+      t.boolean :estado
 
       t.timestamps
     end
@@ -14,7 +14,7 @@ class RolifyCreateRoles < ActiveRecord::Migration[6.1]
       t.references :role
     end
 
-    add_index(:roles, [ :nombre, :descripcion, :activo ], unique: true, where: "(activo = true)")
+    add_index(:roles, [ :nombre, :descripcion, :estado ], unique: true, where: "(estado = true)")
     add_index(:users_roles, [ :user_id, :role_id ])
   end
 end

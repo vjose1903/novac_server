@@ -4,7 +4,7 @@ class Articulo < ApplicationRecord
 
   has_many :contenido_articulos,           dependent: :destroy
   has_many :formulas_productos_terminados, dependent: :destroy
-  
+
   attribute :contenido_articulos
   attribute :formulas_productos_terminados
 
@@ -25,17 +25,17 @@ class Articulo < ApplicationRecord
 
   def checkSacoSistema(articulo_nuevo)
       self.errors.add(:base, "A este articulo no se le puede editar el nombre.") if articulo_nuevo["nombre"] != 'Saco sistema'
-      
+
       self.errors.add(:base, "A este articulo no se le puede editar la medida en que se compra.") if articulo_nuevo["medida"] != 'Unidad'
-      
+
       self.errors.add(:base, "A este articulo no se le puede editar la medida para vender.") if articulo_nuevo["vendido_en"] != 'Unidad'
-      
+
       self.errors.add(:base, "A este articulo no se le puede editar el tipo de articulo.") if articulo_nuevo["tipo_articulo_id"] != 4
-      
-      self.errors.add(:base, "Este articulo no se puede ser materia prima.") if articulo_nuevo["is_materia_prima"] 
+
+      self.errors.add(:base, "Este articulo no se puede ser materia prima.") if articulo_nuevo["is_materia_prima"]
   end
-  
-  
+
+
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
     Articulo.transaction do
 
@@ -44,7 +44,7 @@ class Articulo < ApplicationRecord
       ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
 
       res = Response.new
-      
+
       unless params["id"]
         articulo                                = Articulo.new()
       else
@@ -79,29 +79,29 @@ class Articulo < ApplicationRecord
         {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
       ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
+      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
         articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
 
-      
-
-      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid?&& articulo.save! 
 
 
-      if res.status_valid && articulo.errors.empty? 
-        
+      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid?&& articulo.save!
+
+
+      if res.status_valid && articulo.errors.empty?
+
         if ant_articulo.nil?
           ant_articulo             = articulo
           ant_articulo_contenido   = ant_articulo.contenido_articulos
           ant_articulo_formula     = ant_articulo.formulas_productos_terminados
         end
-      
+
         res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
-        
+
         if res_historico.status_valid
-          
-          res.set_data(articulo)        
+
+          res.set_data(articulo)
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Articulo #{action} correctamente.")
         else
@@ -113,14 +113,14 @@ class Articulo < ApplicationRecord
         res.add_msgs(articulo.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-      
+
       return res
-      raise ActiveRecord::Rollback unless articulo.errors.empty? 
+      raise ActiveRecord::Rollback unless articulo.errors.empty?
     end
   end
 
   # =====================================================================================================================
-  
+
   def set_contenido_referencia_and_codigo
     res = Response.new
     self.contenido_articulos.last.referencia    = self.contenido_articulos.first.id if self.contenido_articulos.length > 1
@@ -138,11 +138,11 @@ class Articulo < ApplicationRecord
 
     def self.checkFechaCalcularSaco(fecha, articulo)
       res = false
-      
+
       saco = Articulo.find_by_nombre("Saco sistema")
       unless saco.nil?
         is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
-        res = is_correct && articulo["calcular_saco"] 
+        res = is_correct && articulo["calcular_saco"]
       end
 
       return res
@@ -155,53 +155,54 @@ class Articulo < ApplicationRecord
     res        = Response.new(set_paginate_options(params))
     arg        = params["arg"]
     fecha      = "#{params["fecha"]}:00"
-    
+
     where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
-    
+
     signo      = params["is_compra"].to_boolean ? "!=" : "="
     tipo_id    = params["is_compra"].to_boolean ? "3" : params["tipo"]
-    
+
     where += "AND articulos.tipo_articulo_id #{signo} #{tipo_id} " if params["tipo"] != "todos"
 
     where += "OR ( articulos.is_materia_prima = true AND articulos.estado = true) " if params["tipo"] == TipoArticulos.materia_prima
-    
+
     articulos_ = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
     .order("articulos.id ASC")
 
-    
+
     articulos = []
     historicos = []
     articulos_.map { |articulo|
-      
+
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
-      
+
       if fecha < fecha_ultima_edicion_articulo
-        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC") 
-        
+        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC")
+
         if hist.blank?
-          articulos.push(articulo) 
+          articulos.push(articulo)
           historicos.push(articulo)
         else
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           historicos.push(historico)
-          
-          articulos.push(Articulo.new(historico)) 
+
+          articulos.push(Articulo.new(historico))
         end
       else
-        articulos.push(articulo) 
+        articulos.push(articulo)
         historicos.push(articulo)
       end
-      
+
     }
-    
+
     if articulos.length > 0
       res.set_data(articulos, {all: true, historicos: historicos})
       # res.set_data(articulos)
     else
-      res.add_msg("No existen articulos con las especificaciones introducidas")
+			cantidad_registros = Articulo.all.count
+      res.add_msg("No existen articulos con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -219,7 +220,7 @@ class Articulo < ApplicationRecord
 
     att = att[0] if att.kind_of?(Array)
     id = att["id"]
-    
+
     att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: id })
     att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: id })
 
@@ -246,7 +247,7 @@ class Articulo < ApplicationRecord
 
     if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
       [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c 
+        contenidos["Saco_#{c}"] = c
       end
     end
 
@@ -278,7 +279,7 @@ class Articulo < ApplicationRecord
     existencia = articulo["existencia"].nil? ? 0 : articulo["existencia"]
 
     cantidades = {}
-    
+
     cantidades[articulo["medida"]] = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
     cantidades[contenido.first["medida"]] = existencia if contenido.length > 0
 

@@ -103,5 +103,12 @@ rails generate model permiso_accion permiso:references accion:references
 rails generate model rol_permiso_accion rol:references permiso_accion:references controlador:string metodo:string
 
 
+rails generate serializer role
 rails generate serializer permiso
 rails generate serializer accion
+rails generate serializer permiso_accion
+
+rails g scaffold nota cliente:references user:references tipo_factura:references total:float identificador:string numero_documento:integer numero_comprobante:string fecha_equivalente:datetime estado:boolean
+rails g scaffold factura_aplicada nota:references cabeza_factura:references total:float
+rails g scaffold detalle_factura_nota factura_aplicada:references articulo:references detalle_factura:references unidad:string cantidad:float cantidad_en_unidades:integer itbis:float costo:float precio:float total:float descuento:float
+

@@ -1,5 +1,5 @@
 class Cliente < ApplicationRecord
-  
+
   belongs_to :imagen, optional: true
   accepts_nested_attributes_for :imagen
 
@@ -24,13 +24,13 @@ class Cliente < ApplicationRecord
     nombre    = nombre.gsub("  ", " ").strip
     nombre
   end
-  
+
   # =========================================================================================================================================================
 
   def self.create_update_cliente(params , is_save=false)
     Cliente.transaction do
       res = Response.new
-      
+
       unless params["id"]
         cliente = Cliente.new()
       else
@@ -48,16 +48,16 @@ class Cliente < ApplicationRecord
       cliente.vendedor_id          = params["vendedor_id"]
       cliente.balance              = params["balance"] ? params["balance"] : 0
       cliente.estado               = true
-      
+
       cliente.valid?
-      
-      if cliente.errors.empty? 
+
+      if cliente.errors.empty?
         dependencias = [{modelo:DocumentoDeIdentidad, key_object:"documentos_de_identidad", padre:cliente}]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data| 
+        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           cliente.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
         }
-        
+
         if res.status_valid && cliente.save!
           res.set_data(serialize_parser(cliente, {all: true}))
 
@@ -65,9 +65,9 @@ class Cliente < ApplicationRecord
           res.add_msg("Cliente #{action} correctamente.")
         end
       end
-      
+
       unless cliente.errors.empty?
-        
+
         res.add_msgs(cliente.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
         return res
@@ -80,7 +80,7 @@ class Cliente < ApplicationRecord
   end
 
 
-  
+
   # =========================================================================================================================================================
 
   def self.filtrarCliente(arg, params)
@@ -91,11 +91,12 @@ class Cliente < ApplicationRecord
     .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")
     .order("clientes.id ASC").to_a
 
-    if clientes.length > 0  
+    if clientes.length > 0
       res.set_data(clientes, {all: true})
     else
       res.set_data([])
-      res.add_msg("No existe cliente con las especificaciones introducidas")
+			cantidad_registros = Cliente.all.count
+      res.add_msg("No existe cliente con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -108,10 +109,10 @@ class Cliente < ApplicationRecord
 
       sumBalance = my_query("select coalesce(sum(cabecera_facturas.balance),0) + (select coalesce(sum(nota.total_factura),0) from cabecera_facturas nota where nota.aplicada_a = numero_comprobante) as balance from cabecera_facturas where cliente_id = #{cliente.id}")
       balanceCalc = sumBalance[0]['balance']
-      
+
       if balanceCalc != cliente.balance
         cliente.balance = balanceCalc
-        
+
         unless cliente.save!
           sendEmail("Error recalculando el balance del cliente: #{cliente.nombre} #{cliente.apellido}  -- ID: #{cliente.id}", "Error en la tarea de recalcular balance")
         end
@@ -121,7 +122,7 @@ class Cliente < ApplicationRecord
     return "LISTO"
   end
     # =========================================================================================================================================================
-    
+
   def self.calculate_balance_cliente(id, totalFactura, operacion, ignoreMontoMayor=false)
 
     res = Response.new
@@ -130,7 +131,7 @@ class Cliente < ApplicationRecord
     cliente          = Cliente.find_by_id(id)
     puts "cliente -> ".red + "#{cliente.to_json}"
     balance          = cliente.balance.nil? ? 0 : cliente.balance
-    
+
     if operacion == "-" && totalFactura.to_f > balance
       unless ignoreMontoMayor
         res.add_msg("El monto ingresado es mayor al balance del cliente")
@@ -138,7 +139,7 @@ class Cliente < ApplicationRecord
         return res
       end
     end
-    
+
     new_balance      = eval "#{balance} #{operacion} #{totalFactura.to_f}"
     new_balance      = new_balance.to_d.truncate(2).to_f
     cliente.balance  = new_balance
@@ -146,7 +147,7 @@ class Cliente < ApplicationRecord
     cliente.valid?
 
     # unless cliente.errors.empty? || !cliente.save!
-    unless cliente.errors.empty? 
+    unless cliente.errors.empty?
       res.add_msgs(cliente.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

@@ -1,11 +1,7 @@
-class PermisoSerializer < ActiveModel::Serializer
-  attributes :id, :descripcion, :nombre
-  attribute :acciones,                        if: Proc.new { self.get_param('acciones')}
+class RoleSerializer < ActiveModel::Serializer
+  attributes :id, :descripcion, :nombre, :ruta_defecto, :estado
   attribute :permisos_acciones,               if: Proc.new { self.get_param('permisos_acciones')}
 
-	def acciones
-		serialize_parser(object.acciones, {all: true})
-	end
 
 	def permisos_acciones
 		serialize_parser(object.permisos_acciones, {all: true})
