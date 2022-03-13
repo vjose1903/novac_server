@@ -3,10 +3,11 @@ class Role < ApplicationRecord
 
 	has_many :roles_permisos_acciones,           dependent: :destroy
 	has_many :permisos_acciones, through: :roles_permisos_acciones
+	has_many :acciones, through: :permisos_acciones
 
   scopify
 
-	validates :nombre,      presence: { :message => "Debe de especificar un nombre para el rol." },       uniqueness: { scope: [:activo, :descripcion], case_sensitive: false, :message => "Este rol ya esta creado."}, :if => :activo
+	validates :nombre,      presence: { :message => "Debe de especificar un nombre para el rol." },       uniqueness: { scope: [:estado, :descripcion], case_sensitive: false, :message => "Este rol ya esta creado."}, :if => :estado
 	validates :descripcion, presence: { :message => "Debe de especificar una descripcion para el rol." }
 
   def self.create_update_role(params)
@@ -21,18 +22,19 @@ class Role < ApplicationRecord
     role.nombre         = params["nombre"]
     role.descripcion    = params["descripcion"]
     role.ruta_defecto   = params["ruta_defecto"] || nil
-    role.activo         = params["activo"]
+    role.estado         = params["estado"]
 
     role.valid?
 
     params["roles_permisos_acciones"]  = []
 
 		params["permisos_acciones"].each do | item |
-			params["roles_permisos_acciones"].push({"role_id": nil, "permiso_accion_id": item})
-			puts "item ".red + "#{item.to_json}"
-			puts " "
+			rol_permiso_accion_created     = RolPermisoAccion.find_by({"role_id": role.id, "permiso_accion_id": item})
+			role_permiso_accion_en_turno   = role.id  && !rol_permiso_accion_created.nil? ? rol_permiso_accion_created : {"role_id": nil, "permiso_accion_id": item}
+
+			params["roles_permisos_acciones"].push(role_permiso_accion_en_turno)
 		end
-		puts "params[roles_permisos_acciones] ".yellow + "(#{params["roles_permisos_acciones"].to_json})"
+
 
 		dependencias = [
 			{modelo: RolPermisoAccion, key_object: "roles_permisos_acciones", padre: role},
@@ -53,4 +55,27 @@ class Role < ApplicationRecord
 
     return res
   end
+
+  # =========================================================================================================================================================
+
+  def self.filtrarRole(arg, params)
+    res = Response.new(params)
+
+    roles = Role
+    .where("lower(roles.nombre || ' ' || roles.descripcion) like lower('%#{arg}%')  AND roles.estado = true")
+    .order("roles.id ASC").to_a
+
+    if roles.length > 0
+      res.set_data(roles, {permisos_acciones: true})
+    else
+      res.set_data([])
+			cantidad_registros = Role.all.count
+      res.add_msg("No existen roles con las especificaciones introducidas") if cantidad_registros > 0
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+
+
 end

@@ -13,6 +13,7 @@ class PermisosController < ApplicationController
 	def get_parametros_opcionales
     return {
       acciones: params['acciones'] || false,
+      permisos_acciones: params['permisos_acciones'] || false,
     }
   end
 

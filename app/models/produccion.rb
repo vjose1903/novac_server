@@ -10,7 +10,7 @@ class Produccion < ApplicationRecord
   def self.create_update_produccion(params, is_save=false)
     Produccion.transaction do
       res = Response.new
-      
+
       unless params["id"]
         produccion                        = Produccion.new()
       else
@@ -22,16 +22,16 @@ class Produccion < ApplicationRecord
 
       dependencias = [ {modelo: DetalleProduccion, key_object: "detalles_produccion", padre: produccion} ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
+      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
         produccion.detalles_produccion    = dependencia_data if key_object == "detalles_produccion"
       }
 
       if res.status_valid && produccion.errors.empty? && (!is_save || (is_save && produccion.save!))
 
         res                               = updateSecuencias(16)
-        
+
         if res.status_valid
-          res.set_data(serialize_parser(produccion, {all: true}))  
+          res.set_data(serialize_parser(produccion, {all: true}))
           res.add_msg("Produccion creada correctamente.")
 
         else
@@ -43,12 +43,12 @@ class Produccion < ApplicationRecord
         res.add_msgs(produccion.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-      
+
       return res
-      raise ActiveRecord::Rollback unless conduce.errors.empty? 
+      raise ActiveRecord::Rollback unless conduce.errors.empty?
     end
   end
-  
+
   # =========================================================================================================================================================
 
   def self.filtrarProduccion(arg, params)
@@ -56,15 +56,16 @@ class Produccion < ApplicationRecord
 
     producciones = Produccion.all.order("id ASC").to_a
 
-    if producciones.length > 0  
+    if producciones.length > 0
       res.set_data(producciones, {all: true})
     else
       res.set_data([])
-      res.add_msg("No existen producciones con las especificaciones introducidas")
+			cantidad_registros = Produccion.all.count
+      res.add_msg("No existen producciones con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
     return res
   end
-  
+
 end

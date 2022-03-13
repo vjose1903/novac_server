@@ -22,7 +22,12 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
   resources :permisos
   resources :acciones
-  resources :roles
+
+  resources :roles do
+    collection do
+      get "filtro/:arg"        => "roles#getRolesFiltrados"
+    end
+  end
 
   resources :reportes do
     collection do

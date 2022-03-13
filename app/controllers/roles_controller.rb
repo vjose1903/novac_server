@@ -13,6 +13,7 @@ class RolesController < ApplicationController
 
   def getRolesFiltrados
     arg = params["arg"]
+
     resultado = Role.filtrarRole(arg, set_paginate_options(params))
     resultado.send_response self
   end
@@ -45,6 +46,7 @@ class RolesController < ApplicationController
 	def get_parametros_opcionales
     return {
       permisos_acciones: params['permisos_acciones'] || false,
+      acciones: params['acciones'] || false,
     }
   end
 

@@ -3,14 +3,14 @@ class RecibosIngreso < ApplicationRecord
   belongs_to :user
   belongs_to :cliente
   belongs_to :vehiculo, optional: true
-  
+
   has_many :detalle_recibos, dependent: :destroy
 
   has_many :incidencias, :as => :origen, dependent: :destroy, class_name: "Incidencia"
 
   validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
-  
-  
+
+
   # =========================================================================================================================================================
   def self.create_update_recibo(params, is_save=false)
     RecibosIngreso.transaction do
@@ -23,10 +23,10 @@ class RecibosIngreso < ApplicationRecord
       end
 
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
-      
+
       fecha_equivalente            = params["fecha_equivalente"] ? params["fecha_equivalente"] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
-      
-      
+
+
       recibo.user_id               = get_current_user['id']
       recibo.fecha_equivalente     = fecha_equivalente
       recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
@@ -40,7 +40,7 @@ class RecibosIngreso < ApplicationRecord
 
       recibo.devuelta              = params["devuelta"]
       recibo.total                 = params["total"]
-      
+
       dependencias = [
         {modelo: DetalleRecibo, key_object: "detalle_recibos", padre: recibo},
         {modelo: Incidencia,    key_object: "incidencias",     padre: recibo}
@@ -48,8 +48,8 @@ class RecibosIngreso < ApplicationRecord
 
       devoluciones = []
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data| 
-        
+      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+
         recibo.detalle_recibos   = dependencia_data[:detalles]      if key_object == 'detalle_recibos'
         devoluciones             = dependencia_data[:devoluciones]  if key_object == 'detalle_recibos'
         recibo.incidencias       = dependencia_data                 if key_object == 'incidencias'
@@ -60,7 +60,7 @@ class RecibosIngreso < ApplicationRecord
 
         recibo.devuelta            = params["total"] - total_calculado
         recibo.total               = total_calculado
-        
+
         if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
           res_valid                = updateSecuencias(17)
@@ -73,7 +73,7 @@ class RecibosIngreso < ApplicationRecord
             res.set_data(data)
             action = params["id"] ? 'actualizado' : 'creado'
             res.add_msg("Recibo #{action} correctamente.")
-            
+
           else
             res.add_msgs(res_valid.get_msgs)
             res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -84,9 +84,9 @@ class RecibosIngreso < ApplicationRecord
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
       end
-      
+
       return res
-      raise ActiveRecord::Rollback unless recibo.errors.empty? 
+      raise ActiveRecord::Rollback unless recibo.errors.empty?
 
     end
   end
@@ -106,23 +106,24 @@ class RecibosIngreso < ApplicationRecord
     if recibos.length > 0
       res.set_data(recibos, {all: true})
     else
-      res.add_msg("No existen recibos con las especificaciones introducidas")
+			cantidad_registros = RecibosIngreso.all.count
+      res.add_msg("No existen recibos con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-    
+
     return res
   end
-  
+
   # ===================================================================================================================================================
-  
+
   def self.puedeAnular(params)
     res                 = Response.new
     last_cuadre         = CuadreCaja.all.last
-    
+
     last_recibo         = DetalleRecibo.get_last_recibo_by_cabecera_factura(params["id"])
     recibo_id           = params["tipo"] === "by_factura" ? last_recibo.recibos_ingreso_id : params["id"]
     @recibo_a_anular    = RecibosIngreso.find_by_id(recibo_id)
-    
+
     if !@recibo_a_anular.nil?
       if last_cuadre.nil? || comparar_fecha(@recibo_a_anular.fecha_equivalente.to_s, last_cuadre[:created_at].to_s, ">=")
 
@@ -147,19 +148,19 @@ class RecibosIngreso < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return res 
+    return res
   end
 
   # ===================================================================================================================================================
-  
+
   def self.revertirRecibo(params)
     RecibosIngreso.transaction do
       res = Response.new
-      
+
       res_valid           = RecibosIngreso.puedeAnular(params)
       if res_valid.status_valid
         res_valid         = @recibo_a_anular.procesoRevertirRecibo
-        
+
         if res_valid.status_valid && @recibo_a_anular.destroy
           msg             = params["tipo"] === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
           res.add_msg(msg)
@@ -167,7 +168,7 @@ class RecibosIngreso < ApplicationRecord
           res.add_msgs(res_valid.get_msgs)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
-        
+
       else
         res.add_msgs(res_valid.get_msgs)
         res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -180,11 +181,11 @@ class RecibosIngreso < ApplicationRecord
 
 
   # ===================================================================================================================================================
-  
+
   def procesoRevertirRecibo
     res_valid     = Response.new
     array_valid=[]
-    
+
     self.detalle_recibos.each  do |item|
       res_temp    = RecibosIngreso.revertirReciboDetalle(item, self)
       return res_temp unless res_temp.status_valid
@@ -218,7 +219,7 @@ class RecibosIngreso < ApplicationRecord
       res.add_msgs(cabecera_factura.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-    
+
     return res
   end
 end

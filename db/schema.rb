@@ -432,10 +432,10 @@ ActiveRecord::Schema.define(version: 2022_03_05_155857) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "activo"
+    t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["nombre", "descripcion", "activo"], name: "index_roles_on_nombre_and_descripcion_and_activo", unique: true, where: "(activo = true)"
+    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|

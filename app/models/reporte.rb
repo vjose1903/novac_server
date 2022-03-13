@@ -36,7 +36,8 @@ class Reporte < ApplicationRecord
             suplidor["nombre"] = tempNom
         end
 
-        suplidor["rnc"] = DocumentoDeIdentidad.where({ principal: true, suplidor_id: supli["id"] })[0]["documento"]
+        documento       = DocumentoDeIdentidad.where({ principal: true, suplidor_id: supli["id"] })
+        suplidor["rnc"] = !documento.empty? ? documento["documento"] : '----------'
         return suplidor
     end
 

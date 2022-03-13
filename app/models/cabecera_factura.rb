@@ -304,15 +304,14 @@ class CabeceraFactura < ApplicationRecord
       res           = Response.new(paginate_options)
       tipo_factura  = TipoFactura.find_by_id(params["tipo_factura_id"])
 
-      facturas      = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"], estado: true}).order("cabecera_facturas.id DESC").to_a
+      notas         = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"], estado: true}).order("cabecera_facturas.id DESC").to_a
 
-      puts "facturas -> ".red + "#{facturas.to_json}"
-
-      if facturas.length > 0
+      if notas.length > 0
         saco = Articulo.find_by_nombre("Saco sistema")
-        res.set_data(facturas, {all: true, saco_sistema: saco})
+        res.set_data(notas, {all: true, saco_sistema: saco})
       else
-        res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas") unless is_adelantada
+				cantidad_registros = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"]}).count
+        res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas") if cantidad_registros == 0
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
       return res
@@ -355,7 +354,8 @@ class CabeceraFactura < ApplicationRecord
         saco = Articulo.find_by_nombre("Saco sistema")
         res.set_data(facturas, {all: true, saco_sistema: saco})
       else
-        res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada
+				cantidad_registros = CabeceraFactura.all.count
+        res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros == 0
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
@@ -381,7 +381,8 @@ class CabeceraFactura < ApplicationRecord
       saco = Articulo.find_by_nombre("Saco sistema")
       res.set_data(cabeceras, {all: true, saco_sistema: saco})
     else
-      res.add_msg("No existen facturas con las especificaciones introducidas")
+			cantidad_registros = CabeceraFactura.all.count
+      res.add_msg("No existen facturas con las especificaciones introducidas") if cantidad_registros > 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
