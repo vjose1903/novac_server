@@ -31,6 +31,7 @@ es:
     cuadre_caja: "Cuadre de caja"
     cabecera_factura: "Factura"
     role: "Rol"
+    nota: "Nota"
 
   errors:
     format: "%{message}"

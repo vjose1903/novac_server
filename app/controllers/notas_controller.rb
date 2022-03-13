@@ -35,7 +35,7 @@ class NotasController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_nota
-			respuesta = set_entidad(Cliente, params)
+			respuesta = set_entidad(Nota, params)
 			@nota = respuesta.get_data
 
 			return respuesta.send_response self if @nota.nil?

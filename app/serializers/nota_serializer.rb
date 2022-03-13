@@ -16,6 +16,7 @@ class NotaSerializer < ActiveModel::Serializer
 	attribute :facturas_aplicadas,        if: Proc.new { self.get_param('facturas_aplicadas') || self.get_param('all') }
 
 	def cliente
+
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.no_cliente_nombre
@@ -48,6 +49,9 @@ class NotaSerializer < ActiveModel::Serializer
 	end
 
 	def get_param(col)
+		puts " "
+		puts "PASANDO POR AQUIII"
+		puts " "
 		return @instance_options[:"#{col}"]
 	end
 end
