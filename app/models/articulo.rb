@@ -37,16 +37,16 @@ class Articulo < ApplicationRecord
 
 
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
+		res = Response.new
     Articulo.transaction do
 
       ant_articulo                              =  articulo_antiguo.nil? ? nil : articulo_antiguo
       ant_articulo_contenido                    =  articulo_antiguo.nil? ? nil : articulo_antiguo.contenido_articulos
       ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
 
-      res = Response.new
 
       unless params["id"]
-        articulo                                = Articulo.new()
+        articulo                                = Articulo.new
       else
         articulo                                = Articulo.find_by_id(params["id"])
         articulo.checkSacoSistema(params) if articulo.nombre == 'Saco sistema'
@@ -114,9 +114,9 @@ class Articulo < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res
       raise ActiveRecord::Rollback unless articulo.errors.empty?
     end
+		return res
   end
 
   # =====================================================================================================================

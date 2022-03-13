@@ -16,13 +16,13 @@ class Suplidor < ApplicationRecord
   end
 
   def self.create_update_suplidor(params , is_save=false)
+		res                          = Response.new
     Suplidor.transaction do
-      res = Response.new
 
       unless params["id"]
-        suplidor = Suplidor.new()
+        suplidor                 = Suplidor.new
       else
-        suplidor = Suplidor.find_by_id(params["id"])
+        suplidor                 = Suplidor.find_by_id(params["id"])
       end
 
       suplidor.nombre            = params["nombre"]

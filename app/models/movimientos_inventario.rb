@@ -96,7 +96,6 @@ class MovimientosInventario < ApplicationRecord
 
       puts "articulo.existencia ".yellow + "#{articulo.existencia }"
       puts "operador ".green + "#{operador }"
-      puts "movimiento[cantidad_en_unidades] ".blue + "#{movimiento }"
       puts "movimiento[cantidad_en_unidades] ".magenta + "#{movimiento["cantidad_en_unidades"] }"
 
       mov      = eval("#{articulo.existencia} #{operador} #{movimiento["cantidad_en_unidades"]}")
@@ -117,12 +116,12 @@ class MovimientosInventario < ApplicationRecord
 
       motivo = ""
 
-      motivo = "#{operador == "+" ? "Entrada" : "Salida"} de mercancia por la #{accion.split("_")} con el ncf: #{padre['numero_comprobante']} de la fecha #{fecha_movimiento}" if accion.include? "nota"
+      motivo = "#{operador == "+" ? "Entrada" : "Salida"} de mercancia por la #{accion.split("_").join(" ")} con el ncf: #{padre['numero_comprobante']} de la fecha #{fecha_movimiento}" if accion.include? "nota"
       motivo = "#{operador == "+" ? "Compra" : "Venta"} de mercancia en la factura con el ncf: #{padre['numero_comprobante']} de la fecha #{fecha_movimiento}" if accion == 'factura'
       motivo = "Salida de mercancia en el conduce con el número: #{padre['numero_conduce']} de la fecha #{fecha_movimiento}" if accion == 'conduce'
       motivo = padre.motivo if accion == 'movimiento'
 
-      movimientos_inventario                          = MovimientosInventario.new()
+      movimientos_inventario                          = MovimientosInventario.new
       puts "----- 7 -----".red
 
       movimientos_inventario.user_id                  = get_current_user["id"]

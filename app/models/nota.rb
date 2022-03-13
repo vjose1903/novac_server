@@ -1,5 +1,5 @@
 class Nota < ApplicationRecord
-  belongs_to :cliente
+	belongs_to :cliente, optional: true
   belongs_to :user
   belongs_to :tipo_factura
 
@@ -8,10 +8,11 @@ class Nota < ApplicationRecord
 	validates :total,     presence: { :message => "El total de la nota no puede estar vacio." },   numericality: { greater_than: 0, :message => "El total de la nota debe de ser mayor a 0." }
 
   has_many :facturas_aplicadas, dependent: :destroy
+  has_many :detalles_facturas_notas, through: :facturas_aplicadas, dependent: :destroy
 
-	def self.create_notas(params , is_save=false)
+	def self.create_nota(params)
+		res                                     = Response.new
     Nota.transaction do
-      res                                   = Response.new
 
 			res_check_facturas                    = Nota.check_facturas(params)
 
@@ -34,6 +35,7 @@ class Nota < ApplicationRecord
 							res_valid                     = Cliente.calculate_balance_cliente(params["cliente_id"], params["total"].to_f.abs, "-")
 						end
 
+
 						# NOTA DE DEBITO
 						if res_valid.status_valid && params["cliente_id"] && params["tipo_factura_id"] == TiposNotasId.debito
 							res_valid                     = Cliente.calculate_balance_cliente(params["cliente_id"], params["total"].to_f.abs, "+")
@@ -42,7 +44,7 @@ class Nota < ApplicationRecord
 						if res_valid.status_valid
 
 							today_cuadre                  = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
-							nota                          = Nota.new()
+							nota                          = Nota.new
 
 							nota.cliente_id               = params["cliente_id"]
 							nota.user_id                  = get_current_user["id"]
@@ -54,6 +56,7 @@ class Nota < ApplicationRecord
 							nota.estado                   = true
 							nota.no_cliente_nombre        = data_facturas[:no_cliente_nombre]
 							nota.no_cliente_direccion     = data_facturas[:no_cliente_direccion]
+							nota.valid?
 
 
 							dependencias                  = [ {modelo: FacturaAplicada, key_object: "facturas_aplicadas", padre: nota} ]
@@ -62,7 +65,8 @@ class Nota < ApplicationRecord
 								nota.facturas_aplicadas     = dependencia_data if key_object == 'facturas_aplicadas'
 							}
 
-							if res.status_valid && nota.errors.empty? && (!is_save || (is_save && nota.save!))
+
+							if res.status_valid && nota.errors.empty? && nota.save!
 
 								nota.identificador          = Nota.makeIdentificador(nota)
 
@@ -76,11 +80,11 @@ class Nota < ApplicationRecord
 										realizando = params["tipo_factura_id"] == TiposNotasId.credito ? "Nota de crédito" : "Nota de debito"
 										res.add_msg("#{realizando} creada correctamente.")
 									else
-										res.add_msgs(res_valid.get_msgs.to_a)
 										res.set_status(HTTP_STATUS_CODE[:conflict])
 									end
 
 								else
+									res.add_msgs(res_valid.get_msgs.to_a)
 									res.add_msgs(nota.errors.to_a)
 									res.set_status(HTTP_STATUS_CODE[:conflict])
 								end
@@ -91,6 +95,7 @@ class Nota < ApplicationRecord
 							end
 
 						else
+
 							res.add_msgs(res_valid.get_msgs.to_a)
 							res.set_status(HTTP_STATUS_CODE[:conflict])
 						end
@@ -110,21 +115,19 @@ class Nota < ApplicationRecord
 				res.set_status(HTTP_STATUS_CODE[:conflict])
 			end
 
-      unless res.status_valid
-        raise ActiveRecord::Rollback
-      end
+			raise ActiveRecord::Rollback unless res.status_valid
 
-      return res
     end
+		return res
   end
 
 	# ===================================================================================================================================================
-	def self.tipo_nota
+	def tipo_nota
 		return TiposNotas.get_tipo(self.tipo_factura_id)
 	end
 
 	# ===================================================================================================================================================
-	def check_facturas(params)
+	def self.check_facturas(params)
 		res            = Response.new
 		obj_response   = {:no_cliente_nombre => nil, :no_cliente_direccion => nil, :is_same_client => true, :all_facturas_active => true }
 
@@ -154,10 +157,13 @@ class Nota < ApplicationRecord
 			end
 		end
 
-		res.add_msgs("Solo se le pueden realizar notas a facturas activas.") unless obj_response[:all_facturas_active]
+		res.add_msg("Solo se le pueden realizar notas a facturas activas.") unless obj_response[:all_facturas_active]
 
-		res.add_msgs("Todas las facturas deben de ser del mismo cliente.") unless obj_response[:is_same_client]
+		res.add_msg("Todas las facturas deben de ser del mismo cliente.") unless obj_response[:is_same_client]
 
+		res.set_status(HTTP_STATUS_CODE[:conflict]) if !obj_response[:is_same_client] || !obj_response[:all_facturas_active]
+
+		res.set_data(obj_response)
 		return res
 	end
 
@@ -222,7 +228,7 @@ class Nota < ApplicationRecord
 
 		if !res_aumento.nil? && res_aumento.status_valid
 
-			unless data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_documento] })
+			unless data_secuencias[:actual_secuencia_nota].update({ secuencia: data_secuencias[:numero_documento] })
 				res.add_msg("Error actualizando la tabla de secuencia de notas.")
 				res.set_status(HTTP_STATUS_CODE[:conflict])
 			end
@@ -232,6 +238,14 @@ class Nota < ApplicationRecord
 			res.set_status(HTTP_STATUS_CODE[:conflict])
 		end
 
+		return res
+	end
+
+	# ===================================================================================================================================================
+	def self.anular_nota(params)
+		res = Response.new
+		res.add_msg("Esta funcion aun no esta implementada.")
+		res.set_status(HTTP_STATUS_CODE[:conflict])
 		return res
 	end
 

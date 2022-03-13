@@ -92,7 +92,7 @@ class ApplicationController < ActionController::API
 
       if formula_b == 0
         value.each do |f|
-          nueva_formula = FormulasProductosTerminado.new()
+          nueva_formula = FormulasProductosTerminado.new
           nueva_formula.articulo_id        = f.articulo_id
           nueva_formula.cantidad           = f.cantidad
           nueva_formula.costo              = f.costo

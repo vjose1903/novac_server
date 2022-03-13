@@ -16,8 +16,8 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
 
   def self.create_factura(params , is_save=false)
+		res                                    = Response.new
     CabeceraFactura.transaction do
-      res                                  = Response.new
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
 
       if res_secuencias.status_valid
@@ -48,7 +48,7 @@ class CabeceraFactura < ApplicationRecord
           if res_valid.status_valid
 
             today_cuadre                              = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
-            cabecera_factura                          = CabeceraFactura.new()
+            cabecera_factura                          = CabeceraFactura.new
 
             cabecera_factura.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : today_cuadre.blank? ? DateTime.now : CabeceraFactura.calculateNextDay
             cabecera_factura.fecha_completada         = params["condicion"] == "Contado" && !params["is_viaje"] ? cabecera_factura.fecha_equivalente : nil
@@ -132,12 +132,10 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      unless res.status_valid
-        raise ActiveRecord::Rollback
-      end
-
-      return res
+			raise ActiveRecord::Rollback unless res.status_valid
     end
+
+		return res
   end
 
   # ===================================================================================================================================================
@@ -305,70 +303,67 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   def self.get_notas_credito_debito(params, paginate_options)
-    CabeceraFactura.transaction do
-      res           = Response.new(paginate_options)
-      tipo_factura  = TipoFactura.find_by_id(params["tipo_factura_id"])
+		res             = Response.new(paginate_options)
 
-      notas         = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"], estado: true}).order("cabecera_facturas.id DESC").to_a
+		tipo_factura  = TipoFactura.find_by_id(params["tipo_factura_id"])
 
-      if notas.length > 0
-        saco = Articulo.find_by_nombre("Saco sistema")
-        res.set_data(notas, {all: true, saco_sistema: saco})
-      else
-				cantidad_registros = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"]}).count
-        res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas") if cantidad_registros == 0
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
-      return res
-    end
+		notas         = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"], estado: true}).order("cabecera_facturas.id DESC").to_a
+
+		if notas.length > 0
+			saco = Articulo.find_by_nombre("Saco sistema")
+			res.set_data(notas, {all: true, saco_sistema: saco})
+		else
+			cantidad_registros = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"]}).count
+			res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas") if cantidad_registros == 0
+			res.set_status(HTTP_STATUS_CODE[:conflict])
+		end
+
+		return res
   end
 
   def self.get_facturas_by_params(params, paginate_options)
-    CabeceraFactura.transaction do
-      res                = Response.new(paginate_options)
+		res                  = Response.new(paginate_options)
 
-      campoNum           = params[:campo]
-      valor_des          = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
-      tipo_factura_id    = params[:tipo_factura_id]
-      is_adelantada      = params[:is_adelantada].to_boolean
-      fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
+		campoNum           = params[:campo]
+		valor_des          = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
+		tipo_factura_id    = params[:tipo_factura_id]
+		is_adelantada      = params[:is_adelantada].to_boolean
+		fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
 
-      campo              = FacturasParams.get_campo_by_param(campoNum)
-      valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
-      limit_             = campo == "last_50" ? 50 : nil
-
-
-      valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
-
-      where_ = "cabecera_facturas.tipo = '#{fact_de}' and cabecera_facturas.is_adelantada = #{is_adelantada} "
-
-      where_ = "detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades "  if is_adelantada
-
-      where_ += "and cabecera_facturas.#{campo} = #{valor_where} "              unless campo == "last_50"
-
-      where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"    unless tipo_factura_id == "0"
+		campo              = FacturasParams.get_campo_by_param(campoNum)
+		valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
+		limit_             = campo == "last_50" ? 50 : nil
 
 
-      joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
+		valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
 
-      joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
+		where_ = "cabecera_facturas.tipo = '#{fact_de}' and cabecera_facturas.is_adelantada = #{is_adelantada} "
+
+		where_ = "detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades "  if is_adelantada
+
+		where_ += "and cabecera_facturas.#{campo} = #{valor_where} "              unless campo == "last_50"
+
+		where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"    unless tipo_factura_id == "0"
 
 
-      facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
+		joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
 
-			puts "facturas ".blue + "#{facturas.to_json}"
+		joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
 
-      if facturas.length > 0
-        saco = Articulo.find_by_nombre("Saco sistema")
-        res.set_data(facturas, {all: true, saco_sistema: saco})
-      else
-				cantidad_registros = CabeceraFactura.all.count
-        res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros == 0
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
 
-      return res
-    end
+		facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
+
+
+		if facturas.length > 0
+			saco = Articulo.find_by_nombre("Saco sistema")
+			res.set_data(facturas, {all: true, saco_sistema: saco})
+		else
+			cantidad_registros = CabeceraFactura.all.count
+			res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros == 0
+			res.set_status(HTTP_STATUS_CODE[:conflict])
+		end
+
+		return res
   end
 
   # ===================================================================================================================================================
@@ -500,8 +495,8 @@ class CabeceraFactura < ApplicationRecord
 
   # ====================================================================================================
   def self.updateFactura(params)
+		res                    = Response.new
     CabeceraFactura.transaction do
-      res                  = Response.new
       res_validado         = verificateCanUpdate(params["id"])
 
       if res_validado.status_valid
@@ -554,16 +549,17 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res
       raise ActiveRecord::Rollback unless res.status_valid
     end
+
+		return res
   end
 
 
   # ====================================================================================================
   def self.payFactura(factura_id, recibo)
+		res               = Response.new
     CabeceraFactura.transaction do
-      res               = Response.new
       factura_a_pagar   = CabeceraFactura.find_by_id(factura_id)
 
       newBalance                          = factura_a_pagar["balance"] - recibo["deposito"]
@@ -578,8 +574,10 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res
+      raise ActiveRecord::Rollback unless res.status_valid
     end
+
+		return res
   end
 
   # =====================================================================================================================
@@ -629,8 +627,6 @@ class CabeceraFactura < ApplicationRecord
     factura.balance     = factura.balance - (factura_aplicada["total"].to_d).abs
     factura.estado      = false if factura.balance < 1
     factura.tiene_nota  = true
-		puts "aquiiiiii".yellow
-		puts "factura ".red + "#{factura.to_json}"
 
     unless factura.save!
       res.add_msgs(factura.errors.to_a)

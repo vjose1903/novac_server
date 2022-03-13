@@ -24,9 +24,9 @@ class DetalleConduce < ApplicationRecord
     detalle_conduce.cantidad               = params["cantidad"]
     detalle_conduce.cantidad_en_unidades   = params["cantidad_en_unidades"]
     detalle_conduce.unidad                 = params["unidad"]
-    
+
     detalle_conduce.valid?
-    
+
     detalle_conduce.errors.delete(:cabecera_conduce) if !is_save
 
     res_proceso                            = detalle_conduce.procesos_detalle(params, padre)
@@ -34,6 +34,7 @@ class DetalleConduce < ApplicationRecord
     if res_proceso.status_valid && detalle_conduce.errors.empty? && (!is_save || (is_save && detalle_conduce.save!))
       res.set_data(detalle_conduce)
     else
+			res.add_msgs(res_proceso.get_msgs.to_a)
       res.add_msgs(detalle_conduce.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -45,14 +46,14 @@ class DetalleConduce < ApplicationRecord
   def self.validar_e_inicializar(items, padre, save)
     res_valid = Response.new
     array_valid=[]
-    
+
     items.each do |item|
       res_temp = self.crear_actualizar_detalle_conduce(item, padre, !item[:id].nil?)
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)
       else
-        return res_temp 
+        return res_temp
       end
     end
 
@@ -62,28 +63,28 @@ class DetalleConduce < ApplicationRecord
 
 
   def procesos_detalle(params, padre)
-    res = Response.new()
-    
+    res = Response.new
+
     if self.detalle_factura_id
       detalleFactura              = self.detalle_factura
       cabeceraFactura             = detalleFactura.cabecera_factura
-      
+
       if cabeceraFactura.is_adelantada
         detalleFactura.retirado   = detalleFactura.retirado + self.cantidad_en_unidades
 
         unless detalleFactura.save!
-          res.add_msgs(detalleFactura.errors.to_a) 
+          res.add_msgs(detalleFactura.errors.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
-        
+
       end
     end
-    
+
     if res.status_valid
       res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, "-", padre.fecha_equivalente.strftime("%d/%m/%Y"), 'conduce', padre)
-      
+
       unless res_movimiento.status_valid
-        res.add_msgs(res_movimiento.get_msgs.to_a) 
+        res.add_msgs(res_movimiento.get_msgs.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 

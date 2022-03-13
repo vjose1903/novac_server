@@ -56,13 +56,13 @@ class User < ApplicationRecord
   # =====================================================================================================================
 
   def self.crear_actualizar_user(params , is_save=false)
+		res                           = Response.new
     User.transaction do
-      res = Response.new
 
       unless params["id"]
-        user = User.new()
+        user                      = User.new
       else
-        user = User.find_by_id(params["id"])
+        user                      = User.find_by_id(params["id"])
       end
 
       user.nombre                 = params["nombre"]

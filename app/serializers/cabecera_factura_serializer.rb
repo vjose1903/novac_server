@@ -55,6 +55,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
 
   def cliente
+		puts "object.cliente ".red + "#{object.cliente.to_json}"
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre
@@ -90,7 +91,6 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def usuario
-    user_   = object.user.attributes
     usuario = object.user.nombre_completo
     usuario
   end

@@ -2,50 +2,42 @@ class NotasController < ApplicationController
   before_action :set_nota, only: [:show, :update, :destroy]
 
   # GET /notas
-  def index
-    @notas = Nota.all
-
-    render json: @notas
+	def index
+    return Response.new(params, nil, Nota.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
   end
 
   # GET /notas/1
   def show
-    render json: @nota
-  end
+		return Response.new(params, nil, @nota, nil, {all: true}).send_response self
+	end
 
   # POST /notas
   def create
-    @nota = Nota.new(nota_params)
-
-    if @nota.save
-      render json: @nota, status: :created, location: @nota
-    else
-      render json: @nota.errors, status: :unprocessable_entity
-    end
+		resultado = Nota.create_nota(params)
+		resultado.send_response self
   end
 
   # PATCH/PUT /notas/1
   def update
-    if @nota.update(nota_params)
-      render json: @nota
-    else
-      render json: @nota.errors, status: :unprocessable_entity
-    end
+    # if @nota.update(nota_params)
+    #   render json: @nota
+    # else
+    #   render json: @nota.errors, status: :unprocessable_entity
+    # end
   end
 
-  # DELETE /notas/1
-  def destroy
-    @nota.destroy
+  def cancelarNota
+    resultado = Nota.anular_nota(params)
+    resultado.send_response self
   end
+
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_nota
-      @nota = Nota.find(params[:id])
-    end
+			respuesta = set_entidad(Cliente, params)
+			@nota = respuesta.get_data
 
-    # Only allow a list of trusted parameters through.
-    def nota_params
-      params.require(:nota).permit(:cliente_id, :user_id, :tipo_factura_id, :total, :identificador, :numero_documento, :numero_comprobante, :fecha_equivalente, :estado)
+			return respuesta.send_response self if @nota.nil?
     end
 end

@@ -38,6 +38,7 @@ class DetalleFactura < ApplicationRecord
     if res_proceso.status_valid && detalle_factura.errors.empty? && (!is_save || (is_save && detalle_factura.save!))
       res.set_data(detalle_factura)
     else
+      res.add_msgs(res_proceso.get_msgs.to_a)
       res.add_msgs(detalle_factura.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

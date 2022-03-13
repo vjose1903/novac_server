@@ -1,7 +1,6 @@
 Rails.application.routes.draw do
   resources :detalles_facturas_notas
   resources :facturas_aplicadas
-  resources :notas
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios
@@ -25,6 +24,7 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
   resources :permisos
   resources :acciones
+
 
   resources :roles do
     collection do
@@ -115,6 +115,12 @@ Rails.application.routes.draw do
       get "filtro/:arg"                   => "clientes#getClientesFiltrados"
     end
   end
+
+	resources :notas do
+	collection do
+		post "anular_nota/:id"                => "notas#cancelarNota"
+	end
+end
 
   resources :cabecera_facturas do
     collection do

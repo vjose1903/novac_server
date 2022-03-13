@@ -14,21 +14,22 @@ class DetalleProduccion < ApplicationRecord
     else
       detalle_produccion                         = DetalleProduccion.find_by_id(params["id"])
     end
-    
+
     detalle_produccion.articulo_id               = params["articulo_id"]
     detalle_produccion.cantidad                  = params["cantidad"]
     detalle_produccion.cantidad_en_unidades      = params["cantidad_en_unidades"]
     detalle_produccion.medida                    = params["medida"]
 
     detalle_produccion.valid?
-    
+
     detalle_produccion.errors.delete(:produccion) if !is_save
-    
+
     res_proceso                            = detalle_produccion.procesos_detalle(params)
-    
+
     if res_proceso.status_valid && detalle_produccion.errors.empty? && (!is_save || (is_save && detalle_produccion.save!))
       res.set_data(detalle_produccion)
     else
+			res.add_msgs(res_proceso.get_msgs.to_a)
       res.add_msgs(detalle_produccion.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -39,14 +40,14 @@ class DetalleProduccion < ApplicationRecord
   def self.validar_e_inicializar(items, padre, save)
     res_valid = Response.new
     array_valid=[]
-    
+
     items.each do |item|
       res_temp = self.crear_actualizar_detalle_produccion(item, padre, !item[:id].nil?)
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)
       else
-        return res_temp 
+        return res_temp
       end
     end
 
@@ -55,30 +56,30 @@ class DetalleProduccion < ApplicationRecord
   end
 
   def procesos_detalle(params)
-    res = Response.new()
-    
+    res = Response.new
+
     params["ingredientes"].each do |ingrediente|
       articulo_ingrediente     = Articulo.find_by_id(ingrediente["articulo_combo"])
-      
+
       mov                      = (articulo_ingrediente.existencia - ingrediente["cantidad_en_unidades"])
-      
+
       unless articulo_ingrediente.update({ existencia: mov })
-        res.add_msgs(articulo_ingrediente.errors) 
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
-    end
-    
-    if res.status_valid
-      productoTerminado        = self.articulo
-      movProd                  = (productoTerminado.existencia + self.cantidad_en_unidades)
-      
-      unless productoTerminado.update({ existencia: movProd })
-        res.add_msgs(productoTerminado.errors) 
+        res.add_msgs(articulo_ingrediente.errors)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     end
 
-    return res 
+    if res.status_valid
+      productoTerminado        = self.articulo
+      movProd                  = (productoTerminado.existencia + self.cantidad_en_unidades)
+
+      unless productoTerminado.update({ existencia: movProd })
+        res.add_msgs(productoTerminado.errors)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+    end
+
+    return res
   end
 
 end
