@@ -9,8 +9,8 @@ class CreateNotas < ActiveRecord::Migration[6.1]
       t.integer :numero_documento
       t.string :numero_comprobante
       t.datetime :fecha_equivalente
-      t.boolean :no_cliente_nombre
-      t.boolean :no_cliente_direccion
+      t.string :no_cliente_nombre
+      t.string :no_cliente_direccion
       t.boolean :estado
 
       t.timestamps

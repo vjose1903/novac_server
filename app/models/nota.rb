@@ -3,7 +3,6 @@ class Nota < ApplicationRecord
   belongs_to :user
   belongs_to :tipo_factura
 
-	validates :cliente,   presence: { :message => "Debe de especificar un cliente." }
 	validates :user,      presence: { :message => "Falta el usuario creador de la nota." }
 	validates :total,     presence: { :message => "El total de la nota no puede estar vacio." },   numericality: { greater_than: 0, :message => "El total de la nota debe de ser mayor a 0." }
 
@@ -248,5 +247,27 @@ class Nota < ApplicationRecord
 		res.set_status(HTTP_STATUS_CODE[:conflict])
 		return res
 	end
+
+	# =========================================================================================================================================================
+
+	def self.filtrarNota(arg, params)
+    res = Response.new(params)
+
+    notas = Nota
+		.joins("inner join clientes on clientes.id = notas.cliente_id")
+    .where("lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%')  AND notas.estado = true")
+    .order("notas.id ASC").to_a
+
+    if notas.length > 0
+      res.set_data(notas, {all: true})
+    else
+      res.set_data([])
+			cantidad_registros = Nota.all.count
+      res.add_msg("No existen notas con las especificaciones introducidas") if cantidad_registros > 0
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
 
 end

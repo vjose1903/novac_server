@@ -68,4 +68,29 @@ class FacturaAplicada < ApplicationRecord
     res_valid.set_data array_valid
     return res_valid
   end
+
+
+
+	# ===================================================================================================================================================
+	def self.get_cantidad_devueltos(params)
+		res                = Response.new
+
+		facturas_aplicadas = {}
+		ids                = params[:ids].split(",").map(&:to_i)
+		facturas           = FacturaAplicada.where(cabecera_factura_id: ids)
+
+		facturas.each do |fact_aplicada|
+			facturas_aplicadas[fact_aplicada.cabecera_factura_id] = { :detalles => {} } if facturas_aplicadas[fact_aplicada.cabecera_factura_id].nil?
+
+			arrayDetalle = fact_aplicada.detalles_facturas_notas
+
+			arrayDetalle.each do |detalle|
+				facturas_aplicadas[fact_aplicada.cabecera_factura_id][:detalles][detalle.detalle_factura_id] = 0 unless facturas_aplicadas[fact_aplicada.cabecera_factura_id][:detalles][detalle.detalle_factura_id]
+				facturas_aplicadas[fact_aplicada.cabecera_factura_id][:detalles][detalle.detalle_factura_id] += detalle.cantidad
+			end
+		end
+		res.set_data(facturas_aplicadas)
+
+		return res
+	end
 end

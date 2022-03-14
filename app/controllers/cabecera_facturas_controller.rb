@@ -13,6 +13,11 @@ class CabeceraFacturasController < ApplicationController
     return Response.new(params, nil, @cabecera_factura, nil, {all: true, saco_sistema: @saco}).send_response self
   end
 
+  def getGroup
+		resultado = CabeceraFactura.get_group_facturas_by_id(params)
+		resultado.send_response self
+  end
+
   def get_saco_sistema
     @saco = Articulo.find_by_nombre("Saco sistema")
   end
@@ -29,11 +34,6 @@ class CabeceraFacturasController < ApplicationController
 
   def comprobarSerial
     resultado = CabeceraFactura.comprobar_serial(params)
-    resultado.send_response self
-  end
-
-  def getCantidadDevuelto
-    resultado = CabeceraFactura.getDetallesNotasByFactura(params)
     resultado.send_response self
   end
 

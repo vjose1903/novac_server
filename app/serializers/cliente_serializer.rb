@@ -33,9 +33,6 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def get_param(col)
-		puts " "
-		puts "PASANDO POR AQUIII"
-		puts " "
 		return @instance_options[:"#{col}"]
 	end
 end

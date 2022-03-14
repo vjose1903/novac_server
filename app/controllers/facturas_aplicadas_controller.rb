@@ -1,6 +1,11 @@
 class FacturasAplicadasController < ApplicationController
   before_action :set_factura_aplicada, only: [:show, :update, :destroy]
 
+	def getCantidadDevuelto
+    resultado = FacturaAplicada.get_cantidad_devueltos(params)
+    resultado.send_response self
+  end
+
   # GET /facturas_aplicadas
   def index
     @facturas_aplicadas = FacturaAplicada.all

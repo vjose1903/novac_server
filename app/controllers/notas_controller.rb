@@ -11,6 +11,13 @@ class NotasController < ApplicationController
 		return Response.new(params, nil, @nota, nil, {all: true}).send_response self
 	end
 
+	def getNotasFiltradas
+    arg = params["arg"]
+
+    resultado = Nota.filtrarNota(arg, set_paginate_options(params))
+    resultado.send_response self
+  end
+
   # POST /notas
   def create
 		resultado = Nota.create_nota(params)

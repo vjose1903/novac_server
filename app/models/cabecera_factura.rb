@@ -268,25 +268,7 @@ class CabeceraFactura < ApplicationRecord
     return res
   end
 
-  # ===================================================================================================================================================
-  def self.getDetallesNotasByFactura(params)
-    res = Response.new
 
-    detalles_nota = {}
-    notas = CabeceraFactura.where({ aplicada_a: params["aplicadaA"] })
-
-    notas.each do |nota|
-      arrayDetalle = nota.detalle_facturas
-
-      arrayDetalle.each do |detalle|
-        detalles_nota[detalle.detalle_factura_nota] = 0 unless detalles_nota[detalle.detalle_factura_nota]
-        detalles_nota[detalle.detalle_factura_nota] += detalle.cantidad
-      end
-    end
-    res.set_data(detalles_nota)
-
-    return res
-  end
   # ===================================================================================================================================================
   def self.calculateNextDay
     tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime("%a")
@@ -321,6 +303,19 @@ class CabeceraFactura < ApplicationRecord
 		return res
   end
 
+	# ===================================================================================================================================================
+  def self.get_group_facturas_by_id(params)
+		res                = Response.new()
+
+		ids                = params[:ids].split(",").map(&:to_i)
+		facturas           = CabeceraFactura.where(id: ids)
+
+		saco = Articulo.find_by_nombre("Saco sistema")
+		res.set_data(facturas, {all: true, saco_sistema: saco})
+
+		return res
+	end
+	# ===================================================================================================================================================
   def self.get_facturas_by_params(params, paginate_options)
 		res                  = Response.new(paginate_options)
 

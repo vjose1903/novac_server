@@ -9099,7 +9099,7 @@
 									"top": 701,
 									"width": 170.14990234375,
 									"height": 13,
-									"text": "detalle_facturas_nota"
+									"text": "detalle_factura_nota"
 								},
 								{
 									"_type": "ERDColumnCompartmentView",
@@ -15513,7 +15513,7 @@
 					"_parent": {
 						"$ref": "AAAAAAF7W35/3UgZYpU="
 					},
-					"name": "detalle_facturas_nota",
+					"name": "detalle_factura_nota",
 					"ownedElements": [
 						{
 							"_type": "ERDRelationship",
