@@ -254,9 +254,10 @@ class Nota < ApplicationRecord
     res = Response.new(params)
 
     notas = Nota
-		.joins("inner join clientes on clientes.id = notas.cliente_id")
-    .where("lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%')  AND notas.estado = true")
+		.joins("left join clientes on clientes.id = notas.cliente_id")
+    .where("lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true")
     .order("notas.id ASC").to_a
+		puts "Notas ".red + "#{notas.to_json}"
 
     if notas.length > 0
       res.set_data(notas, {all: true})
