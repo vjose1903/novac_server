@@ -27,11 +27,6 @@ class CabeceraFacturasController < ApplicationController
     resultado.send_response self
   end
 
-  def getNotas
-    resultado = CabeceraFactura.get_notas_credito_debito(params, set_paginate_options(params))
-    resultado.send_response self
-  end
-
   def comprobarSerial
     resultado = CabeceraFactura.comprobar_serial(params)
     resultado.send_response self

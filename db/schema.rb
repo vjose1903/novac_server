@@ -413,8 +413,8 @@ ActiveRecord::Schema.define(version: 2022_03_13_162748) do
     t.integer "numero_documento"
     t.string "numero_comprobante"
     t.datetime "fecha_equivalente"
-    t.boolean "no_cliente_nombre"
-    t.boolean "no_cliente_direccion"
+    t.string "no_cliente_nombre"
+    t.string "no_cliente_direccion"
     t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false

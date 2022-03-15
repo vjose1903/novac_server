@@ -283,26 +283,6 @@ class CabeceraFactura < ApplicationRecord
     return DateTime.parse("#{next_date}T12:00:00").in_time_zone
   end
 
-  # ===================================================================================================================================================
-  def self.get_notas_credito_debito(params, paginate_options)
-		res             = Response.new(paginate_options)
-
-		tipo_factura  = TipoFactura.find_by_id(params["tipo_factura_id"])
-
-		notas         = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"], estado: true}).order("cabecera_facturas.id DESC").to_a
-
-		if notas.length > 0
-			saco = Articulo.find_by_nombre("Saco sistema")
-			res.set_data(notas, {all: true, saco_sistema: saco})
-		else
-			cantidad_registros = CabeceraFactura.where({tipo_factura_id: params["tipo_factura_id"]}).count
-			res.add_msg("No existen #{tipo_factura.descripcion.lowercase} con las especificaciones introducidas") if cantidad_registros == 0
-			res.set_status(HTTP_STATUS_CODE[:conflict])
-		end
-
-		return res
-  end
-
 	# ===================================================================================================================================================
   def self.get_group_facturas_by_id(params)
 		res                = Response.new()
@@ -597,6 +577,19 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
+
+	def get_total_devuelto_por_notas
+		aplicaciones_en_notas           = FacturaAplicada.where(cabecera_factura_id: self.id)
+		total_devuelto                  = 0
+
+		aplicaciones_en_notas.each do |fact_aplicada|
+			total_devuelto += fact_aplicada.total
+		end
+
+		return total_devuelto
+	end
+
+  # =====================================================================================================================
   def self.calculateNextBalanceFactura(id, montoRecibido)
     res = Response.new
 
@@ -615,12 +608,12 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.agregar_nota_a_CabeceraFactura(factura_aplicada)
+  def self.agregar_nota_a_CabeceraFactura(factura_aplicada, operador)
     res                 = Response.new
     factura             = CabeceraFactura.find_by_id(factura_aplicada["cabecera_factura_id"])
 
-    factura.balance     = factura.balance - (factura_aplicada["total"].to_d).abs
-    factura.estado      = false if factura.balance < 1
+    factura.balance     = eval "#{factura.balance} #{operador} #{(factura_aplicada["total"].to_d).abs}" if !factura.is_contado || ( factura.is_viaje && !factura.pagada )
+    factura.estado      = false if (factura.is_contado && ((factura.Bruto - factura.descuento) - (factura.get_total_devuelto_por_notas + (factura_aplicada["total"].to_d).abs ) < 1)) || (!factura.is_contado && factura.balance < 1)
     factura.tiene_nota  = true
 
     unless factura.save!

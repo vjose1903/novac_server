@@ -39,7 +39,7 @@ class FacturaAplicada < ApplicationRecord
 	def procesos_facturas_aplicadas(params)
 		res                = Response.new
 
-		res_valid          = CabeceraFactura.agregar_nota_a_CabeceraFactura(params)
+		res_valid          = CabeceraFactura.agregar_nota_a_CabeceraFactura(params, '-')
 
 		unless res_valid.status_valid
 			res.add_msgs(res_valid.get_msgs.to_a)

@@ -139,7 +139,6 @@ Rails.application.routes.draw do
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
       get "custom/viajes/:estado/:arg"                            => "cabecera_facturas#getViajesSinCompletar"
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
-      get "custom/notas"                                          => "cabecera_facturas#getNotas"
       get "custom/comprobar_serial"                               => "cabecera_facturas#comprobarSerial"
       get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
       get "custom/get_group/:ids"                                 => "cabecera_facturas#getGroup"
