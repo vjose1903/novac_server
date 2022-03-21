@@ -5,7 +5,7 @@ class FacturaAplicadaSerializer < ActiveModel::Serializer
 	attribute :detalles_facturas_notas,       if: Proc.new { self.get_param('detalles_facturas_notas') || self.get_param('all') }
 
 	def cabecera_factura
-		serialize_parser(object.cabecera_factura, {id: true, numero_comprobante: true})
+		serialize_parser(object.cabecera_factura, {id: true, numero_comprobante: true, fecha_equivalente: true})
 	end
 
 	def detalles_facturas_notas

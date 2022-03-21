@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_13_162748) do
+ActiveRecord::Schema.define(version: 2022_03_16_191502) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -418,6 +418,7 @@ ActiveRecord::Schema.define(version: 2022_03_13_162748) do
     t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.datetime "fecha_valida"
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"
@@ -428,6 +429,8 @@ ActiveRecord::Schema.define(version: 2022_03_13_162748) do
     t.string "descripcion"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "controlador"
+    t.boolean "mostrar_front"
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -480,20 +483,16 @@ ActiveRecord::Schema.define(version: 2022_03_13_162748) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "activo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["nombre", "descripcion", "activo"], name: "index_roles_on_nombre_and_descripcion_and_activo", unique: true, where: "(activo = true)"
+    t.boolean "estado"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
     t.bigint "role_id", null: false
     t.bigint "permiso_accion_id", null: false
-    t.string "controlador"
-    t.string "metodo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["controlador", "metodo"], name: "index_roles_permisos_acciones_on_controlador_and_metodo", unique: true, where: "(metodo IS NOT NULL)"
     t.index ["permiso_accion_id"], name: "index_roles_permisos_acciones_on_permiso_accion_id"
     t.index ["role_id", "permiso_accion_id"], name: "index_roles_permisos_acciones_on_role_id_and_permiso_accion_id"
     t.index ["role_id"], name: "index_roles_permisos_acciones_on_role_id"

@@ -8,16 +8,16 @@ class DetalleFacturaNota < ApplicationRecord
 
     detalle_factura_nota                             = DetalleFacturaNota.new
 
-		detalle_factura_nota.articulo_id                 = params["articulo_id"]
-		detalle_factura_nota.detalle_factura_id          = params["detalle_factura_id"]
-		detalle_factura_nota.unidad                      = params["unidad"]
-		detalle_factura_nota.cantidad                    = params["cantidad"]
-		detalle_factura_nota.cantidad_en_unidades        = params["cantidad_en_unidades"]
-		detalle_factura_nota.itbis                       = params["itbis"]
-		detalle_factura_nota.costo                       = params["costo"]
-		detalle_factura_nota.precio                      = params["precio"]
-		detalle_factura_nota.total                       = params["total"]
-		detalle_factura_nota.descuento                   = params["descuento"]
+		detalle_factura_nota.articulo_id                 = params[:articulo_id]
+		detalle_factura_nota.detalle_factura_id          = params[:detalle_factura_id]
+		detalle_factura_nota.unidad                      = params[:unidad]
+		detalle_factura_nota.cantidad                    = params[:cantidad]
+		detalle_factura_nota.cantidad_en_unidades        = params[:cantidad_en_unidades]
+		detalle_factura_nota.itbis                       = params[:itbis]
+		detalle_factura_nota.costo                       = params[:costo]
+		detalle_factura_nota.precio                      = params[:precio]
+		detalle_factura_nota.total                       = params[:total]
+		detalle_factura_nota.descuento                   = params[:descuento]
 
     detalle_factura_nota.valid?
 

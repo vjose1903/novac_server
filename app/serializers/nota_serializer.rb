@@ -6,6 +6,7 @@ class NotaSerializer < ActiveModel::Serializer
 	attribute :numero_documento,          if: Proc.new { self.get_param('numero_documento') || self.get_param('all') }
 	attribute :numero_comprobante,        if: Proc.new { self.get_param('numero_comprobante') || self.get_param('all') }
 	attribute :fecha_equivalente,         if: Proc.new { self.get_param('fecha_equivalente') || self.get_param('all') }
+	attribute :fecha_valida,              if: Proc.new { self.get_param('fecha_valida') || self.get_param('all') }
 	attribute :no_cliente_nombre,         if: Proc.new { self.get_param('no_cliente_nombre') || self.get_param('all') }
 	attribute :no_cliente_direccion,      if: Proc.new { self.get_param('no_cliente_direccion') || self.get_param('all') }
 	attribute :estado,                    if: Proc.new { self.get_param('estado') || self.get_param('all') }

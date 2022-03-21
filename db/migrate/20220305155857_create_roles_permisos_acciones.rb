@@ -9,3 +9,4 @@ class CreateRolesPermisosAcciones < ActiveRecord::Migration[6.1]
 		add_index(:roles_permisos_acciones, [:role_id, :permiso_accion_id])
   end
 end
+``

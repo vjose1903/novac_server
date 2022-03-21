@@ -9,8 +9,8 @@ class FacturaAplicada < ApplicationRecord
 
     factura_aplicada                             = FacturaAplicada.new
 
-    factura_aplicada.cabecera_factura_id         = params["cabecera_factura_id"]
-    factura_aplicada.total                       = params["total"]
+    factura_aplicada.cabecera_factura_id         = params[:cabecera_factura_id]
+    factura_aplicada.total                       = params[:total]
 
     factura_aplicada.valid?
 

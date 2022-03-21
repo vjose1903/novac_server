@@ -334,7 +334,7 @@ class CabeceraFactura < ApplicationRecord
 			res.set_data(facturas, {all: true, saco_sistema: saco})
 		else
 			cantidad_registros = CabeceraFactura.all.count
-			res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros == 0
+			res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
 			res.set_status(HTTP_STATUS_CODE[:conflict])
 		end
 
@@ -610,10 +610,10 @@ class CabeceraFactura < ApplicationRecord
   # =====================================================================================================================
   def self.agregar_nota_a_CabeceraFactura(factura_aplicada, operador)
     res                 = Response.new
-    factura             = CabeceraFactura.find_by_id(factura_aplicada["cabecera_factura_id"])
+    factura             = CabeceraFactura.find_by_id(factura_aplicada[:cabecera_factura_id])
 
-    factura.balance     = eval "#{factura.balance} #{operador} #{(factura_aplicada["total"].to_d).abs}" if !factura.is_contado || ( factura.is_viaje && !factura.pagada )
-    factura.estado      = false if (factura.is_contado && ((factura.Bruto - factura.descuento) - (factura.get_total_devuelto_por_notas + (factura_aplicada["total"].to_d).abs ) < 1)) || (!factura.is_contado && factura.balance < 1)
+    factura.balance     = eval "#{factura.balance} #{operador} #{(factura_aplicada[:total].to_d).abs}" if !factura.is_contado || ( factura.is_viaje && !factura.pagada )
+    factura.estado      = false if (factura.is_contado && ((factura.Bruto - factura.descuento) - (factura.get_total_devuelto_por_notas + (factura_aplicada[:total].to_d).abs ) < 1)) || (!factura.is_contado && factura.balance < 1)
     factura.tiene_nota  = true
 
     unless factura.save!
