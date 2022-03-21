@@ -6,7 +6,7 @@ class DocumentoDeIdentidad < ApplicationRecord
 
   belongs_to :origen, polymorphic: true
 
-  validates :documento, uniqueness: { scope: :origen_type, case_sensitive: false, :message => "Documento de identidad ya esta registrado" }
+  validates :documento, uniqueness: { :allow_blank => true, scope: :origen_type, case_sensitive: false, :message => "Documento de identidad ya esta registrado" }
 
 
   def self.crear_actualizar_documento(params, padre, is_save=false)
@@ -38,14 +38,14 @@ class DocumentoDeIdentidad < ApplicationRecord
   def self.validar_e_inicializar(items, padre, save)
     res_valid = Response.new
     array_valid=[]
-    
+
     items.each do |item|
-      unless item["documento"].nil?
+      unless item["documento"].blank?
           res_temp = self.crear_actualizar_documento(item, padre, save)
           if res_temp.status_valid
             array_valid.push(res_temp.get_data)
           else
-            return res_temp 
+            return res_temp
           end
           res_valid.set_data array_valid
         end
