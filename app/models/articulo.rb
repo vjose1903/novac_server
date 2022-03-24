@@ -23,19 +23,6 @@ class Articulo < ApplicationRecord
   end
 
 
-  def checkSacoSistema(articulo_nuevo)
-      self.errors.add(:base, "A este articulo no se le puede editar el nombre.") if articulo_nuevo["nombre"] != 'Saco sistema'
-
-      self.errors.add(:base, "A este articulo no se le puede editar la medida en que se compra.") if articulo_nuevo["medida"] != 'Unidad'
-
-      self.errors.add(:base, "A este articulo no se le puede editar la medida para vender.") if articulo_nuevo["vendido_en"] != 'Unidad'
-
-      self.errors.add(:base, "A este articulo no se le puede editar el tipo de articulo.") if articulo_nuevo["tipo_articulo_id"] != 4
-
-      self.errors.add(:base, "Este articulo no se puede ser materia prima.") if articulo_nuevo["is_materia_prima"]
-  end
-
-
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
 		res = Response.new
     Articulo.transaction do
@@ -49,7 +36,6 @@ class Articulo < ApplicationRecord
         articulo                                = Articulo.new
       else
         articulo                                = Articulo.find_by_id(params["id"])
-        articulo.checkSacoSistema(params) if articulo.nombre == 'Saco sistema'
       end
 
       articulo.tipo_articulo_id                 = params["tipo_articulo_id"]
@@ -133,20 +119,6 @@ class Articulo < ApplicationRecord
 
     return res
   end
-
-  # =====================================================================================================================
-
-    def self.checkFechaCalcularSaco(fecha, articulo)
-      res = false
-
-      saco = Articulo.find_by_nombre("Saco sistema")
-      unless saco.nil?
-        is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
-        res = is_correct && articulo["calcular_saco"]
-      end
-
-      return res
-    end
 
   # =====================================================================================================================
 

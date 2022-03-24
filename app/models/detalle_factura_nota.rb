@@ -3,6 +3,7 @@ class DetalleFacturaNota < ApplicationRecord
   belongs_to :articulo
   belongs_to :detalle_factura
 
+
 	def self.crear_detalle_factura_nota(params, padre, is_save=false)
     res = Response.new
 
@@ -19,16 +20,19 @@ class DetalleFacturaNota < ApplicationRecord
 		detalle_factura_nota.total                       = params[:total]
 		detalle_factura_nota.descuento                   = params[:descuento]
 
-    detalle_factura_nota.valid?
+		detalle_factura_nota.valid?
 
     detalle_factura_nota.errors.delete(:factura_aplicada) if !is_save
 
-		res_proceso                                      = detalle_factura_nota.procesos_detalles_facturas_notas(params, padre)
+		puts "===> ".red + "#{detalle_factura_nota.errors.to_a}"
 
-    if res_proceso.status_valid && detalle_factura_nota.errors.empty? && (!is_save || (is_save && detalle_factura_nota.save!))
+
+		res_proceso                                      = detalle_factura_nota.procesos_detalles_facturas_notas(params, padre) if detalle_factura_nota.errors.empty?
+
+    if res_proceso && res_proceso.status_valid && detalle_factura_nota.errors.empty? && (!is_save || (is_save && detalle_factura_nota.save!))
       res.set_data(detalle_factura_nota)
     else
-			res.add_msgs(res_proceso.get_msgs.to_a)
+			res.add_msgs(res_proceso.get_msgs.to_a) if res_proceso
       res.add_msgs(detalle_factura_nota.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

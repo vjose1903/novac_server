@@ -97,8 +97,7 @@ class CabeceraFactura < ApplicationRecord
 								res_valid                           = CabeceraFactura.update_secuencias(params, data_secuencias)
 
 								if res_valid.status_valid
-									saco = Articulo.find_by_nombre("Saco sistema")
-									res.set_data(cabecera_factura, {all: true, saco_sistema: saco})
+									res.set_data(cabecera_factura, {all: true})
 
 									realizando = params["tipo_factura_id"] == TiposNotasId.credito ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
 									res.add_msg("#{realizando} creada correctamente.")
@@ -290,8 +289,7 @@ class CabeceraFactura < ApplicationRecord
 		ids                = params[:ids].split(",").map(&:to_i)
 		facturas           = CabeceraFactura.where(id: ids)
 
-		saco = Articulo.find_by_nombre("Saco sistema")
-		res.set_data(facturas, {all: true, saco_sistema: saco})
+		res.set_data(facturas, {all: true})
 
 		return res
 	end
@@ -312,7 +310,7 @@ class CabeceraFactura < ApplicationRecord
 
 		valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
 
-		where_ = "cabecera_facturas.tipo = '#{fact_de}' and cabecera_facturas.is_adelantada = #{is_adelantada} "
+		where_ = "cabecera_facturas.tipo = '#{fact_de}' AND cabecera_facturas.is_adelantada = #{is_adelantada} "
 
 		where_ = "detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades "  if is_adelantada
 
@@ -330,8 +328,7 @@ class CabeceraFactura < ApplicationRecord
 
 
 		if facturas.length > 0
-			saco = Articulo.find_by_nombre("Saco sistema")
-			res.set_data(facturas, {all: true, saco_sistema: saco})
+			res.set_data(facturas, {all: true})
 		else
 			cantidad_registros = CabeceraFactura.all.count
 			res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
@@ -346,18 +343,17 @@ class CabeceraFactura < ApplicationRecord
     res          = Response.new(paginate_options)
 
     arg          = params["arg"]
-    where        = "is_viaje = true and ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' and '#{DateTime.now.end_of_day}') )"
+    where        = "is_viaje = true AND estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' AND '#{DateTime.now.end_of_day}') )"
     joins_       = "inner join clientes on clientes.id = cabecera_facturas.cliente_id"
 
     cabeceras    = CabeceraFactura
     .joins(joins_)
-    .where("#{where} and lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
+    .where("#{where} AND lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
     .order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
 
 
     if cabeceras.length > 0
-      saco = Articulo.find_by_nombre("Saco sistema")
-      res.set_data(cabeceras, {all: true, saco_sistema: saco})
+      res.set_data(cabeceras, {all: true})
     else
 			cantidad_registros = CabeceraFactura.all.count
       res.add_msg("No existen facturas con las especificaciones introducidas") if cantidad_registros > 0
@@ -371,7 +367,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_facturas_by_cliente_id_and_estado(params, paginate_options)
     res                          = Response.new(paginate_options)
     joins                        = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id  inner join users on cabecera_facturas.user_id = users.id"
-    where                        = "cliente_id=#{params["cliente_id"]} and pagada=#{params["pagada"]} and tipo='venta' and condicion='Crédito' and cabecera_facturas.estado=true"
+    where                        = "cliente_id=#{params["cliente_id"]} AND pagada=#{params["pagada"]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
 
     cabeceras                    = CabeceraFactura.joins(joins).where(where).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
 
@@ -380,8 +376,7 @@ class CabeceraFactura < ApplicationRecord
     cabeceras.concat cabe_viajes_contado_deviendo
 
     if cabeceras.length > 0
-      saco = Articulo.find_by_nombre("Saco sistema")
-      res.set_data(cabeceras, {all: true, saco_sistema: saco})
+      res.set_data(cabeceras, {all: true})
     else
       res.add_msg("El cliente buscado no tiene facturas pendientes.")
       res.set_status(HTTP_STATUS_CODE[:not_found])
@@ -493,7 +488,7 @@ class CabeceraFactura < ApplicationRecord
           end
         end
 
-        res_detalles                      = DetalleFactura.proceso_editar_detalles(factura_nueva, factura_original)
+        res_detalles                       = DetalleFactura.proceso_editar_detalles(factura_nueva, factura_original)
 
         if res_detalles.status_valid
           factura_original.total_factura   = factura_nueva['total_factura']
@@ -505,10 +500,8 @@ class CabeceraFactura < ApplicationRecord
           factura_original.devuelta        = factura_nueva['devuelta']
 
           if factura_original.save!
-            res.add_msg("Factura editada correctamente.")
-            saco = Articulo.find_by_nombre("Saco sistema")
             factura_editada                = CabeceraFactura.find_by_id(params["id"])
-            res.set_data(factura_editada, {all: true, saco_sistema: saco})
+            res.set_data(factura_editada, {all: true})
           else
             res.add_msgs(factura_original.errors.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])

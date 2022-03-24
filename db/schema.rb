@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_16_191502) do
+ActiveRecord::Schema.define(version: 2022_03_21_160504) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -263,7 +263,7 @@ ActiveRecord::Schema.define(version: 2022_03_16_191502) do
     t.string "origen_type"
     t.bigint "origen_id"
     t.index ["cliente_id"], name: "index_documentos_de_identidad_on_cliente_id"
-    t.index ["documento", "origen_type"], name: "index_documentos_de_identidad_on_documento_and_origen_type", unique: true
+    t.index ["documento", "origen_type"], name: "index_documentos_de_identidad_on_documento_and_origen_type", unique: true, where: "(documento IS NOT NULL)"
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
@@ -627,7 +627,11 @@ ActiveRecord::Schema.define(version: 2022_03_16_191502) do
   add_foreign_key "detalle_recibos", "recibos_ingresos"
   add_foreign_key "detalles_facturas_notas", "articulos"
   add_foreign_key "detalles_facturas_notas", "detalle_facturas"
+<<<<<<< HEAD
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"
+=======
+  add_foreign_key "detalles_facturas_notas", "facturas_aplicadas", column: "factura_aplicada_id"
+>>>>>>> ADM
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
   add_foreign_key "documentos_de_identidad", "clientes"

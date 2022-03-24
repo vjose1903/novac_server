@@ -40,7 +40,7 @@ class DocumentoDeIdentidad < ApplicationRecord
     array_valid=[]
 
     items.each do |item|
-      unless item["documento"].nil?
+      unless item["documento"].blank?
           res_temp = self.crear_actualizar_documento(item, padre, save)
           if res_temp.status_valid
             array_valid.push(res_temp.get_data)

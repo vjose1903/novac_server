@@ -8889,6 +8889,22 @@
 										},
 										{
 											"_type": "ERDColumnView",
+											"_id": "AAAAAAF/lCZhqCT4Qxw=",
+											"_parent": {
+												"$ref": "AAAAAAF/g9H89zIFUQY="
+											},
+											"model": {
+												"$ref": "AAAAAAF/lCZhbiT1VTc="
+											},
+											"fillColor": "#ffffd8",
+											"font": "Arial;13;0",
+											"left": 1749,
+											"top": 1283,
+											"width": 157.24267578125,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
 											"_id": "AAAAAAF/g9WjoDJd3cE=",
 											"_parent": {
 												"$ref": "AAAAAAF/g9H89zIFUQY="
@@ -8899,7 +8915,7 @@
 											"fillColor": "#ffffd8",
 											"font": "Arial;13;0",
 											"left": 1749,
-											"top": 1283,
+											"top": 1298,
 											"width": 157.24267578125,
 											"height": 13
 										},
@@ -8915,7 +8931,7 @@
 											"fillColor": "#ffffd8",
 											"font": "Arial;13;0",
 											"left": 1749,
-											"top": 1298,
+											"top": 1313,
 											"width": 157.24267578125,
 											"height": 13
 										},
@@ -8931,7 +8947,7 @@
 											"fillColor": "#ffffd8",
 											"font": "Arial;13;0",
 											"left": 1749,
-											"top": 1313,
+											"top": 1328,
 											"width": 157.24267578125,
 											"height": 13
 										}
@@ -8941,7 +8957,7 @@
 									"left": 1744,
 									"top": 1143,
 									"width": 167.24267578125,
-									"height": 188
+									"height": 203
 								}
 							],
 							"fillColor": "#ffffd8",
@@ -8949,7 +8965,7 @@
 							"left": 1744,
 							"top": 1120,
 							"width": 167.24267578125,
-							"height": 211,
+							"height": 226,
 							"nameLabel": {
 								"$ref": "AAAAAAF/g9H89zIEbmM="
 							},
@@ -15373,6 +15389,15 @@
 								"$ref": "AAAAAAF/g9H89jIB1Cs="
 							},
 							"name": "fecha_equivalente",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAF/lCZhbiT1VTc=",
+							"_parent": {
+								"$ref": "AAAAAAF/g9H89jIB1Cs="
+							},
+							"name": "fecha_valida",
 							"length": 0
 						},
 						{

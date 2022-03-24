@@ -49,8 +49,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def detalle_facturas
-    @saco = self.get_param('saco_sistema')
-    serialize_parser(object.detalle_facturas, {all: true, saco_sistema: @saco})
+
+    serialize_parser(object.detalle_facturas, {all: true})
   end
 
 
@@ -121,9 +121,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 					detalle_nota = detalle_nota_json
           detalle_nota
         end
-
       end
-      # serialize_parser(notas, {all: true, saco_sistema: @saco})  unless notas.blank?
     end
     notas_parseo
   end

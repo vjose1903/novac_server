@@ -18,16 +18,19 @@ class FacturaAplicada < ApplicationRecord
 
 		dependencias                                 = [ {modelo: DetalleFacturaNota, key_object: "detalles_facturas_notas", padre: padre} ]
 
-		res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+		res_proceso = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
 			factura_aplicada.detalles_facturas_notas   = dependencia_data if key_object == 'detalles_facturas_notas'
 		}
 
-		res_proceso                                  = factura_aplicada.procesos_facturas_aplicadas(params) if res.status_valid
+		puts "res ".magenta + "#{res.to_json}"
+		puts "res ".magenta + "#{res}"
 
-    if res_proceso.status_valid && factura_aplicada.errors.empty? && (!is_save || (is_save && factura_aplicada.save!))
+		res_proceso                                  = factura_aplicada.procesos_facturas_aplicadas(params) if res_proceso.status_valid
+
+    if res_proceso && res_proceso.status_valid && factura_aplicada.errors.empty? && (!is_save || (is_save && factura_aplicada.save!))
       res.set_data(factura_aplicada)
     else
-			res.add_msgs(res_proceso.get_msgs.to_a)
+			res.add_msgs(res_proceso.get_msgs.to_a) if res_proceso
       res.add_msgs(factura_aplicada.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -78,6 +81,8 @@ class FacturaAplicada < ApplicationRecord
 		facturas_aplicadas = {}
 		ids                = params[:ids].split(",").map(&:to_i)
 		facturas           = FacturaAplicada.where(cabecera_factura_id: ids)
+
+		puts "facturas -->".red + "#{facturas.to_json}"
 
 		facturas.each do |fact_aplicada|
 			facturas_aplicadas[fact_aplicada.cabecera_factura_id] = { :detalles => {} } if facturas_aplicadas[fact_aplicada.cabecera_factura_id].nil?

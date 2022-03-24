@@ -200,13 +200,13 @@ class Nota < ApplicationRecord
 
 	# ===================================================================================================================================================
 
-	def self.makeIdentificador(nota, cant)
+	def self.makeIdentificador(nota)
 		fecha = nota.fecha_equivalente.kind_of?(String) ? DateTime.parse(nota.fecha_equivalente) : nota.fecha_equivalente
 
 		array = [
 			{value: "#{"%04d" % (nota.cliente_id || 0)}".reverse},
 			{value: "#{"%04d" % nota.user_id}"},
-			{value: "#{"%04d" % cant}".reverse},
+			{value: "#{"%04d" % nota.facturas_aplicadas.length}".reverse},
 			{value: "#{nota.id} ".reverse},
 			{value: "#{fecha.to_i} ".reverse},
 	]

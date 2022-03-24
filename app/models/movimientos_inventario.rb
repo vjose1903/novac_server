@@ -90,6 +90,9 @@ class MovimientosInventario < ApplicationRecord
     puts "----- 1 -----".red
     res        = Response.new
     articulo   = Articulo.find_by_id(movimiento["articulo_id"])
+    puts "movimiento[articulo_id]".blue + " #{movimiento[:articulo_id]}"
+    puts "movimiento[articulo_id]".yellow + " #{movimiento["articulo_id"]}"
+    puts "articulo".red + " #{articulo.to_json}"
 
     if articulo.nombre != 'Transporte'
       puts "----- 2 -----".red

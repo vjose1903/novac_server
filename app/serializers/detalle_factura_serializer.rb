@@ -13,9 +13,8 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :retirado_en_venta,                          if: Proc.new { self.get_param('retirado_en_venta') || self.get_param('all') }
   attribute :calcular_saco,                              if: Proc.new { self.get_param('calcular_saco') || self.get_param('all') }
   attribute :detalle_factura_nota,                       if: Proc.new { self.get_param('detalle_factura_nota') || self.get_param('all') }
-  
+
   attribute :articulo,                                   if: Proc.new { self.get_param('articulo') || self.get_param('all') }
-  attribute :se_calcula_saco,                            if: Proc.new { self.get_param('se_calcula_saco') || self.get_param('all') }
   attribute :precio,                                     if: Proc.new { self.get_param('precio') || self.get_param('all') }
   attribute :costo,                                      if: Proc.new { self.get_param('costo') || self.get_param('all') }
   attribute :tipo,                                       if: Proc.new { self.get_param('tipo') || self.get_param('all') }
@@ -34,24 +33,15 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     object.articulo.tipo_articulo.descripcion
   end
 
-  def se_calcula_saco
-    @se_calcula_saco = checkSeCalcularSaco(object.cabecera_factura.fecha_equivalente, @articuloSelect)
-  end
-  
   def codigo
     object.articulo.codigo
   end
 
   def descripcion
     unidad                     = object.unidad.split(" ")
-    
+
     if unidad.length > 1
-      if @se_calcula_saco
-        descripcion            = "#{@articuloSelect["nombre"]} (#{unidad[2]} LBS)#{object.calcular_saco ? '' : '*'}"
-      else
-        descripcion            = "#{@articuloSelect["nombre"]} (#{unidad[2]} LBS)"
-      end
-      
+			descripcion              = "#{@articuloSelect["nombre"]} (#{unidad[2]} LBS)"
       @peso_saco               = unidad[2]
     else
       descripcion              = "#{@articuloSelect["nombre"]}"
@@ -60,11 +50,11 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     descripcion
   end
 
-  
+
   def unidad
     unidad = object.unidad.split(" ")[0]
   end
-  
+
   def peso_saco
     @peso_saco
   end
@@ -74,17 +64,6 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   end
 
 
-  def checkSeCalcularSaco(fecha, articulo)
-    res = false
-    saco = self.get_param('saco_sistema')
-    unless saco.nil?
-      is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
-      res = is_correct && articulo["calcular_saco"] 
-    end
-
-    return res
-  end
-
   def calcularContenidos(articulo, sacos)
 
     contenido = articulo.contenido_articulos
@@ -92,7 +71,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
 
     if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
       [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c 
+        contenidos["Saco_#{c}"] = c
       end
     end
 
