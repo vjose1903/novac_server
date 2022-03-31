@@ -112,9 +112,16 @@ rails g scaffold nota cliente:references user:references tipo_factura:references
 rails g scaffold factura_aplicada nota:references cabeza_factura:references total:float
 rails g scaffold detalle_factura_nota factura_aplicada:references articulo:references detalle_factura:references unidad:string cantidad:float cantidad_en_unidades:integer itbis:float costo:float precio:float total:float descuento:float
 
+
 rails g migration EditCamposToNota
 rails g migration AddCamposToNota
 
-rails g migration AddIndexToDocumentosIdentidad 
+rails g migration AddIndexToDocumentosIdentidad
 
 , where: 'name IS NOT NULL'
+
+rails g scaffold otro_costo descripcion:string costo:float
+rails g model otro_costo_articulo articulo:references otro_costo:references
+rails g model otro_costo_historial descripcion:string costo:float
+rails g model otro_costo_mantenimiento_articulo otro_costo_historial:references mantenimiento_articulo_id:references
+rails g migration AddCamposToOtrosCostosHistorial

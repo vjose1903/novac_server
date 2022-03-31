@@ -343,7 +343,7 @@ class CabeceraFactura < ApplicationRecord
     res          = Response.new(paginate_options)
 
     arg          = params["arg"]
-    where        = "is_viaje = true AND estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' AND '#{DateTime.now.end_of_day}') )"
+    where        = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' AND '#{DateTime.now.end_of_day}') )"
     joins_       = "inner join clientes on clientes.id = cabecera_facturas.cliente_id"
 
     cabeceras    = CabeceraFactura

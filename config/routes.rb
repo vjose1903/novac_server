@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :otros_costos
   resources :detalles_facturas_notas
 
   resources :costos_fletes_historiales

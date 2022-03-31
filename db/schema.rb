@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_21_160504) do
+ActiveRecord::Schema.define(version: 2022_03_26_153531) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -424,6 +424,40 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
     t.index ["user_id"], name: "index_notas_on_user_id"
   end
 
+  create_table "otros_costos", force: :cascade do |t|
+    t.string "descripcion"
+    t.float "costo"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "otros_costos_articulos", force: :cascade do |t|
+    t.bigint "articulo_id", null: false
+    t.bigint "otro_costo_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["articulo_id"], name: "index_otros_costos_articulos_on_articulo_id"
+    t.index ["otro_costo_id"], name: "index_otros_costos_articulos_on_otro_costo_id"
+  end
+
+  create_table "otros_costos_historiales", force: :cascade do |t|
+    t.string "descripcion"
+    t.float "costo"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.bigint "otro_costo_id", null: false
+    t.index ["otro_costo_id"], name: "index_otros_costos_historiales_on_otro_costo_id"
+  end
+
+  create_table "otros_costos_mantenimientos_articulos", force: :cascade do |t|
+    t.bigint "otro_costo_historial_id", null: false
+    t.bigint "mantenimiento_articulo_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["mantenimiento_articulo_id"], name: "index_otros_costos_mantenimientos_on_mantenimiento_art"
+    t.index ["otro_costo_historial_id"], name: "index_otros_costos_mantenimientos_on_otro_costo_historial_id"
+  end
+
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
@@ -627,11 +661,7 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
   add_foreign_key "detalle_recibos", "recibos_ingresos"
   add_foreign_key "detalles_facturas_notas", "articulos"
   add_foreign_key "detalles_facturas_notas", "detalle_facturas"
-<<<<<<< HEAD
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"
-=======
-  add_foreign_key "detalles_facturas_notas", "facturas_aplicadas", column: "factura_aplicada_id"
->>>>>>> ADM
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
   add_foreign_key "documentos_de_identidad", "clientes"
@@ -651,6 +681,11 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
   add_foreign_key "notas", "clientes"
   add_foreign_key "notas", "tipo_facturas"
   add_foreign_key "notas", "users"
+  add_foreign_key "otros_costos_articulos", "articulos"
+  add_foreign_key "otros_costos_articulos", "otros_costos"
+  add_foreign_key "otros_costos_historiales", "otros_costos"
+  add_foreign_key "otros_costos_mantenimientos_articulos", "mantenimiento_articulos"
+  add_foreign_key "otros_costos_mantenimientos_articulos", "otros_costos_historiales"
   add_foreign_key "permisos_acciones", "acciones"
   add_foreign_key "permisos_acciones", "permisos"
   add_foreign_key "producciones", "users"
