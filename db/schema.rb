@@ -220,25 +220,6 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
 
-  create_table "detalles_facturas_notas", force: :cascade do |t|
-    t.bigint "factura_aplicada_id", null: false
-    t.bigint "articulo_id", null: false
-    t.bigint "detalle_factura_id", null: false
-    t.string "unidad"
-    t.float "cantidad"
-    t.integer "cantidad_en_unidades"
-    t.float "itbis"
-    t.float "costo"
-    t.float "precio"
-    t.float "total"
-    t.float "descuento"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
-    t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
-    t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
-  end
-
   create_table "detalles_produccion", force: :cascade do |t|
     t.bigint "produccion_id"
     t.bigint "articulo_id"
@@ -263,20 +244,9 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
     t.string "origen_type"
     t.bigint "origen_id"
     t.index ["cliente_id"], name: "index_documentos_de_identidad_on_cliente_id"
-    t.index ["documento", "origen_type"], name: "index_documentos_de_identidad_on_documento_and_origen_type", unique: true, where: "(documento IS NOT NULL)"
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
-  end
-
-  create_table "facturas_aplicadas", force: :cascade do |t|
-    t.bigint "nota_id", null: false
-    t.bigint "cabecera_factura_id", null: false
-    t.float "total"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["cabecera_factura_id"], name: "index_facturas_aplicadas_on_cabecera_factura_id"
-    t.index ["nota_id"], name: "index_facturas_aplicadas_on_nota_id"
   end
 
   create_table "formulas_productos_terminados", force: :cascade do |t|
@@ -404,33 +374,11 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
     t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
   end
 
-  create_table "notas", force: :cascade do |t|
-    t.bigint "cliente_id"
-    t.bigint "user_id", null: false
-    t.bigint "tipo_factura_id", null: false
-    t.float "total"
-    t.string "identificador"
-    t.integer "numero_documento"
-    t.string "numero_comprobante"
-    t.datetime "fecha_equivalente"
-    t.string "no_cliente_nombre"
-    t.string "no_cliente_direccion"
-    t.boolean "estado"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.datetime "fecha_valida"
-    t.index ["cliente_id"], name: "index_notas_on_cliente_id"
-    t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
-    t.index ["user_id"], name: "index_notas_on_user_id"
-  end
-
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.string "controlador"
-    t.boolean "mostrar_front"
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -483,16 +431,20 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
+    t.boolean "activo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.boolean "estado"
+    t.index ["nombre", "descripcion", "activo"], name: "index_roles_on_nombre_and_descripcion_and_activo", unique: true, where: "(activo = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
     t.bigint "role_id", null: false
     t.bigint "permiso_accion_id", null: false
+    t.string "controlador"
+    t.string "metodo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["controlador", "metodo"], name: "index_roles_permisos_acciones_on_controlador_and_metodo", unique: true, where: "(metodo IS NOT NULL)"
     t.index ["permiso_accion_id"], name: "index_roles_permisos_acciones_on_permiso_accion_id"
     t.index ["role_id", "permiso_accion_id"], name: "index_roles_permisos_acciones_on_role_id_and_permiso_accion_id"
     t.index ["role_id"], name: "index_roles_permisos_acciones_on_role_id"
@@ -625,16 +577,11 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
   add_foreign_key "detalle_facturas", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "recibos_ingresos"
-  add_foreign_key "detalles_facturas_notas", "articulos"
-  add_foreign_key "detalles_facturas_notas", "detalle_facturas"
-  add_foreign_key "detalles_facturas_notas", "facturas_aplicadas", column: "factura_aplicada_id"
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
-  add_foreign_key "facturas_aplicadas", "cabecera_facturas"
-  add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"
   add_foreign_key "historico_producciones", "articulos"
   add_foreign_key "historico_producciones", "users"
@@ -644,9 +591,6 @@ ActiveRecord::Schema.define(version: 2022_03_21_160504) do
   add_foreign_key "movimientos_inventarios", "articulos"
   add_foreign_key "movimientos_inventarios", "users"
   add_foreign_key "municipios", "provincias"
-  add_foreign_key "notas", "clientes"
-  add_foreign_key "notas", "tipo_facturas"
-  add_foreign_key "notas", "users"
   add_foreign_key "permisos_acciones", "acciones"
   add_foreign_key "permisos_acciones", "permisos"
   add_foreign_key "producciones", "users"

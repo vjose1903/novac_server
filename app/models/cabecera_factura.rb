@@ -432,13 +432,13 @@ class CabeceraFactura < ApplicationRecord
 
   # ====================================================================================================
 
-  def verificateCanUpdateViaje(factura)
+  def verificateCanUpdateViaje()
     res                = Response.new
-    res_pagos          = factura.verificateFacturaHasPagos
+    res_pagos          = self.verificateFacturaHasPagos
     ha_recibido_pagos  = res_pagos.get_data
 
     res.set_data({is_viaje: self.is_viaje, can_update: !ha_recibido_pagos})
-    return
+    return res
   end
 
     # ====================================================================================================
@@ -621,8 +621,6 @@ class CabeceraFactura < ApplicationRecord
     factura.balance     = factura.balance - (nota["total_factura"].to_d).abs
     factura.estado      = false if factura.balance < 1
     factura.tiene_nota  = true
-		puts "aquiiiiii".yellow
-		puts "factura ".red + "#{factura.to_json}"
 
     unless factura.save!
       res.add_msgs(factura.errors.to_a)
