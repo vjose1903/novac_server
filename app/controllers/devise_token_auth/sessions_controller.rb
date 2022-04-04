@@ -11,37 +11,20 @@ module DeviseTokenAuth
     end
 
     def create
-
+			@res = Response.new
       user = User.find_by_usuario(params[:usuario])
 
-      # if user["role"] === "V"
-
-      #   return render_error(423, "Usuario es un vendedor no tiene acceso al sistema.")
-      # end
-
-      # if user["estado"] === false
-
-      #   return render_error(423, "Usuario desactivado, favor de comunicarse con el administrador del sistema.")
-      # end
-
-
       unless user.nil?
-        params[:email] = user.email
+        @resource = user
       else
-        # return render json: { msg: "Usuario ingresado no existe" }, status: 401
-        return render_error(401, "Usuario ingresado no existe")
+        return render_create_error_bad_credentials
       end
 
       field = (params.keys.map(&:to_sym) & resource_class.authentication_keys).first
 
-      @resource = nil
       if field
         q_value = get_case_insensitive_field_from_resource_params(field)
-
-        @resource = find_resource(field, q_value)
       end
-
-
 
       if !@resource.nil? and @resource[:estado] == "I"
         return render json: { msg: "Usuario desactivado, favor de comunicarse con el administrador del sistema." }, status: 401
@@ -51,26 +34,19 @@ module DeviseTokenAuth
         valid_password = @resource.valid_password?(resource_params[:password])
         if (@resource.respond_to?(:valid_for_authentication?) && !@resource.valid_for_authentication? { valid_password }) || !valid_password
           return render_create_error_bad_credentials
-          # return render json: {msg: "Los datos no son correctos P" }, status: 401
         end
-        # @client_id,
+
         @token = @resource.create_token
         @resource.save
 
         sign_in(:user, @resource, store: false, bypass: false)
-        # sign_in(@resource)
         yield @resource if block_given?
 
         render_create_success
       elsif @resource && !(!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
-        # if @resource.respond_to?(:locked_at) && @resource.locked_at
-        #   render_create_error_account_locked
-        # else
-        #   render_create_error_not_confirmed
-        # end
+        # aqui no se que va
       else
         render_create_error_bad_credentials
-        # return render json: {msg: "Los datos no son correctos P" }, status: 401
       end
     end
 
@@ -124,25 +100,21 @@ module DeviseTokenAuth
     end
 
     def render_create_success
-      datos = {
-        success: true,
-        data: resource_data(resource_json: @resource.token_validation_response),
-      }
+			data = resource_data(resource_json: @resource.token_validation_response)
+      user = User.find_by_id(data["id"])
+      @res.set_data(user, {documentos_de_identidad:true, all:true})
 
-      render json: datos
+      @res.send_response self
     end
 
     def render_create_error_not_confirmed
       render_error(401, I18n.t("devise_token_auth.sessions.not_confirmed", email: @resource.email))
     end
 
-    def render_create_error_account_locked
-    end
-
     def render_create_error_bad_credentials
-      # render_error(401, I18n.t('devise_token_auth.sessions.bad_credentials'))
-      return render_error(401, "Contraseña incorrecta")
-      # return render json: { msg: "Contraseña incorrecta" }, status: 401
+      @res.set_status(HTTP_STATUS_CODE[:unauthorized])
+      @res.add_msg("Los datos proporcionados no son correctos.")
+      @res.send_response self
     end
 
     def render_destroy_success

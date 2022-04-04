@@ -263,7 +263,6 @@ ActiveRecord::Schema.define(version: 2022_03_26_153531) do
     t.string "origen_type"
     t.bigint "origen_id"
     t.index ["cliente_id"], name: "index_documentos_de_identidad_on_cliente_id"
-    t.index ["documento", "origen_type"], name: "index_documentos_de_identidad_on_documento_and_origen_type", unique: true, where: "(documento IS NOT NULL)"
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
