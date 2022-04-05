@@ -11,6 +11,12 @@ class OtrosCostosController < ApplicationController
     return Response.new(params, nil, @articulo, nil, nil).send_response self
   end
 
+	def getOtrosCostosFiltrados
+    arg = params["arg"]
+    resultado = OtroCosto.filtrarOtroCosto(arg, {all: true})
+    resultado.send_response self
+  end
+
 	def crear_otro_costo
 		parametros       = params
 		parametros["id"] = params["id"] if params["id"]

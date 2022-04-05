@@ -179,7 +179,7 @@ class Articulo < ApplicationRecord
       # res.set_data(articulos)
     else
 			cantidad_registros = Articulo.all.count
-      res.add_msg("No existen articulos con las especificaciones introducidas") if cantidad_registros > 0
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen articulos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

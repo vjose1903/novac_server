@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :otros_costos
   resources :detalles_facturas_notas
 
   resources :costos_fletes_historiales
@@ -25,6 +24,12 @@ Rails.application.routes.draw do
   resources :secuencia_facturas
   resources :permisos
   resources :acciones
+
+  resources :otros_costos do
+    collection do
+      get "filtro/:arg"        => "otros_costos#getOtrosCostosFiltrados"
+    end
+  end
 
 
   resources :roles do

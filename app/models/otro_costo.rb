@@ -1,5 +1,7 @@
 class OtroCosto < ApplicationRecord
 
+	validates :descripcion,              presence: { :message => "Descripcion del otro costo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Otro costo ya esta registrado." }, :if => :estado
+
 	def self.crear_actualizar_otro_costo(params, anterior_otro_costo, is_save=false)
     res = Response.new
 
@@ -14,6 +16,7 @@ class OtroCosto < ApplicationRecord
 
 			otro_costo.descripcion   = params["descripcion"]
 			otro_costo.costo         = params["costo"]
+			otro_costo.estado        = params["estado"]
 
 			otro_costo.valid?
 
@@ -35,6 +38,27 @@ class OtroCosto < ApplicationRecord
 				res.set_status(HTTP_STATUS_CODE[:conflict])
 			end
 		end
+    return res
+  end
+
+	# =========================================================================================================================================================
+
+	def self.filtrarOtroCosto(arg, params)
+    res = Response.new(params)
+
+    otros_costos = OtroCosto
+    .where("lower(otros_costos.descripcion || ' ' || otros_costos.costo) like lower('%#{arg}%')  AND otros_costos.estado = true")
+    .order("otros_costos.id ASC").to_a
+
+    if otros_costos.length > 0
+      res.set_data(otros_costos, {all: true})
+    else
+      res.set_data([])
+			cantidad_registros = OtroCosto.all.count
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen otros costos con las especificaciones introducidas.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
     return res
   end
 
