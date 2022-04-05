@@ -32,6 +32,7 @@ es:
     cabecera_factura: "Factura"
     role: "Rol"
     nota: "Nota"
+    otro_costo: "Otro costo"
 
   errors:
     format: "%{message}"

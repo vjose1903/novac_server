@@ -21,7 +21,7 @@ class OtrosCostosController < ApplicationController
 		parametros       = params
 		parametros["id"] = params["id"] if params["id"]
 
-    resultado        = OtroCosto.crear_actualizar_otro_costo(parametros, @otros_costos, true)
+    resultado        = OtroCosto.crear_actualizar_otro_costo(parametros, @otro_costo)
 		resultado.send_response self
 	end
 
@@ -37,18 +37,24 @@ class OtrosCostosController < ApplicationController
   end
 
   # DELETE /otros_costos/1
-  def destroy
-    @otro_costo.destroy
+	def destroy
+    resultado = borrar_entidad(@otro_costo)
+    resultado.send_response self
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
-    def set_otro_costo
-      @otro_costo = OtroCosto.find(params[:id])
-    end
 
-    # Only allow a list of trusted parameters through.
-    def otro_costo_params
-      params.require(:otro_costo).permit(:descripcion, :costo)
-    end
+		def set_otro_costo
+			puts " "
+			puts "============= ANDO AQUIII =============".yellow
+			puts " "
+			respuesta = set_entidad(OtroCosto, params)
+			@otro_costo = respuesta.get_data
+
+			puts " "
+			puts "============= ANDO AQUIII =============".green
+			puts " "
+			return respuesta.send_response self if @otro_costo.nil?
+		end
 end

@@ -355,7 +355,7 @@ class CabeceraFactura < ApplicationRecord
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true})
     else
-			cantidad_registros = CabeceraFactura.all.count
+			cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen facturas con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

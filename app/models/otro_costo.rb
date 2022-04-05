@@ -2,11 +2,14 @@ class OtroCosto < ApplicationRecord
 
 	validates :descripcion,              presence: { :message => "Descripcion del otro costo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Otro costo ya esta registrado." }, :if => :estado
 
-	def self.crear_actualizar_otro_costo(params, anterior_otro_costo, is_save=false)
+	def self.crear_actualizar_otro_costo(params, anterior_otro_costo)
     res = Response.new
 
 		OtroCosto.transaction do
 			ant_otro_costo           =  anterior_otro_costo.nil? ? nil : anterior_otro_costo
+			puts "  "
+			puts "ant_otro_costo ".magenta + "#{ant_otro_costo.to_json}"
+			puts "  "
 
 			unless params["id"]
 				otro_costo             = OtroCosto.new
@@ -20,9 +23,12 @@ class OtroCosto < ApplicationRecord
 
 			otro_costo.valid?
 
-			if otro_costo.errors.empty? && (!is_save || (is_save && otro_costo.save!))
+			if otro_costo.errors.empty? && otro_costo.save!
 
 				ant_otro_costo         = otro_costo if ant_otro_costo.nil?
+				puts "  "
+				puts "ant_otro_costo ".green + "#{ant_otro_costo.to_json}"
+				puts "  "
 
 				res_proceso            = OtroCostoHistorial.add_historico(ant_otro_costo)
 
@@ -54,7 +60,7 @@ class OtroCosto < ApplicationRecord
       res.set_data(otros_costos, {all: true})
     else
       res.set_data([])
-			cantidad_registros = OtroCosto.all.count
+			cantidad_registros = OtroCosto.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen otros costos con las especificaciones introducidas.")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

@@ -19,7 +19,7 @@ class Vehiculo < ApplicationRecord
     if vehiculos.length > 0
       res.set_data(vehiculos, {all: true})
     else
-			cantidad_registros = Vehiculo.all.count
+			cantidad_registros = Vehiculo.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen vehiculos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

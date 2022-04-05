@@ -93,7 +93,7 @@ class Cliente < ApplicationRecord
       res.set_data(clientes, {all: true})
     else
       res.set_data([])
-			cantidad_registros = Cliente.all.count
+			cantidad_registros = Cliente.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existe cliente con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
