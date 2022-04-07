@@ -1,15 +1,15 @@
 class OtroCosto < ApplicationRecord
 
-	validates :descripcion,              presence: { :message => "Descripcion del otro costo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Otro costo ya esta registrado." }, :if => :estado
+	validates :descripcion,              presence: { :message => "Descripcion del otro costo no puede estar vacio." },   uniqueness: { scope: :estado, case_sensitive: false, :message => "Otro costo ya esta registrado." }, :if => :estado
+	validates :key,                      presence: { :message => "La clave del otro costo no puede estar vacio." }
+	validates :costo,                    presence: { :message => "El costo del otro costo no puede estar vacio." },      numericality: { greater_than: 0, :message => "El costo del otro costo debe de ser mayor a 0." }
+	validates :precio,                   presence: { :message => "El precio del otro costo no puede estar vacio." },     numericality: { greater_than: 0, :message => "El precio del otro costo debe de ser mayor a 0." }
 
 	def self.crear_actualizar_otro_costo(params, anterior_otro_costo)
     res = Response.new
 
 		OtroCosto.transaction do
 			ant_otro_costo           =  anterior_otro_costo.nil? ? nil : anterior_otro_costo
-			puts "  "
-			puts "ant_otro_costo ".magenta + "#{ant_otro_costo.to_json}"
-			puts "  "
 
 			unless params["id"]
 				otro_costo             = OtroCosto.new
@@ -18,6 +18,7 @@ class OtroCosto < ApplicationRecord
 			end
 
 			otro_costo.descripcion   = params["descripcion"]
+			otro_costo.key           = params["key"]
 			otro_costo.costo         = params["costo"]
 			otro_costo.estado        = params["estado"]
 
@@ -26,9 +27,6 @@ class OtroCosto < ApplicationRecord
 			if otro_costo.errors.empty? && otro_costo.save!
 
 				ant_otro_costo         = otro_costo if ant_otro_costo.nil?
-				puts "  "
-				puts "ant_otro_costo ".green + "#{ant_otro_costo.to_json}"
-				puts "  "
 
 				res_proceso            = OtroCostoHistorial.add_historico(ant_otro_costo)
 

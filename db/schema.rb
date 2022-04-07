@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_05_002952) do
+ActiveRecord::Schema.define(version: 2022_03_25_004859) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -425,10 +425,12 @@ ActiveRecord::Schema.define(version: 2022_04_05_002952) do
 
   create_table "otros_costos", force: :cascade do |t|
     t.string "descripcion"
+    t.string "key"
     t.float "costo"
+    t.float "precio"
+    t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.boolean "estado"
   end
 
   create_table "otros_costos_articulos", force: :cascade do |t|
@@ -441,11 +443,14 @@ ActiveRecord::Schema.define(version: 2022_04_05_002952) do
   end
 
   create_table "otros_costos_historiales", force: :cascade do |t|
+    t.bigint "otro_costo_id", null: false
     t.string "descripcion"
+    t.string "key"
     t.float "costo"
+    t.float "precio"
+    t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.bigint "otro_costo_id", null: false
     t.index ["otro_costo_id"], name: "index_otros_costos_historiales_on_otro_costo_id"
   end
 
