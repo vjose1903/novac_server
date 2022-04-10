@@ -233,8 +233,9 @@ G_ROLES = [
 	{descripcion:"Chofer"},
 ]
 
-G_OTROS_COSTOS=[
-	{descripcion:"Saco 100 libras", key: "saco_100", costo:9, precio:20 },
-	{descripcion:"Saco 75 libras",  key: "saco_75",  costo:9, precio:20 },
-	{descripcion:"Saco 25 libras",  key: "saco_25",  costo:9, precio:20 },
-]
+
+# G_OTROS_COSTOS=[
+# 	{descripcion:"Saco 100 libras", key: "saco_100", costo:9, precio:20 },
+# 	{descripcion:"Saco 75 libras",  key: "saco_75",  costo:9, precio:20 },
+# 	{descripcion:"Saco 25 libras",  key: "saco_25",  costo:9, precio:20 },
+# ]

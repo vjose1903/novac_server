@@ -106,24 +106,12 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def notas
-    notas_parseo = []
-
+    notas = []
     if object.tiene_nota
-      notas = CabeceraFactura.where({ aplicada_a: object.numero_comprobante })
-			if notas.length > 0
-        notas_parseo  = notas.map do | detalle_nota |
-					keys_to_pick                      = ['tipo_factura_id', 'detalle_facturas', 'id', 'total_factura', 'aplicada_a','estado', 'numero_comprobante', 'user_id']
-
-          detalle_nota_json_temp                      = detalle_nota.as_json
-					detalle_nota_json_temp['detalle_facturas']  = detalle_nota.detalle_facturas
-
-          detalle_nota_json = detalle_nota_json_temp.as_json.select { |key, value| keys_to_pick.my_includes_str(key) }
-					detalle_nota = detalle_nota_json
-          detalle_nota
-        end
-      end
+			notas = object.facturas_aplicadas.joins("inner join notas on facturas_aplicadas.nota_id = notas.id").where("notas.estado = true")
+			notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true})
     end
-    notas_parseo
+    notas
   end
 
   def pagos

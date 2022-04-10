@@ -120,10 +120,14 @@ rails g migration AddIndexToDocumentosIdentidad
 
 , where: 'name IS NOT NULL'
 
+// ===========================================================================================
+// IDEA PARA OTROS COSTOS
+// ===========================================================================================
 rails g scaffold otro_costo descripcion:string costo:float
 rails g model otro_costo_articulo articulo:references otro_costo:references
 rails g model otro_costo_historial descripcion:string costo:float
 rails g model otro_costo_mantenimiento_articulo otro_costo_historial:references mantenimiento_articulo_id:references
+
 rails g migration AddCamposToOtrosCostosHistorial
 rails g migration AddCamposToOtrosCostos
 rails g migration AddMasCamposToOtrosCostos

@@ -4,9 +4,7 @@ class MantenimientoArticulo < ApplicationRecord
 
   attribute :user
 
-	has_many :otros_costos_mantenimientos_articulos,        dependent: :destroy
-
-  def self.add_historico(parametros, contenidos, formulas, otros_costos)
+  def self.add_historico(parametros, contenidos, formulas)
 		res = Response.new
     MantenimientoArticulo.transaction do
 
@@ -53,7 +51,6 @@ class MantenimientoArticulo < ApplicationRecord
 
       if historico.save!
 				res_proceso = MantenimientoFormula.add_historico(formulas, secuencia)
-				res_proceso = OtroCostoMantenimientoArticulo.add_historico(historico, otros_costos) if res_proceso.status_valid
 
 				unless res_proceso.status_valid
 					res.add_msgs(res_proceso.get_msgs)

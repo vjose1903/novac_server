@@ -25,13 +25,6 @@ Rails.application.routes.draw do
   resources :permisos
   resources :acciones
 
-  resources :otros_costos do
-    collection do
-      get "filtro/:arg"        => "otros_costos#getOtrosCostosFiltrados"
-    end
-  end
-
-
   resources :roles do
     collection do
       get "filtro/:arg"        => "roles#getRolesFiltrados"

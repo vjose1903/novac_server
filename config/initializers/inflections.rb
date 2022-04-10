@@ -36,9 +36,10 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "nota",                                   "notas"
   inflect.irregular "factura_aplicada",                       "facturas_aplicadas"
   inflect.irregular "detalle_factura_nota",                   "detalles_facturas_notas"
-  inflect.irregular "otro_costo",                             "otros_costos"
-  inflect.irregular "otro_costo_articulo",                    "otros_costos_articulos"
-  inflect.irregular "otro_costo_historial",                   "otros_costos_historiales"
-  inflect.irregular "otro_costo_mantenimiento_articulo",      "otros_costos_mantenimientos_articulos"
+
+  # inflect.irregular "otro_costo",                             "otros_costos"
+  # inflect.irregular "otro_costo_articulo",                    "otros_costos_articulos"
+  # inflect.irregular "otro_costo_historial",                   "otros_costos_historiales"
+  # inflect.irregular "otro_costo_mantenimiento_articulo",      "otros_costos_mantenimientos_articulos"
 
 end

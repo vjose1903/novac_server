@@ -4,6 +4,7 @@ class FacturaAplicada < ApplicationRecord
 
 	has_many :detalles_facturas_notas, dependent: :destroy
 
+
 	def self.crear_factura_aplicada(params, padre, is_save=false)
     res = Response.new
 

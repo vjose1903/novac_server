@@ -4,7 +4,6 @@ class Articulo < ApplicationRecord
 
   has_many :contenido_articulos,           dependent: :destroy
   has_many :formulas_productos_terminados, dependent: :destroy
-  has_many :otros_costos_articulos,        dependent: :destroy
 
   attribute :contenido_articulos
   attribute :formulas_productos_terminados
