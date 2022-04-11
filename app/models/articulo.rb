@@ -30,7 +30,6 @@ class Articulo < ApplicationRecord
       ant_articulo                              =  articulo_antiguo.nil? ? nil : articulo_antiguo
       ant_articulo_contenido                    =  articulo_antiguo.nil? ? nil : articulo_antiguo.contenido_articulos
       ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
-      ant_articulo_otro_costo                   =  articulo_antiguo.nil? ? nil : articulo_antiguo.otros_costos_articulos
 
 
       unless params["id"]
@@ -64,16 +63,12 @@ class Articulo < ApplicationRecord
       dependencias = [
         {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
         {modelo: FormulasProductosTerminado, key_object: "formulas_productos_terminados", padre: articulo},
-        {modelo: OtroCostoArticulo,          key_object: "otros_costos_articulos",        padre: articulo},
       ]
 
       res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
         articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
-        articulo.otros_costos_articulos          = dependencia_data if key_object == 'otros_costos_articulos'
       }
-
-
 
       res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid?&& articulo.save!
 
@@ -84,10 +79,9 @@ class Articulo < ApplicationRecord
           ant_articulo                = articulo
           ant_articulo_contenido      = ant_articulo.contenido_articulos
           ant_articulo_formula        = ant_articulo.formulas_productos_terminados
-          ant_articulo_otro_costo     = ant_articulo.otros_costos_articulos
         end
 
-        res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula, ant_articulo_otro_costo)
+        res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
 
         if res_historico.status_valid
 
