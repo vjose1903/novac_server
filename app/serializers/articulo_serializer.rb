@@ -46,16 +46,16 @@ class ArticuloSerializer < ActiveModel::Serializer
       @contenido = object.contenido_articulos
     else
       articulo = historicos.find  { |item| item["id"] == object.id }
-      @contenido = articulo["contenido_articulos"] || articulo.contenido_articulos 
+      @contenido = articulo["contenido_articulos"] || articulo.contenido_articulos
     end
-    
+
     serialize_parser(@contenido, {all: true})
   end
-  
+
   def formulas_productos_terminados
     serialize_parser(object.formulas_productos_terminados, {all: true})
   end
-  
+
   def descripcion
     object.tipo_articulo.descripcion
   end
@@ -75,12 +75,12 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def calcularContenidos(articulo, sacos)
 
-    
+
     contenidos = {}
 
     if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
       [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c 
+        contenidos["Saco_#{c}"] = c
       end
     end
 
@@ -111,7 +111,7 @@ class ArticuloSerializer < ActiveModel::Serializer
     existencia = articulo["existencia"].nil? ? 0 : articulo["existencia"]
 
     cantidades = {}
-    
+
     cantidades[articulo["medida"]] = @contenido.length == 0 ? existencia : (existencia / @contenido.first["cantidad"])
     cantidades[@contenido.first["medida"]] = existencia if @contenido.length > 0
 
@@ -132,11 +132,11 @@ class ArticuloSerializer < ActiveModel::Serializer
 
     return cantidades
   end
-  
+
   def costos
 
     obj = {}
-    
+
     obj["#{object.medida}"]            = {}
     obj["#{object.medida}"]["costo"]   = object.costo_principal
     obj["#{object.medida}"]["precio"]  = object.precio_principal

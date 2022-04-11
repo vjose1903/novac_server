@@ -13,11 +13,11 @@ class RecibosIngreso < ApplicationRecord
 
   # =========================================================================================================================================================
   def self.create_update_recibo(params, is_save=false)
+		res                            = Response.new
     RecibosIngreso.transaction do
-      res = Response.new
 
       unless params["id"]
-        recibo                     = RecibosIngreso.new()
+        recibo                     = RecibosIngreso.new
       else
         recibo                     = RecibosIngreso.find_by_id(params["id"])
       end
@@ -85,10 +85,10 @@ class RecibosIngreso < ApplicationRecord
         end
       end
 
-      return res
-      raise ActiveRecord::Rollback unless recibo.errors.empty?
-
+      raise ActiveRecord::Rollback unless res.status_valid
     end
+
+		return res
   end
 
   # =========================================================================================================================================================
@@ -106,8 +106,8 @@ class RecibosIngreso < ApplicationRecord
     if recibos.length > 0
       res.set_data(recibos, {all: true})
     else
-			cantidad_registros = RecibosIngreso.all.count
-      res.add_msg("No existen recibos con las especificaciones introducidas") if cantidad_registros > 0
+			cantidad_registros = RecibosIngreso.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen recibos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -154,8 +154,8 @@ class RecibosIngreso < ApplicationRecord
   # ===================================================================================================================================================
 
   def self.revertirRecibo(params)
+		res                   = Response.new
     RecibosIngreso.transaction do
-      res = Response.new
 
       res_valid           = RecibosIngreso.puedeAnular(params)
       if res_valid.status_valid
@@ -174,10 +174,12 @@ class RecibosIngreso < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res
+			raise ActiveRecord::Rollback unless res.status_valid
     end
+
+		return res
   end
-  # 12111.0
+
 
 
   # ===================================================================================================================================================

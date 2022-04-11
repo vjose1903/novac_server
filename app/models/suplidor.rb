@@ -16,13 +16,13 @@ class Suplidor < ApplicationRecord
   end
 
   def self.create_update_suplidor(params , is_save=false)
+		res                          = Response.new
     Suplidor.transaction do
-      res = Response.new
 
       unless params["id"]
-        suplidor = Suplidor.new()
+        suplidor                 = Suplidor.new
       else
-        suplidor = Suplidor.find_by_id(params["id"])
+        suplidor                 = Suplidor.find_by_id(params["id"])
       end
 
       suplidor.nombre            = params["nombre"]
@@ -75,8 +75,8 @@ class Suplidor < ApplicationRecord
       res.set_data(suplidores, {all: true})
     else
       res.set_data([])
-			cantidad_registros = Suplidor.all.count
-      res.add_msg("No existe suplidor con las especificaciones introducidas") if cantidad_registros > 0
+			cantidad_registros = Suplidor.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existe suplidor con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

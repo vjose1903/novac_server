@@ -14,7 +14,7 @@ class HistoricoProduccionsController < ApplicationController
 
   # POST /historico_produccions
   def create
-    ActiveRecord::Base.transaction do
+    HistoricoProduccion.transaction do
       @historico_produccion = HistoricoProduccion.new(historico_produccion_params)
 
       # obj = { msg: "pruebas", body: @historico_produccion }
@@ -47,7 +47,7 @@ class HistoricoProduccionsController < ApplicationController
 
   # PATCH/PUT /historico_produccions/1
   def update
-    ActiveRecord::Base.transaction do
+    HistoricoProduccion.transaction do
       if @historico_produccion.update(historico_produccion_params)
         render json: @historico_produccion
       else

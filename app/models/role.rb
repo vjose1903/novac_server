@@ -69,8 +69,8 @@ class Role < ApplicationRecord
       res.set_data(roles, {permisos_acciones: true})
     else
       res.set_data([])
-			cantidad_registros = Role.all.count
-      res.add_msg("No existen roles con las especificaciones introducidas") if cantidad_registros > 0
+			cantidad_registros = Role.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen roles con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

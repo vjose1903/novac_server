@@ -149,6 +149,7 @@ def set_entidad(modelo, params, key="id")
 end
 
 # ---------------------------------------------------------------------------------------------------------
+
 def traducir(key, others=nil)
 	others_tem = {}
 	unless others.nil?

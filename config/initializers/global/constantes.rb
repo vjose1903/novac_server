@@ -1,12 +1,12 @@
 
-PROJECT_PATH     = File.join Rails.root, '/'
-PUBLIC_PATH      = File.join Rails.root, 'public'
-ENCRIPT_SECRET   = '1234567890ABCDEF'
+PROJECT_PATH     = File.join Rails.root, "/"
+PUBLIC_PATH      = File.join Rails.root, "public"
+ENCRIPT_SECRET   = "1234567890ABCDEF"
 HTTP_STATUS_CODE = Rack::Utils::SYMBOL_TO_STATUS_CODE
 
 
 
-DIAS             = ['Lunes', 'Martes', 'Miercoles', 'Jueves',  'Viernes', 'Sabado', 'Domingo']
+DIAS             = ["Lunes", "Martes", "Miercoles", "Jueves",  "Viernes", "Sabado", "Domingo"]
 
 
 module Identificador
@@ -38,10 +38,10 @@ module Identificador
 end
 
 module TipoArticulos
-	VETERINARIA         = '1'
-	MATERIA_PRIMA       = '2'
-	PRODUCTO_TERMINADO  = '3'
-	OTRO                = '4'
+	VETERINARIA         = "1"
+	MATERIA_PRIMA       = "2"
+	PRODUCTO_TERMINADO  = "3"
+	OTRO                = "4"
 
 	def self.veterinaria
 		return VETERINARIA
@@ -62,8 +62,8 @@ module TipoArticulos
 end
 
 module Documentos
-	CEDULA = 'cedula'
-	RNC = 'rnc'
+	CEDULA = "cedula"
+	RNC = "rnc"
 
 	def self.cedula
 		return CEDULA
@@ -74,6 +74,7 @@ module Documentos
 	end
 
 end
+
 DOCUMENTOS_DE_IDENTIDAD_VALIDOS = [Documentos.cedula, Documentos.rnc]
 
 module FacturasParams
@@ -111,12 +112,42 @@ module FacturasParams
     return LAST_50
   end
 
+end
 
 
+module TiposNotas
 
+	CREDITO = "nota_credito"
+	DEBITO  = "nota_debito"
+
+	def self.credito
+		return CREDITO
+	end
+
+	def self.debito
+		return DEBITO
+	end
+
+	def self.get_tipo(tipo)
+		return tipo == TiposNotasId.credito ? self.credito : self.debito
+	end
 
 end
 
+
+module TiposNotasId
+
+	CREDITO = 5
+	DEBITO  = 4
+
+	def self.credito
+		return CREDITO
+	end
+
+	def self.debito
+		return DEBITO
+	end
+end
 
 
 
@@ -155,47 +186,56 @@ PROVINCIAS_MUNICIPIOS=[
 ]
 
 ACCIONES_COMUNES = [
-	{nombre:'crear',       descripcion: 'create',    metodo: 'create'},
-	{nombre:'ver todos',   descripcion: 'read_all',  metodo: 'index'},
-	{nombre:'buscar uno',  descripcion: 'read_one',  metodo: 'show'},
-	{nombre:'editar',      descripcion: 'update',    metodo: 'update'},
+	{nombre:"crear",       descripcion: "create",    metodo: "create"},
+	{nombre:"ver todos",   descripcion: "read_all",  metodo: "index"},
+	{nombre:"buscar uno",  descripcion: "read_one",  metodo: "show"},
+	{nombre:"editar",      descripcion: "update",    metodo: "update"},
 ]
 
-ACCION_DESTROY = [{ nombre:'eliminar', descripcion: 'destroy', metodo: 'destroy'}]
-
+ACCION_DESTROY = [{ nombre:"eliminar", descripcion: "destroy", metodo: "destroy"}]
 
 
 G_PERMISOS = [
-	{ nombre:'articulos',                     descripcion: 'articulo',                controlador: 'Articulos',               acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'ver inventario', descripcion: 'get_stock', metodo: 'getStock'}, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getArticulosFiltrados'}, {nombre:'verificar si excede', descripcion: 'check_excede', metodo: 'checkIfExcede'}, {nombre:'ver formulas', descripcion: 'read_formula', metodo: nil}, {nombre:'editar formular', descripcion: 'update_formula', metodo: nil} ]},
-	{ nombre:'conduces',                      descripcion: 'conduce',                 controlador: 'CabeceraConduces',        acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'facturas',                      descripcion: 'factura',                 controlador: 'CabeceraFacturas',        acciones: [*ACCIONES_COMUNES, {nombre:'buscar facturas por parametros', descripcion: 'get_facturas_by_params', metodo: 'getFacturasByParams'}, {nombre:'buscar notas', descripcion: 'get_notas', metodo: 'getNotas'}, {nombre:'comprobar serial', descripcion: 'comprobar_serial', metodo: 'comprobarSerial'}, {nombre:'buscar cantidad devuelto', descripcion: 'get_cantidad_devuelto', metodo: 'getCantidadDevuelto'}, {nombre:'verificar si puede editar', descripcion: 'verificate_can_update_id', metodo: 'verificateCanUpdateById'}, {nombre:'buscar viajes sin completar', descripcion: 'get_viajes_sin_completar', metodo: 'getViajesSinCompletar'}, {nombre:'buscar facturas por cliente y estado', descripcion: 'get_facturas_by_cliente_estado', metodo: 'getFacturasByClienteIdAndEstado'}, {nombre:'cancelar factura', descripcion: 'cancelar_factura', metodo: 'cancelarFactura'}]},
-	{ nombre:'clientes',                      descripcion: 'cliente',                 controlador: 'Clientes',                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getClientesFiltrados'} ]},
-	{ nombre:'costos fletes',                 descripcion: 'costo_flete',             controlador: 'CostoFletes',             acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'detalles factura',              descripcion: 'detalle_factura',         controlador: 'DetalleFacturas',         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'historicos producciones',       descripcion: 'historico_produccion',    controlador: 'HistoricoProduccions',    acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'imagenes',                      descripcion: 'imagen',                  controlador: 'Imagenes',                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'cuadres caja',                  descripcion: 'cuadre_caja',             controlador: 'CuadreCajas',             acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'verificar cuadre del dia', descripcion: 'check_today_cuadre', metodo: 'checkTodayCuadre'} ]},
-	{ nombre:'mantenimientos articulos',      descripcion: 'mantenimiento_articulo',  controlador: 'MantenimientoArticulos',  acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar articulo por fecha', descripcion: 'get_one_articulo_date', metodo: 'getOneArticuloByDate'} ]},
-	{ nombre:'marcas',                        descripcion: 'marca',                   controlador: 'Marcas',                  acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getMarcasFiltradas'} ]},
-	{ nombre:'modelos',                       descripcion: 'modelo',                  controlador: 'Modelos',                 acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'ver modelos por marca', descripcion: 'get_modelos_by_marca', metodo: 'getModelosPorMarca'}, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getModelosFiltrados'} ]},
-	{ nombre:'movimientos de inventarios',    descripcion: 'movimiento_inventario',   controlador: 'MovimientosInventarios',  acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'municipios',                    descripcion: 'municipio',               controlador: 'Municipios',              acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY]},
-	{ nombre:'producciones',                  descripcion: 'produccion',              controlador: 'Producciones',            acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getProduccionesFiltradas'} ]},
-	{ nombre:'provincias',                    descripcion: 'provincia',               controlador: 'Provincias',              acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'recibos ingreso',               descripcion: 'recibo_ingreso',          controlador: 'RecibosIngresos',         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getRecibosFiltrados'}, {nombre:'revertir recibo', descripcion: 'revertir_recibo', metodo: 'revertirRecibos'} ]},
-	{ nombre:'reportes',                      descripcion: 'reporte',                 controlador: 'Reportes',                acciones: [{nombre:'ver reportes', descripcion: 'get_reportes', metodo: 'getReportes'} ]},
-	{ nombre:'comprobantes fiscales',         descripcion: 'secuencia_comprobante',   controlador: 'SecuenciaComprobantes',   acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getSecuenciaComprobantesFiltrados'}, {nombre:'buscar comprobanrte por estado', descripcion: 'get_paquete_rnc_estado', metodo: 'getPaqueteRncByEstado'} ]},
-	{ nombre:'suplidores',                    descripcion: 'suplidor',                controlador: 'Suplidores',              acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar nombres de suplidores', descripcion: 'get_nombres_suplidores', metodo: 'getNombresSuplidores'}, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getSuplidoresFiltrados'} ]},
-	{ nombre:'tipos articulos',               descripcion: 'tipo_articulo',           controlador: 'TipoArticulos',           acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'tipos facturas',                descripcion: 'tipo_factura',            controlador: 'TipoFacturas',            acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'tipos recibos',                 descripcion: 'tipo_recibo',             controlador: 'TipoRecibos',             acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:'empleados',                     descripcion: 'user',                    controlador: 'Users',                   acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getUsuariosFiltrados'} ]},
-	{ nombre:'vehiculos',                     descripcion: 'vehiculo',                controlador: 'Vehiculos',               acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados', descripcion: 'get_filtrados', metodo: 'getVehiculosFiltrados'}  ]}
+	{ nombre:"articulos",                     mostrar_front: true,     descripcion: "articulo",                controlador: "Articulos",                      acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"ver inventario", descripcion: "get_stock", metodo: "getStock"}, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getArticulosFiltrados"}, {nombre:"verificar si excede", descripcion: "check_excede",metodo: "checkIfExcede"}, {nombre:"ver formulas", descripcion: "read_formula",metodo: nil}, {nombre:"editar formular",descripcion: "update_formula", metodo: nil} ]},
+	{ nombre:"conduces",                      mostrar_front: true,     descripcion: "conduce",                 controlador: "CabeceraConduces",               acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"facturas",                      mostrar_front: true,     descripcion: "factura",                 controlador: "CabeceraFacturas",               acciones: [*ACCIONES_COMUNES, {nombre:"buscar facturas por parametros", descripcion: "get_facturas_by_params", metodo: "getFacturasByParams"}, {nombre:"comprobar serial", descripcion: "comprobar_serial", metodo: "comprobarSerial"}, {nombre:"verificar si puede editar", descripcion: "verificate_can_update_id", metodo: "verificateCanUpdateById"}, {nombre:"buscar viajes sin completar", descripcion: "get_viajes_sin_completar", metodo: "getViajesSinCompletar"}, {nombre:"buscar facturas por cliente y estado", descripcion: "get_facturas_by_cliente_estado", metodo: "getFacturasByClienteIdAndEstado"}, {nombre:"cancelar factura", descripcion: "cancelar_factura", metodo: "cancelarFactura"}]},
+	{ nombre:"notas",                         mostrar_front: true,     descripcion: "nota",                    controlador: "Nota",                           acciones: [*ACCIONES_COMUNES, {nombre:"cancelar nota", descripcion: "cancelar_nota", metodo: "cancelarNota"}, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getNotasFiltradas"}]},
+	{ nombre:"facturas en notas",             mostrar_front: true,     descripcion: "facturas_aplicadas",      controlador: "FacturaAplicada",                acciones: [{nombre:"buscar cantidad devuelto", descripcion: "get_cantidad_devuelto", metodo: "getCantidadDevuelto"}]},
+	{ nombre:"clientes",                      mostrar_front: true,     descripcion: "cliente",                 controlador: "Clientes",                       acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getClientesFiltrados"} ]},
+	{ nombre:"costos fletes",                 mostrar_front: true,     descripcion: "costo_flete",             controlador: "CostoFletes",                    acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"detalles factura",              mostrar_front: true,     descripcion: "detalle_factura",         controlador: "DetalleFacturas",                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"historicos producciones",       mostrar_front: true,     descripcion: "historico_produccion",    controlador: "HistoricoProduccions",           acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"imagenes",                      mostrar_front: true,     descripcion: "imagen",                  controlador: "Imagenes",                       acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"cuadres caja",                  mostrar_front: true,     descripcion: "cuadre_caja",             controlador: "CuadreCajas",                    acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"verificar cuadre del dia", descripcion: "check_today_cuadre", metodo: "checkTodayCuadre"} ]},
+	{ nombre:"mantenimientos articulos",      mostrar_front: true,     descripcion: "mantenimiento_articulo",  controlador: "MantenimientoArticulos",         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar articulo por fecha", descripcion: "get_one_articulo_date", metodo: "getOneArticuloByDate"} ]},
+	{ nombre:"marcas",                        mostrar_front: true,     descripcion: "marca",                   controlador: "Marcas",                         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getMarcasFiltradas"} ]},
+	{ nombre:"modelos",                       mostrar_front: true,     descripcion: "modelo",                  controlador: "Modelos",                        acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"ver modelos por marca", descripcion: "get_modelos_by_marca", metodo: "getModelosPorMarca"}, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getModelosFiltrados"} ]},
+	{ nombre:"movimientos de inventarios",    mostrar_front: true,     descripcion: "movimiento_inventario",   controlador: "MovimientosInventarios",         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"municipios",                    mostrar_front: true,     descripcion: "municipio",               controlador: "Municipios",                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY]},
+	{ nombre:"producciones",                  mostrar_front: true,     descripcion: "produccion",              controlador: "Producciones",                   acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getProduccionesFiltradas"} ]},
+	{ nombre:"provincias",                    mostrar_front: true,     descripcion: "provincia",               controlador: "Provincias",                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"recibos ingreso",               mostrar_front: true,     descripcion: "recibo_ingreso",          controlador: "RecibosIngresos",                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getRecibosFiltrados"}, {nombre:"revertir recibo", descripcion: "revertir_recibo", metodo: "revertirRecibos"} ]},
+	{ nombre:"reportes",                      mostrar_front: true,     descripcion: "reporte",                 controlador: "Reportes",                       acciones: [{nombre:"ver reportes", descripcion: "get_reportes", metodo: "getReportes"} ]},
+	{ nombre:"comprobantes fiscales",         mostrar_front: true,     descripcion: "secuencia_comprobante",   controlador: "SecuenciaComprobantes",          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getSecuenciaComprobantesFiltrados"}, {nombre:"buscar comprobanrte por estado", descripcion: "get_paquete_rnc_estado", metodo: "getPaqueteRncByEstado"} ]},
+	{ nombre:"suplidores",                    mostrar_front: true,     descripcion: "suplidor",                controlador: "Suplidores",                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar nombres de suplidores", descripcion: "get_nombres_suplidores", metodo: "getNombresSuplidores"}, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getSuplidoresFiltrados"} ]},
+	{ nombre:"tipos articulos",               mostrar_front: true,     descripcion: "tipo_articulo",           controlador: "TipoArticulos",                  acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"tipos facturas",                mostrar_front: true,     descripcion: "tipo_factura",            controlador: "TipoFacturas",                   acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"tipos recibos",                 mostrar_front: true,     descripcion: "tipo_recibo",             controlador: "TipoRecibos",                    acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"empleados",                     mostrar_front: true,     descripcion: "user",                    controlador: "Users",                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getUsuariosFiltrados"} ]},
+	{ nombre:"vehiculos",                     mostrar_front: true,     descripcion: "vehiculo",                controlador: "Vehiculos",                      acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getVehiculosFiltrados"}  ]},
+	{ nombre:"sesion de usuario",             mostrar_front: false,    descripcion: "device",                  controlador: "devise_token_auth/sessions",     acciones: [{nombre:"iniciar sesión", descripcion: "login", metodo: "create"}]}
 ]
 
 G_ROLES = [
-	{descripcion:'Administrador'},
-	{descripcion:'Vendedor'},
-	{descripcion:'Cajero'},
-	{descripcion:'Chofer'},
+	{descripcion:"Administrador"},
+	{descripcion:"Vendedor"},
+	{descripcion:"Cajero"},
+	{descripcion:"Chofer"},
 ]
+
+
+# G_OTROS_COSTOS=[
+# 	{descripcion:"Saco 100 libras", key: "saco_100", costo:9, precio:20 },
+# 	{descripcion:"Saco 75 libras",  key: "saco_75",  costo:9, precio:20 },
+# 	{descripcion:"Saco 25 libras",  key: "saco_25",  costo:9, precio:20 },
+# ]

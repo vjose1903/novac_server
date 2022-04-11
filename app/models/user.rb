@@ -56,13 +56,13 @@ class User < ApplicationRecord
   # =====================================================================================================================
 
   def self.crear_actualizar_user(params , is_save=false)
+		res                           = Response.new
     User.transaction do
-      res = Response.new
 
       unless params["id"]
-        user = User.new()
+        user                      = User.new
       else
-        user = User.find_by_id(params["id"])
+        user                      = User.find_by_id(params["id"])
       end
 
       user.nombre                 = params["nombre"]
@@ -119,8 +119,8 @@ class User < ApplicationRecord
       res.set_data(users, {all: true})
     else
       res.set_data([])
-			cantidad_registros = User.all.count
-      res.add_msg("No existe empleado con las especificaciones introducidas") if cantidad_registros > 0
+			cantidad_registros = User.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existe empleado con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

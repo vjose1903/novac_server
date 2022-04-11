@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :detalles_facturas_notas
+
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios
@@ -80,43 +82,54 @@ Rails.application.routes.draw do
 
   resources :modelos do
     collection do
-      get "por_marca/:marca"   => "modelos#getModelosPorMarca"
-      get "filtro/:arg"        => "modelos#getModelosFiltrados"
+      get "por_marca/:marca"                           => "modelos#getModelosPorMarca"
+      get "filtro/:arg"                                => "modelos#getModelosFiltrados"
     end
   end
 
   resources :articulos do
     collection do
-      get "check_excede/:id"              => "articulos#checkIfExcede" #
-      get "filtro/:arg"                   => "articulos#getArticulosFiltrados" #
-      get "historico/:date/:articulo_id"  => "mantenimiento_articulos#getOneArticuloByDate" #
-      get "custom/stock"                  => "articulos#getStock"
+      get "check_excede/:id"                           => "articulos#checkIfExcede" #
+      get "filtro/:arg"                                => "articulos#getArticulosFiltrados" #
+      get "historico/:date/:articulo_id"               => "mantenimiento_articulos#getOneArticuloByDate" #
+      get "custom/stock"                               => "articulos#getStock"
     end
   end
 
   resources :recibos_ingresos do
     collection do
-      get "filtro/:arg"                   => "recibos_ingresos#getRecibosFiltrados"
-      get "revertir/:tipo/:id"            => "recibos_ingresos#revertirRecibos"
+      get "filtro/:arg"                                => "recibos_ingresos#getRecibosFiltrados"
+      get "revertir/:tipo/:id"                         => "recibos_ingresos#revertirRecibos"
     end
   end
 
   resources :suplidores do
     collection do
-      get "filtro/:arg"                   => "suplidores#getSuplidoresFiltrados"
+      get "filtro/:arg"                                => "suplidores#getSuplidoresFiltrados"
     end
   end
 
   resources :clientes do
     collection do
-      get "filtro/:arg"                   => "clientes#getClientesFiltrados"
+      get "filtro/:arg"                                => "clientes#getClientesFiltrados"
     end
   end
 
+	resources :facturas_aplicadas do
+		collection do
+			get "custom/get_cantidad_devuelto/:ids"          => "facturas_aplicadas#getCantidadDevuelto"
+		end
+	end
+
+	resources :notas do
+		collection do
+			post "anular_nota/:id"                           => "notas#cancelarNota"
+			get "filtro/:arg"                                => "notas#getNotasFiltradas"
+		end
+	end
+
   resources :cabecera_facturas do
     collection do
-      # notas
-      get "custom/get_cantidad_devuelto/:aplicadaA"               => "cabecera_facturas#getCantidadDevuelto"
 
       # cabecera facturas
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
@@ -125,9 +138,9 @@ Rails.application.routes.draw do
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
       get "custom/viajes/:estado/:arg"                            => "cabecera_facturas#getViajesSinCompletar"
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
-      get "custom/notas"                                          => "cabecera_facturas#getNotas"
       get "custom/comprobar_serial"                               => "cabecera_facturas#comprobarSerial"
       get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
+      get "custom/get_group/:ids"                                 => "cabecera_facturas#getGroup"
     end
   end
 

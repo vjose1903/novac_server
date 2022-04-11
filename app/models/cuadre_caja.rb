@@ -43,24 +43,28 @@ class CuadreCaja < ApplicationRecord
       cuadre            = CuadreCaja.new(obj)
 
       CuadreCaja.transaction do
-        unless cuadre.save!
-          return { :error => true, :msg => cuadre.errors, :status => 400 }
+        if cuadre.save!
+					att             = cuadre.attributes
+					att['usuario']  = current_user.nombre_completo
+
+					att['contenido_reporte']  = [
+						{descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: att['total_venta_contado'] },
+						{descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', 	 valor: att['total_recibo_ingreso'] },
+						{descripcion: 'total_anterior', 	titulo: 'Total día anterior', 	 				 valor: att['total_anterior'] },
+						{descripcion: 'total_general', 		titulo: 'Total en caja', 						 valor: att['total_general'] },
+						{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: att['total_venta_credito'] },
+					]
+
+					res.set_data(att)
+					res.add_msg("Cuadre realizado correctamente")
+				else
+					res.add_msgs(cuadre.errors.to_a)
+					res.set_status(HTTP_STATUS_CODE[:conflict])
+
+					raise ActiveRecord::Rollback
         end
-
-        att             = cuadre.attributes
-        att['usuario']  = current_user.nombre_completo
-
-        att['contenido_reporte']  = [
-					{descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: att['total_venta_contado'] },
-					{descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', 	 valor: att['total_recibo_ingreso'] },
-					{descripcion: 'total_anterior', 	titulo: 'Total día anterior', 	 				 valor: att['total_anterior'] },
-					{descripcion: 'total_general', 		titulo: 'Total en caja', 						 valor: att['total_general'] },
-					{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: att['total_venta_credito'] },
-				]
-
-        res.set_data(att)
-        res.add_msg("Cuadre realizado correctamente")
       end
+
     else
 			cuadre = cuadre[0]
 
@@ -79,13 +83,6 @@ class CuadreCaja < ApplicationRecord
 					{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: cuadre["total_venta_credito"]},
 				]
       }
-
-      res.set_data(obj)
-      res.add_msg("Cuadre buscado correctamente")
-
-
-
-
     end
 
     return res

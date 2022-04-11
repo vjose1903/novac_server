@@ -15,7 +15,7 @@ class DetalleFacturasController < ApplicationController
 
   # POST /detalle_facturas
   def create
-    @detalle_factura = DetalleFactura.new(detalle_factura_params)
+    @detalle_factura = DetalleFactura.new(params)
 
     if @detalle_factura.save
       render json: @detalle_factura, status: :created, location: @detalle_factura
@@ -26,7 +26,7 @@ class DetalleFacturasController < ApplicationController
 
   # PATCH/PUT /detalle_facturas/1
   def update
-    if @detalle_factura.update(detalle_factura_params)
+    if @detalle_factura.update(params)
       render json: @detalle_factura
     else
       render json: @detalle_factura.errors, status: :unprocessable_entity
@@ -45,9 +45,4 @@ class DetalleFacturasController < ApplicationController
     @detalle_factura = DetalleFactura.find(params[:id])
   end
 
-  # Only allow a trusted parameter "white list" through.
-  def detalle_factura_params
-    params.require(:detalle_factura).permit(:cabecera_factura_id, :articulo_id, :cantidad, :total, :unidad, :descuento_valor, :descuento_porciento,
-                                            :itbis, :precio, :retirado, :retirado_en_venta, :calcular_saco, :detalle_factura_nota)
-  end
 end

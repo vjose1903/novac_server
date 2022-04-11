@@ -28,13 +28,13 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.create_update_cliente(params , is_save=false)
+		res                            = Response.new
     Cliente.transaction do
-      res = Response.new
 
       unless params["id"]
-        cliente = Cliente.new()
+        cliente                    = Cliente.new
       else
-        cliente = Cliente.find_by_id(params["id"])
+        cliente                    = Cliente.find_by_id(params["id"])
       end
 
       cliente.imagen_id            = params["imagen_id"]
@@ -67,16 +67,14 @@ class Cliente < ApplicationRecord
       end
 
       unless cliente.errors.empty?
-
         res.add_msgs(cliente.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
-        return res
-        raise ActiveRecord::Rollback
       end
 
-      return res
+			raise ActiveRecord::Rollback unless res.status_valid
     end
 
+		return res
   end
 
 
@@ -95,8 +93,8 @@ class Cliente < ApplicationRecord
       res.set_data(clientes, {all: true})
     else
       res.set_data([])
-			cantidad_registros = Cliente.all.count
-      res.add_msg("No existe cliente con las especificaciones introducidas") if cantidad_registros > 0
+			cantidad_registros = Cliente.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existe cliente con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -126,10 +124,8 @@ class Cliente < ApplicationRecord
   def self.calculate_balance_cliente(id, totalFactura, operacion, ignoreMontoMayor=false)
 
     res = Response.new
-    puts "id -> ".red + "#{id}"
 
     cliente          = Cliente.find_by_id(id)
-    puts "cliente -> ".red + "#{cliente.to_json}"
     balance          = cliente.balance.nil? ? 0 : cliente.balance
 
     if operacion == "-" && totalFactura.to_f > balance
@@ -144,10 +140,8 @@ class Cliente < ApplicationRecord
     new_balance      = new_balance.to_d.truncate(2).to_f
     cliente.balance  = new_balance
 
-    cliente.valid?
 
-    # unless cliente.errors.empty? || !cliente.save!
-    unless cliente.errors.empty?
+    unless cliente.save!
       res.add_msgs(cliente.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

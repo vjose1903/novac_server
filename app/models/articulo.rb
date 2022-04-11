@@ -23,33 +23,19 @@ class Articulo < ApplicationRecord
   end
 
 
-  def checkSacoSistema(articulo_nuevo)
-      self.errors.add(:base, "A este articulo no se le puede editar el nombre.") if articulo_nuevo["nombre"] != 'Saco sistema'
-
-      self.errors.add(:base, "A este articulo no se le puede editar la medida en que se compra.") if articulo_nuevo["medida"] != 'Unidad'
-
-      self.errors.add(:base, "A este articulo no se le puede editar la medida para vender.") if articulo_nuevo["vendido_en"] != 'Unidad'
-
-      self.errors.add(:base, "A este articulo no se le puede editar el tipo de articulo.") if articulo_nuevo["tipo_articulo_id"] != 4
-
-      self.errors.add(:base, "Este articulo no se puede ser materia prima.") if articulo_nuevo["is_materia_prima"]
-  end
-
-
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
+		res = Response.new
     Articulo.transaction do
 
       ant_articulo                              =  articulo_antiguo.nil? ? nil : articulo_antiguo
       ant_articulo_contenido                    =  articulo_antiguo.nil? ? nil : articulo_antiguo.contenido_articulos
       ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
 
-      res = Response.new
 
       unless params["id"]
-        articulo                                = Articulo.new()
+        articulo                                = Articulo.new
       else
         articulo                                = Articulo.find_by_id(params["id"])
-        articulo.checkSacoSistema(params) if articulo.nombre == 'Saco sistema'
       end
 
       articulo.tipo_articulo_id                 = params["tipo_articulo_id"]
@@ -75,8 +61,8 @@ class Articulo < ApplicationRecord
       # imagen_attributes
 
       dependencias = [
-        {modelo: FormulasProductosTerminado, key_object: "formulas_productos_terminados", padre: articulo},
         {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
+        {modelo: FormulasProductosTerminado, key_object: "formulas_productos_terminados", padre: articulo},
       ]
 
       res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
@@ -84,17 +70,15 @@ class Articulo < ApplicationRecord
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
 
-
-
       res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid?&& articulo.save!
 
 
       if res.status_valid && articulo.errors.empty?
 
         if ant_articulo.nil?
-          ant_articulo             = articulo
-          ant_articulo_contenido   = ant_articulo.contenido_articulos
-          ant_articulo_formula     = ant_articulo.formulas_productos_terminados
+          ant_articulo                = articulo
+          ant_articulo_contenido      = ant_articulo.contenido_articulos
+          ant_articulo_formula        = ant_articulo.formulas_productos_terminados
         end
 
         res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
@@ -114,9 +98,9 @@ class Articulo < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res
       raise ActiveRecord::Rollback unless articulo.errors.empty?
     end
+		return res
   end
 
   # =====================================================================================================================
@@ -133,20 +117,6 @@ class Articulo < ApplicationRecord
 
     return res
   end
-
-  # =====================================================================================================================
-
-    def self.checkFechaCalcularSaco(fecha, articulo)
-      res = false
-
-      saco = Articulo.find_by_nombre("Saco sistema")
-      unless saco.nil?
-        is_correct = comparar_fecha(fecha.to_s, saco['created_at'].to_s ,">=")
-        res = is_correct && articulo["calcular_saco"]
-      end
-
-      return res
-    end
 
   # =====================================================================================================================
 
@@ -201,8 +171,8 @@ class Articulo < ApplicationRecord
       res.set_data(articulos, {all: true, historicos: historicos})
       # res.set_data(articulos)
     else
-			cantidad_registros = Articulo.all.count
-      res.add_msg("No existen articulos con las especificaciones introducidas") if cantidad_registros > 0
+			cantidad_registros = Articulo.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen articulos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

@@ -19,7 +19,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   def existencia
     calcularCantidades(@articulo_combo)
   end
-  
+
   def contenido
     calcularContenidos(@articulo_combo)
   end
@@ -32,26 +32,26 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
 
     if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
       [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c 
+        contenidos["Saco_#{c}"] = c
       end
     end
 
-    contenidos[articulo["medida"]] = contenido.length == 0 ? 1 : contenido.first["cantidad"]
+    contenidos[articulo["medida"]]        = contenido.length == 0 ? 1 : contenido.first["cantidad"]
     contenidos[contenido.first["medida"]] = 1 if contenido.length > 0
 
 
     if contenido.length == 2
 
       cantPrincipal = 1
-      cantHijo = 1
-      cantPadre = 1
+      cantHijo      = 1
+      cantPadre     = 1
 
       contenido.each do |conte|
         cantPrincipal *= conte["cantidad"]
-        cantPadre = conte["cantidad"] if conte["referencia"] != nil
+        cantPadre   = conte["cantidad"] if conte["referencia"] != nil
       end
 
-      contenidos[articulo["medida"]] = cantPrincipal
+      contenidos[articulo["medida"]]     = cantPrincipal
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
@@ -59,33 +59,33 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   end
 
   def calcularCantidades(articulo)
-    contenido = articulo.contenido_articulos
+    contenido  = articulo.contenido_articulos
 
     existencia = articulo["existencia"].nil? ? 0 : articulo["existencia"]
 
     cantidades = {}
-    
+
     cantidades[articulo["medida"]] = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
     cantidades[contenido.first["medida"]] = existencia if contenido.length > 0
 
     if contenido.length == 2
 
-      maxCant = 1
-      cantPadre = 1
+      maxCant     = 1
+      cantPadre   =  1
 
       contenido.each do |conte|
-        maxCant = conte["cantidad"] * maxCant
+        maxCant   = conte["cantidad"] * maxCant
         cantPadre = conte["cantidad"] if conte["condicion"] == "hijo"
       end
 
-      cantidades[articulo["medida"]] = (existencia / maxCant)
+      cantidades[articulo["medida"]]     = (existencia / maxCant)
       cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
       cantidades[contenido[1]["medida"]] = existencia
     end
 
     return cantidades
   end
-  
+
 
   def get_param(col)
     return @instance_options[:"#{col}"]

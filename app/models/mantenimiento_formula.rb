@@ -1,10 +1,10 @@
 class MantenimientoFormula < ApplicationRecord
 
   def self.crear_historico(parametros, secuencia)
+		res                            = Response.new
     MantenimientoFormula.transaction do
-      res = Response.new
 
-      historico                    = MantenimientoFormula.new()
+      historico                    = MantenimientoFormula.new
 
       historico.articulo_id        = parametros["articulo_id"]
       historico.articulo_combo     = parametros["articulo_combo"]
@@ -12,15 +12,17 @@ class MantenimientoFormula < ApplicationRecord
       historico.costo              = parametros["costo"]
       historico.precio             = parametros["precio"]
       historico.secuencia          = secuencia
-      
+
 
       unless historico.save!
         res.add_msgs(historico.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res
+			raise ActiveRecord::Rollback unless res.status_valid
     end
+
+		return res
   end
 
   def self.add_historico(parametros, secuencia)
@@ -34,7 +36,7 @@ class MantenimientoFormula < ApplicationRecord
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)
       else
-        return res_temp 
+        return res_temp
       end
     end
 

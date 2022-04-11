@@ -5,11 +5,11 @@ class MantenimientoArticulo < ApplicationRecord
   attribute :user
 
   def self.add_historico(parametros, contenidos, formulas)
+		res = Response.new
     MantenimientoArticulo.transaction do
-      res = Response.new
 
-      
-      historico                              = MantenimientoArticulo.new()
+
+      historico                              = MantenimientoArticulo.new
       secuencia                              = MantenimientoArticulo.last.nil? ? 0 : (MantenimientoArticulo.last.id + 1)
 
       historico.articulo_id                  = parametros["id"]
@@ -26,8 +26,8 @@ class MantenimientoArticulo < ApplicationRecord
       historico.ant_isCombo                  = parametros["is_combo"]
       historico.vendido_en                   = parametros["vendido_en"]
       historico.is_materia_prima             = parametros["is_materia_prima"]
-      historico.ant_otrosCostos              = parametros["otros_costos"] 
-      historico.calcular_saco                = parametros["calcular_saco"] 
+      historico.ant_otrosCostos              = parametros["otros_costos"]
+      historico.calcular_saco                = parametros["calcular_saco"]
       historico.secuencia                    = secuencia
 
       contenidos.to_a.each do |contenido|
@@ -47,23 +47,30 @@ class MantenimientoArticulo < ApplicationRecord
           historico["ant_referenciaPadre"]   = contenido["referencia"]
         end
       end
-      
-      res_formula = MantenimientoFormula.add_historico(formulas, secuencia)
 
-      unless res_formula.status_valid && historico.save! 
-        errores = historico.errors.to_a.concat(res_formula.get_msgs)
-        res.add_msgs(errores)
+
+      if historico.save!
+				res_proceso = MantenimientoFormula.add_historico(formulas, secuencia)
+
+				unless res_proceso.status_valid
+					res.add_msgs(res_proceso.get_msgs)
+					res.set_status(HTTP_STATUS_CODE[:conflict])
+				end
+
+			else
+        res.add_msgs(historico.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res 
+			raise ActiveRecord::Rollback unless res.status_valid
     end
+		return res
   end
 
   # 2021-12-27 09:53:06.892
   # 2021-12-23 14:43:02.006
   # ============================================================================================================================================================
-  
+
   def self.get_historico_by_date_mayor_or_menor(date, articulo_id, operador, order)
     historico = MantenimientoArticulo
     .where("mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}")
@@ -77,18 +84,18 @@ class MantenimientoArticulo < ApplicationRecord
 
     fecha_factura                   = date.to_s.split(":")[0] + ":" + date.to_s.split(":")[1]
     fecha_factura_parsed            = fecha_factura + ":59"
-    
+
     historico                       = []
     articulo                        = Articulo.find_by_id(articulo_id)
     fecha_ultima_edicion_articulo   = calculateDateUTC(articulo["updated_at"])
-    
+
     if fecha_factura_parsed >= fecha_ultima_edicion_articulo
       # historico.push(Articulo.parseal(articulo))
       historico.push(articulo)
     else
       hist        = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, "<=", "DESC")
       hist        = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, ">=", "ASC")   if hist.blank?
-      
+
       if hist.blank?
         # historico.push(Articulo.parseal(articulo))
         historico.push(articulo)
@@ -103,9 +110,9 @@ class MantenimientoArticulo < ApplicationRecord
 
   # ============================================================================================================================================================
   def self.crearArticuloHistorico(historico, articulo)
-    
+
     contenidoArticulo = articulo.contenido_articulos
-    
+
     articuloHistorico = {}
     articuloHistorico["id"]                     = articulo["id"]
     articuloHistorico["tipo_articulo_id"]       = historico["ant_tipoArticuloId"]
@@ -126,7 +133,7 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico["fecha_ingreso"]          = articulo["fecha_ingreso"]
     articuloHistorico["imagen_id"]              = articulo["imagen_id"]
     articuloHistorico["calcular_saco"]          = articulo["calcular_saco"]
-    
+
     contents = []
 
     if historico["ant_medidaHijo"] || historico["ant_medidaPadre"]
@@ -154,18 +161,18 @@ class MantenimientoArticulo < ApplicationRecord
         contents.push(ContenidoArticulo.new(conte))
       end
     end
-    
+
     articuloHistorico["contenido_articulos"] = contents
-    
+
     if historico["ant_isCombo"]
       fomulaS = []
       formulas = MantenimientoFormula.where({secuencia: historico["secuencia"]})
       formulas.to_a.each do |f|
-        obj = { 
+        obj = {
           :articulo_combo      => f["articulo_combo"],
           :cantidad            => f["cantidad"],
           :costo               => f["costo"],
-          :precio              => f["precio"] 
+          :precio              => f["precio"]
         }
       end
 

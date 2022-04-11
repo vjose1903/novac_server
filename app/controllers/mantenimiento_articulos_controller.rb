@@ -33,7 +33,7 @@ class MantenimientoArticulosController < ApplicationController
 
   # POST /mantenimiento_articulos
   def create
-    @mantenimiento_articulo = MantenimientoArticulo.new(mantenimiento_articulo_params)
+    @mantenimiento_articulo = MantenimientoArticulo.new(params)
 
     if @mantenimiento_articulo.save
       render json: @mantenimiento_articulo, status: :created, location: @mantenimiento_articulo
@@ -44,7 +44,7 @@ class MantenimientoArticulosController < ApplicationController
 
   # PATCH/PUT /mantenimiento_articulos/1
   def update
-    if @mantenimiento_articulo.update(mantenimiento_articulo_params)
+    if @mantenimiento_articulo.update(params)
       render json: @mantenimiento_articulo
     else
       render json: @mantenimiento_articulo.errors, status: :unprocessable_entity
@@ -61,12 +61,5 @@ class MantenimientoArticulosController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_mantenimiento_articulo
     @mantenimiento_articulo = MantenimientoArticulo.find(params[:id])
-  end
-
-  # Only allow a trusted parameter "white list" through.
-  def mantenimiento_articulo_params
-    params.require(:mantenimiento_articulo).permit(:articulo_id, :user_id, :ant_medidaAlerta, :ant_nombre, :ant_suplidor, :ant_medida, :ant_costoP, :ant_precioP, :ant_alertaExistencia, :ant_isDetallable, :ant_tipoArticuloId, :ant_medidaPadre,
-                                                   :ant_costoPadre, :ant_precioPadre, :ant_cantidadPadre, :ant_medidaHijo, :ant_costoHijo, :ant_precioHijo, :ant_cantidadHijo, :ant_idPadre, :ant_idHijo, :ant_referenciaPadre, :secuencia,
-                                                   :ant_referenciaHijo, :ant_calcularItbis, :ant_isCombo, :is_materia_prima, :calcular_saco,)
   end
 end

@@ -273,7 +273,7 @@ G_PERMISOS.each do | permiso |
 		puts "------".red * 7
 		puts "CREANDO PERMISO: #{permiso[:descripcion]}"
 		puts "------".red * 7
-		permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre]})
+		permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
 	end
 
 	puts " "
@@ -300,10 +300,18 @@ G_PERMISOS.each do | permiso |
 			puts "------".magenta * 7
 			puts "CREANDO PERMISO_ACCION"
 			puts "------".magenta * 7
-
 		end
-
 	end
-
 end
 
+
+# G_OTROS_COSTOS.each do | otro_costo |
+# 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])
+#
+# 	if otro_costo_backend.nil?
+# 		puts "------".red * 7
+# 		puts "CREANDO OTRO COSTO: #{otro_costo[:key]}"
+# 		puts "------".red * 7
+# 		otro_costo_backend = OtroCosto.create({descripcion: otro_costo[:descripcion], key: otro_costo[:key], precio: otro_costo[:precio], costo: otro_costo[:costo], estado: true})
+# 	end
+# end

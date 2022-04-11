@@ -11,6 +11,12 @@ class ApplicationController < ActionController::API
   around_action :encarsular_usuario
 
 	def validateUserIsLogging!
+		puts " "
+		puts " ::::::: PARAMS :::::::".yellow + "#{params.to_json}"
+		puts " "
+		puts "RRRRRRRRRR " if params["controller"] == "devise_token_auth/sessions"
+		puts "MMMMMMMMMMMM " unless params["controller"] == "devise_token_auth/sessions"
+
 		unless user_signed_in?
 			render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_ssesion" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
 		end
@@ -89,7 +95,7 @@ class ApplicationController < ActionController::API
 
       if formula_b == 0
         value.each do |f|
-          nueva_formula = FormulasProductosTerminado.new()
+          nueva_formula = FormulasProductosTerminado.new
           nueva_formula.articulo_id        = f.articulo_id
           nueva_formula.cantidad           = f.cantidad
           nueva_formula.costo              = f.costo

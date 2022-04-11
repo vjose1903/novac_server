@@ -8,11 +8,11 @@ class Produccion < ApplicationRecord
   # =========================================================================================================
 
   def self.create_update_produccion(params, is_save=false)
+		res                                   = Response.new
     Produccion.transaction do
-      res = Response.new
 
       unless params["id"]
-        produccion                        = Produccion.new()
+        produccion                        = Produccion.new
       else
         produccion                        = Produccion.find_by_id(params["id"])
       end
@@ -44,9 +44,10 @@ class Produccion < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      return res
-      raise ActiveRecord::Rollback unless conduce.errors.empty?
+      raise ActiveRecord::Rollback unless res.status_valid
     end
+
+		return res
   end
 
   # =========================================================================================================================================================
@@ -61,7 +62,7 @@ class Produccion < ApplicationRecord
     else
       res.set_data([])
 			cantidad_registros = Produccion.all.count
-      res.add_msg("No existen producciones con las especificaciones introducidas") if cantidad_registros > 0
+      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen producciones con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
