@@ -97,12 +97,11 @@ class User < ApplicationRecord
 
         res.add_msgs(user.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
-        return res
         raise ActiveRecord::Rollback
       end
-
-      return res
     end
+
+		return res
   end
 
   # =====================================================================================================================
