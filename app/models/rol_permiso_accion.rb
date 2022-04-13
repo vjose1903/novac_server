@@ -18,9 +18,6 @@ class RolPermisoAccion < ApplicationRecord
 
     rolPermisoAccion.errors.delete(:role) if !is_save
 
-		puts "is_save ".yellow + "#{is_save.to_json}"
-		puts "rolPermisoAccion ".blue + "#{rolPermisoAccion.to_json}"
-
     if rolPermisoAccion.errors.empty? && (!is_save || (is_save && rolPermisoAccion.save!))
       res.set_data(rolPermisoAccion)
     else
@@ -32,12 +29,10 @@ class RolPermisoAccion < ApplicationRecord
   end
 
   def self.validar_e_inicializar(items, padre, save)
-		puts "========= validar_e_inicializar ========= ".green
     res_valid = Response.new
     array_valid=[]
 
     items.each do |item|
-			puts "item ".red + "#{item}"
       res_temp = self.crear_actualizar(item, padre, !item[:id].nil?)
 
       if res_temp.status_valid

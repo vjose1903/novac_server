@@ -17,22 +17,24 @@ class UserSerializer < ActiveModel::Serializer
 
   attribute :nombreCompleto,            if: Proc.new { self.get_param('nombreCompleto')  }
   attribute :vendedor_id,               if: Proc.new { self.get_param('vendedor_id')  }
+  attribute :roles,                     if: Proc.new { self.get_param('roles')  }
+  attribute :permisos,                  if: Proc.new { self.get_param('permisos')  }
   attribute :nombre_completo
 
   # def fotoPerfil
   #   nil
-  # end 
+  # end
 
   def fecha_nacimiento
     formatearFecha(object.fecha_nacimiento.to_s, 1)
-  end 
+  end
 
   def nombre
     object.nombre.capitalize
-  end 
+  end
 
   def nombreCompleto
-    nombreCompleto = "#{object.nombre.capitalize}" 
+    nombreCompleto = "#{object.nombre.capitalize}"
     nombreCompleto += " #{object.apellido.capitalize}" unless object.apellido.blank?
     nombreCompleto
   end
@@ -42,15 +44,23 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def documentos_de_identidad
-    serialize_parser(object.documentos_de_identidad, {})
+    serialize_parser(object.documentos_de_identidad, {all: true})
   end
-  
+
   def vendedor_id
     object.id
   end
 
   def nombre_completo
 		vendedor = object.nombre_completo
+	end
+
+  def roles
+		serialize_parser(object.roles, {id: true, descripcion:true})
+	end
+
+  def permisos
+		object.get_permisos
 	end
 
   def get_param(col)

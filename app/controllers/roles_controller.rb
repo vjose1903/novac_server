@@ -45,8 +45,8 @@ class RolesController < ApplicationController
 
 	def get_parametros_opcionales
     return {
+      all: true,
       permisos_acciones: params['permisos_acciones'] || false,
-      acciones: params['acciones'] || false,
     }
   end
 

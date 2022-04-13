@@ -9,6 +9,10 @@ class User < ApplicationRecord
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
   accepts_nested_attributes_for :documentos_de_identidad
 
+	has_many :users_roles, dependent: :destroy
+	has_and_belongs_to_many :roles, join_table: :users_roles
+
+	has_many :roles_permisos_acciones, through: :roles
 
   devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
 
@@ -77,6 +81,8 @@ class User < ApplicationRecord
       user.password_confirmation  = params["password"] if params["password"]
       user.estado                 = true
 
+			ids_roles                   = params["ids_roles"].split(",").map(&:to_i)
+      user.roles                  = Role.where(id: ids_roles)
 
       if user.errors.empty? && user.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]
@@ -116,7 +122,7 @@ class User < ApplicationRecord
     .order("users.id ASC").to_a
 
     if users.length > 0
-      res.set_data(users, {all: true})
+      res.set_data(users, {all: true, roles: true})
     else
       res.set_data([])
 			cantidad_registros = User.where({estado: true}).count
@@ -127,6 +133,17 @@ class User < ApplicationRecord
     return res
   end
 
+    # =========================================================================================================================================================
+		def get_permisos
+
+			joins_ = "INNER JOIN permisos_acciones on permisos_acciones.id = roles_permisos_acciones.permiso_accion_id"
+			joins_ += " INNER JOIN acciones on acciones.id = permisos_acciones.accion_id"
+			joins_ += " INNER JOIN permisos on permisos.id = permisos_acciones.permiso_id"
+
+			roles_permisos_acciones                    = self.roles_permisos_acciones.joins(joins_).select("roles_permisos_acciones.permiso_accion_id, CONCAT(permisos.descripcion, '_', acciones.descripcion) as permiso").group("roles_permisos_acciones.permiso_accion_id, permisos.descripcion, acciones.descripcion")
+
+			roles_permisos_acciones
+		end
     # =========================================================================================================================================================
 
     def self.mudar_info(param)

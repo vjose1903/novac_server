@@ -11,6 +11,7 @@ module DeviseTokenAuth
 			puts " "
 			puts " -------- VALIDANDO USUARIO -------- ".green
 			puts " "
+			@res = Response.new
       # @resource will have been set by set_user_by_token concern
       if @resource
         if @resource[:estado] == "I"
@@ -38,15 +39,15 @@ module DeviseTokenAuth
 
     protected
 
-    def render_validate_token_success
-      datos = {
-        success: true,
-        data: resource_data(resource_json: @resource.token_validation_response),
-      }
-      # datos[:data][:configuration] = Configuracion.all.limit(1)[0]
-      # datos[:data][:permisos] = User.getPermisos(datos[:data]['id'])
-      render json: datos
+
+		def render_validate_token_success
+			data = resource_data(resource_json: @resource.token_validation_response)
+      user = User.find_by_id(data["id"])
+      @res.set_data(user, {documentos_de_identidad:true, all:true, permisos: true})
+
+      @res.send_response self
     end
+
 
     def render_validate_token_error
       render_error(401, I18n.t('devise_token_auth.token_validations.invalid'))
