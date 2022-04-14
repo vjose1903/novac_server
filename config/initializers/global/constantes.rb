@@ -149,6 +149,35 @@ module TiposNotasId
 	end
 end
 
+module OperadoresMovimiento
+
+	ENTRADA = "entrada"
+	ENTRADA_OPERADOR = "+"
+
+	SALIDA  = "salida"
+	SALIDA_OPERADOR = "-"
+
+
+	def self.entrada
+		return ENTRADA
+	end
+
+	def self.salida
+		return SALIDA
+	end
+
+	def self.return_operador(tipo)
+		return tipo == ENTRADA ? ENTRADA_OPERADOR : SALIDA_OPERADOR
+	end
+
+	def self.return_tipo(tipo)
+		return tipo == ENTRADA_OPERADOR ? ENTRADA : SALIDA
+	end
+
+
+
+end
+
 
 
 PROVINCIAS_MUNICIPIOS=[

@@ -132,3 +132,5 @@ rails g migration AddCamposToOtrosCostosHistorial
 rails g migration AddCamposToOtrosCostos
 rails g migration AddMasCamposToOtrosCostos
 rails g migration AddPrecioToOtrosCostos
+
+rails g model camion_viaje vehiculo:references cabecera_factura:references
