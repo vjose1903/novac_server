@@ -14,42 +14,10 @@ class MovimientosInventariosController < ApplicationController
   end
 
   # POST /movimientos_inventarios
-  def create
-    MovimientosInventario.transaction do
-
-      @movimientos_inventario = MovimientosInventario.new(movimientos_inventario_params)
-      m = movimientos_inventario_params
-
-      articulo_ = Articulo.find_by_id(m["articulo_id"])
-      articulo_ = Articulo.parseal(articulo_)
-
-      if articulo_ == [] || articulo_ == nil
-        return render json: { msg: "Error buscando articulo." }, status: 404
-      end
-
-      MovimientosInventario.movimientos_de_inventario(m["accion"], articulo_, m["medida"], m["cantidad"])
-
-      obj = {
-        movimientosinventario: @movimientos_inventario,
-        articulo: articulo_,
-      }
-
-      if @movimientos_inventario.save
-        render json: obj, status: :created, location: @movimientos_inventario
-      else
-        render json: @movimientos_inventario.errors, status: :unprocessable_entity
-      end
-    end
-  end
-
-  # PATCH/PUT /movimientos_inventarios/1
-  def update
-    if @movimientos_inventario.update(movimientos_inventario_params)
-      render json: @movimientos_inventario
-    else
-      render json: @movimientos_inventario.errors, status: :unprocessable_entity
-    end
-  end
+	def create
+    resultado = MovimientosInventario.movimientos_de_inventario(params, OperadoresMovimiento.return_operador(params["accion"]), DateTime.now.strftime("%d/%m/%Y"), 'movimiento', nil)
+		resultado.send_response self
+	end
 
   # DELETE /movimientos_inventarios/1
   def destroy
@@ -61,10 +29,5 @@ class MovimientosInventariosController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_movimientos_inventario
     @movimientos_inventario = MovimientosInventario.find(params[:id])
-  end
-
-  # Only allow a trusted parameter "white list" through.
-  def movimientos_inventario_params
-    params.fetch(:movimientos_inventario).permit(:user_id, :articulo_id, :cantidad, :accion, :motivo, :medida, :tipo_salida)
   end
 end

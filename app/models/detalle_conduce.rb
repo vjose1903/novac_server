@@ -81,7 +81,7 @@ class DetalleConduce < ApplicationRecord
     end
 
     if res.status_valid
-      res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, "-", padre.fecha_equivalente.strftime("%d/%m/%Y"), 'conduce', padre)
+      res_movimiento = MovimientosInventario.movimientos_de_inventario(params, "-", padre.fecha_equivalente.strftime("%d/%m/%Y"), 'conduce', padre)
 
       unless res_movimiento.status_valid
         res.add_msgs(res_movimiento.get_msgs.to_a)

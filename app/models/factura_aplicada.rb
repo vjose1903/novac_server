@@ -23,9 +23,6 @@ class FacturaAplicada < ApplicationRecord
 			factura_aplicada.detalles_facturas_notas   = dependencia_data if key_object == 'detalles_facturas_notas'
 		}
 
-		puts "res ".magenta + "#{res.to_json}"
-		puts "res ".magenta + "#{res}"
-
 		res_proceso                                  = factura_aplicada.procesos_facturas_aplicadas(params) if res_proceso.status_valid
 
     if res_proceso && res_proceso.status_valid && factura_aplicada.errors.empty? && (!is_save || (is_save && factura_aplicada.save!))
@@ -83,7 +80,6 @@ class FacturaAplicada < ApplicationRecord
 		ids                = params[:ids].split(",").map(&:to_i)
 		facturas           = FacturaAplicada.where(cabecera_factura_id: ids)
 
-		puts "facturas -->".red + "#{facturas.to_json}"
 
 		facturas.each do |fact_aplicada|
 			facturas_aplicadas[fact_aplicada.cabecera_factura_id] = { :detalles => {} } if facturas_aplicadas[fact_aplicada.cabecera_factura_id].nil?

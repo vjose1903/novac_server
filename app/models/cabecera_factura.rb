@@ -7,6 +7,7 @@ class CabeceraFactura < ApplicationRecord
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos, dependent: :destroy
   has_many :facturas_aplicadas
+  has_many :camiones_viajes
 
   # ===================================================================================================================================================
 
@@ -84,10 +85,14 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.tiene_nota               = params["tiene_nota"]
             cabecera_factura.aplicada_a               = params["aplicada_a"]
 
-            dependencias = [ {modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura} ]
+            dependencias = [
+							{modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura},
+							{modelo: CamionViaje,    key_object: "camiones_viajes",  padre: cabecera_factura},
+						]
 
             res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
               cabecera_factura.detalle_facturas   = dependencia_data if key_object == 'detalle_facturas'
+              cabecera_factura.camiones_viajes    = dependencia_data if key_object == 'camiones_viajes'
             }
 
             if res.status_valid && cabecera_factura.errors.empty? && (!is_save || (is_save && cabecera_factura.save!))

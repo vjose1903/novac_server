@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_03_25_004859) do
+ActiveRecord::Schema.define(version: 2022_04_14_010902) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -100,6 +100,15 @@ ActiveRecord::Schema.define(version: 2022_03_25_004859) do
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_cabecera_facturas_on_user_id"
+  end
+
+  create_table "camiones_viajes", force: :cascade do |t|
+    t.bigint "vehiculo_id", null: false
+    t.bigint "cabecera_factura_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["cabecera_factura_id"], name: "index_camiones_viajes_on_cabecera_factura_id"
+    t.index ["vehiculo_id"], name: "index_camiones_viajes_on_vehiculo_id"
   end
 
   create_table "clientes", force: :cascade do |t|
@@ -482,10 +491,9 @@ ActiveRecord::Schema.define(version: 2022_03_25_004859) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "activo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["nombre", "descripcion", "activo"], name: "index_roles_on_nombre_and_descripcion_and_activo", unique: true, where: "(activo = true)"
+    t.boolean "estado"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
@@ -612,6 +620,8 @@ ActiveRecord::Schema.define(version: 2022_03_25_004859) do
   add_foreign_key "cabecera_facturas", "suplidores"
   add_foreign_key "cabecera_facturas", "tipo_facturas"
   add_foreign_key "cabecera_facturas", "users"
+  add_foreign_key "camiones_viajes", "cabecera_facturas"
+  add_foreign_key "camiones_viajes", "vehiculos"
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
@@ -647,11 +657,6 @@ ActiveRecord::Schema.define(version: 2022_03_25_004859) do
   add_foreign_key "notas", "clientes"
   add_foreign_key "notas", "tipo_facturas"
   add_foreign_key "notas", "users"
-  add_foreign_key "otros_costos_articulos", "articulos"
-  add_foreign_key "otros_costos_articulos", "otros_costos"
-  add_foreign_key "otros_costos_historiales", "otros_costos"
-  add_foreign_key "otros_costos_mantenimientos_articulos", "mantenimiento_articulos"
-  add_foreign_key "otros_costos_mantenimientos_articulos", "otros_costos_historiales"
   add_foreign_key "permisos_acciones", "acciones"
   add_foreign_key "permisos_acciones", "permisos"
   add_foreign_key "producciones", "users"

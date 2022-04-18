@@ -75,7 +75,7 @@ class DetalleFactura < ApplicationRecord
     end
 
 
-    res_movimiento = MovimientosInventario.movimientos_de_inventario_(params, operador, fecha, accion, cabecera )
+    res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
 
     unless res_movimiento.status_valid
       res.add_msgs(res_movimiento.get_msgs.to_a)
