@@ -102,7 +102,7 @@ module DeviseTokenAuth
     def render_create_success
 			data = resource_data(resource_json: @resource.token_validation_response)
       user = User.find_by_id(data["id"])
-      @res.set_data(user, {documentos_de_identidad:true, all:true, permisos: true})
+      @res.set_data(user, {documentos_de_identidad:true, all:true, permisos: true, roles: true})
 
       @res.send_response self
     end

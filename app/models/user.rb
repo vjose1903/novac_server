@@ -23,7 +23,11 @@ class User < ApplicationRecord
   validates :apellido,            presence: { :message => "Apellido del empleado no puede estar vacio." }
   validates :sexo,                presence: { :message => "Sexo del empleado no puede estar vacio." }
   validates :fecha_nacimiento,    presence: { :message => "Fecha de nacimiento del empleado no puede estar vacia." }
-  validates :role,                presence: { :message => "Role de nacimiento del empleado no puede estar vacio." }
+
+	before_validation :otras_validaciones
+
+  def otras_validaciones
+  end
 
   include DeviseTokenAuth::Concerns::User
 
@@ -59,6 +63,12 @@ class User < ApplicationRecord
   end
   # =====================================================================================================================
 
+	def checkRoles(params)
+			self.errors.add(:base, "Debe de especificar almenos un role al empleado.") if params["ids_roles"].length == 0
+	end
+
+  # =====================================================================================================================
+
   def self.crear_actualizar_user(params , is_save=false)
 		res                           = Response.new
     User.transaction do
@@ -69,6 +79,8 @@ class User < ApplicationRecord
         user                      = User.find_by_id(params["id"])
       end
 
+			user.checkRoles(params)
+
       user.nombre                 = params["nombre"]
       user.apellido               = params["apellido"]
       user.usuario                = params["usuario"]
@@ -76,13 +88,11 @@ class User < ApplicationRecord
       user.telefono               = params["telefono"]
       user.email                  = params["email"]
       user.fecha_nacimiento       = Date.parse params["fecha_nacimiento"]
-      user.role                   = params["role"]
       user.password               = params["password"] if params["password"]
       user.password_confirmation  = params["password"] if params["password"]
       user.estado                 = true
 
-			ids_roles                   = params["ids_roles"].split(",").map(&:to_i)
-      user.roles                  = Role.where(id: ids_roles)
+      user.roles                  = Role.where(id: params["ids_roles"])
 
       if user.errors.empty? && user.valid?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]

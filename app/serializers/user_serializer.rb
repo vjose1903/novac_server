@@ -56,7 +56,8 @@ class UserSerializer < ActiveModel::Serializer
 	end
 
   def roles
-		serialize_parser(object.roles, {id: true, descripcion:true})
+		roles = serialize_parser(object.roles, {id: true, descripcion: true, nombre: true})
+		roles
 	end
 
   def permisos
