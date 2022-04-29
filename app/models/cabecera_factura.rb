@@ -366,12 +366,14 @@ class CabeceraFactura < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
+
     return res
   end
 
   # ===================================================================================================================================================
   def self.get_facturas_by_cliente_id_and_estado(params, paginate_options)
     res                          = Response.new(paginate_options)
+
     joins                        = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id  inner join users on cabecera_facturas.user_id = users.id"
     where                        = "cliente_id=#{params["cliente_id"]} AND pagada=#{params["pagada"]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
 

@@ -26,7 +26,6 @@ class Response
 		@paginate_class.paginate_data(data)
 
 		data_ = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
-
 		@res[:data]              = data_
 		@res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()
 		@res[:total_paginas]     = @paginate_class.get_total_paginas()    if @paginate_class.is_paginated()
@@ -85,8 +84,8 @@ class Paginator
 
 
 	def paginate_data(data)
-
 		@data_paginated["data"] = data
+
 		@data_paginated = paginate(data) if @paginate_options["paginado"]
 	end
 

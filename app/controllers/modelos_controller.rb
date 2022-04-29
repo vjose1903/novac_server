@@ -78,16 +78,21 @@ class ModelosController < ApplicationController
   end
 
   # DELETE /modelos/1
-  def destroy
-    @modelo.destroy
+	def destroy
+    resultado = borrar_entidad(@modelo)
+    resultado.send_response self
   end
 
-  private
+	private
 
-  # Use callbacks to share common setup or constraints between actions.
-  def set_modelo
-    @modelo = Modelo.find(params[:id])
-  end
+	# Use callbacks to share common setup or constraints between actions.
+	def set_modelo
+		respuesta = set_entidad(Modelo, params)
+		@modelo = respuesta.get_data
+
+		return respuesta.send_response self if @modelo.nil?
+	end
+
 
   # Only allow a trusted parameter "white list" through.
   def modelo_params

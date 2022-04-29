@@ -33,6 +33,8 @@ es:
     role: "Rol"
     nota: "Nota"
     otro_costo: "Otro costo"
+    marca: "Marca"
+    modelo: "Modelo"
 
   errors:
     format: "%{message}"

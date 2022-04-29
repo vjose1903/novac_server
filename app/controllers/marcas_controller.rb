@@ -55,14 +55,19 @@ class MarcasController < ApplicationController
 
   # DELETE /marcas/1
   def destroy
-    @marca.destroy
+    resultado = borrar_entidad(@marca)
+    resultado.send_response self
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
-    def set_marca
-      @marca = Marca.find(params[:id])
-    end
+		def set_marca
+			respuesta = set_entidad(Marca, params)
+			@marca = respuesta.get_data
+
+			return respuesta.send_response self if @marca.nil?
+		end
+
 
     # Only allow a trusted parameter "white list" through.
     def marca_params

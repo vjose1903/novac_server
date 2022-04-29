@@ -121,13 +121,12 @@ class User < ApplicationRecord
   end
 
   # =====================================================================================================================
-
   def self.filtrarUsusarios(arg, params)
     res = Response.new(params)
 
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
-    .where("lower(users.nombre || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
+    .where("lower(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
     .order("users.id ASC").to_a
 
     if users.length > 0
