@@ -8,6 +8,7 @@ cyan=$(tput setaf 6)
 
 OPTIONS="lpscet:r:"
 PRODUCTION='no'
+DOCKER='no'
 
 setVariable() {
   echo "${yellow}setVariable ...  production (${PRODUCTION})"
@@ -29,8 +30,8 @@ setNivel() {
     export RAILS_ENV=production
     export RAILS_SERVE_STATIC_FILES=true
     export DISABLE_DATABASE_ENVIRONMENT_CHECK=1
-  else
-    export RAILS_ENV=development
+  else if [ "$DOCKER" == "yes" ]; then
+    export RAILS_ENV=docker_development
   fi
 }
 
@@ -68,6 +69,7 @@ while getopts $OPTIONS opt; do
   s)
     echo "la opcion -s"
     rails s -b 0.0.0.0 --port $PORT
+    # rails s -b 0.0.0.0 --port 3000
     # rails s -b 0.0.0.0
     # /home/vjose/.rvm/bin/rvm all do bundle exec puma -C config/puma.rb
 
@@ -75,6 +77,11 @@ while getopts $OPTIONS opt; do
   p)
     echo "la opcion -p"
     PRODUCTION="yes"
+    setNivel
+    ;;
+  d)
+    echo "la opcion -d"
+    DOCKER="yes"
     setNivel
     ;;
   l)
