@@ -1,0 +1,29 @@
+*.log
+.dockerignore
+.git
+.gitignore
+build/*
+Dockerfile
+docker-compose.yml
+npm-debug.log*
+
+
+# Ignore bundler config.
+/.bundle
+
+# Ignore all logfiles and tempfiles.
+/log/*
+*.sql.bz2
+*.sql
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore uploaded files in development
+/storage/*
+!/storage/.keep
+
+.byebug_history
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
