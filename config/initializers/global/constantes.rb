@@ -258,13 +258,6 @@ G_PERMISOS = [
 	{ nombre:"roles",                         mostrar_front: true,     descripcion: "role",                    controlador: "Roles",                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getRolesFiltrados"}]}
 ]
 
-G_ROLES = [
-	{descripcion:"Administrador"},
-	{descripcion:"Vendedor"},
-	{descripcion:"Cajero"},
-	{descripcion:"Chofer"},
-]
-
 
 # G_OTROS_COSTOS=[
 # 	{descripcion:"Saco 100 libras", key: "saco_100", costo:9, precio:20 },

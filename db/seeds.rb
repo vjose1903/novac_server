@@ -25,7 +25,7 @@ usuarios =
     },
     {
       "nombre": "Mari",
-      "usuario": "ADM",
+      "usuario": "ADMIN",
       "uid": "ADM",
       "apellido": "Santos",
       "sexo": "f",
@@ -48,7 +48,7 @@ usuarios.each do |user|
 
   if User.find_by_usuario(user[:usuario]).nil?
     usuario_creado = User.create(user)
-		puts "ERROR- Usuario: ".red + "#{usuario_creado.errors.to_json}"
+    puts "ERROR- Usuario: ".red + "#{usuario_creado.errors.to_json}"
     puts "Usuario: #{usuario_creado.to_json}".magenta
   end
 end
@@ -56,7 +56,7 @@ end
 
 clientes = [
 
-	{
+  {
     "imagen_id": nil,
     "nombre": "Cliente contado",
     "apellido": ".",
@@ -65,7 +65,7 @@ clientes = [
     "sexo": "i",
     "limite_credito": 0,
     "maximo_credito": 0,
-		"vendedor_id":1
+    "vendedor_id":1
   },
 ]
 
@@ -73,21 +73,21 @@ clientes.each do |client|
   if Cliente.find_by_nombre(client[:nombre]).nil?
     cliente_ = Cliente.create(client)
     puts " "
-		puts "ERROR - Cliente: ".red + "#{cliente_.errors.to_json}"
+    puts "ERROR - Cliente: ".red + "#{cliente_.errors.to_json}"
   end
 end
 
 documentos_de_identidad = [
   {
-		"origen_type": "User",
-		"origen_id": 2,
+    "origen_type": "User",
+    "origen_id": 2,
     "descripcion": "cedula",
     "documento": "402-1463928-4",
     "principal": "true",
   },
   {
-		"origen_type": "Cliente",
-		"origen_id": 1,
+    "origen_type": "Cliente",
+    "origen_id": 1,
     "descripcion": "cedula",
     "documento": " ",
     "principal": true,
@@ -98,8 +98,8 @@ documentos_de_identidad = [
 documentos_de_identidad.each do |doc|
   if DocumentoDeIdentidad.find_by_documento(doc[:documento]).nil?
     documento = DocumentoDeIdentidad.create(doc)
-		puts " "
-		puts "ERROR -  documento_identidad: ".red + "#{documento.errors.to_json}"
+    puts " "
+    puts "ERROR -  documento_identidad: ".red + "#{documento.errors.to_json}"
   end
 end
 
@@ -121,8 +121,8 @@ tipos_articulo = [
 tipos_articulo.each do |tipo|
   if TipoArticulo.find_by_descripcion(tipo[:descripcion]).nil?
     tipo_articulo =TipoArticulo.create(tipo)
-		puts " "
-		puts "ERROR - tipo_articulo: ".red + "#{tipo_articulo.errors.to_json}"
+    puts " "
+    puts "ERROR - tipo_articulo: ".red + "#{tipo_articulo.errors.to_json}"
   end
 end
 
@@ -148,7 +148,7 @@ tipos_factura = [
     "descripcion": "Nota de credito",
   },
   {
-		"referencia": "11",
+    "referencia": "11",
     "descripcion": "Comprobante de compras",
   },
   {
@@ -184,7 +184,7 @@ tipos_factura = [
     "descripcion": "Compra",
   },
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Conduce",
   },
   {
@@ -205,18 +205,18 @@ tipos_factura.each do |tipo_fac|
 
   if (TipoFactura.find_by_descripcion(tipo_fac[:descripcion])).nil?
     tipo = TipoFactura.create(tipo_fac)
-		puts " "
-		puts "ERROR- tipo_factura: ".red + "#{tipo.errors.to_json}"
+    puts " "
+    puts "ERROR- tipo_factura: ".red + "#{tipo.errors.to_json}"
 
     secuencia = SecuenciaFactura.create( { "tipo_factura_id": tipo.id, "secuencia": 0, } )
-		puts " "
-		puts "ERROR - secuencia_factura: ".red + "#{secuencia.errors.to_json}"
+    puts " "
+    puts "ERROR - secuencia_factura: ".red + "#{secuencia.errors.to_json}"
   end
 end
 
 secuencias = [
-	{
-		"tipo_factura_id": 1,
+  {
+    "tipo_factura_id": 1,
     "secuencia": 1,
     "desde": 1,
     "hasta": 9223372036854775807,
@@ -240,28 +240,28 @@ secuencias = [
 secuencias.each do |secuencia|
   if SecuenciaComprobante.find_by_tipo_factura_id(secuencia[:tipo_factura_id]).nil?
     secu = SecuenciaComprobante.create(secuencia)
-		puts " "
-		puts "ERROR- secuencia_comprobante: ".red + "#{secu.errors.to_json}"
+    puts " "
+    puts "ERROR- secuencia_comprobante: ".red + "#{secu.errors.to_json}"
   end
 end
 
 marcas = [
-	{
-		"descripcion": "Daihatsu"
+  {
+    "descripcion": "Daihatsu"
   },
 ]
 
 marcas.each do |marca|
   if Marca.find_by_descripcion(marca[:descripcion]).nil?
     marca_ = Marca.create(marca)
-		puts " "
-		puts "ERROR- marca: ".red + "#{marca_.errors.to_json}"
+    puts " "
+    puts "ERROR- marca: ".red + "#{marca_.errors.to_json}"
   end
 end
 
 modelos = [
-	{
-		"marca_id": 1,
+  {
+    "marca_id": 1,
     "descripcion": "Delta"
   },
 ]
@@ -269,8 +269,8 @@ modelos = [
 modelos.each do |modelo|
   if Modelo.find_by_descripcion(modelo[:descripcion]).nil?
     modelo_ = Modelo.create(modelo)
-		puts " "
-		puts "ERROR- modelo: ".red + "#{modelo_.errors.to_json}"
+    puts " "
+    puts "ERROR- modelo: ".red + "#{modelo_.errors.to_json}"
   end
 end
 
@@ -279,14 +279,14 @@ PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
   provincia_db = Provincia.find_by_nombre(provincia_seed[:nombre])
 
   provincia_db = Provincia.create({nombre: provincia_seed[:nombre]}) if provincia_db.nil?
-	puts " "
-	puts "ERROR- provincia: ".red + "#{provincia_db.errors.to_json}"
+  puts " "
+  puts "ERROR- provincia: ".red + "#{provincia_db.errors.to_json}"
 
   provincia_seed[:municipios].each do |municipio_seed|
     if Municipio.find_by_nombre(municipio_seed).nil?
       muni = Municipio.create({nombre: municipio_seed, provincia_id: provincia_db[:id]})
-			puts " "
-			puts "ERROR- municipio: ".red + "#{muni.errors.to_json}"
+      puts " "
+      puts "ERROR- municipio: ".red + "#{muni.errors.to_json}"
     end
   end
 
@@ -303,8 +303,8 @@ G_PERMISOS.each do | permiso |
     puts "CREANDO PERMISO: #{permiso[:descripcion]}"
     puts "------".red * 7
     permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
-		puts " "
-		puts "ERROR- permiso: ".red + "#{permiso_backend.errors.to_json}"
+    puts " "
+    puts "ERROR- permiso: ".red + "#{permiso_backend.errors.to_json}"
   end
 
   puts " "
@@ -320,8 +320,8 @@ G_PERMISOS.each do | permiso |
       puts "CREANDO ACCION #{accion[:descripcion]}"
       puts "------".yellow * 7
       accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo]})
-			puts " "
-			puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}"
+      puts " "
+      puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}"
     end
     puts "accion_backend ".red + "#{accion_backend.to_json}"
 
@@ -333,12 +333,60 @@ G_PERMISOS.each do | permiso |
       puts "------".magenta * 7
       puts "CREANDO PERMISO_ACCION"
       puts "------".magenta * 7
-			puts " "
-			puts "ERROR- permiso_accion: ".red + "#{perm_action.errors.to_json}"
+      puts " "
+      puts "ERROR- permiso_accion: ".red + "#{perm_action.errors.to_json}"
     end
   end
 end
 
+puts "*******".green * 10
+puts "*******".green * 10
+role_administrador = Role.find_by_nombre("Administrador")
+
+if role_administrador.nil?
+  role_administrador = Role.create({  nombre: "Administrador", descripcion:"Persona encargada de los procesos administrativos de la empresa.", ruta_defecto:"/", estado: true})
+  puts " "
+  puts "------".yellow * 7
+  puts "CREANDO ROLE"
+  puts "------".yellow * 7
+  puts " "
+  puts "ERROR- role: ".red + "#{role_administrador.errors.to_json}"
+end
+
+puts "*******".green * 10
+puts "*******".green * 10
+
+all_permisos_aciones = PermisoAccion.all
+
+all_permisos_aciones.each do | permiso_accion_backend |
+  rol_permiso_accion_molde = {role_id:role_administrador.id , permiso_accion_id: permiso_accion_backend.id}
+  rol_permiso_accion = RolPermisoAccion.where(rol_permiso_accion_molde)
+  if rol_permiso_accion.empty?
+    rol_permiso_accion = RolPermisoAccion.create(rol_permiso_accion_molde)
+    puts " "
+    puts "------".blue * 7
+    puts "CREANDO ROL PERMISO ACCION"
+    puts "------".blue * 7
+    puts " "
+    puts "ERROR- rol_permiso_accion: ".red + "#{rol_permiso_accion.errors.to_json}"
+  end
+end
+
+usuario_admin = User.find_by_usuario("ADMIN")
+
+unless usuario_admin.nil?
+  roles_usuario = usuario_admin.roles
+  if roles_usuario.empty?
+    puts " "
+    puts "------".cyan * 7
+    puts "AGREGANDO ROLE ADMINISTRADOR AL USUARIO ADMIN"
+    puts "------".cyan * 7
+    usuario_admin.roles = Role.where({nombre: "Administrador"})
+    usuario_admin.save!
+    puts " "
+    puts "ERROR- agregando role admin: ".red + "#{usuario_admin.errors.to_json}"
+  end
+end
 
 # G_OTROS_COSTOS.each do | otro_costo |
 # 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])

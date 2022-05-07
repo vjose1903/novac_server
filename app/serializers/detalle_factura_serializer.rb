@@ -21,8 +21,9 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :codigo,                                     if: Proc.new { self.get_param('codigo') || self.get_param('all') }
   attribute :descripcion,                                if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
   attribute :unidad,                                     if: Proc.new { self.get_param('unidad') || self.get_param('all') }
+  attribute :unidad_backend,                             if: Proc.new { self.get_param('unidad_backend') || self.get_param('all') }
   attribute :peso_saco,                                  if: Proc.new { self.get_param('peso_saco') || self.get_param('all') }
-  attribute :contenidos,                                  if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
+  attribute :contenidos,                                 if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
 
   def articulo
     @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0]
@@ -38,11 +39,11 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   end
 
   def descripcion
-    unidad                     = object.unidad.split(" ")
+    @unidad                     = object.unidad.split(" ")
 
-    if unidad.length > 1
-			descripcion              = "#{@articuloSelect["nombre"]} (#{unidad[2]} LBS)"
-      @peso_saco               = unidad[2]
+    if @unidad.length > 1
+			descripcion              = "#{@articuloSelect["nombre"]} (#{@unidad[2]} LBS)"
+      @peso_saco               = @unidad[2]
     else
       descripcion              = "#{@articuloSelect["nombre"]}"
     end
@@ -52,7 +53,11 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
 
 
   def unidad
-    unidad = object.unidad.split(" ")[0]
+    unidad = @unidad[0]
+  end
+
+  def unidad_backend
+    object.unidad
   end
 
   def peso_saco
