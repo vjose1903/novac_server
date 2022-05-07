@@ -56,10 +56,6 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     unidad = @unidad[0]
   end
 
-  def unidad_backend
-    object.unidad
-  end
-
   def peso_saco
     @peso_saco
   end
