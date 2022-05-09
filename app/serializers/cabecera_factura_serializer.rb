@@ -42,6 +42,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
+  attribute :camiones,                                       if: Proc.new { self.get_param('camiones') }
 
 
   def tipo_factura
@@ -55,7 +56,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
 
   def cliente
-		puts "object.cliente ".red + "#{object.cliente.to_json}"
+        puts "object.cliente ".red + "#{object.cliente.to_json}"
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre
@@ -80,7 +81,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       supli_                        = object.suplidor.attributes
       suplidor["nombre"]            = supli_["nombre"].capitalize
       suplidor["direccion"]         = supli_["direccion"]
-			suplidor["telefono"]          = supli_["telefono"]
+            suplidor["telefono"]          = supli_["telefono"]
 
       documento                     = object.suplidor.documentos_de_identidad.find_by_principal(true)
       suplidor["rnc"]               = documento.nil? ? "----------" : documento.documento
@@ -108,8 +109,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   def notas
     notas = []
     if object.tiene_nota
-			notas = object.facturas_aplicadas.joins("inner join notas on facturas_aplicadas.nota_id = notas.id").where("notas.estado = true")
-			notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true})
+            notas = object.facturas_aplicadas.joins("inner join notas on facturas_aplicadas.nota_id = notas.id").where("notas.estado = true")
+            notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true})
     end
     notas
   end
@@ -137,12 +138,13 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     pago_parseo
   end
 
-
-
+  def camiones
+      object.camiones_viajes
+  end
 
 
   def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+      return @instance_options[:"#{col}"]
+  end
 
 end

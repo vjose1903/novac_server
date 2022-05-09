@@ -21,7 +21,6 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :codigo,                                     if: Proc.new { self.get_param('codigo') || self.get_param('all') }
   attribute :descripcion,                                if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
   attribute :unidad,                                     if: Proc.new { self.get_param('unidad') || self.get_param('all') }
-  attribute :unidad_backend,                             if: Proc.new { self.get_param('unidad_backend') || self.get_param('all') }
   attribute :peso_saco,                                  if: Proc.new { self.get_param('peso_saco') || self.get_param('all') }
   attribute :contenidos,                                 if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
 
