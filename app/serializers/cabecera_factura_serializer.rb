@@ -42,6 +42,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
+  attribute :camiones,                                       if: Proc.new { self.get_param('camiones') }
 
 
   def tipo_factura
@@ -137,6 +138,9 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     pago_parseo
   end
 
+	def camiones
+		object.camiones_viajes
+	end
 
 
 
