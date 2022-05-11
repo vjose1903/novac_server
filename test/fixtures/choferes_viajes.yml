@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  recibos_ingreso: one
+
+two:
+  user: two
+  recibos_ingreso: two

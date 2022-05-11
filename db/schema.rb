@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_04_14_010902) do
+ActiveRecord::Schema.define(version: 2022_05_10_144811) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -104,11 +104,21 @@ ActiveRecord::Schema.define(version: 2022_04_14_010902) do
 
   create_table "camiones_viajes", force: :cascade do |t|
     t.bigint "vehiculo_id", null: false
-    t.bigint "cabecera_factura_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["cabecera_factura_id"], name: "index_camiones_viajes_on_cabecera_factura_id"
+    t.string "origen_type"
+    t.bigint "origen_id"
+    t.index ["origen_type", "origen_id"], name: "index_camiones_viajes_on_origen"
     t.index ["vehiculo_id"], name: "index_camiones_viajes_on_vehiculo_id"
+  end
+
+  create_table "choferes_viajes", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "recibos_ingreso_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["recibos_ingreso_id"], name: "index_choferes_viajes_on_recibos_ingreso_id"
+    t.index ["user_id"], name: "index_choferes_viajes_on_user_id"
   end
 
   create_table "clientes", force: :cascade do |t|
@@ -620,8 +630,9 @@ ActiveRecord::Schema.define(version: 2022_04_14_010902) do
   add_foreign_key "cabecera_facturas", "suplidores"
   add_foreign_key "cabecera_facturas", "tipo_facturas"
   add_foreign_key "cabecera_facturas", "users"
-  add_foreign_key "camiones_viajes", "cabecera_facturas"
   add_foreign_key "camiones_viajes", "vehiculos"
+  add_foreign_key "choferes_viajes", "recibos_ingresos"
+  add_foreign_key "choferes_viajes", "users"
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"

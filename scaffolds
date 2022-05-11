@@ -102,7 +102,6 @@ rails generate model accion descripcion:string
 rails generate model permiso_accion permiso:references accion:references
 rails generate model rol_permiso_accion rol:references permiso_accion:references controlador:string metodo:string
 
-
 rails generate serializer role
 rails generate serializer permiso
 rails generate serializer accion
@@ -134,3 +133,6 @@ rails g migration AddMasCamposToOtrosCostos
 rails g migration AddPrecioToOtrosCostos
 
 rails g model camion_viaje vehiculo:references cabecera_factura:references
+rails g migration AddRefenceToCamionesViajes
+rails g model chofer_viaje user:references recibos_ingreso:references
+rails generate serializer chofer_viaje

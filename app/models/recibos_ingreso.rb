@@ -2,18 +2,18 @@ class RecibosIngreso < ApplicationRecord
   belongs_to :tipo_factura
   belongs_to :user
   belongs_to :cliente
-  belongs_to :vehiculo, optional: true
 
   has_many :detalle_recibos, dependent: :destroy
 
   has_many :incidencias, :as => :origen, dependent: :destroy, class_name: "Incidencia"
+  has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
+  has_many :choferes_viajes, dependent: :destroy
 
   validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
 
-
   # =========================================================================================================================================================
   def self.create_update_recibo(params, is_save=false)
-		res                            = Response.new
+    res                            = Response.new
     RecibosIngreso.transaction do
 
       unless params["id"]
@@ -31,29 +31,32 @@ class RecibosIngreso < ApplicationRecord
       recibo.fecha_equivalente     = fecha_equivalente
       recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
       recibo.cliente_id            = params["cliente_id"]
-      recibo.chofer                = params["chofer"]
       recibo.forma_pago            = params["forma_pago"]
       recibo.tipo_factura_id       = params["tipo_factura_id"]
       recibo.estado                = params["estado"]
-      recibo.vehiculo_id           = params["vehiculo_id"]
       recibo.estado                = params["estado"]
 
       recibo.devuelta              = params["devuelta"]
       recibo.total                 = params["total"]
 
+
       dependencias = [
-        {modelo: DetalleRecibo, key_object: "detalle_recibos", padre: recibo},
-        {modelo: Incidencia,    key_object: "incidencias",     padre: recibo}
+        {modelo: DetalleRecibo,  key_object: "detalle_recibos",  padre: recibo},
+        {modelo: Incidencia,     key_object: "incidencias",      padre: recibo},
+        {modelo: ChoferViaje,     key_object: "choferes_viajes",  padre: recibo},
+        {modelo: CamionViaje,    key_object: "camiones_viajes",  padre: recibo},
       ]
 
       devoluciones = []
 
       res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
-
         recibo.detalle_recibos   = dependencia_data[:detalles]      if key_object == 'detalle_recibos'
         devoluciones             = dependencia_data[:devoluciones]  if key_object == 'detalle_recibos'
         recibo.incidencias       = dependencia_data                 if key_object == 'incidencias'
+        recibo.camiones_viajes   = dependencia_data                 if key_object == 'camiones_viajes'
+        recibo.choferes_viajes   = dependencia_data                 if key_object == 'choferes_viajes'
       }
+
       if res.status_valid
         total_por_detalle          = recibo.detalle_recibos.map { |item| item.deposito }
         total_calculado            = total_por_detalle.inject { |item, acu| item + acu }
@@ -64,7 +67,6 @@ class RecibosIngreso < ApplicationRecord
         if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
           res_valid                = updateSecuencias(17)
-          res_valid                = recibo.vehiculo.ajustarCantViaje("+") if res_valid.status_valid && !params['vehiculo_id'].nil?
 
           if res_valid.status_valid
             data = {"recibo": serialize_parser(recibo, {all: true}) }
@@ -88,7 +90,7 @@ class RecibosIngreso < ApplicationRecord
       raise ActiveRecord::Rollback unless res.status_valid
     end
 
-		return res
+    return res
   end
 
   # =========================================================================================================================================================
@@ -106,7 +108,7 @@ class RecibosIngreso < ApplicationRecord
     if recibos.length > 0
       res.set_data(recibos, {all: true})
     else
-			cantidad_registros = RecibosIngreso.where({estado: true}).count
+      cantidad_registros = RecibosIngreso.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen recibos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -154,7 +156,7 @@ class RecibosIngreso < ApplicationRecord
   # ===================================================================================================================================================
 
   def self.revertirRecibo(params)
-		res                   = Response.new
+    res                   = Response.new
     RecibosIngreso.transaction do
 
       res_valid           = RecibosIngreso.puedeAnular(params)
@@ -174,10 +176,10 @@ class RecibosIngreso < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback unless res.status_valid
+      raise ActiveRecord::Rollback unless res.status_valid
     end
 
-		return res
+    return res
   end
 
 
@@ -186,14 +188,17 @@ class RecibosIngreso < ApplicationRecord
 
   def procesoRevertirRecibo
     res_valid     = Response.new
-    array_valid=[]
 
     self.detalle_recibos.each  do |item|
       res_temp    = RecibosIngreso.revertirReciboDetalle(item, self)
       return res_temp unless res_temp.status_valid
     end
 
-    res_valid     = self.vehiculo.ajustarCantViaje("-") unless self.vehiculo_id.nil?
+    self.camiones_viajes.each do |camion_viaje|
+      res_temp    = camion_viaje.vehiculo.ajustarCantViaje("-")
+      return res_temp unless res_temp.status_valid
+    end
+
 
     return res_valid
   end

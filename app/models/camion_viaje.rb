@@ -1,24 +1,32 @@
 class CamionViaje < ApplicationRecord
   belongs_to :vehiculo
-  belongs_to :cabecera_factura
+  belongs_to :cabecera_factura, optional: true
 
-	def self.crear_actualizar_camion_viaje(params, padre, is_save=false)
-    res = Response.new
+  belongs_to :origen, polymorphic: true
 
-		camion_viaje                         = CamionViaje.where(:id => params["id"]).first_or_create
+  def self.crear_actualizar_camion_viaje(params, padre, is_save=false)
+    res         = Response.new
+    res_valid   = Response.new
 
-    camion_viaje.vehiculo_id             = params["vehiculo_id"]
-    camion_viaje.cabecera_factura_id     = params["cabecera_factura_id"]
+    CamionViaje.transaction do
+      camion_viaje                         = CamionViaje.where(:id => params["id"]).first_or_create
 
-    camion_viaje.valid?
+      camion_viaje.vehiculo_id             = params["vehiculo_id"]
+      camion_viaje.origen                  = padre
 
-    camion_viaje.errors.delete(:cabecera_factura) if !is_save
+      camion_viaje.valid?
 
-    if camion_viaje.errors.empty? && (!is_save || (is_save && camion_viaje.save!))
-      res.set_data(camion_viaje)
-    else
-      res.add_msgs(camion_viaje.errors.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res_valid                            = camion_viaje.vehiculo.ajustarCantViaje("+") if padre.model_name.element == "recibos_ingreso"
+
+      if res_valid.status_valid && camion_viaje.errors.empty? && (!is_save || (is_save && camion_viaje.save!))
+        res.set_data(camion_viaje)
+      else
+        res.add_msgs(res_valid.get_msgs.to_a)
+        res.add_msgs(camion_viaje.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+      raise ActiveRecord::Rollback unless res.status_valid
     end
 
     return res

@@ -7,7 +7,7 @@ class CabeceraFactura < ApplicationRecord
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos, dependent: :destroy
   has_many :facturas_aplicadas
-  has_many :camiones_viajes
+  has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
 
   # ===================================================================================================================================================
 
@@ -18,7 +18,7 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
 
   def self.create_factura(params , is_save=false)
-		res                                    = Response.new
+    res                                    = Response.new
     CabeceraFactura.transaction do
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
 
@@ -86,9 +86,9 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.aplicada_a               = params["aplicada_a"]
 
             dependencias = [
-							{modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura},
-							{modelo: CamionViaje,    key_object: "camiones_viajes",  padre: cabecera_factura},
-						]
+              {modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura},
+              {modelo: CamionViaje,    key_object: "camiones_viajes",  padre: cabecera_factura},
+            ]
 
             res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
               cabecera_factura.detalle_facturas   = dependencia_data if key_object == 'detalle_facturas'
@@ -97,25 +97,25 @@ class CabeceraFactura < ApplicationRecord
 
             if res.status_valid && cabecera_factura.errors.empty? && (!is_save || (is_save && cabecera_factura.save!))
 
-							cabecera_factura.identificador      = CabeceraFactura.makeIdentificador(cabecera_factura)
-							if cabecera_factura.save!
+              cabecera_factura.identificador      = CabeceraFactura.makeIdentificador(cabecera_factura)
+              if cabecera_factura.save!
 
-								res_valid                           = CabeceraFactura.update_secuencias(params, data_secuencias)
+                res_valid                           = CabeceraFactura.update_secuencias(params, data_secuencias)
 
-								if res_valid.status_valid
-									res.set_data(cabecera_factura, {all: true})
+                if res_valid.status_valid
+                  res.set_data(cabecera_factura, {all: true})
 
-									realizando = params["tipo_factura_id"] == TiposNotasId.credito ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
-									res.add_msg("#{realizando} creada correctamente.")
-								else
-									res.add_msgs(res_valid.get_msgs.to_a)
-									res.set_status(HTTP_STATUS_CODE[:conflict])
-								end
+                  realizando = params["tipo_factura_id"] == TiposNotasId.credito ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
+                  res.add_msg("#{realizando} creada correctamente.")
+                else
+                  res.add_msgs(res_valid.get_msgs.to_a)
+                  res.set_status(HTTP_STATUS_CODE[:conflict])
+                end
 
-							else
-								res.add_msgs(cabecera_factura.errors.to_a)
-								res.set_status(HTTP_STATUS_CODE[:conflict])
-							end
+              else
+                res.add_msgs(cabecera_factura.errors.to_a)
+                res.set_status(HTTP_STATUS_CODE[:conflict])
+              end
 
             else
               res.add_msgs(cabecera_factura.errors.to_a)
@@ -137,68 +137,68 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback unless res.status_valid
+      raise ActiveRecord::Rollback unless res.status_valid
     end
 
-		return res
+    return res
   end
 
   # ===================================================================================================================================================
 
   def self.makeIdentificador(factura)
-		fecha = factura.fecha_equivalente.kind_of?(String) ? DateTime.parse(factura.fecha_equivalente) : factura.fecha_equivalente
+    fecha = factura.fecha_equivalente.kind_of?(String) ? DateTime.parse(factura.fecha_equivalente) : factura.fecha_equivalente
 
-		array = [
-			{value: "#{"%04d" % (factura.cliente_id || 0)}".reverse},
-			{value: "#{"%04d" % factura.user_id}"},
-			{value: "#{"%04d" % factura.detalle_facturas.length}".reverse},
-			{value: "#{factura.id} ".reverse},
-			{value: "#{fecha.to_i} ".reverse},
-	]
+    array = [
+      {value: "#{"%04d" % (factura.cliente_id || 0)}".reverse},
+      {value: "#{"%04d" % factura.user_id}"},
+      {value: "#{"%04d" % factura.detalle_facturas.length}".reverse},
+      {value: "#{factura.id} ".reverse},
+      {value: "#{fecha.to_i} ".reverse},
+  ]
 
-		identificador = ""
+    identificador = ""
 
-		array.each do | item |
-			identificador += "#{item[:value]}"
-		end
+    array.each do | item |
+      identificador += "#{item[:value]}"
+    end
 
-		return identificador
-	end
-
-
-	# ===================================================================================================================================================
-
-	def self.comprobar_serial(params)
-		res = Response.new
-		serial = params['serial']
-		serial_split = serial.split(' ')
-
-		obj={}
-
-		serial_split.each_with_index do |serial_part, index|
-			if index == 0
-				cliente_id                    = serial_part[0,4].reverse.to_i
-				obj["cliente"]                = cliente_id > 0 ? serialize_parser(Cliente.find_by_id(cliente_id), {nombre_completo: true}) : nil
-
-				user_id                       = serial_part[4,4].to_i
-				obj["user"]                   = serialize_parser(User.find_by_id(user_id), {nombre_completo: true})
-
-				obj["cantidad_de_detalles"]   = serial_part[8,4].reverse.to_i
-			else
-				if index == 1
-					obj["factura_id"]           = serial_part.reverse
-				elsif index == 2
-					fecha                       = DateTime.parse(calculateDateUTC(Time.at(serial_part.reverse.to_i)))
-					obj["fecha_equivalente"]    = "#{fecha.strftime("%d/%m/%Y %I:%M:%S")}"
-				end
-			end
-		end
+    return identificador
+  end
 
 
-		res.set_data(obj)
-		return res
+  # ===================================================================================================================================================
 
-	end
+  def self.comprobar_serial(params)
+    res = Response.new
+    serial = params['serial']
+    serial_split = serial.split(' ')
+
+    obj={}
+
+    serial_split.each_with_index do |serial_part, index|
+      if index == 0
+        cliente_id                    = serial_part[0,4].reverse.to_i
+        obj["cliente"]                = cliente_id > 0 ? serialize_parser(Cliente.find_by_id(cliente_id), {nombre_completo: true}) : nil
+
+        user_id                       = serial_part[4,4].to_i
+        obj["user"]                   = serialize_parser(User.find_by_id(user_id), {nombre_completo: true})
+
+        obj["cantidad_de_detalles"]   = serial_part[8,4].reverse.to_i
+      else
+        if index == 1
+          obj["factura_id"]           = serial_part.reverse
+        elsif index == 2
+          fecha                       = DateTime.parse(calculateDateUTC(Time.at(serial_part.reverse.to_i)))
+          obj["fecha_equivalente"]    = "#{fecha.strftime("%d/%m/%Y %I:%M:%S")}"
+        end
+      end
+    end
+
+
+    res.set_data(obj)
+    return res
+
+  end
 
 
   # ===================================================================================================================================================
@@ -288,60 +288,60 @@ class CabeceraFactura < ApplicationRecord
     return DateTime.parse("#{next_date}T12:00:00").in_time_zone
   end
 
-	# ===================================================================================================================================================
+  # ===================================================================================================================================================
   def self.get_group_facturas_by_id(params)
-		res                = Response.new()
+    res                = Response.new()
 
-		ids                = params[:ids].split(",").map(&:to_i)
-		facturas           = CabeceraFactura.where(id: ids)
+    ids                = params[:ids].split(",").map(&:to_i)
+    facturas           = CabeceraFactura.where(id: ids)
 
-		res.set_data(facturas, {all: true})
+    res.set_data(facturas, {all: true})
 
-		return res
-	end
-	# ===================================================================================================================================================
+    return res
+  end
+  # ===================================================================================================================================================
   def self.get_facturas_by_params(params, paginate_options)
-		res                  = Response.new(paginate_options)
+    res                  = Response.new(paginate_options)
 
-		campoNum           = params[:campo]
-		valor_des          = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
-		tipo_factura_id    = params[:tipo_factura_id]
-		is_adelantada      = params[:is_adelantada].to_boolean
-		fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
+    campoNum           = params[:campo]
+    valor_des          = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
+    tipo_factura_id    = params[:tipo_factura_id]
+    is_adelantada      = params[:is_adelantada].to_boolean
+    fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
 
-		campo              = FacturasParams.get_campo_by_param(campoNum)
-		valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
-		limit_             = campo == "last_50" ? 50 : nil
-
-
-		valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
-
-		where_ = "cabecera_facturas.tipo = '#{fact_de}' AND cabecera_facturas.is_adelantada = #{is_adelantada} "
-
-		where_ = "detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades "  if is_adelantada
-
-		where_ += "and cabecera_facturas.#{campo} = #{valor_where} "              unless campo == "last_50"
-
-		where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"    unless tipo_factura_id == "0"
+    campo              = FacturasParams.get_campo_by_param(campoNum)
+    valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
+    limit_             = campo == "last_50" ? 50 : nil
 
 
-		joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
+    valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
 
-		joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
+    where_ = "cabecera_facturas.tipo = '#{fact_de}' AND cabecera_facturas.is_adelantada = #{is_adelantada} "
+
+    where_ = "detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades "  if is_adelantada
+
+    where_ += "and cabecera_facturas.#{campo} = #{valor_where} "              unless campo == "last_50"
+
+    where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"    unless tipo_factura_id == "0"
 
 
-		facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
+    joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
+
+    joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
 
 
-		if facturas.length > 0
-			res.set_data(facturas, {all: true})
-		else
-			cantidad_registros = CabeceraFactura.all.count
-			res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
-			res.set_status(HTTP_STATUS_CODE[:conflict])
-		end
+    facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
 
-		return res
+
+    if facturas.length > 0
+      res.set_data(facturas, {all: true})
+    else
+      cantidad_registros = CabeceraFactura.all.count
+      res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
   end
 
   # ===================================================================================================================================================
@@ -361,7 +361,7 @@ class CabeceraFactura < ApplicationRecord
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true, camiones: true})
     else
-			cantidad_registros = CabeceraFactura.where({estado: true}).count
+      cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen facturas con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -473,7 +473,7 @@ class CabeceraFactura < ApplicationRecord
 
   # ====================================================================================================
   def self.updateFactura(params)
-		res                    = Response.new
+    res                    = Response.new
     CabeceraFactura.transaction do
       res_validado         = verificateCanUpdate(params["id"])
 
@@ -528,13 +528,13 @@ class CabeceraFactura < ApplicationRecord
       raise ActiveRecord::Rollback unless res.status_valid
     end
 
-		return res
+    return res
   end
 
 
   # ====================================================================================================
   def self.payFactura(factura_id, recibo)
-		res               = Response.new
+    res               = Response.new
     CabeceraFactura.transaction do
       factura_a_pagar   = CabeceraFactura.find_by_id(factura_id)
 
@@ -553,7 +553,7 @@ class CabeceraFactura < ApplicationRecord
       raise ActiveRecord::Rollback unless res.status_valid
     end
 
-		return res
+    return res
   end
 
   # =====================================================================================================================
@@ -579,16 +579,16 @@ class CabeceraFactura < ApplicationRecord
 
   # =====================================================================================================================
 
-	def get_total_devuelto_por_notas
-		aplicaciones_en_notas           = FacturaAplicada.where(cabecera_factura_id: self.id)
-		total_devuelto                  = 0
+  def get_total_devuelto_por_notas
+    aplicaciones_en_notas           = FacturaAplicada.where(cabecera_factura_id: self.id)
+    total_devuelto                  = 0
 
-		aplicaciones_en_notas.each do |fact_aplicada|
-			total_devuelto += fact_aplicada.total
-		end
+    aplicaciones_en_notas.each do |fact_aplicada|
+      total_devuelto += fact_aplicada.total
+    end
 
-		return total_devuelto
-	end
+    return total_devuelto
+  end
 
   # =====================================================================================================================
   def self.calculateNextBalanceFactura(id, montoRecibido)

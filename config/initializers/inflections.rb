@@ -37,6 +37,7 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "factura_aplicada",                       "facturas_aplicadas"
   inflect.irregular "detalle_factura_nota",                   "detalles_facturas_notas"
   inflect.irregular "camion_viaje",                           "camiones_viajes"
+  inflect.irregular "chofer_viaje",                           "choferes_viajes"
 
   # inflect.irregular "otro_costo",                             "otros_costos"
   # inflect.irregular "otro_costo_articulo",                    "otros_costos_articulos"
