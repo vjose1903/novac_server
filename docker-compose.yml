@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:14
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+
+  # ruby:
+  #   image: ruby:3.0
+
+  novac_adm:
+    build: .
+    environment:
+      PRUEBA: "probando"
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/home/noca_server/servidor
+
+
+volumes:
+  db_data:

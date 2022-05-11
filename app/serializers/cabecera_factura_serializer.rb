@@ -139,12 +139,12 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def camiones
-      object.camiones_viajes
+    object.camiones_viajes
   end
 
 
   def get_param(col)
-      return @instance_options[:"#{col}"]
+    return @instance_options[:"#{col}"]
   end
 
 end
