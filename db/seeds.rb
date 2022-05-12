@@ -9,14 +9,14 @@
 usuarios =
   [
     {
-      "nombre": "ADM",
+      "nombre": "Panaderia Brendy",
       "usuario": "adm01",
       "uid": "adm01",
       "apellido": "01",
       "sexo": "i",
       "telefono": "(809) 573-0060",
-      "email": "admagroindustrialsrl@gmail.com",
-      "fecha_nacimiento": "2020-01-01",
+      "email": "panaderia_brendy@gmail.com",
+      "fecha_nacimiento": "2022-01-01",
       "role": "V",
       "password": "1234567",
       "password_confirmation": "1234567",
@@ -24,14 +24,14 @@ usuarios =
       "imagen_id": nil,
     },
     {
-      "nombre": "Mari",
+      "nombre": "Administrador",
       "usuario": "ADMIN",
-      "uid": "ADM",
-      "apellido": "Santos",
+      "uid": "ADMIN",
+      "apellido": "sistema",
       "sexo": "f",
       "telefono": "(829) 292-8772",
-      "email": "mari_santos0515@hotmail.com",
-      "fecha_nacimiento": "1968-10-17",
+      "email": "admin@hotmail.com",
+      "fecha_nacimiento": "2022-01-01",
       "role": "A",
       "password": "1234567",
       "password_confirmation": "1234567",
@@ -104,20 +104,11 @@ documentos_de_identidad.each do |doc|
 end
 
 tipos_articulo = [
-  {
-    "descripcion": "Veterinaria",
-  },
-  {
-    "descripcion": "Materia prima",
-  },
-  {
-    "descripcion": "Producto terminado",
-  },
-  {
-    "descripcion": "Otros",
-  },
+  { "descripcion": "Materia prima" },
+  { "descripcion": "Dulces" },
+  { "descripcion": "Producto terminado" },
+  { "descripcion": "Otros" },
 ]
-
 tipos_articulo.each do |tipo|
   if TipoArticulo.find_by_descripcion(tipo[:descripcion]).nil?
     tipo_articulo =TipoArticulo.create(tipo)

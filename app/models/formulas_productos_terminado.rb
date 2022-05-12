@@ -33,8 +33,8 @@ class FormulasProductosTerminado < ApplicationRecord
     formula.costo             = params["costo"]
     formula.medida            = params["medida"]
 
-    formula.valid?
 
+		puts "formula.valid? ".yellow + "#{formula.valid?}"
     formula.errors.delete(:articulo) if !is_save
 
     if formula.errors.empty? && (!is_save || (is_save && formula.save!))

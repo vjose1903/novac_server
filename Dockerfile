@@ -17,6 +17,12 @@ FROM ruby:3.0
 
 RUN apt-get update -qq && apt-get install -y build-essential postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano
 
+RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+ENV TZ="America/Santo_Domingo"
+
+
 WORKDIR /usr/src/novac_server
 COPY ["Gemfile", "Gemfile.lock", "/usr/src/novac_server/"]
 RUN gem install rails

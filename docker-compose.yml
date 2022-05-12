@@ -10,10 +10,7 @@ services:
     environment:
       POSTGRES_PASSWORD: password
 
-  # ruby:
-  #   image: ruby:3.0
-
-  novac_adm:
+  novac_brendy:
     build: .
     environment:
       PRUEBA: "probando"

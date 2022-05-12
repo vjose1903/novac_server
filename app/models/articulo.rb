@@ -24,7 +24,7 @@ class Articulo < ApplicationRecord
 
 
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
-		res = Response.new
+    res = Response.new
     Articulo.transaction do
 
       ant_articulo                              =  articulo_antiguo.nil? ? nil : articulo_antiguo
@@ -100,7 +100,7 @@ class Articulo < ApplicationRecord
 
       raise ActiveRecord::Rollback unless articulo.errors.empty?
     end
-		return res
+    return res
   end
 
   # =====================================================================================================================
@@ -128,10 +128,11 @@ class Articulo < ApplicationRecord
 
     where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
 
-    signo      = params["is_compra"].to_boolean ? "!=" : "="
-    tipo_id    = params["is_compra"].to_boolean ? "3" : params["tipo"]
+    is_compra  = params["is_compra"].to_boolean
+    signo      = is_compra ? "!=" : "="
+    tipo_id    = is_compra ? "3" : params["tipo"]
 
-    where += "AND articulos.tipo_articulo_id #{signo} #{tipo_id} " if params["tipo"] != "todos"
+    where += "AND articulos.tipo_articulo_id #{signo} #{tipo_id} " if params["tipo"] != "todos" || is_compra
 
     where += "OR ( articulos.is_materia_prima = true AND articulos.estado = true) " if params["tipo"] == TipoArticulos.materia_prima
 
@@ -147,8 +148,11 @@ class Articulo < ApplicationRecord
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
-
+      puts " "
+      puts "fecha ".cyan + "#{fecha}"
+      puts "fecha_ultima_edicion_articulo ".blue + "#{fecha_ultima_edicion_articulo}"
       if fecha < fecha_ultima_edicion_articulo
+        puts "===========ENTRO AQUIII===========".yellow
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC")
 
         if hist.blank?
@@ -161,6 +165,7 @@ class Articulo < ApplicationRecord
           articulos.push(Articulo.new(historico))
         end
       else
+        puts "===========ENTRO AQUIII===========".green
         articulos.push(articulo)
         historicos.push(articulo)
       end
@@ -171,7 +176,7 @@ class Articulo < ApplicationRecord
       res.set_data(articulos, {all: true, historicos: historicos})
       # res.set_data(articulos)
     else
-			cantidad_registros = Articulo.where({estado: true}).count
+      cantidad_registros = Articulo.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen articulos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -215,7 +220,7 @@ class Articulo < ApplicationRecord
     contenido = articulo.contenido_articulos
     contenidos = {}
 
-    if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
+    if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal" && articulo["calcular_saco"]
       [100, 50, 25].each do |c|
         contenidos["Saco_#{c}"] = c
       end
