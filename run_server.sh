@@ -17,6 +17,7 @@ setVariable() {
   export BACKEND_PORT="5432"
   export BACKEND_HOST="localhost"
   export BACKEND_USERNAME="postgres"
+  export DATABASE_NAME="ADM"
   export BACKEND_PASSWORD="Vasquez1903"
   export RAILS_SHOW_LOG=true
   export PORT="3000"

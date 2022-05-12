@@ -418,15 +418,8 @@ class Reporte < ApplicationRecord
         where_formas   = "forma_pago IN #{formas_pago}"
         query          = {}
 
-				puts "tipo".red + "#{tipo}"
-				puts "condicion".cyan + "#{condicion}"
-				puts "desde".green + "#{desde}"
-				puts "hasta".yellow + "#{hasta}"
-				puts "formas_pago".magenta  + "#{formas_pago}"
-
-
         is_viaje_credito = "( lower(condicion) = 'crédito' )"
-        is_viaje_contado = "( lower(condicion) = 'contado' AND is_viaje = false )"
+        is_viaje_contado = tipo == '1' ? "( lower(condicion) = 'contado' AND is_viaje = false )" : "( lower(condicion) = 'contado')"
         query_is_viaje   = condicion.downcase == 'todos' ?  "#{is_viaje_contado} OR #{is_viaje_credito}" : condicion.downcase == 'contado' ? is_viaje_contado : is_viaje_credito
 
         query['fecha_equivalente'] = tipo == '1' ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day

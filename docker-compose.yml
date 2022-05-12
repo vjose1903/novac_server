@@ -10,16 +10,17 @@ services:
     environment:
       POSTGRES_PASSWORD: password
 
-  novac_brendy:
+  novac_adm:
     build: .
     environment:
       PRUEBA: "probando"
+      DATABASE_NAME: "ADM"
     depends_on:
       - db
     ports:
       - "3000:3000"
     volumes:
-      - .:/home/noca_server/servidor
+      - .:/usr/src/novac_server
 
 
 volumes:
