@@ -11,11 +11,13 @@ class Produccion < ApplicationRecord
 		res                                   = Response.new
     Produccion.transaction do
 
-      unless params["id"]
-        produccion                        = Produccion.new
-      else
-        produccion                        = Produccion.find_by_id(params["id"])
-      end
+			produccion                          = Produccion.where(:id => params["id"]).first_or_create
+      # unless params["id"]
+      #   produccion                        = Produccion.new
+      # else
+      #   produccion                        = Produccion.find_by_id(params["id"])
+      # end
+
       produccion.user_id                  = get_current_user['id']
       produccion.numero                   = SecuenciaFactura.find_secuencia(16)
       produccion.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
@@ -62,7 +64,7 @@ class Produccion < ApplicationRecord
     else
       res.set_data([])
 			cantidad_registros = Produccion.all.count
-      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen producciones con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? "No existen producciones registradas." : "No existen producciones con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

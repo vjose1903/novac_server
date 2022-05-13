@@ -362,7 +362,7 @@ class CabeceraFactura < ApplicationRecord
       res.set_data(cabeceras, {all: true, camiones: true})
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existen facturas con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? "No existen facturas registrados." : "No existen facturas con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

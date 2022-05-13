@@ -266,7 +266,7 @@ class Nota < ApplicationRecord
     else
       res.set_data([])
 			cantidad_registros = Nota.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : 'No existen notas con las especificaciones introducidas')
+      res.add_msg(cantidad_registros == 0 ? "No existen notas registradas." : 'No existen notas con las especificaciones introducidas')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

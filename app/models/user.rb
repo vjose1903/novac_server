@@ -134,7 +134,7 @@ class User < ApplicationRecord
     else
       res.set_data([])
 			cantidad_registros = User.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen datos registrados." : "No existe empleado con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
