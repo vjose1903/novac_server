@@ -31,7 +31,9 @@ setNivel() {
     export RAILS_ENV=production
     export RAILS_SERVE_STATIC_FILES=true
     export DISABLE_DATABASE_ENVIRONMENT_CHECK=1
-  else if [ "$DOCKER" == "yes" ]; then
+  fi
+
+  if [ "$DOCKER" == "yes" ]; then
     export RAILS_ENV=docker_development
   fi
 }
