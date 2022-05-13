@@ -40,7 +40,7 @@ default: &default
 
 development:
   <<: *default
-  database: ADM_development
+  database: panaderia_brendy_development
   # adapter: postgresql
   # encoding: unicode
   # host: admservidor.ddns.net
@@ -79,7 +79,7 @@ development:
 # Do not set this db to the same as development or production.
 # test:
 #   <<: *default
-#   database: ADM_test
+#   database: panaderia_brendy_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -102,5 +102,5 @@ development:
 #
 production:
   <<: *default
-  database: ADM_production
+  database: panaderia_brendy_production
   host: admservidor.ddns.net

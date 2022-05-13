@@ -10,11 +10,11 @@ services:
     environment:
       POSTGRES_PASSWORD: password
 
-  novac_adm:
+  novac_brendy:
     build: .
     environment:
       PRUEBA: "probando"
-      DATABASE_NAME: "ADM"
+      DATABASE_NAME: "panaderia_brendy"
     depends_on:
       - db
     ports:
