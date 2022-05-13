@@ -19,7 +19,6 @@ class DetalleFactura < ApplicationRecord
     detalle_factura.retirado                  = params["retirado"]
     detalle_factura.retirado_en_venta         = params["retirado_en_venta"]
     detalle_factura.descuento_valor           = params["descuento_valor"]
-    detalle_factura.descuento_porciento       = params["descuento_porciento"]
     detalle_factura.calcular_saco             = params["calcular_saco"] || false
     detalle_factura.detalle_factura_nota      = params["detalle_factura_nota"]
     detalle_factura.cabecera_factura_id       = padre["id"] if is_save

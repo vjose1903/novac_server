@@ -5,7 +5,6 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :articulo_id,                                if: Proc.new { self.get_param('articulo_id') || self.get_param('all') }
   attribute :total,                                      if: Proc.new { self.get_param('total') || self.get_param('all') }
   attribute :descuento_valor,                            if: Proc.new { self.get_param('descuento_valor') || self.get_param('all') }
-  attribute :descuento_porciento,                        if: Proc.new { self.get_param('descuento_porciento') || self.get_param('all') }
   attribute :itbis,                                      if: Proc.new { self.get_param('itbis') || self.get_param('all') }
   attribute :cantidad,                                   if: Proc.new { self.get_param('cantidad') || self.get_param('all') }
   attribute :cantidad_en_unidades,                       if: Proc.new { self.get_param('cantidad_en_unidades') || self.get_param('all') }
