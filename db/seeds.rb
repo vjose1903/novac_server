@@ -42,11 +42,11 @@ usuarios =
 
 usuarios.each do |user|
   puts " "
-  puts "===================================".blue
-  puts "a crear el ususario #{user["ususario"]}"
-  puts "===================================".blue
 
   if User.find_by_usuario(user[:usuario]).nil?
+		puts "===================================".blue
+		puts "a crear el ususario #{user["ususario"]}"
+		puts "===================================".blue
     usuario_creado = User.create(user)
     puts "ERROR- Usuario: ".red + "#{usuario_creado.errors.to_json}"
     puts "Usuario: #{usuario_creado.to_json}".magenta
@@ -105,7 +105,7 @@ end
 
 tipos_articulo = [
   { "descripcion": "Materia prima" },
-  { "descripcion": "Dulces" },
+  { "descripcion": "Veterinaria" },
   { "descripcion": "Producto terminado" },
   { "descripcion": "Otros" },
 ]
