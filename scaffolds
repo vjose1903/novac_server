@@ -136,3 +136,5 @@ rails g model camion_viaje vehiculo:references cabecera_factura:references
 rails g migration AddRefenceToCamionesViajes
 rails g model chofer_viaje user:references recibos_ingreso:references
 rails generate serializer chofer_viaje
+
+rails g migration AddPre_FacturaToCabeceraFactura

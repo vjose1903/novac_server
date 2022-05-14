@@ -35,18 +35,6 @@ class CabeceraFactura < ApplicationRecord
             res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
           end
 
-          # NOTA DE CREDITO
-          if res_valid.status_valid && params["is_nota"] && params["cliente_id"] && params["tipo_factura_id"] == TiposNotasId.credito
-            res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"].to_f.abs, "-")
-            res_valid                      = CabeceraFactura.agregar_nota_a_CabeceraFactura(params["factura_id"], params)                       if res_valid.status_valid
-          end
-
-          # NOTA DE DEBITO
-          if res_valid.status_valid && params["is_nota"] && params["cliente_id"] && params["tipo_factura_id"] == 4
-            res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"].to_f.abs, "+")
-            res_valid                      = CabeceraFactura.agregar_nota_a_CabeceraFactura(params["factura_id"], params)                       if res_valid.status_valid
-          end
-
           if res_valid.status_valid
 
             today_cuadre                              = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
@@ -83,7 +71,7 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.is_nota                  = params["is_nota"]
             cabecera_factura.is_viaje                 = params["is_viaje"]
             cabecera_factura.tiene_nota               = params["tiene_nota"]
-            cabecera_factura.aplicada_a               = params["aplicada_a"]
+            cabecera_factura.pre_factura              = params["pre_factura"]
 
             dependencias = [
               {modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura},
@@ -104,9 +92,7 @@ class CabeceraFactura < ApplicationRecord
 
                 if res_valid.status_valid
                   res.set_data(cabecera_factura, {all: true})
-
-                  realizando = params["tipo_factura_id"] == TiposNotasId.credito ? "Nota de crédito" : params["tipo_factura_id"] == 4 ? "Nota de debito" : "Factura"
-                  res.add_msg("#{realizando} creada correctamente.")
+                  res.add_msg("Factura creada correctamente.")
                 else
                   res.add_msgs(res_valid.get_msgs.to_a)
                   res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -345,6 +331,39 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ===================================================================================================================================================
+  def self.get_pre_facturas(params, paginate_options)
+    res          = Response.new(paginate_options)
+
+    tipoFactura  = TipoFactura.find_by_descripcion("Pre_factura")
+
+    arg          = params["arg"]
+    tipo         = params["tipo"]
+    desde        = params["desde"].nil? ? nil : params["desde"]
+    hasta        = params["hasta"].nil? ? params["desde"] : params["hasta"]
+
+    joins_       = "inner join clientes on clientes.id = cabecera_facturas.cliente_id"
+
+    query        ={}
+    query['cabecera_facturas.tipo_factura_id']   = tipoFactura.id
+    query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if !tipo.nil? && tipo == 'all'
+
+    facturas     = CabeceraFactura.joins(joins_)
+    .where("#{where} AND lower(cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
+    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
+
+    if facturas.length > 0
+      res.set_data(facturas, {all: true})
+    else
+      cantidad_registros = CabeceraFactura.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? "No existen Pre-facturas registradas." : "No existen facturas con las especificaciones introducidas")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+
+    return res
+  end
+
+  # ===================================================================================================================================================
   def self.get_viajes_by_completar(params, paginate_options)
     res          = Response.new(paginate_options)
 
@@ -359,10 +378,10 @@ class CabeceraFactura < ApplicationRecord
 
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true, camiones: true})
+      res.set_data(cabeceras, {all: true})
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen facturas registrados." : "No existen facturas con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? "No existen facturas registradas." : "No existen facturas con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -406,7 +425,7 @@ class CabeceraFactura < ApplicationRecord
 
   def verificateFacturaHasNotas()
     res     = Response.new
-    notas   = CabeceraFactura.where({ aplicada_a: self.numero_comprobante })
+    notas   = self.facturas_aplicadas.length > 0
     res.set_data(notas.length > 0)
     return res
   end

@@ -6,70 +6,21 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-usuarios =
-  [
-    {
-      "nombre": "Panaderia Brendy",
-      "usuario": "adm01",
-      "uid": "adm01",
-      "apellido": "01",
-      "sexo": "i",
-      "telefono": "(809) 573-0060",
-      "email": "panaderia_brendy@gmail.com",
-      "fecha_nacimiento": "2022-01-01",
-      "role": "V",
-      "password": "1234567",
-      "password_confirmation": "1234567",
-      "estado": true,
-      "imagen_id": nil,
-    },
-    {
-      "nombre": "Administrador",
-      "usuario": "ADMIN",
-      "uid": "ADMIN",
-      "apellido": "sistema",
-      "sexo": "f",
-      "telefono": "(829) 292-8772",
-      "email": "admin@hotmail.com",
-      "fecha_nacimiento": "2022-01-01",
-      "role": "A",
-      "password": "1234567",
-      "password_confirmation": "1234567",
-      "estado": true,
-      "imagen_id": nil,
-    },
-  ]
 
-usuarios.each do |user|
+G_usuarios.each do |user|
   puts " "
 
   if User.find_by_usuario(user[:usuario]).nil?
-		puts "===================================".blue
-		puts "a crear el ususario #{user["ususario"]}"
-		puts "===================================".blue
+    puts "===================================".blue
+    puts "a crear el ususario #{user["ususario"]}"
+    puts "===================================".blue
     usuario_creado = User.create(user)
     puts "ERROR- Usuario: ".red + "#{usuario_creado.errors.to_json}"
     puts "Usuario: #{usuario_creado.to_json}".magenta
   end
 end
 
-
-clientes = [
-
-  {
-    "imagen_id": nil,
-    "nombre": "Cliente contado",
-    "apellido": ".",
-    "telefono": "(---) --------",
-    "direccion": "Autopista duarte KM 0 el Higuero",
-    "sexo": "i",
-    "limite_credito": 0,
-    "maximo_credito": 0,
-    "vendedor_id":1
-  },
-]
-
-clientes.each do |client|
+G_clientes.each do |client|
   if Cliente.find_by_nombre(client[:nombre]).nil?
     cliente_ = Cliente.create(client)
     puts " "
@@ -77,25 +28,7 @@ clientes.each do |client|
   end
 end
 
-documentos_de_identidad = [
-  {
-    "origen_type": "User",
-    "origen_id": 2,
-    "descripcion": "cedula",
-    "documento": "402-1463928-4",
-    "principal": "true",
-  },
-  {
-    "origen_type": "Cliente",
-    "origen_id": 1,
-    "descripcion": "cedula",
-    "documento": " ",
-    "principal": true,
-  },
-
-]
-
-documentos_de_identidad.each do |doc|
+G_documentos_de_identidad.each do |doc|
   if DocumentoDeIdentidad.find_by_documento(doc[:documento]).nil?
     documento = DocumentoDeIdentidad.create(doc)
     puts " "
@@ -103,13 +36,7 @@ documentos_de_identidad.each do |doc|
   end
 end
 
-tipos_articulo = [
-  { "descripcion": "Materia prima" },
-  { "descripcion": "Veterinaria" },
-  { "descripcion": "Producto terminado" },
-  { "descripcion": "Otros" },
-]
-tipos_articulo.each do |tipo|
+G_tipos_articulo.each do |tipo|
   if TipoArticulo.find_by_descripcion(tipo[:descripcion]).nil?
     tipo_articulo =TipoArticulo.create(tipo)
     puts " "
@@ -118,77 +45,100 @@ tipos_articulo.each do |tipo|
 end
 
 tipos_factura = [
+	# 1
   {
-    "referencia": "00",
+		"referencia": "00",
     "descripcion": "Factura sin comprobante",
   },
+	# 2
   {
-    "referencia": "01",
+		"referencia": "01",
     "descripcion": "Factura con valor fiscal",
   },
+	# 3
   {
-    "referencia": "02",
+		"referencia": "02",
     "descripcion": "Factura de consumo",
   },
+	# 4
   {
-    "referencia": "03",
+		"referencia": "03",
     "descripcion": "Nota de debito",
   },
+	# 5
   {
-    "referencia": "04",
+		"referencia": "04",
     "descripcion": "Nota de credito",
   },
+	# 6
   {
-    "referencia": "11",
+		"referencia": "11",
     "descripcion": "Comprobante de compras",
   },
+	# 7
   {
-    "referencia": "12",
+		"referencia": "12",
     "descripcion": "Registro de unico ingreso",
   },
+	# 8
   {
-    "referencia": "13",
+		"referencia": "13",
     "descripcion": "Comprobante para gastos menores",
   },
+	# 9
   {
-    "referencia": "14",
+		"referencia": "14",
     "descripcion": "Comprobante de regimen especiales",
   },
+	# 10
   {
-    "referencia": "15",
+		"referencia": "15",
     "descripcion": "Comprobante gubernamental",
   },
+	# 11
   {
-    "referencia": "16",
+		"referencia": "16",
     "descripcion": "Comprobante para exportaciones",
   },
+	# 12
   {
-    "referencia": "17",
+		"referencia": "17",
     "descripcion": "Comprobantes para pago al exterior",
   },
+	# 13
   {
-    "referencia": nil,
+		"referencia": nil,
     "descripcion": "Venta Contado",
   },
+	# 14
   {
-    "referencia": nil,
+		"referencia": nil,
     "descripcion": "Compra",
   },
+	# 15
   {
-    "referencia": nil,
+		"referencia": nil,
     "descripcion": "Conduce",
   },
+	# 16
   {
-    "referencia": nil,
+		"referencia": nil,
     "descripcion": "Produccion",
   },
+	# 17
   {
-    "referencia": nil,
+		"referencia": nil,
     "descripcion": "Recibo_ingreso",
   },
+	# 18
   {
-    "referencia": nil,
+		"referencia": nil,
     "descripcion": "Venta Credito",
+  },
+	# 19
+  {
+		"referencia": nil,
+    "descripcion": "Pre_factura",
   },
 ]
 
@@ -280,10 +230,7 @@ PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
       puts "ERROR- municipio: ".red + "#{muni.errors.to_json}"
     end
   end
-
 end
-
-
 
 G_PERMISOS.each do | permiso |
 
@@ -378,6 +325,10 @@ unless usuario_admin.nil?
     puts "ERROR- agregando role admin: ".red + "#{usuario_admin.errors.to_json}"
   end
 end
+
+# otros_roles = [
+# 	{  nombre: "Vendedor", descripcion:"Persona encargada de los procesos administrativos de la empresa.", ruta_defecto:"/", estado: true}
+# ]
 
 # G_OTROS_COSTOS.each do | otro_costo |
 # 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])
