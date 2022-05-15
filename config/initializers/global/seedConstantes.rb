@@ -2,13 +2,13 @@
 G_usuarios =
 [
   {
-    "nombre": "Panaderia Brendy",
+    "nombre": "AGRODEMI",
     "usuario": "adm01",
     "uid": "adm01",
     "apellido": "01",
     "sexo": "i",
     "telefono": "(809) 573-0060",
-    "email": "panaderia_brendy@gmail.com",
+    "email": "adm@gmail.com",
     "fecha_nacimiento": "2022-01-01",
     "role": "V",
     "password": "1234567",
@@ -67,7 +67,7 @@ G_documentos_de_identidad = [
 
 
 G_tipos_articulo = [
-  { "descripcion": "Dulces" },
+  { "descripcion": "Materia prima" },
   { "descripcion": "Veterinaria" },
   { "descripcion": "Producto terminado" },
   { "descripcion": "Otros" },

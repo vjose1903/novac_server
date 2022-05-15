@@ -401,7 +401,7 @@ class CabeceraFactura < ApplicationRecord
 
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true})
+      res.set_data(cabeceras, {all: true, camiones: true})
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen facturas registradas." : "No existen facturas con las especificaciones introducidas")
