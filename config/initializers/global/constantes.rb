@@ -149,6 +149,7 @@ module TiposNotasId
 	end
 end
 
+
 module OperadoresMovimiento
 
 	ENTRADA = "entrada"
@@ -257,6 +258,105 @@ G_PERMISOS = [
 	{ nombre:"sesion de usuario",             mostrar_front: false,    descripcion: "device",                  controlador: "devise_token_auth/sessions",     acciones: [{nombre:"iniciar sesión", descripcion: "login", metodo: "create"}]},
 	{ nombre:"roles",                         mostrar_front: true,     descripcion: "role",                    controlador: "Roles",                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getRolesFiltrados"}]}
 ]
+
+module TiposFacturasId
+	FACTURA_SIN_COMPROBANTE = 1
+	FACTURA_CON_VALOR_FISCAL = 2
+	FACTURA_DE_CONSUMO = 3
+	NOTA_DE_DEBITO = 4
+	NOTA_DE_CREDITO = 5
+	COMPROBANTE_DE_COMPRAS = 6
+	REGISTRO_DE_UNICO_INGRESO = 7
+	COMPROBANTE_PARA_GASTOS_MENORES = 8
+	COMPROBANTE_DE_REGIMEN_ESPECIALES = 9
+	COMPROBANTE_GUBERNAMENTAL = 10
+	COMPROBANTE_PARA_EXPORTACIONES = 11
+	COMPROBANTES_PARA_PAGO_AL_EXTERIOR = 12
+	VENTA_CONTADO = 13
+	COMPRA = 14
+	CONDUCE = 15
+	PRODUCCION = 16
+	RECIBO_INGRESO = 17
+	VENTA_CREDITO = 18
+	PRE_FACTURA = 19
+
+	def self.factura_sin_comprobante
+		return FACTURA_SIN_COMPROBANTE
+	end
+
+	def self.factura_con_valor_fiscal
+		return FACTURA_CON_VALOR_FISCAL
+	end
+
+	def self.factura_de_consumo
+		return FACTURA_DE_CONSUMO
+	end
+
+	def self.nota_de_debito
+		return NOTA_DE_DEBITO
+	end
+
+	def self.nota_de_credito
+		return NOTA_DE_CREDITO
+	end
+
+	def self.comprobante_de_compras
+		return COMPROBANTE_DE_COMPRAS
+	end
+
+	def self.registro_de_unico_ingreso
+		return REGISTRO_DE_UNICO_INGRESO
+	end
+
+	def self.comprobante_para_gastos_menores
+		return COMPROBANTE_PARA_GASTOS_MENORES
+	end
+
+	def self.comprobante_de_regimen_especiales
+		return COMPROBANTE_DE_REGIMEN_ESPECIALES
+	end
+
+	def self.comprobante_gubernamental
+		return COMPROBANTE_GUBERNAMENTAL
+	end
+
+	def self.comprobante_para_exportaciones
+		return COMPROBANTE_PARA_EXPORTACIONES
+	end
+
+	def self.comprobantes_para_pago_al_exterior
+		return COMPROBANTES_PARA_PAGO_AL_EXTERIOR
+	end
+
+	def self.venta_contado
+		return VENTA_CONTADO
+	end
+
+	def self.compra
+		return COMPRA
+	end
+
+	def self.conduce
+		return CONDUCE
+	end
+
+	def self.produccion
+		return PRODUCCION
+	end
+
+	def self.recibo_ingreso
+		return RECIBO_INGRESO
+	end
+
+	def self.venta_credito
+		return VENTA_CREDITO
+	end
+
+	def self.pre_factura
+		return PRE_FACTURA
+	end
+
+end
 
 
 # G_OTROS_COSTOS=[

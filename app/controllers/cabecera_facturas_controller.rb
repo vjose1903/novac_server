@@ -12,6 +12,11 @@ class CabeceraFacturasController < ApplicationController
     return Response.new(params, nil, @cabecera_factura, nil, {all: true}).send_response self
   end
 
+  def getPreFactura
+		resultado = CabeceraFactura.get_pre_facturas(params, set_paginate_options(params))
+		resultado.send_response self
+  end
+
   def getGroup
 		resultado = CabeceraFactura.get_group_facturas_by_id(params)
 		resultado.send_response self

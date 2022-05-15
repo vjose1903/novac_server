@@ -21,7 +21,7 @@ class CabeceraFactura < ApplicationRecord
     res                                    = Response.new
     CabeceraFactura.transaction do
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
-
+			# raise ActiveRecord::Rollback
       if res_secuencias.status_valid
 
         data_secuencias                    = res_secuencias.get_data
@@ -200,7 +200,7 @@ class CabeceraFactura < ApplicationRecord
     }
 
 
-    if params["tipo"] == "venta" || params["is_nota"]
+    if params["tipo"] == "venta" && params["tipo_factura_id"] != TiposFacturasId.pre_factura
 
       res_actual_paquete                            = SecuenciaComprobante.get_paquete_rnc_by_estado(params["tipo_factura_id"], true)
 
@@ -211,18 +211,19 @@ class CabeceraFactura < ApplicationRecord
     end
 
     tipoFactura = TipoFactura.find_by_id(params["tipo_factura_id"])
-
+		puts "tipoFactura ".red + "#{tipoFactura.to_json}"
     entidad_secuencia_id                          = !params["FACTURA_DE"].nil? ? params["FACTURA_DE"] : params["tipo_factura_id"]
 
     data_secuencias[:actual_secuencia_factura]    = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id)
     data_secuencias[:numero_factura]              = data_secuencias[:actual_secuencia_factura]["secuencia"] + 1
 
 
-    if params["FACTURA_DE"] == 14 # COMPRA
+    if params["FACTURA_DE"] == TiposFacturasId.compra # COMPRA
       data_secuencias[:numero_comprobante]          = params["numero_comprobante"].upcase
     else # VENTA / NOTAS
-      data_secuencias[:numero_comprobante]          = "B#{tipoFactura["referencia"]}#{"%08d" % next_secuencia_comprobante}"
+      data_secuencias[:numero_comprobante]          = "B#{tipoFactura["referencia"]}#{"%08d" % next_secuencia_comprobante}" if params["tipo_factura_id"] != TiposFacturasId.pre_factura
     end
+
 
     res.set_data(data_secuencias)
     return res
@@ -231,7 +232,7 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
   def self.update_secuencias(params, data_secuencias)
     res   = Response.new
-    if params["FACTURA_DE"] == 14
+    if params["FACTURA_DE"] == TiposFacturasId.compra
       # --------- COMPRA ---------
       unless data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
         res.add_msg("Error actualizando la tabla de secuencia de Factura Compra")
@@ -240,20 +241,40 @@ class CabeceraFactura < ApplicationRecord
     else
       # --------- VENTA / NOTA ---------
 
-      res_aumento  = nil
-      res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if data_secuencias[:actual_paquete_comprobante][:is_paquete]
+			if data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
 
-      if !res_aumento.nil? && res_aumento.status_valid
+				res_aumento  = nil
+				res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if !data_secuencias[:actual_paquete_comprobante].nil? &&  data_secuencias[:actual_paquete_comprobante][:is_paquete]
+				puts ">>>> res_aumento ".magenta + "#{res_aumento.to_json}"
+				puts "MMG ".yellow unless res_aumento.nil?
 
-        unless data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
-          res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
-          res.set_status(HTTP_STATUS_CODE[:conflict])
-        end
+				unless res_aumento.nil?
+					unless res_aumento.status_valid
+						res.add_msgs(res_aumento.get_msgs.to_a)
+						res.set_status(HTTP_STATUS_CODE[:conflict])
+					end
+				end
 
-      else
-        res.add_msgs(res_aumento.get_msgs.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
+			else
+				res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
+				res.set_status(HTTP_STATUS_CODE[:conflict])
+			end
+
+
+      # res_aumento  = nil
+      # res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if !data_secuencias[:actual_paquete_comprobante].nil? &&  data_secuencias[:actual_paquete_comprobante][:is_paquete]
+
+      # if !res_aumento.nil? && res_aumento.status_valid
+
+      #   unless data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
+      #     res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
+      #     res.set_status(HTTP_STATUS_CODE[:conflict])
+      #   end
+
+      # else
+      #   res.add_msgs(res_aumento.get_msgs.to_a)
+      #   res.set_status(HTTP_STATUS_CODE[:conflict])
+      # end
     end
 
     return res
@@ -336,26 +357,28 @@ class CabeceraFactura < ApplicationRecord
 
     tipoFactura  = TipoFactura.find_by_descripcion("Pre_factura")
 
-    arg          = params["arg"]
+    id           = params["id"]
     tipo         = params["tipo"]
     desde        = params["desde"].nil? ? nil : params["desde"]
     hasta        = params["hasta"].nil? ? params["desde"] : params["hasta"]
 
-    joins_       = "inner join clientes on clientes.id = cabecera_facturas.cliente_id"
+    joins_       = "left join clientes on clientes.id = cabecera_facturas.cliente_id"
 
     query        ={}
     query['cabecera_facturas.tipo_factura_id']   = tipoFactura.id
     query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if !tipo.nil? && tipo == 'all'
 
-    facturas     = CabeceraFactura.joins(joins_)
-    .where("#{where} AND lower(cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
+    facturas     = CabeceraFactura.joins(joins_).where(query)
+    .where("#{tipo == 'all' ? "lower(cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{id}%')" : "cabecera_facturas.numero_factura = #{params["id"].to_i}" }")
     .order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
 
+
     if facturas.length > 0
+			facturas = facturas.first if tipo == 'single'
       res.set_data(facturas, {all: true})
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen Pre-facturas registradas." : "No existen facturas con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? "No existen Pre-facturas registradas." : "No existen Pre-facturas con las especificaciones introducidas.")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

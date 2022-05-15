@@ -15,25 +15,25 @@
 # gem 'pg'
 #
 
-# default: &default
-#   adapter: postgresql
-#   encoding: unicode
-#   host: localhost
-#   username: postgres
-#   password: Vasquez1903
-#   port: 5432
-#   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-#   timeout: 5000
-
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: db
+  host: localhost
   username: postgres
   password: password
   port: 5432
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
+
+# default: &default
+#   adapter: postgresql
+#   encoding: unicode
+#   host: db
+#   username: postgres
+#   password: password
+#   port: 5432
+#   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+#   timeout: 5000
 
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
