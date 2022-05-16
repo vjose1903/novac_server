@@ -447,9 +447,9 @@ class CabeceraFactura < ApplicationRecord
   # ====================================================================================================
 
   def verificateFacturaHasNotas()
-    res     = Response.new
-    notas   = self.facturas_aplicadas.length > 0
-    res.set_data(notas.length > 0)
+    res         = Response.new
+    has_notas   = self.facturas_aplicadas.length > 0
+    res.set_data(has_notas)
     return res
   end
 
