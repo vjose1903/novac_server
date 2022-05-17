@@ -2,3 +2,4 @@
 /config/google_api_credentials.json merge=ours
 /config/initializers/global/seedConstantes.rb merge=ours
 .docker-compose.yml merge=ours
+/lib/tasks/server_db.rake merge=ours
