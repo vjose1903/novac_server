@@ -8,6 +8,7 @@ class DetalleFactura < ApplicationRecord
 
     detalle_factura                           = DetalleFactura.new
 
+
     detalle_factura.articulo_id               = params["articulo_id"]
     detalle_factura.unidad                    = params["unidad"]
     detalle_factura.total                     = params["total"]
@@ -21,6 +22,7 @@ class DetalleFactura < ApplicationRecord
     detalle_factura.descuento_valor           = params["descuento_valor"]
     detalle_factura.calcular_saco             = params["calcular_saco"] || false
     detalle_factura.detalle_factura_nota      = params["detalle_factura_nota"]
+    detalle_factura.is_defectuoso             = params["is_defectuoso"]
     detalle_factura.cabecera_factura_id       = padre["id"] if is_save
     detalle_factura.valid?
 
@@ -63,23 +65,25 @@ class DetalleFactura < ApplicationRecord
   def procesos_detalle(params, cabecera)
     res            = Response.new
 
-    begin
-      operador     = cabecera.tipo == "compra" || cabecera.tipo == "nota_credito" ? "+" : "-"
-      fecha        = cabecera.fecha_equivalente
-      accion       = cabecera.tipo.include?("nota") ? cabecera.tipo : "factura"
-    rescue => exception
-      operador     = cabecera["tipo"] == "compra" || cabecera["tipo"] == "nota_credito" ? "+" : "-"
-      fecha        = cabecera["fecha_equivalente"]
-      accion       = cabecera["tipo"].include?("nota") ? cabecera["tipo"] : "factura"
-    end
+		if cabecera.pre_factura.nil?
+			begin
+				operador     = cabecera.tipo == "compra" || cabecera.tipo == "nota_credito" ? "+" : "-"
+				fecha        = cabecera.fecha_equivalente
+				accion       = cabecera.tipo.include?("nota") ? cabecera.tipo : "factura"
+			rescue => exception
+				operador     = cabecera["tipo"] == "compra" || cabecera["tipo"] == "nota_credito" ? "+" : "-"
+				fecha        = cabecera["fecha_equivalente"]
+				accion       = cabecera["tipo"].include?("nota") ? cabecera["tipo"] : "factura"
+			end
 
 
-    res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
+			res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
 
-    unless res_movimiento.status_valid
-      res.add_msgs(res_movimiento.get_msgs.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
+			unless res_movimiento.status_valid
+				res.add_msgs(res_movimiento.get_msgs.to_a)
+				res.set_status(HTTP_STATUS_CODE[:conflict])
+			end
+		end
 
     return res
   end

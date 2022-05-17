@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_PASSWORD: password
 
-  novac_adm:
+  novac_brendy:
     build: .
     environment:
       PRUEBA: "probando"

@@ -13,7 +13,7 @@ class CuadreCaja < ApplicationRecord
       ventas_credito_total_facturado_ = 0
       ventas_contado_total_facturado_ = 0
 
-      ventas_contado = CabeceraFactura.where("(forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta') and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}'")
+      ventas_contado = CabeceraFactura.where("(forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta') and tipo_factura_id != 19 and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}'")
       .where( { tipo: "venta", condicion: "Contado", is_viaje: false  })
 
       ventas_contado.each do |factura|
@@ -21,7 +21,7 @@ class CuadreCaja < ApplicationRecord
         ventas_contado_total_facturado_ = ventas_contado_total_facturado_ + factura.total_factura
       end
 
-      ventas_credito_ = CabeceraFactura.where( "fecha_equivalente::date='#{fecha}' and lower(tipo)='venta' and  lower(condicion)='crédito'")
+      ventas_credito_ = CabeceraFactura.where( "fecha_equivalente::date='#{fecha}' and tipo_factura_id != 19 and lower(tipo)='venta' and  lower(condicion)='crédito'")
 
       ventas_credito_.each do |factura|
         ventas_credito_total_facturado_ = ventas_credito_total_facturado_ + factura.total_factura

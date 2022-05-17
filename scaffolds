@@ -138,3 +138,4 @@ rails g model chofer_viaje user:references recibos_ingreso:references
 rails generate serializer chofer_viaje
 
 rails g migration AddPre_FacturaToCabeceraFactura
+rails g migration AddIsDefectuosoToDetalleFactura

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_14_165453) do
+ActiveRecord::Schema.define(version: 2022_05_17_122750) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -220,6 +220,7 @@ ActiveRecord::Schema.define(version: 2022_05_14_165453) do
     t.datetime "updated_at", null: false
     t.boolean "calcular_saco"
     t.integer "detalle_factura_nota"
+    t.boolean "is_defectuoso"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end
@@ -446,10 +447,10 @@ ActiveRecord::Schema.define(version: 2022_05_14_165453) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
     t.string "controlador"
     t.boolean "mostrar_front"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -502,9 +503,10 @@ ActiveRecord::Schema.define(version: 2022_05_14_165453) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
+    t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.boolean "estado"
+    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|

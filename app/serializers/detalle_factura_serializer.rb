@@ -19,6 +19,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :tipo,                                       if: Proc.new { self.get_param('tipo') || self.get_param('all') }
   attribute :codigo,                                     if: Proc.new { self.get_param('codigo') || self.get_param('all') }
   attribute :descripcion,                                if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
+  attribute :is_defectuoso,                              if: Proc.new { self.get_param('is_defectuoso') || self.get_param('all') }
   attribute :unidad,                                     if: Proc.new { self.get_param('unidad') || self.get_param('all') }
   attribute :peso_saco,                                  if: Proc.new { self.get_param('peso_saco') || self.get_param('all') }
   attribute :contenidos,                                 if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
@@ -37,13 +38,13 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   end
 
   def descripcion
-    @unidad                     = object.unidad.split(" ")
+    @unidad                    = object.unidad.split(" ")
 
     if @unidad.length > 1
-			descripcion              = "#{@articuloSelect["nombre"]} (#{@unidad[2]} LBS)"
+			descripcion              = "#{@articuloSelect["nombre"]} (#{@unidad[2]} LBS) #{object.is_defectuoso ? " (D)" : ""}"
       @peso_saco               = @unidad[2]
     else
-      descripcion              = "#{@articuloSelect["nombre"]}"
+      descripcion              = "#{@articuloSelect["nombre"]} #{object.is_defectuoso ? " (D)" : ""}"
     end
 
     descripcion
