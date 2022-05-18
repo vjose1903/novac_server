@@ -37,11 +37,8 @@ class Reporte < ApplicationRecord
         end
 
         documento       = DocumentoDeIdentidad.where({ principal: true, suplidor_id: supli["id"] })
-				my_print_log("documento            ".red + "#{documento.to_json}")
-				my_print_log("documento.empty?     ".yellow + "#{documento.empty?}")
-				my_print_log("documento[documento] ".green + "#{documento["documento"]}")
 
-        suplidor["rnc"] = documento.empty? ? '----------' : documento["documento"]
+        suplidor["rnc"] = documento.empty? ? '----------' : documento.first["documento"]
         return suplidor
     end
 
