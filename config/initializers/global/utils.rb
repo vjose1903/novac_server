@@ -67,3 +67,18 @@ def pasar_choferes
     end
   end
 end
+
+def formar_permisos
+  permisos = Permiso.all
+  permisos_parsed = {}
+
+  permisos.each do | permisos |
+    permisos_parsed[permisos.descripcion] = {}
+
+    permisos.acciones.each do | accion |
+      permisos_parsed[permisos.descripcion][accion.descripcion] = "#{permisos.descripcion}_#{accion.descripcion}"
+    end
+
+  end
+	return permisos_parsed
+end

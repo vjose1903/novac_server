@@ -8,7 +8,7 @@ class PermisoSerializer < ActiveModel::Serializer
 	end
 
 	def permisos_acciones
-		serialize_parser(object.permisos_acciones, {all: true})
+		serialize_parser(object.permisos_acciones.joins(:accion).where(accion: {mostrar_front:true}), {all: true})
 	end
 
 	def get_param(col)

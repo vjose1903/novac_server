@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_17_122750) do
+ActiveRecord::Schema.define(version: 2022_05_18_145843) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 2022_05_17_122750) do
     t.string "metodo"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.boolean "mostrar_front"
   end
 
   create_table "articulos", force: :cascade do |t|
@@ -221,6 +222,7 @@ ActiveRecord::Schema.define(version: 2022_05_17_122750) do
     t.boolean "calcular_saco"
     t.integer "detalle_factura_nota"
     t.boolean "is_defectuoso"
+    t.boolean "is_devuelto"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end

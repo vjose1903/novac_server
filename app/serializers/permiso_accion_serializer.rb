@@ -1,5 +1,7 @@
 class PermisoAccionSerializer < ActiveModel::Serializer
-  attributes :id, :accion, :permiso
+  attribute :id
+	attribute :accion
+	attribute :permiso
 
 	def permiso
 		serialize_parser(object.permiso, {all: true})

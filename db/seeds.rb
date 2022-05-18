@@ -45,99 +45,99 @@ G_tipos_articulo.each do |tipo|
 end
 
 tipos_factura = [
-	# 1
+  # 1
   {
-		"referencia": "00",
+    "referencia": "00",
     "descripcion": "Factura sin comprobante",
   },
-	# 2
+  # 2
   {
-		"referencia": "01",
+    "referencia": "01",
     "descripcion": "Factura con valor fiscal",
   },
-	# 3
+  # 3
   {
-		"referencia": "02",
+    "referencia": "02",
     "descripcion": "Factura de consumo",
   },
-	# 4
+  # 4
   {
-		"referencia": "03",
+    "referencia": "03",
     "descripcion": "Nota de debito",
   },
-	# 5
+  # 5
   {
-		"referencia": "04",
+    "referencia": "04",
     "descripcion": "Nota de credito",
   },
-	# 6
+  # 6
   {
-		"referencia": "11",
+    "referencia": "11",
     "descripcion": "Comprobante de compras",
   },
-	# 7
+  # 7
   {
-		"referencia": "12",
+    "referencia": "12",
     "descripcion": "Registro de unico ingreso",
   },
-	# 8
+  # 8
   {
-		"referencia": "13",
+    "referencia": "13",
     "descripcion": "Comprobante para gastos menores",
   },
-	# 9
+  # 9
   {
-		"referencia": "14",
+    "referencia": "14",
     "descripcion": "Comprobante de regimen especiales",
   },
-	# 10
+  # 10
   {
-		"referencia": "15",
+    "referencia": "15",
     "descripcion": "Comprobante gubernamental",
   },
-	# 11
+  # 11
   {
-		"referencia": "16",
+    "referencia": "16",
     "descripcion": "Comprobante para exportaciones",
   },
-	# 12
+  # 12
   {
-		"referencia": "17",
+    "referencia": "17",
     "descripcion": "Comprobantes para pago al exterior",
   },
-	# 13
+  # 13
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Venta Contado",
   },
-	# 14
+  # 14
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Compra",
   },
-	# 15
+  # 15
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Conduce",
   },
-	# 16
+  # 16
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Produccion",
   },
-	# 17
+  # 17
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Recibo_ingreso",
   },
-	# 18
+  # 18
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Venta Credito",
   },
-	# 19
+  # 19
   {
-		"referencia": nil,
+    "referencia": nil,
     "descripcion": "Pre_factura",
   },
 ]
@@ -257,7 +257,7 @@ G_PERMISOS.each do | permiso |
       puts "------".yellow * 7
       puts "CREANDO ACCION #{accion[:descripcion]}"
       puts "------".yellow * 7
-      accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo]})
+      accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo], mostrar_front: accion[:mostrar_front]})
       puts " "
       puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}"
     end
@@ -297,16 +297,19 @@ puts "*******".green * 10
 all_permisos_aciones = PermisoAccion.all
 
 all_permisos_aciones.each do | permiso_accion_backend |
-  rol_permiso_accion_molde = {role_id:role_administrador.id , permiso_accion_id: permiso_accion_backend.id}
-  rol_permiso_accion = RolPermisoAccion.where(rol_permiso_accion_molde)
-  if rol_permiso_accion.empty?
-    rol_permiso_accion = RolPermisoAccion.create(rol_permiso_accion_molde)
-    puts " "
-    puts "------".blue * 7
-    puts "CREANDO ROL PERMISO ACCION"
-    puts "------".blue * 7
-    puts " "
-    puts "ERROR- rol_permiso_accion: ".red + "#{rol_permiso_accion.errors.to_json}"
+	puts "permiso_accion_backend.accion >>>>>>>>> ".magenta + "#{permiso_accion_backend.accion.to_json}"
+  if permiso_accion_backend.permiso.mostrar_front && permiso_accion_backend.accion.mostrar_front
+    rol_permiso_accion_molde = {role_id:role_administrador.id , permiso_accion_id: permiso_accion_backend.id}
+    rol_permiso_accion = RolPermisoAccion.where(rol_permiso_accion_molde)
+    if rol_permiso_accion.empty?
+      rol_permiso_accion = RolPermisoAccion.create(rol_permiso_accion_molde)
+      puts " "
+      puts "------".blue * 7
+      puts "CREANDO ROL PERMISO ACCION"
+      puts "------".blue * 7
+      puts " "
+      puts "ERROR- rol_permiso_accion: ".red + "#{rol_permiso_accion.errors.to_json}"
+    end
   end
 end
 
