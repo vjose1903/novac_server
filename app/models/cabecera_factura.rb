@@ -88,7 +88,8 @@ class CabeceraFactura < ApplicationRecord
               cabecera_factura.identificador      = CabeceraFactura.makeIdentificador(cabecera_factura)
               if cabecera_factura.save!
 
-                res_valid                           = CabeceraFactura.update_secuencias(params, data_secuencias)
+                res_valid                         = CabeceraFactura.update_secuencias(params, data_secuencias)
+                res_valid                         = cabecera_factura.procesos_cabecera() if res_valid.status_valid
 
                 if res_valid.status_valid
                   res.set_data(cabecera_factura, {all: true})
@@ -228,6 +229,18 @@ class CabeceraFactura < ApplicationRecord
     res.set_data(data_secuencias)
     return res
   end
+
+  # ===================================================================================================================================================
+
+  def procesos_cabecera()
+		res               = Response.new
+
+		unless self.pre_factura.nil?
+			res = CabeceraFactura.payFactura(self.pre_factura, {"deposito" => self.total_factura})
+		end
+
+		return res
+	end
 
   # ===================================================================================================================================================
   def self.update_secuencias(params, data_secuencias)
@@ -579,7 +592,8 @@ class CabeceraFactura < ApplicationRecord
     res               = Response.new
     CabeceraFactura.transaction do
       factura_a_pagar   = CabeceraFactura.find_by_id(factura_id)
-
+			puts "factura_a_pagar[balance] ".red + "#{factura_a_pagar["balance"]}"
+			puts "recibo[deposito]         ".yellow + "#{recibo["deposito"]}"
       newBalance                          = factura_a_pagar["balance"] - recibo["deposito"]
       is_pago_total                       = newBalance < 1 || recibo["deposito"] == factura_a_pagar["balance"]
 
