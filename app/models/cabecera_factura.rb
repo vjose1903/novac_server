@@ -12,6 +12,14 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
 
+  def self.models_includes
+		user_includes   = [:documentos_de_identidad, :roles_permisos_acciones ]
+		includes = [ :tipo_factura, :suplidor, {cliente: :documentos_de_identidad}, {user: user_includes}, {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}}, {detalle_recibos: {recibos_ingreso: :user}}, :facturas_aplicadas, :camiones_viajes ]
+    return includes
+  end
+
+  # ===================================================================================================================================================
+
   def is_contado
     return self.condicion == 'Contado'
   end
@@ -212,7 +220,6 @@ class CabeceraFactura < ApplicationRecord
     end
 
     tipoFactura = TipoFactura.find_by_id(params["tipo_factura_id"])
-		puts "tipoFactura ".red + "#{tipoFactura.to_json}"
     entidad_secuencia_id                          = !params["FACTURA_DE"].nil? ? params["FACTURA_DE"] : params["tipo_factura_id"]
 
     data_secuencias[:actual_secuencia_factura]    = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id)
@@ -301,7 +308,7 @@ class CabeceraFactura < ApplicationRecord
     res                = Response.new()
 
     ids                = params[:ids].split(",").map(&:to_i)
-    facturas           = CabeceraFactura.where(id: ids)
+    facturas           = CabeceraFactura.where(id: ids).includes(CabeceraFactura.models_includes)
 
     res.set_data(facturas, {all: true})
 
@@ -338,11 +345,11 @@ class CabeceraFactura < ApplicationRecord
     joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
 
 
-    facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
+    facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_)
 
 
     if facturas.length > 0
-      res.set_data(facturas, {all: true})
+      res.set_data(facturas.includes(CabeceraFactura.models_includes), {all: true})
     else
       cantidad_registros = CabeceraFactura.all.count
       res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
@@ -371,12 +378,12 @@ class CabeceraFactura < ApplicationRecord
 
     facturas     = CabeceraFactura.joins(joins_).where(query)
     .where("#{tipo == 'all' ? "lower(cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{id}%')" : "cabecera_facturas.numero_factura = #{params["id"].to_i}" }")
-    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
+    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
 
 
     if facturas.length > 0
 			facturas = facturas.first if tipo == 'single'
-      res.set_data(facturas, {all: true})
+      res.set_data(facturas.includes(CabeceraFactura.models_includes), {all: true})
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen Pre-facturas registradas." : "No existen Pre-facturas con las especificaciones introducidas.")
@@ -395,18 +402,15 @@ class CabeceraFactura < ApplicationRecord
     where        = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' AND '#{DateTime.now.end_of_day}') )"
     joins_       = "inner join clientes on clientes.id = cabecera_facturas.cliente_id"
 
-		user_includes = [:documentos_de_identidad, :roles_permisos_acciones ]
-		models_includes = [ :tipo_factura, :suplidor, {cliente: :documentos_de_identidad}, {user: user_includes}, {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}}, {detalle_recibos: {recibos_ingreso: :user}}, :facturas_aplicadas, :camiones_viajes ]
-
     cabeceras    = CabeceraFactura
     .joins(joins_)
     .where("#{where} AND lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
     .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
-		# .includes(models_includes)
+
 
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true, camiones: true})
+      res.set_data(cabeceras.includes(CabeceraFactura.models_includes), {all: true, camiones: true})
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen facturas registradas." : "No existen facturas con las especificaciones introducidas")
@@ -431,7 +435,7 @@ class CabeceraFactura < ApplicationRecord
     cabeceras.concat cabe_viajes_contado_deviendo
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true})
+      res.set_data(cabeceras.includes(CabeceraFactura.models_includes), {all: true})
     else
       res.add_msg("El cliente buscado no tiene facturas pendientes.")
       res.set_status(HTTP_STATUS_CODE[:not_found])
