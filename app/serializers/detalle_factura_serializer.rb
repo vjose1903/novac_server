@@ -24,12 +24,15 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :contenidos,                                 if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
 
   def articulo
-    @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0]
+		# TODO: hacer una peticion para solo buscar el nombre en el historico
+    # @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0]
+		@articuloSelect = object.articulo
     @articuloSelect["nombre"]
+
   end
 
   def tipo
-    object.articulo.tipo_articulo.descripcion
+    @articuloSelect.tipo_articulo.descripcion
   end
 
   def codigo

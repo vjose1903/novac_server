@@ -85,7 +85,7 @@ class Articulo < ApplicationRecord
 
         if res_historico.status_valid
 
-          res.set_data(articulo)
+          res.set_data(articulo.includes([:contenido_articulos, :formulas_productos_terminados]))
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Articulo #{action} correctamente.")
         else
@@ -140,6 +140,7 @@ class Articulo < ApplicationRecord
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
     .order("articulos.id ASC")
+		.includes([:tipo_articulo, :contenido_articulos, :formulas_productos_terminados])
 
 
     articulos = []
@@ -148,11 +149,7 @@ class Articulo < ApplicationRecord
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
-      puts " "
-      puts "fecha ".cyan + "#{fecha}"
-      puts "fecha_ultima_edicion_articulo ".blue + "#{fecha_ultima_edicion_articulo}"
       if fecha < fecha_ultima_edicion_articulo
-        puts "===========ENTRO AQUIII===========".yellow
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC")
 
         if hist.blank?
@@ -161,11 +158,11 @@ class Articulo < ApplicationRecord
         else
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           historicos.push(historico)
-
+					# TODO: aqui se estan borrando las formulas
           articulos.push(Articulo.new(historico))
         end
       else
-        puts "===========ENTRO AQUIII===========".green
+
         articulos.push(articulo)
         historicos.push(articulo)
       end

@@ -9,6 +9,7 @@ class CabeceraFactura < ApplicationRecord
   has_many :facturas_aplicadas
   has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
 
+
   # ===================================================================================================================================================
 
   def is_contado
@@ -394,10 +395,14 @@ class CabeceraFactura < ApplicationRecord
     where        = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' AND '#{DateTime.now.end_of_day}') )"
     joins_       = "inner join clientes on clientes.id = cabecera_facturas.cliente_id"
 
+		user_includes = [:documentos_de_identidad, :roles_permisos_acciones ]
+		models_includes = [ :tipo_factura, :suplidor, {cliente: :documentos_de_identidad}, {user: user_includes}, {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}}, {detalle_recibos: {recibos_ingreso: :user}}, :facturas_aplicadas, :camiones_viajes ]
+
     cabeceras    = CabeceraFactura
     .joins(joins_)
     .where("#{where} AND lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
-    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
+    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
+		# .includes(models_includes)
 
 
     if cabeceras.length > 0

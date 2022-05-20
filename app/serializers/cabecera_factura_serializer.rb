@@ -50,13 +50,11 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def detalle_facturas
-
     serialize_parser(object.detalle_facturas, {all: true})
   end
 
 
   def cliente
-        puts "object.cliente ".red + "#{object.cliente.to_json}"
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre
@@ -69,8 +67,10 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]
 
-      documento                    = object.cliente.documentos_de_identidad.find_by_principal(true)
-      cliente["rnc"]               = documento.nil? ? "----------" : documento.documento
+      # documento                    = object.cliente.documentos_de_identidad.find_by_principal(true)
+      documento                    = object.cliente.documentos_de_identidad.select { |doc| doc.principal == true }
+
+      cliente["rnc"]               = documento.empty? ? "----------" : documento.first.documento
     end
     cliente
   end
@@ -81,10 +81,10 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       supli_                        = object.suplidor.attributes
       suplidor["nombre"]            = supli_["nombre"].capitalize
       suplidor["direccion"]         = supli_["direccion"]
-            suplidor["telefono"]          = supli_["telefono"]
+      suplidor["telefono"]          = supli_["telefono"]
 
-      documento                     = object.suplidor.documentos_de_identidad.find_by_principal(true)
-      suplidor["rnc"]               = documento.nil? ? "----------" : documento.documento
+      documento                     = object.suplidor.documentos_de_identidad.select { |doc| doc.principal == true }
+      suplidor["rnc"]               = documento.empty? ? "----------" : documento.first.documento
 
 
     end
@@ -99,7 +99,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   def vendedor
     vendedor = ""
     if object.vendedor_id
-      user_vendedor = User.find_by_id(object.vendedor_id)
+      user_vendedor = # `Usuario` es un modelo.
+      User.find_by_id(object.vendedor_id)
       vendedor = user_vendedor.nombre_completo
       vendedor
     end
@@ -109,8 +110,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   def notas
     notas = []
     if object.tiene_nota
-            notas = object.facturas_aplicadas.joins("inner join notas on facturas_aplicadas.nota_id = notas.id").where("notas.estado = true")
-            notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true})
+      notas = object.facturas_aplicadas.joins("inner join notas on facturas_aplicadas.nota_id = notas.id").where("notas.estado = true")
+      notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true})
     end
     notas
   end
@@ -119,18 +120,19 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     pago_parseo    = []
 
     if ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
-      pago_          = DetalleRecibo.where({ cabecera_factura_id: object.id }).order('id DESC')
+      pagos          = object.detalle_recibos
 
-      if pago_.length > 0
-        pago_parseo  = pago_.map do |detalle_recibo|
+      if pagos.length > 0
+        pagos.map do |detalle_recibo|
+
+          recibo           = detalle_recibo.recibos_ingreso
 
           detalle_recibo   = detalle_recibo.as_json
-          recibo           = RecibosIngreso.find_by_id(detalle_recibo["recibos_ingreso_id"])
-
           detalle_recibo["numero_recibo"]     = recibo["numero_recibo"]
           detalle_recibo["recibo_creado_por"] = recibo.user.nombre_completo
           detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
-          detalle_recibo
+
+					pago_parseo.push( detalle_recibo )
         end
       end
 
