@@ -1,8 +1,6 @@
 class FormulasProductosTerminado < ApplicationRecord
   belongs_to :articulo
 
-
-
   validates :costo,     presence: { :message => "El costo del ingrediente de la formula no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
   validates :precio,    presence: { :message => "El precio del ingrediente de la formula no puede estar vacio." } , numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
 
@@ -33,8 +31,6 @@ class FormulasProductosTerminado < ApplicationRecord
     formula.costo             = params["costo"]
     formula.medida            = params["medida"]
 
-
-		puts "formula.valid? ".yellow + "#{formula.valid?}"
     formula.errors.delete(:articulo) if !is_save
 
     if formula.errors.empty? && (!is_save || (is_save && formula.save!))

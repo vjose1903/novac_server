@@ -6,7 +6,7 @@ class CuadreCaja < ApplicationRecord
     current_user     = get_current_user
 
     fecha            = params["fecha"] ? params["fecha"] : DateTime.now
-    cuadre           = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").to_a
+    cuadre           = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").includes(:user)
 
 
     if cuadre.empty?
@@ -66,9 +66,11 @@ class CuadreCaja < ApplicationRecord
       end
 
     else
-			cuadre = cuadre[0]
 
-      user_cuadro = User.find_by_id(cuadre["user_id"])
+			cuadre = cuadre.first
+
+      user_cuadro = cuadre.user
+
       obj = {
         user_id:              cuadre["user_id"],
         usuario:              user_cuadro.nombre_completo,
@@ -83,8 +85,9 @@ class CuadreCaja < ApplicationRecord
 					{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: cuadre["total_venta_credito"]},
 				]
       }
-    end
 
+    end
+		res.set_data(obj)
     return res
   end
 

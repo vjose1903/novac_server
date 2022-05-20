@@ -25,11 +25,15 @@ class User < ApplicationRecord
   validates :fecha_nacimiento,    presence: { :message => "Fecha de nacimiento del empleado no puede estar vacia." }
 
 	before_validation :otras_validaciones
+	include DeviseTokenAuth::Concerns::User
 
   def otras_validaciones
   end
 
-  include DeviseTokenAuth::Concerns::User
+	def self.models_includes
+		includes = [:documentos_de_identidad, {roles_permisos_acciones: [:role, :permiso_accion]}]
+    return includes
+	end
 
   def nombre_completo
     nombre    = self.nombre.capitalize
@@ -123,11 +127,10 @@ class User < ApplicationRecord
   # =====================================================================================================================
   def self.filtrarUsusarios(arg, params)
     res = Response.new(params)
-		models_includes = [:documentos_de_identidad, :roles_permisos_acciones ]
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
     .where("lower(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
-    .order("users.id ASC").includes(models_includes)
+    .order("users.id ASC").includes(User.models_includes)
 
     if users.length > 0
       res.set_data(users, {all: true, roles: true})

@@ -48,13 +48,16 @@ class Reporte < ApplicationRecord
         if !factura["cliente_id"].nil?
 
             cli = factura.cliente if (factura.instance_of? CabeceraFactura) || (factura.instance_of? RecibosIngreso)
-            cli = Cliente.find_by_id(factura['cliente_id']) unless (factura.instance_of? CabeceraFactura) && (factura.instance_of? RecibosIngreso)
+            cli = Cliente.find_by_id(factura['cliente_id']) if (!factura.instance_of? CabeceraFactura) && (!factura.instance_of? RecibosIngreso)
+
 
             tempNom = cli.nombre_completo
             longitud= tempNom.length
 
             cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes_str('nombre')
-            cliente["rnc"] = cli.documentos_de_identidad.where({ principal: true })[0]["documento"] if retornar.my_includes_str('rnc')
+
+            documento = cli.documentos_de_identidad.select { |doc| doc.principal == true } if retornar.my_includes_str('rnc')
+            cliente["rnc"] = documento.empty? ? "----------" : documento.first.documento   if retornar.my_includes_str('rnc')
         else
             if !factura["NoCliente_nombre"].nil?
                 cliente["nombre"] = factura["NoCliente_nombre"]
@@ -71,21 +74,20 @@ class Reporte < ApplicationRecord
         # tipo 1 = por cliente
         # tipo 2 = general detallado
         # tipo 3 = general agrupado
-        tipo = params["tipo"]
-        cliente_id = params["cliente_id"]
-        longitud = tipo == '1' ? 55 : tipo == '2' ? 75 : 100
-        cuentas_temp = []
+        tipo                = params["tipo"]
+        cliente_id          = params["cliente_id"]
+        longitud            = tipo == '1' ? 55 : tipo == '2' ? 75 : 100
+        cuentas_temp        = []
 
-        query = {}
-        query['tipo'] = "venta"
-        query['estado'] = true
+        query               = {}
+        query['tipo']       = "venta"
+        query['estado']     = true
 
         query['cliente_id'] = cliente_id if tipo == '1'
 
-        # cuentas_temp = CabeceraFactura.where(query).where("balance >= 1").order('id ASC')
-        total_cuentas = 0
-        cuentas = []
-        inicio_select = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante'}"
+        total_cuentas       = 0
+        cuentas             = []
+        inicio_select       = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante'}"
 
         select_ = ""
         if tipo == "1"
@@ -147,7 +149,7 @@ class Reporte < ApplicationRecord
     def self.get_inventario(params)
 
         inventario_temp    = []
-        inventario_temp    = Articulo.all.where({estado: true}).order('nombre ASC')
+        inventario_temp    = Articulo.all.where({estado: true}).order('nombre ASC').includes(Articulo.models_includes)
         inventario_temp    = calcularCantidades(inventario_temp)
         cantidad_articulos = inventario_temp.length
         inventario         = inventario_temp.sort_by! { |k| k["nombre"]}
@@ -161,9 +163,11 @@ class Reporte < ApplicationRecord
     def self.getInfoFactura(objeto, buscando)
         obj={}
         id = objeto.detalle_recibos[0].cabecera_factura_id
+
         buscando.each do |target|
-            obj[target]= CabeceraFactura.find_by_id(id)[target]
+          obj[target]= CabeceraFactura.find_by_id(id)[target]
         end
+
         return obj
     end
 
@@ -180,29 +184,27 @@ class Reporte < ApplicationRecord
         query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
 
         if tipo_recibo == 'todos'
-            subT='Tipo de recibo: TODOS'
-            temp = RecibosIngreso.where(query).order("id #{order}")
+          subT='Tipo de recibo: TODOS'
+          temp = RecibosIngreso.where(query).order("id #{order}").includes(RecibosIngreso.models_includes)
         else
-            if tipo_recibo == 'viajes'
-                subT='Tipo de recibo: VIAJES'
-                temp = RecibosIngreso.where(query).where.not(vehiculo_id: nil).order("id #{order}")
-            elsif tipo_recibo == 'normal'
-                subT='Tipo de recibo: NORMAL'
-                temp = RecibosIngreso.where(query).where(vehiculo_id: nil).order("id #{order}")
-            end
+          if tipo_recibo == 'viajes'
+            subT='Tipo de recibo: VIAJES'
+            temp = RecibosIngreso.where(query).where.not(vehiculo_id: nil).order("id #{order}").includes(RecibosIngreso.models_includes)
+          elsif tipo_recibo == 'normal'
+            subT='Tipo de recibo: NORMAL'
+            temp = RecibosIngreso.where(query).where(vehiculo_id: nil).order("id #{order}").includes(RecibosIngreso.models_includes)
+          end
         end
 
         total_recibido = 0
         temp.each do |recibo|
-            att = recibo.attributes
-            total_recibido += recibo['total']
+          att = recibo.attributes
+          total_recibido += recibo['total']
 
-            client = buscar_cliente(recibo, 39, ['nombre'])
-            att['cliente_nombre'] = client['nombre']
-            att['tipo_recibo'] = att["vehiculo_id"] ? 'Viaje' : 'Normal'
-            factura = getInfoFactura(recibo, ['numero_comprobante'])
-            att['factura'] = factura['numero_comprobante']
-            recibos.push(att)
+          client                 = buscar_cliente(recibo, 55, ['nombre'])
+          att['cliente_nombre']  = client['nombre']
+          att['tipo_recibo']     = att["vehiculo_id"] ? 'Viaje' : 'Normal'
+          recibos.push(att)
         end
 
         obj = { body: recibos, total: total_recibido, sub_t: subT}
@@ -266,22 +268,15 @@ class Reporte < ApplicationRecord
 
 
         CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
-        .select(select_).where(query).order("cabecera_facturas.fecha_equivalente ASC").each do | cabeza_factura |
+        .select(select_).where(query).order("cabecera_facturas.fecha_equivalente ASC").includes({detalle_recibos: [:recibos_ingreso]}).each do | cabeza_factura |
           pagos_notas  = []
-            puts " "
-            puts "cabeza_factura ===> ".yellow + "#{cabeza_factura.to_json}"
 
             total_cuentas += cabeza_factura.total_factura
             select_pago = "detalle_recibos.deposito, detalle_recibos.recibos_ingreso_id, detalle_recibos.id"
             select_nota = "cabecera_facturas.total_factura, cabecera_facturas.numero_comprobante, cabecera_facturas.fecha_equivalente, cabecera_facturas.id"
 
             cabeza_factura.detalle_recibos.select(select_pago).order("id ASC").each do | detalle_recibo |
-              puts " "
-              puts "detalle_recibo ".yellow + " #{detalle_recibo.to_json}"
-              puts "detalle_recibo.recibos_ingreso_id ".blue + " #{detalle_recibo.recibos_ingreso_id}"
-              recibo = RecibosIngreso.find_by_id(detalle_recibo.recibos_ingreso_id)
-              puts " "
-              puts "recibo ".red + " #{recibo.to_json}"
+              recibo = detalle_recibo.recibos_ingreso
               pagos_notas.push({
                 numero_documento: recibo.numero_recibo,
                 id:               detalle_recibo.id,
@@ -290,15 +285,18 @@ class Reporte < ApplicationRecord
                 total:            detalle_recibo.deposito
               })
             end
+
+            # TODO: poner aqui el select correspondiente con la nueva manera de notas
             CabeceraFactura.select(select_nota).where({aplicada_a: cabeza_factura.numero_comprobante, tipo_factura_id: 5}).order("id ASC").each do | nota |
-                pagos_notas.push({
-                  numero_documento: nota.numero_comprobante,
-                  id:               nota.id,
-                  tipo:             'Nota crédito',
-                  fecha:            nota.fecha_equivalente,
-                  total:            nota.total_factura
-                })
+              pagos_notas.push({
+                numero_documento: nota.numero_comprobante,
+                id:               nota.id,
+                tipo:             'Nota crédito',
+                fecha:            nota.fecha_equivalente,
+                total:            nota.total_factura
+              })
             end
+
             contenido_titulo = []
             contenido_titulo.push({
               fecha_equivalente:  cabeza_factura["fecha_equivalente"],
@@ -306,15 +304,14 @@ class Reporte < ApplicationRecord
               total_factura:      cabeza_factura["total_factura"],
               balance:            cabeza_factura["balance"],
             })
+
             facturas.push({
               contenido_titulo:   contenido_titulo,
               contenido_grupo:    pagos_notas.sort_by! { |k| k[:fecha].to_i }
             })
         end
 
-        # numero_comprobante IN ('B0200005287')
         cliente = Cliente.find_by_id(params["cliente_id"])
-        puts "cliente ".red + "#{cliente.to_json}"
 
         subtitulo = "Cliente: #{ cliente.nombre_completo }, Facturas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
         obj = { body: facturas, total: total_cuentas, sub_t: subtitulo}

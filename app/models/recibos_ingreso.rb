@@ -12,6 +12,18 @@ class RecibosIngreso < ApplicationRecord
   validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
 
   # =========================================================================================================================================================
+
+	def self.models_includes
+		includes = [
+			{user: :documentos_de_identidad},
+			{cliente: :documentos_de_identidad},
+			:tipo_factura,
+			{detalle_recibos: [:recibos_ingreso, :cabecera_factura]}
+		]
+		return includes
+	end
+
+  # =========================================================================================================================================================
   def self.create_update_recibo(params, is_save=false)
     res                            = Response.new
     RecibosIngreso.transaction do
@@ -103,7 +115,8 @@ class RecibosIngreso < ApplicationRecord
     .joins("inner join clientes on clientes.id = recibos_ingresos.cliente_id")
     .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
     .group("recibos_ingresos.id")
-    .order("recibos_ingresos.id DESC").to_a
+    .order("recibos_ingresos.id DESC")
+		.includes(RecibosIngreso.models_includes)
 
     if recibos.length > 0
       res.set_data(recibos, {all: true})

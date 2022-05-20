@@ -2,7 +2,7 @@ class PermisosController < ApplicationController
 	before_action :set_permiso, only: [:show]
 	# GET /permiso
 	def index
-		return Response.new(params, nil, Permiso.all, nil, get_parametros_opcionales).send_response self
+		return Response.new(params, nil, Permiso.get_all, nil, get_parametros_opcionales).send_response self
 	end
 
 	# GET /permiso/1

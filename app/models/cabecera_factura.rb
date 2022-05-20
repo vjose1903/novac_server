@@ -14,7 +14,7 @@ class CabeceraFactura < ApplicationRecord
 
   def self.models_includes
 		user_includes   = [:documentos_de_identidad, :roles_permisos_acciones ]
-		includes = [ :tipo_factura, :suplidor, {cliente: :documentos_de_identidad}, {user: user_includes}, {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}}, {detalle_recibos: {recibos_ingreso: :user}}, :facturas_aplicadas, :camiones_viajes ]
+		includes = [ :tipo_factura, :suplidor, {cliente: :documentos_de_identidad}, {user: user_includes}, {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}}, {detalle_recibos: {recibos_ingreso: :user}}, :facturas_aplicadas, {camiones_viajes: :vehiculo} ]
     return includes
   end
 

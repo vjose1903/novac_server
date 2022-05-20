@@ -9,6 +9,11 @@ class Nota < ApplicationRecord
   has_many :facturas_aplicadas, dependent: :destroy
   has_many :detalles_facturas_notas, through: :facturas_aplicadas, dependent: :destroy
 
+	def self.models_includes
+		includes = [ {user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, {facturas_aplicadas: :cabecera_factura}, {detalles_facturas_notas: [:articulo, :detalle_factura]} ]
+		return includes
+	end
+
   def self.create_nota(params)
     res                                     = Response.new
     Nota.transaction do
@@ -258,7 +263,8 @@ class Nota < ApplicationRecord
     notas = Nota
     .joins('left join clientes on clientes.id = notas.cliente_id')
     .where("lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true")
-    .order('notas.numero_comprobante DESC').to_a
+    .order('notas.numero_comprobante DESC')
+		.includes(Nota.models_includes)
 
 
     if notas.length > 0

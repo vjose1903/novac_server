@@ -22,6 +22,10 @@ class Articulo < ApplicationRecord
   def otras_validaciones
   end
 
+	def self.models_includes
+		includes = [:tipo_articulo, {contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}]
+    return includes
+	end
 
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
     res = Response.new
@@ -85,7 +89,7 @@ class Articulo < ApplicationRecord
 
         if res_historico.status_valid
 
-          res.set_data(articulo.includes([:contenido_articulos, :formulas_productos_terminados]))
+          res.set_data(articulo)
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Articulo #{action} correctamente.")
         else
@@ -140,8 +144,7 @@ class Articulo < ApplicationRecord
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
     .order("articulos.id ASC")
-		.includes([:tipo_articulo, :contenido_articulos, :formulas_productos_terminados])
-
+		.includes(Articulo.models_includes)
 
     articulos = []
     historicos = []

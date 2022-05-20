@@ -18,6 +18,11 @@ class Cliente < ApplicationRecord
     self.balance = 0 unless self.balance
   end
 
+	def self.models_includes
+		includes = [:documentos_de_identidad]
+    return includes
+	end
+
   def nombre_completo
     nombre    = self.nombre.capitalize
     nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
@@ -87,7 +92,8 @@ class Cliente < ApplicationRecord
     clientes = Cliente
     .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
     .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")
-    .order("clientes.id ASC").to_a
+    .order("clientes.id ASC")
+		.includes(Cliente.models_includes)
 
     if clientes.length > 0
       res.set_data(clientes, {all: true})

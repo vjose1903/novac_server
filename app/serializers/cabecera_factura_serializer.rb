@@ -67,9 +67,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]
 
-      # documento                    = object.cliente.documentos_de_identidad.find_by_principal(true)
       documento                    = object.cliente.documentos_de_identidad.select { |doc| doc.principal == true }
-
       cliente["rnc"]               = documento.empty? ? "----------" : documento.first.documento
     end
     cliente
