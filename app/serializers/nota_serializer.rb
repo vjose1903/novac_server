@@ -30,8 +30,8 @@ class NotaSerializer < ActiveModel::Serializer
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]
 
-      documento                    = object.cliente.documentos_de_identidad.select { |doc| doc.principal == true }
-      cliente["rnc"]               = documento.empty? ? "----------" : documento.first.documento
+      documento                    = object.cliente.documentos_de_identidad.find { |doc| doc.principal == true }
+      cliente["rnc"]               = documento.empty? ? "----------" : documento.documento
     end
     cliente
   end

@@ -56,8 +56,8 @@ class Reporte < ApplicationRecord
 
             cliente["nombre"] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes_str('nombre')
 
-            documento = cli.documentos_de_identidad.select { |doc| doc.principal == true } if retornar.my_includes_str('rnc')
-            cliente["rnc"] = documento.empty? ? "----------" : documento.first.documento   if retornar.my_includes_str('rnc')
+            documento = cli.documentos_de_identidad.find { |doc| doc.principal == true } if retornar.my_includes_str('rnc')
+            cliente["rnc"] = documento.empty? ? "----------" : documento.documento   if retornar.my_includes_str('rnc')
         else
             if !factura["NoCliente_nombre"].nil?
                 cliente["nombre"] = factura["NoCliente_nombre"]
@@ -261,57 +261,54 @@ class Reporte < ApplicationRecord
 
         total_cuentas = 0
         facturas      = []
+        cliente = nil
 
-        select_       = "cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante,
-        cabecera_facturas.total_factura, cabecera_facturas.balance"
-
-
-
-        CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
-        .select(select_).where(query).order("cabecera_facturas.fecha_equivalente ASC").includes({detalle_recibos: [:recibos_ingreso]}).each do | cabeza_factura |
+        CabeceraFactura.where(query).order("cabecera_facturas.fecha_equivalente ASC").includes([{detalle_recibos: [:recibos_ingreso]}, {facturas_aplicadas: [:notas]}, :cliente]).each do | cabeza_factura |
           pagos_notas  = []
 
-            total_cuentas += cabeza_factura.total_factura
-            select_pago = "detalle_recibos.deposito, detalle_recibos.recibos_ingreso_id, detalle_recibos.id"
-            select_nota = "cabecera_facturas.total_factura, cabecera_facturas.numero_comprobante, cabecera_facturas.fecha_equivalente, cabecera_facturas.id"
+          total_cuentas += cabeza_factura.total_factura
 
-            cabeza_factura.detalle_recibos.select(select_pago).order("id ASC").each do | detalle_recibo |
-              recibo = detalle_recibo.recibos_ingreso
-              pagos_notas.push({
-                numero_documento: recibo.numero_recibo,
-                id:               detalle_recibo.id,
-                tipo:             'Recibo ingreso',
-                fecha:            recibo.fecha_equivalente,
-                total:            detalle_recibo.deposito
+          cabeza_factura.detalle_recibos.each do | detalle_recibo |
+            recibo = detalle_recibo.recibos_ingreso
+
+            pagos_notas.push({
+              numero_documento: recibo.numero_recibo,
+              tipo:             'Recibo ingreso',
+              fecha:            recibo.fecha_equivalente,
+              total:            detalle_recibo.deposito
               })
             end
 
-            # TODO: poner aqui el select correspondiente con la nueva manera de notas
-            CabeceraFactura.select(select_nota).where({aplicada_a: cabeza_factura.numero_comprobante, tipo_factura_id: 5}).order("id ASC").each do | nota |
-              pagos_notas.push({
-                numero_documento: nota.numero_comprobante,
-                id:               nota.id,
-                tipo:             'Nota crédito',
-                fecha:            nota.fecha_equivalente,
-                total:            nota.total_factura
-              })
-            end
+          facturas_aplicadas = cabeza_factura.facturas_aplicadas.select { |factura_aplicada| factura_aplicada.nota.estado == true }
 
-            contenido_titulo = []
-            contenido_titulo.push({
-              fecha_equivalente:  cabeza_factura["fecha_equivalente"],
-              numero_comprobante: cabeza_factura["numero_comprobante"],
-              total_factura:      cabeza_factura["total_factura"],
-              balance:            cabeza_factura["balance"],
-            })
+          facturas_aplicadas.each do | fectura_aplicada |
+            nota = fectura_aplicada.nota
 
-            facturas.push({
-              contenido_titulo:   contenido_titulo,
-              contenido_grupo:    pagos_notas.sort_by! { |k| k[:fecha].to_i }
+            pagos_notas.push({
+              numero_documento: nota.numero_comprobante,
+              tipo:             'Nota crédito',
+              fecha:            nota.fecha_equivalente,
+              total:            fectura_aplicada.total
             })
+          end
+
+          contenido_titulo = []
+          contenido_titulo.push({
+            fecha_equivalente:  cabeza_factura["fecha_equivalente"],
+            numero_comprobante: cabeza_factura["numero_comprobante"],
+            total_factura:      cabeza_factura["total_factura"],
+            balance:            cabeza_factura["balance"],
+          })
+
+          facturas.push({
+            contenido_titulo:   contenido_titulo,
+            contenido_grupo:    pagos_notas.sort_by! { |k| k[:fecha].to_i }
+          })
+
+          cliente = cabeza_factura.cliente
         end
 
-        cliente = Cliente.find_by_id(params["cliente_id"])
+
 
         subtitulo = "Cliente: #{ cliente.nombre_completo }, Facturas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
         obj = { body: facturas, total: total_cuentas, sub_t: subtitulo}
@@ -334,41 +331,60 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.tipo'] = 'venta'
         query['cabecera_facturas.is_nota'] = false
 
+        # detalle_facturas.cabecera_factura_id, detalle_facturas.articulo_id, detalle_facturas.unidad, detalle_facturas.total, detalle_facturas.cantidad, detalle_facturas.cantidad_en_unidades, detalle_facturas.itbis, detalle_facturas.precio, detalle_facturas.costo, detalle_facturas.retirado, detalle_facturas.retirado_en_venta, detalle_facturas.descuento_valor, detalle_facturas.descuento_porciento, detalle_facturas.calcular_saco
+
         TipoArticulo.all.each do |tipo_articulo|
-            temp_ventas = []
-            query['articulos.tipo_articulo_id'] = tipo_articulo.id
+					total_grupo = 0
+          temp_ventas = []
+          query['articulos.tipo_articulo_id'] = tipo_articulo.id
 
-            DetalleFactura .joins(:cabecera_factura, :articulo)
-                .select("articulos.id as id,
-                    (articulos.nombre || case when articulos.calcular_saco = true then (case when detalle_facturas.calcular_saco = true then ' (Con saco)' else ' (Sin saco)' end ) else '' end) as nombre,
-                    sum(detalle_facturas.total -
-                        (select coalesce(sum(d_nota.total),0) from detalle_facturas d_nota
-                        INNER JOIN cabecera_facturas c_nota ON c_nota.id = d_nota.cabecera_factura_id
-                        where d_nota.detalle_factura_nota = detalle_facturas.id and
-                        c_nota.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as total_vendido,
-                    sum(detalle_facturas.cantidad_en_unidades -
-                        (select coalesce(sum(d_nota.cantidad_en_unidades),0) from detalle_facturas d_nota
-                        INNER JOIN cabecera_facturas c_nota ON c_nota.id = d_nota.cabecera_factura_id
-                        where d_nota.detalle_factura_nota = detalle_facturas.id and
-                        c_nota.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as cantidad_en_unidades")
-                .where(query).order('id ASC')
-                .group("articulos.id, nombre, detalle_facturas.calcular_saco")
-                .each do |df|
-                    detalle = df.attributes
-                    detalle['contenido'] = Articulo.calcularContenidos(Articulo.find_by_id(df.id), false)
-                    temp_ventas.push detalle
-                end
+          select_ = "coalesce(sum(detalles_facturas_notas.cantidad_en_unidades), 0) as cantidad_devuelto, sum(detalles_facturas_notas.total) as total_devuelto,
+                    detalle_facturas.articulo_id, sum(detalle_facturas.descuento_valor ) as descuento_valor, sum(detalle_facturas.total ) as total, sum(detalle_facturas.cantidad_en_unidades) as cantidad_en_unidades, sum(detalle_facturas.itbis) as itbis"
 
-            total_grupo = calcular_cantidad_proporcional(temp_ventas)
-            total_venta += total_grupo
+          joins_ = "inner join cabecera_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id
+                    inner join articulos on articulos.id = detalle_facturas.articulo_id
+                    left join detalles_facturas_notas on detalles_facturas_notas.detalle_factura_id  = detalle_facturas.id"
 
+          # .select("articulo_id,
+          #     (articulos.nombre || case when articulos.calcular_saco = true then (case when detalle_facturas.calcular_saco = true then ' (Con saco)' else ' (Sin saco)' end ) else '' end) as nombre,
+          #     sum(detalle_facturas.total -
+          #         (select coalesce(sum(d_nota.total),0) from detalle_facturas d_nota
+          #         INNER JOIN cabecera_facturas c_nota ON c_nota.id = d_nota.cabecera_factura_id
+          #         where d_nota.detalle_factura_nota = detalle_facturas.id and
+          #         c_nota.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as total_vendido,
+          #     sum(detalle_facturas.cantidad_en_unidades -
+          #         (select coalesce(sum(d_nota.cantidad_en_unidades),0) from detalle_facturas d_nota
+          #         INNER JOIN cabecera_facturas c_nota ON c_nota.id = d_nota.cabecera_factura_id
+          #         where d_nota.detalle_factura_nota = detalle_facturas.id and
+          #         c_nota.fecha_equivalente BETWEEN '2021-02-28 20:00:00' AND '2021-03-31 19:59:59.999999' )) as cantidad_en_unidades")
 
+          # .includes([{articulo: [:contenido_articulos]}, {cabecera_facturas: [{facturas_aplicadas: [:notas]}]} ])
 
-            ventas.push({
-              contenido_titulo:  tipo_articulo.descripcion,
-              total:             total_grupo,
-              contenido_grupo:   temp_ventas.sort_by! { |k| k['nombre']}
-            })
+          DetalleFactura.select(select_).joins(joins_).where(query).order('articulo_id ASC').group("detalle_facturas.articulo_id")
+          .includes([{articulo: [:contenido_articulos, :tipo_articulo]} ]).each do |df|
+
+            detalle                          = df.attributes
+            detalle['nombre']                = df.articulo.nombre
+            detalle['total_vendido']         = df.total - df.descuento_valor
+            detalle['total_general']         = detalle['total_vendido'] - df.total_devuelto
+            detalle['contenido']             = Articulo.calcularContenidos(df.articulo, false)
+            detalle['contenido']             = Articulo.calcularContenidos(df.articulo, false)
+
+						mostrar = calcular_cantidad_proporcional(detalle)
+            detalle['vendido_mostrar']       = mostrar["vendido_mostrar"]
+            detalle['devuelto_mostrar']      = mostrar["devuelto_mostrar"]
+						total_grupo += detalle['total_general']
+
+            temp_ventas.push detalle
+          end
+
+					total_venta += total_grupo
+
+          ventas.push({
+            contenido_titulo:  tipo_articulo.descripcion,
+            total:             total_grupo,
+            contenido_grupo:   temp_ventas.sort_by! { |k| k['nombre']}
+          })
         end
 
         ventas.push({
@@ -382,24 +398,30 @@ class Reporte < ApplicationRecord
     end
 
     # ---------------------------------------------------------------------------------------------------------
-    def self.calcular_cantidad_proporcional(productos)
-        total_venta=0
-        plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
-        productos.each do |producto|
-            medida_mostrar = ""
-            producto['contenido'].each do |key, value|
-                articulo = Articulo.find_by_id(producto[:id])
+    def self.calcular_cantidad_proporcional(producto)
+			total_venta=0
+			plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
 
-                if producto['cantidad_en_unidades'] >= value
-                    cant = producto['cantidad_en_unidades'] / value.to_f
-                    medida_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
-                    break
-                end
-            end
-            producto["medida_mostrar"] = medida_mostrar
-            total_venta += producto['total_vendido']
-        end
-        return total_venta
+			vendido_mostrar = "0.00"
+			devuelto_mostrar = "0.00"
+
+			producto['contenido'].each do |key, value|
+				if producto['cantidad_en_unidades'] >= value
+					cant = producto['cantidad_en_unidades'] / value.to_f
+					vendido_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
+					break
+				end
+			end
+
+			producto['contenido'].each do |key, value|
+				if producto['cantidad_devuelto'] >= value
+					cant = producto['cantidad_devuelto'] / value.to_f
+					devuelto_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
+					break
+				end
+			end
+
+			return { "vendido_mostrar" => vendido_mostrar, "devuelto_mostrar" => devuelto_mostrar }
     end
 
     # ---------------------------------------------------------------------------------------------------------

@@ -67,8 +67,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]
 
-      documento                    = object.cliente.documentos_de_identidad.select { |doc| doc.principal == true }
-      cliente["rnc"]               = documento.empty? ? "----------" : documento.first.documento
+      documento                    = object.cliente.documentos_de_identidad.find { |doc| doc.principal == true }
+      cliente["rnc"]               = documento.empty? ? "----------" : documento.documento
     end
     cliente
   end
@@ -81,8 +81,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       suplidor["direccion"]         = supli_["direccion"]
       suplidor["telefono"]          = supli_["telefono"]
 
-      documento                     = object.suplidor.documentos_de_identidad.select { |doc| doc.principal == true }
-      suplidor["rnc"]               = documento.empty? ? "----------" : documento.first.documento
+      documento                     = object.suplidor.documentos_de_identidad.find { |doc| doc.principal == true }
+      suplidor["rnc"]               = documento.empty? ? "----------" : documento.documento
 
 
     end
