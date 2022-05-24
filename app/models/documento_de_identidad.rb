@@ -12,11 +12,7 @@ class DocumentoDeIdentidad < ApplicationRecord
   def self.crear_actualizar_documento(params, padre, is_save=false)
     res = Response.new
 
-    unless params["id"]
-      documento              = DocumentoDeIdentidad.new
-    else
-      documento              = DocumentoDeIdentidad.find_by_id(params["id"])
-    end
+    documento                = DocumentoDeIdentidad.where(:id => params["id"]).first_or_create
 
     documento.descripcion    = params["descripcion"]
     documento.documento      = params["documento"]

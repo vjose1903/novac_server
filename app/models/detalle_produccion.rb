@@ -8,12 +8,7 @@ class DetalleProduccion < ApplicationRecord
 
   def self.crear_actualizar_detalle_produccion(params, padre, is_save=false)
     res = Response.new
-		detalle_produccion                          = DetalleProduccion.where(:id => params["id"]).first_or_create
-    # unless params["id"]
-    #   detalle_produccion                         = DetalleProduccion.new
-    # else
-    #   detalle_produccion                         = DetalleProduccion.find_by_id(params["id"])
-    # end
+		detalle_produccion                           = DetalleProduccion.where(:id => params["id"]).first_or_create
 
     detalle_produccion.articulo_id               = params["articulo_id"]
     detalle_produccion.cantidad                  = params["cantidad"]
@@ -25,6 +20,7 @@ class DetalleProduccion < ApplicationRecord
     detalle_produccion.errors.delete(:produccion) if !is_save
 
     res_proceso                            = detalle_produccion.procesos_detalle(params)
+
 
     if res_proceso.status_valid && detalle_produccion.errors.empty? && (!is_save || (is_save && detalle_produccion.save!))
       res.set_data(detalle_produccion)

@@ -77,11 +77,8 @@ class User < ApplicationRecord
 		res                           = Response.new
     User.transaction do
 
-      unless params["id"]
-        user                      = User.new
-      else
-        user                      = User.find_by_id(params["id"])
-      end
+      user                        = User.where(:id => params["id"]).first_or_create
+
 
 			user.checkRoles(params)
 
@@ -97,8 +94,9 @@ class User < ApplicationRecord
       user.estado                 = true
 
       user.roles                  = Role.where(id: params["ids_roles"])
+			user.valid?
 
-      if user.errors.empty? && user.valid?
+      if user.errors.empty?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|

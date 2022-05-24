@@ -12,12 +12,7 @@ class DetalleConduce < ApplicationRecord
   def self.crear_actualizar_detalle_conduce(params, padre, is_save=false)
     res = Response.new
 
-    unless params["id"]
-      detalle_conduce                      = DetalleConduce.new
-    else
-      detalle_conduce                      = DetalleConduce.find_by_id(params["id"])
-    end
-
+    detalle_conduce                        = DetalleConduce.where(:id => params["id"]).first_or_create
 
     detalle_conduce.detalle_factura_id     = params["detalle_factura_id"]
     detalle_conduce.articulo_id            = params["articulo_id"]
@@ -34,7 +29,7 @@ class DetalleConduce < ApplicationRecord
     if res_proceso.status_valid && detalle_conduce.errors.empty? && (!is_save || (is_save && detalle_conduce.save!))
       res.set_data(detalle_conduce)
     else
-			res.add_msgs(res_proceso.get_msgs.to_a)
+      res.add_msgs(res_proceso.get_msgs.to_a)
       res.add_msgs(detalle_conduce.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

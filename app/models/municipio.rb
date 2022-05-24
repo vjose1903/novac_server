@@ -6,11 +6,7 @@ class Municipio < ApplicationRecord
   def self.crear_actualizar_municipio(params, is_save=false)
     res = Response.new
 
-    unless params["id"]
-      municipio             = Municipio.new
-    else
-      municipio             = Municipio.find_by_id(params["id"])
-    end
+    municipio               = Municipio.where(:id => params["id"]).first_or_create
 
     municipio.nombre        = params["nombre"]
     municipio.provincia_id  = params["provincia_id"]

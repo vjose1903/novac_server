@@ -18,18 +18,14 @@ class FormulasProductosTerminado < ApplicationRecord
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
     res = Response.new
-
-    unless params["id"]
-      formula                 = FormulasProductosTerminado.new
-    else
-      formula                 = FormulasProductosTerminado.find_by_id(params["id"])
-    end
+		formula                   = FormulasProductosTerminado.where(:id => params["id"]).first_or_create
 
     formula.cantidad          = params["cantidad"]
     formula.articulo_combo    = params["articulo_combo"]
     formula.precio            = params["precio"]
     formula.costo             = params["costo"]
     formula.medida            = params["medida"]
+    formula.valid?
 
     formula.errors.delete(:articulo) if !is_save
 

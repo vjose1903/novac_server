@@ -9,16 +9,14 @@ class CabeceraConduce < ApplicationRecord
 		res = Response.new
     CabeceraConduce.transaction do
 
-      unless params["id"]
-        conduce                    = CabeceraConduce.new
-      else
-        conduce                    = CabeceraConduce.find_by_id(params["id"])
-      end
+			conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_create
 
       conduce.numero_conduce       = SecuenciaFactura.find_secuencia(15)
       conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       conduce.cliente_id           = params["cliente_id"]
       conduce.user_id              = get_current_user['id']
+
+      conduce.valid?
 
       dependencias = [
         {modelo: DetalleConduce, key_object: "detalle_conduces", padre: conduce},

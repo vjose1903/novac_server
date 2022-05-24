@@ -8,12 +8,8 @@ class DetalleRecibo < ApplicationRecord
   def self.crear_actualizar_detalle_recibo(params, padre, is_save=false)
     res = Response.new
 
-    unless params["id"]
-      detalle_recibo                            = DetalleRecibo.new
-    else
-      detalle_recibo                            = DetalleRecibo.find_by_id(params["id"])
-    end
-    
+    detalle_recibo                              = DetalleRecibo.where(:id => params["id"]).first_or_create
+
     res_valid                                   = CabeceraFactura.calculateNextBalanceFactura(params["cabecera_factura_id"], params["deposito"])
     calculo_cabecera                            = res_valid.get_data
 
@@ -26,11 +22,11 @@ class DetalleRecibo < ApplicationRecord
       detalle_recibo.deposito                   = params["deposito"] > calculo_cabecera[:balance_anterior] ? calculo_cabecera[:balance_anterior] : params["deposito"]
       detalle_recibo.descripcion                = params["descripcion"]
       detalle_recibo.pago_a_tiempo              = params["pago_a_tiempo"]
-      
+
       detalle_recibo.valid?
-      
+
       detalle_recibo.errors.delete(:recibos_ingreso) if !is_save
-      
+
       res_valid                                 = detalle_recibo.ajustarBalanceCliente(params)
       res_valid                                 = detalle_recibo.set_last_recibo_no_ultimo                          if res_valid.status_valid
       res_valid                                 = CabeceraFactura.payFactura(params["cabecera_factura_id"], params) if res_valid.status_valid
@@ -42,7 +38,7 @@ class DetalleRecibo < ApplicationRecord
         res.add_msgs(detalle_recibo.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-      
+
     else
       res.add_msgs(res_valid.get_msgs)
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -50,20 +46,20 @@ class DetalleRecibo < ApplicationRecord
     return res
     raise ActiveRecord::Rollback unless res.status_valid
   end
-  
+
   #  --------------------------------------------------------------------------------------------------------------------------------
-  
+
   def set_last_recibo_no_ultimo
     res = Response.new
-    
+
     last_recibo = DetalleRecibo.get_last_recibo_by_cabecera_factura(self.cabecera_factura_id)
-    
+
     if !last_recibo.nil? && !last_recibo.update({ is_ultimo: false })
       res.add_msgs(last_recibo.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return res 
+    return res
   end
 
 
@@ -80,27 +76,27 @@ class DetalleRecibo < ApplicationRecord
     return last_recibo[0]
   end
   #  --------------------------------------------------------------------------------------------------------------------------------
-  
+
   def ajustarBalanceCliente(params)
     res = Response.new
 
     cabecera_factura = self.cabecera_factura
     resultCliente    = Cliente.calculate_balance_cliente(cabecera_factura.cliente_id, params["deposito"], "-", true)
-    
+
     unless resultCliente.status_valid
       res.add_msg(resultCliente.get_msgs.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-    
-    return res 
+
+    return res
   end
-  
+
   #  --------------------------------------------------------------------------------------------------------------------------------
 
   def self.validar_e_inicializar(items, padre, save)
     res_valid       = Response.new
     object_valid    = {:detalles => [], :devoluciones => []}
-    
+
     items.each do |item|
       res_temp      = self.crear_actualizar_detalle_recibo(item, padre, !item[:id].nil?)
 
@@ -109,7 +105,7 @@ class DetalleRecibo < ApplicationRecord
         object_valid[:devoluciones].push(respuesta[:devolucion]) if respuesta[:devolucion][:monto] > 0
         object_valid[:detalles].push(respuesta[:detalle])
       else
-        return res_temp 
+        return res_temp
       end
     end
 

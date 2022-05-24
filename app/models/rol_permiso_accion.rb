@@ -3,14 +3,10 @@ class RolPermisoAccion < ApplicationRecord
   belongs_to :permiso_accion
 
 
-	def self.crear_actualizar(params, padre, is_save=false)
+  def self.crear_actualizar(params, padre, is_save=false)
     res = Response.new
 
-    unless params["id"]
-      rolPermisoAccion                   = RolPermisoAccion.new
-    else
-      rolPermisoAccion                   = RolPermisoAccion.find_by_id(params["id"])
-    end
+    rolPermisoAccion                     = RolPermisoAccion.where(:id => params["id"]).first_or_create
 
     rolPermisoAccion.permiso_accion_id   = params["permiso_accion_id"]
 

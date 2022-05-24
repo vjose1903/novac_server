@@ -29,11 +29,7 @@ class RecibosIngreso < ApplicationRecord
     res                            = Response.new
     RecibosIngreso.transaction do
 
-      unless params["id"]
-        recibo                     = RecibosIngreso.new
-      else
-        recibo                     = RecibosIngreso.find_by_id(params["id"])
-      end
+			recibo                       = RecibosIngreso.where(:id => params["id"]).first_or_create
 
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
@@ -51,6 +47,8 @@ class RecibosIngreso < ApplicationRecord
 
       recibo.devuelta              = params["devuelta"]
       recibo.total                 = params["total"]
+
+			recibo.valid?
 
 
       dependencias = [

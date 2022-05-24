@@ -355,6 +355,9 @@ class CabeceraFactura < ApplicationRecord
 
     facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_)
 
+		facturas.each do |klass|
+			puts "klass.id ".yellow + "#{klass.id}"
+		end
 
     if facturas.length > 0
       res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)

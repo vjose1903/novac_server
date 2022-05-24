@@ -22,10 +22,10 @@ class Articulo < ApplicationRecord
   def otras_validaciones
   end
 
-	def self.models_includes
-		includes = [:tipo_articulo, {contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}]
+  def self.models_includes
+    includes = [:tipo_articulo, {contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}]
     return includes
-	end
+  end
 
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
     res = Response.new
@@ -36,11 +36,7 @@ class Articulo < ApplicationRecord
       ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
 
 
-      unless params["id"]
-        articulo                                = Articulo.new
-      else
-        articulo                                = Articulo.find_by_id(params["id"])
-      end
+      articulo                                  = Articulo.where(:id => params["id"]).first_or_create
 
       articulo.tipo_articulo_id                 = params["tipo_articulo_id"]
       articulo.nombre                           = params["nombre"]
@@ -74,7 +70,7 @@ class Articulo < ApplicationRecord
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
 
-      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid?&& articulo.save!
+      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid? && articulo.save!
 
 
       if res.status_valid && articulo.errors.empty?
@@ -151,7 +147,9 @@ class Articulo < ApplicationRecord
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
+
       if fecha < fecha_ultima_edicion_articulo
+
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC")
 
         if hist.blank?
@@ -160,7 +158,7 @@ class Articulo < ApplicationRecord
         else
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           historicos.push(historico)
-					# TODO: aqui se estan borrando las formulas
+          # TODO: aqui se estan borrando las formulas
           articulos.push(Articulo.new(historico))
         end
       else
@@ -172,6 +170,12 @@ class Articulo < ApplicationRecord
     }
 
     if articulos.length > 0
+			# articulos.sort_by! { |k|
+			# 	puts "#{k["id"]}".red
+			# 	k["id"]
+			# }
+
+      articulos = params["paginado"].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
       res.set_data(articulos, {all: true, historicos: historicos}, Articulo.models_includes)
       # res.set_data(articulos)
     else

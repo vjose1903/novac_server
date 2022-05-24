@@ -5,17 +5,11 @@ class CostoFlete < ApplicationRecord
   validates :costo, presence: { :message => "Debe de especificar un costo." }, numericality: { greater_than: 0, :message => "El costo del flete debe de ser mayor a 0." }
 
   def self.crear_actualizar_costo(params, current_user, is_save=false)
-		res                         = Response.new
+    res                         = Response.new
     CostoFlete.transaction do
       historial                 = nil
 
-      unless params["id"]
-        costo_flete             = CostoFlete.new
-      else
-        costo_flete             = CostoFlete.find_by_id(params["id"])
-        historial               = costo_flete.attributes.clone
-      end
-
+      costo_flete               = CostoFlete.where(:id => params["id"]).first_or_create
 
       costo_flete.municipio_id  = params["municipio_id"]
       costo_flete.costo         = params["costo"]
@@ -39,10 +33,10 @@ class CostoFlete < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback unless res.status_valid
+      raise ActiveRecord::Rollback unless res.status_valid
     end
 
-		return res
+    return res
   end
 
   def self.set_historial(data, current_user)

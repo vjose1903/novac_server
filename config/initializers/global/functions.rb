@@ -299,6 +299,16 @@ class Array
     return  self.any? { |item| item[key] = value }
   end
 
+	def get_order
+		return "" if self.empty? || self[0]["id"].nil?
+
+		is_ascending = self.each_cons(2).all?{|left, right| left["id"] <= right["id"]}
+		is_desending = self.each_cons(2).all?{|left, right| left["id"] >= right["id"]}
+
+		return is_ascending ? "ASC" : is_desending ? "DESC" : ""
+
+	end
+
 	def to_activerecord_relation
 		return ApplicationRecord.none if self.empty?
 
@@ -308,7 +318,7 @@ class Array
 		clazz = clazzes.first
 		raise 'Element class is not ApplicationRecord and as such cannot be converted' unless clazz.ancestors.include? ApplicationRecord
 
-		clazz.where(id: self.map(&:id))
+		clazz.where(id: self.map(&:id)).order(self.get_order.blank? ? "" : "id #{self.get_order}")
 	end
 end
 

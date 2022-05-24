@@ -14,8 +14,6 @@ class ApplicationController < ActionController::API
 		puts " "
 		puts " ::::::: PARAMS :::::::".yellow + "#{params.to_json}"
 		puts " "
-		puts "RRRRRRRRRR " if params["controller"] == "devise_token_auth/sessions"
-		puts "MMMMMMMMMMMM " unless params["controller"] == "devise_token_auth/sessions"
 
 		unless user_signed_in?
 			render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_ssesion" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"

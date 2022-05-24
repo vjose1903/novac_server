@@ -18,11 +18,7 @@ class Role < ApplicationRecord
   def self.create_update_role(params)
     res = Response.new
 
-    unless params["id"]
-      role = Role.new
-    else
-      role = Role.find_by_id(params["id"])
-    end
+    role                = Role.where(:id => params["id"]).first_or_create
 
     role.nombre         = params["nombre"]
     role.descripcion    = params["descripcion"]
