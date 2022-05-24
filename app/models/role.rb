@@ -71,7 +71,7 @@ class Role < ApplicationRecord
     .order("roles.id ASC")
 
     if roles.length > 0
-      res.set_data(roles.includes(Role.models_includes), {permisos_acciones: true, all:true})
+      res.set_data(roles, {permisos_acciones: true, all:true}, Role.models_includes)
     else
       res.set_data([])
       cantidad_registros = Role.where({estado: true}).count

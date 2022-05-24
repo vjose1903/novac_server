@@ -8,9 +8,9 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
   attribute :devuelta,                            if: Proc.new { self.get_param('devuelta') || self.get_param('all') }
   attribute :fecha_equivalente,                   if: Proc.new { self.get_param('fecha_equivalente') || self.get_param('all') }
   attribute :estado,                              if: Proc.new { self.get_param('estado') || self.get_param('all') }
-  attribute :incidencias,                         if: Proc.new { self.get_param('incidencias') || self.get_param('all') }
   attribute :numero_recibo,                       if: Proc.new { self.get_param('numero_recibo') || self.get_param('all') }
   attribute :detalle_recibos,                     if: Proc.new { self.get_param('detalle_recibos') || self.get_param('all') }
+  attribute :incidencias,                         if: Proc.new { self.get_param('incidencias') }
 
   attribute :cliente,                             if: Proc.new { self.get_param('cliente') || self.get_param('all') }
   attribute :user,                                if: Proc.new { self.get_param('user') || self.get_param('all') }

@@ -18,7 +18,8 @@ class RecibosIngreso < ApplicationRecord
 			{user: :documentos_de_identidad},
 			{cliente: :documentos_de_identidad},
 			:tipo_factura,
-			{detalle_recibos: [:recibos_ingreso, :cabecera_factura]}
+			{detalle_recibos: [:recibos_ingreso, :cabecera_factura]},
+			{choferes_viajes: [{user: :documentos_de_identidad}]}
 		]
 		return includes
 	end
@@ -116,10 +117,9 @@ class RecibosIngreso < ApplicationRecord
     .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
     .group("recibos_ingresos.id")
     .order("recibos_ingresos.id DESC")
-		.includes(RecibosIngreso.models_includes)
 
     if recibos.length > 0
-      res.set_data(recibos, {all: true})
+      res.set_data(recibos, {all: true}, RecibosIngreso.models_includes)
     else
       cantidad_registros = RecibosIngreso.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen recibos de ingresos registrados." : "No existen recibos con las especificaciones introducidas")

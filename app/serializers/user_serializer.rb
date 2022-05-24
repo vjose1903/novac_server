@@ -16,7 +16,6 @@ class UserSerializer < ActiveModel::Serializer
   attribute :documentos_de_identidad,   if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
 
   attribute :nombreCompleto,            if: Proc.new { self.get_param('nombreCompleto')  }
-  attribute :vendedor_id,               if: Proc.new { self.get_param('vendedor_id')  }
   attribute :roles,                     if: Proc.new { self.get_param('roles')  }
   attribute :permisos,                  if: Proc.new { self.get_param('permisos')  }
   attribute :nombre_completo
@@ -45,10 +44,6 @@ class UserSerializer < ActiveModel::Serializer
 
   def documentos_de_identidad
     serialize_parser(object.documentos_de_identidad, {all: true})
-  end
-
-  def vendedor_id
-    object.id
   end
 
   def nombre_completo

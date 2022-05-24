@@ -264,11 +264,10 @@ class Nota < ApplicationRecord
     .joins('left join clientes on clientes.id = notas.cliente_id')
     .where("lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true")
     .order('notas.numero_comprobante DESC')
-		.includes(Nota.models_includes)
 
 
     if notas.length > 0
-      res.set_data(notas, {all: true})
+      res.set_data(notas, {all: true}, Nota.models_includes)
     else
       res.set_data([])
       cantidad_registros = Nota.where({estado: true}).count

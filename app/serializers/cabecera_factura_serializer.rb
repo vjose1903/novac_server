@@ -68,7 +68,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       cliente["direccion"]         = client_["direccion"]
 
       documento                    = object.cliente.documentos_de_identidad.find { |doc| doc.principal == true }
-      cliente["rnc"]               = documento.empty? ? "----------" : documento.documento
+      cliente["rnc"]               = documento.nil? ? "----------" : documento.documento
     end
     cliente
   end
@@ -82,8 +82,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
       suplidor["telefono"]          = supli_["telefono"]
 
       documento                     = object.suplidor.documentos_de_identidad.find { |doc| doc.principal == true }
-      suplidor["rnc"]               = documento.empty? ? "----------" : documento.documento
-
+      suplidor["rnc"]               = documento.nil? ? "----------" : documento.documento
 
     end
     suplidor
@@ -108,7 +107,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   def notas
     notas = []
     if object.tiene_nota
-      notas = object.facturas_aplicadas.joins("inner join notas on facturas_aplicadas.nota_id = notas.id").where("notas.estado = true")
+      notas = object.facturas_aplicadas.filter { | factura_aplicada | factura_aplicada.nota.estado == true }
       notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true})
     end
     notas

@@ -4,8 +4,8 @@ class ReportesController < ApplicationController
 			tipo_reporte = params["tipo_reporte"]
 			tipo = tipo_reporte
 			tipo_tabla = 'normal'
-			muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod','cuentas_con_pagos']
 
+			muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod','cuentas_con_pagos']
 			muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '1'
 
 			if tipo_reporte==='ventas'
@@ -50,16 +50,14 @@ class ReportesController < ApplicationController
 					body = Reporte.get_cuentas_con_pagos(params)
 					titulo = "Reporte de facturas a crédito con sus pagos"
 					tipo_tabla = 'agrupado'
-
 			end
 
-
 			mostrar_sub_titulo = {
-					bool: muestra_sub_titulo.any? { |i| [tipo_reporte].include? i },
-					sub_t: body[:sub_t]
+				bool: muestra_sub_titulo.any? { |i| [tipo_reporte].include? i },
+				sub_t: body[:sub_t]
 			}
 
-			respuesta = Reporte.estructura_reporte(titulo, tipo, body[:body], body[:total], mostrar_sub_titulo, tipo_tabla)
+			respuesta = Reporte.estructura_reporte(titulo, tipo, body[:body], body[:totalizacion], mostrar_sub_titulo, tipo_tabla)
 			my_print_log("------------ TERMINO ------------".red)
 
 			render json: respuesta, status: :ok

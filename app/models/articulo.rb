@@ -144,7 +144,6 @@ class Articulo < ApplicationRecord
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
     .where(where)
     .order("articulos.id ASC")
-		.includes(Articulo.models_includes)
 
     articulos = []
     historicos = []
@@ -173,7 +172,7 @@ class Articulo < ApplicationRecord
     }
 
     if articulos.length > 0
-      res.set_data(articulos, {all: true, historicos: historicos})
+      res.set_data(articulos, {all: true, historicos: historicos}, Articulo.models_includes)
       # res.set_data(articulos)
     else
       cantidad_registros = Articulo.where({estado: true}).count

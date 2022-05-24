@@ -21,9 +21,9 @@ class Response
 
   def set_data(data, parametros_opcionales=nil, models_includes=nil)
 
-    @paginate_class.paginate_data(data)
+    @paginate_class.paginate_data(data, models_includes)
 
-    datos = parametros_opcionales.nil? ? @paginate_class.get_data(models_includes) : serialize_parser(@paginate_class.get_data(models_includes), parametros_opcionales)
+    datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
     @res[:data]              = datos
     @res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()
     @res[:total_paginas]     = @paginate_class.get_total_paginas()    if @paginate_class.is_paginated()
@@ -73,13 +73,13 @@ class Paginator
   end
 
 
-  def paginate_data(data)
+  def paginate_data(data, models_includes=nil)
     @data_paginated["data"] = data
 
-    @data_paginated = paginate(data) if @paginate_options["paginado"]
+    @data_paginated = paginate(data, models_includes) if @paginate_options["paginado"]
   end
 
-  def paginate(items)
+  def paginate(items, models_includes=nil)
     page      = @paginate_options["page"].to_i
     per_page  = @paginate_options["per_page"].to_i
 
@@ -89,15 +89,15 @@ class Paginator
 
     total_pag = (items.length.to_f / per_page.to_f).ceil
 
-    return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
+    return { "data" => models_includes.nil? ? itemsPaginated : itemsPaginated.to_activerecord_relation.includes(models_includes) , "total_registros" => items.length, "total_paginas" => total_pag }
   end
 
   def is_paginated
     @paginate_options['paginado']
   end
 
-  def get_data(models_includes)
-		models_includes.nil? ? @data_paginated["data"] : @data_paginated["data"].includes(models_includes)
+  def get_data
+		@data_paginated["data"]
   end
 
   def get_total_registros()
@@ -298,10 +298,21 @@ class Array
   def my_includes_obj(key, value)
     return  self.any? { |item| item[key] = value }
   end
+
+	def to_activerecord_relation
+		return ApplicationRecord.none if self.empty?
+
+		clazzes = self.map(&:class).uniq
+		raise 'Array cannot be converted to ActiveRecord::Relation since it does not have same elements' if clazzes.size > 1
+
+		clazz = clazzes.first
+		raise 'Element class is not ApplicationRecord and as such cannot be converted' unless clazz.ancestors.include? ApplicationRecord
+
+		clazz.where(id: self.map(&:id))
+	end
 end
 
 # ---------------------------------------------------------------------------------------------------------
 def get_current_user
   return Thread.current[:current_user]
 end
-
