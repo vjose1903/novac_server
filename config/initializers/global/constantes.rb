@@ -255,7 +255,7 @@ G_PERMISOS = [
 	{ nombre:"tipos recibos",                 mostrar_front: true,     descripcion: "tipo_recibo",             controlador: "TipoRecibos",                    acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
 	{ nombre:"empleados",                     mostrar_front: true,     descripcion: "user",                    controlador: "Users",                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getUsuariosFiltrados"} ]},
 	{ nombre:"vehiculos",                     mostrar_front: true,     descripcion: "vehiculo",                controlador: "Vehiculos",                      acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getVehiculosFiltrados"}  ]},
-	{ nombre:"sesion de usuario",             mostrar_front: false,    descripcion: "device",                  controlador: "devise_token_auth/sessions",     acciones: [{nombre:"iniciar sesión", descripcion: "login", metodo: "create"}]},
+	{ nombre:"sesion de usuario",             mostrar_front: true,     descripcion: "device",                  controlador: "devise_token_auth/sessions",     acciones: [{nombre:"iniciar sesión", descripcion: "login", metodo: "create"}]},
 	{ nombre:"roles",                         mostrar_front: true,     descripcion: "role",                    controlador: "Roles",                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados", descripcion: "get_filtrados", metodo: "getRolesFiltrados"}]}
 ]
 
