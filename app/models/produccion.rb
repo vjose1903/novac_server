@@ -12,15 +12,11 @@ class Produccion < ApplicationRecord
     Produccion.transaction do
 
 			produccion                          = Produccion.where(:id => params["id"]).first_or_create
-      # unless params["id"]
-      #   produccion                        = Produccion.new
-      # else
-      #   produccion                        = Produccion.find_by_id(params["id"])
-      # end
 
       produccion.user_id                  = get_current_user['id']
       produccion.numero                   = SecuenciaFactura.find_secuencia(16)
       produccion.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
+      produccion.valid?
 
       dependencias = [ {modelo: DetalleProduccion, key_object: "detalles_produccion", padre: produccion} ]
 

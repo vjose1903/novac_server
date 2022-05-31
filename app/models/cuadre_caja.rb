@@ -6,14 +6,14 @@ class CuadreCaja < ApplicationRecord
     current_user     = get_current_user
 
     fecha            = params["fecha"] ? params["fecha"] : DateTime.now
-    cuadre           = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").to_a
+    cuadre           = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").includes(:user)
 
 
     if cuadre.empty?
       ventas_credito_total_facturado_ = 0
       ventas_contado_total_facturado_ = 0
 
-      ventas_contado = CabeceraFactura.where("(forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta') and tipo_factura_id != 19 and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}'")
+      ventas_contado = CabeceraFactura.where("(forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta') and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}'")
       .where( { tipo: "venta", condicion: "Contado", is_viaje: false  })
 
       ventas_contado.each do |factura|
@@ -21,7 +21,7 @@ class CuadreCaja < ApplicationRecord
         ventas_contado_total_facturado_ = ventas_contado_total_facturado_ + factura.total_factura
       end
 
-      ventas_credito_ = CabeceraFactura.where( "fecha_equivalente::date='#{fecha}' and tipo_factura_id != 19 and lower(tipo)='venta' and  lower(condicion)='crédito'")
+      ventas_credito_ = CabeceraFactura.where( "fecha_equivalente::date='#{fecha}' and lower(tipo)='venta' and  lower(condicion)='crédito'")
 
       ventas_credito_.each do |factura|
         ventas_credito_total_facturado_ = ventas_credito_total_facturado_ + factura.total_factura
@@ -66,9 +66,11 @@ class CuadreCaja < ApplicationRecord
       end
 
     else
-			cuadre = cuadre[0]
 
-      user_cuadro = User.find_by_id(cuadre["user_id"])
+			cuadre = cuadre.first
+
+      user_cuadro = cuadre.user
+
       obj = {
         user_id:              cuadre["user_id"],
         usuario:              user_cuadro.nombre_completo,
@@ -83,8 +85,9 @@ class CuadreCaja < ApplicationRecord
 					{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: cuadre["total_venta_credito"]},
 				]
       }
-    end
 
+    end
+		res.set_data(obj)
     return res
   end
 

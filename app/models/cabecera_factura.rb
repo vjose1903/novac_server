@@ -9,6 +9,23 @@ class CabeceraFactura < ApplicationRecord
   has_many :facturas_aplicadas
   has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
 
+
+  # ===================================================================================================================================================
+
+  def self.models_includes
+    user_includes   = [:documentos_de_identidad, :roles_permisos_acciones ]
+    includes = [ :tipo_factura,
+        :suplidor,
+        {cliente: :documentos_de_identidad},
+        {user: user_includes},
+        {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}},
+        {detalle_recibos: {recibos_ingreso: :user}},
+        {camiones_viajes: :vehiculo},
+        {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]}
+    ]
+    return includes
+  end
+
   # ===================================================================================================================================================
 
   def is_contado
@@ -21,7 +38,7 @@ class CabeceraFactura < ApplicationRecord
     res                                    = Response.new
     CabeceraFactura.transaction do
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
-			# raise ActiveRecord::Rollback
+      # raise ActiveRecord::Rollback
       if res_secuencias.status_valid
 
         data_secuencias                    = res_secuencias.get_data
@@ -212,7 +229,6 @@ class CabeceraFactura < ApplicationRecord
     end
 
     tipoFactura = TipoFactura.find_by_id(params["tipo_factura_id"])
-		puts "tipoFactura ".red + "#{tipoFactura.to_json}"
     entidad_secuencia_id                          = !params["FACTURA_DE"].nil? ? params["FACTURA_DE"] : params["tipo_factura_id"]
 
     data_secuencias[:actual_secuencia_factura]    = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id)
@@ -254,24 +270,24 @@ class CabeceraFactura < ApplicationRecord
     else
       # --------- VENTA / NOTA ---------
 
-			if data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
+      if data_secuencias[:actual_secuencia_factura].update({ secuencia: data_secuencias[:numero_factura] })
 
-				res_aumento  = nil
-				res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if !data_secuencias[:actual_paquete_comprobante].nil? &&  data_secuencias[:actual_paquete_comprobante][:is_paquete]
-				puts ">>>> res_aumento ".magenta + "#{res_aumento.to_json}"
-				puts "MMG ".yellow unless res_aumento.nil?
+        res_aumento  = nil
+        res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if !data_secuencias[:actual_paquete_comprobante].nil? &&  data_secuencias[:actual_paquete_comprobante][:is_paquete]
+        puts ">>>> res_aumento ".magenta + "#{res_aumento.to_json}"
+        puts "MMG ".yellow unless res_aumento.nil?
 
-				unless res_aumento.nil?
-					unless res_aumento.status_valid
-						res.add_msgs(res_aumento.get_msgs.to_a)
-						res.set_status(HTTP_STATUS_CODE[:conflict])
-					end
-				end
+        unless res_aumento.nil?
+          unless res_aumento.status_valid
+            res.add_msgs(res_aumento.get_msgs.to_a)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+        end
 
-			else
-				res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
-				res.set_status(HTTP_STATUS_CODE[:conflict])
-			end
+      else
+        res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
 
 
       # res_aumento  = nil
@@ -313,7 +329,7 @@ class CabeceraFactura < ApplicationRecord
     res                = Response.new()
 
     ids                = params[:ids].split(",").map(&:to_i)
-    facturas           = CabeceraFactura.where(id: ids)
+    facturas           = CabeceraFactura.where(id: ids).includes(CabeceraFactura.models_includes)
 
     res.set_data(facturas, {all: true})
 
@@ -350,11 +366,14 @@ class CabeceraFactura < ApplicationRecord
     joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
 
 
-    facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_).to_a
+    facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_)
 
+		facturas.each do |klass|
+			puts "klass.id ".yellow + "#{klass.id}"
+		end
 
     if facturas.length > 0
-      res.set_data(facturas, {all: true})
+      res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.all.count
       res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
@@ -377,18 +396,18 @@ class CabeceraFactura < ApplicationRecord
 
     joins_       = "left join clientes on clientes.id = cabecera_facturas.cliente_id"
 
-    query        ={}
+    query        = {}
     query['cabecera_facturas.tipo_factura_id']   = tipoFactura.id
     query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if !tipo.nil? && tipo == 'all'
 
     facturas     = CabeceraFactura.joins(joins_).where(query)
     .where("#{tipo == 'all' ? "lower(cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{id}%')" : "cabecera_facturas.numero_factura = #{params["id"].to_i}" }")
-    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
+    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
 
 
     if facturas.length > 0
-			facturas = facturas.first if tipo == 'single'
-      res.set_data(facturas, {all: true})
+      facturas = facturas.first if tipo == 'single'
+      res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen Pre-facturas registradas." : "No existen Pre-facturas con las especificaciones introducidas.")
@@ -410,11 +429,12 @@ class CabeceraFactura < ApplicationRecord
     cabeceras    = CabeceraFactura
     .joins(joins_)
     .where("#{where} AND lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
-    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
+    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
+
 
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true, camiones: true})
+      res.set_data(cabeceras, {all: true, camiones: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen facturas registradas." : "No existen facturas con las especificaciones introducidas")
@@ -439,7 +459,7 @@ class CabeceraFactura < ApplicationRecord
     cabeceras.concat cabe_viajes_contado_deviendo
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true})
+      res.set_data(cabeceras, {all: true}, CabeceraFactura.models_includes)
     else
       res.add_msg("El cliente buscado no tiene facturas pendientes.")
       res.set_status(HTTP_STATUS_CODE[:not_found])

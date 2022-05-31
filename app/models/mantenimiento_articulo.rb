@@ -112,6 +112,7 @@ class MantenimientoArticulo < ApplicationRecord
   def self.crearArticuloHistorico(historico, articulo)
 
     contenidoArticulo = articulo.contenido_articulos
+    formulaArticulo = articulo.formulas_productos_terminados
 
     articuloHistorico = {}
     articuloHistorico["id"]                     = articulo["id"]
@@ -163,19 +164,26 @@ class MantenimientoArticulo < ApplicationRecord
     end
 
     articuloHistorico["contenido_articulos"] = contents
+		puts "historico ".red + "#{historico.to_json}"
+		puts "historico[ant_isCombo] ".yellow + "#{historico["ant_isCombo"]}"
 
     if historico["ant_isCombo"]
       fomulaS = []
+
       formulas = MantenimientoFormula.where({secuencia: historico["secuencia"]})
+			formulaArticulo
+
       formulas.to_a.each do |f|
-        obj = {
-          :articulo_combo      => f["articulo_combo"],
-          :cantidad            => f["cantidad"],
-          :costo               => f["costo"],
-          :precio              => f["precio"]
-        }
+				obj_formula = {}
+				obj_formula["articulo_combo"]   = f["articulo_combo"]
+				obj_formula["cantidad"]         = f["cantidad"]
+				obj_formula["costo"]            = f["costo"]
+				obj_formula["precio"]           = f["precio"]
+
+        fomulaS.push(FormulasProductosTerminado.new(obj_formula))
       end
 
+			puts "fomulaS ".magenta + "#{fomulaS.to_json}"
       articuloHistorico["formulas_productos_terminados"] = fomulaS
     end
 

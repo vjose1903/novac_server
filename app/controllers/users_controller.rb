@@ -25,7 +25,7 @@ class UsersController < ApplicationController
   def crear_actualizar_user
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
-    
+
     resultado = User.crear_actualizar_user(parametros, true)
 		resultado.send_response self
 	end
@@ -39,7 +39,7 @@ class UsersController < ApplicationController
   end
 
 
-  def get_parametros_opcionales 
+  def get_parametros_opcionales
     return {
       nombreCompleto: params['nombreCompleto'] || false,
       all: params['all'] || false,
@@ -70,11 +70,11 @@ class UsersController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_user
-    
-    params[:id] = params[:user_id] if params[:user_id] 
+
+    params[:id] = params[:user_id] if params[:user_id]
     respuesta = set_entidad(User, params)
     @user = respuesta.get_data
-    
+
     return respuesta.send_response self if @user.nil?
   end
 end

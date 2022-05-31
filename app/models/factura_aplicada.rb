@@ -5,6 +5,16 @@ class FacturaAplicada < ApplicationRecord
 	has_many :detalles_facturas_notas, dependent: :destroy
 
 
+
+	def self.models_includes
+		includes = [
+			{nota: [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, :facturas_aplicadas, :detalles_facturas_notas]},
+			:cabecera_factura,
+			{detalles_facturas_notas: [:articulo, :detalle_factura]}
+		]
+		return includes
+	end
+
 	def self.crear_factura_aplicada(params, padre, is_save=false)
     res = Response.new
 
@@ -78,7 +88,7 @@ class FacturaAplicada < ApplicationRecord
 
 		facturas_aplicadas = {}
 		ids                = params[:ids].split(",").map(&:to_i)
-		facturas           = FacturaAplicada.where(cabecera_factura_id: ids)
+		facturas           = FacturaAplicada.where(cabecera_factura_id: ids).includes(FacturaAplicada.models_includes)
 
 
 		facturas.each do |fact_aplicada|

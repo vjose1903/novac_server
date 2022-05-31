@@ -16,23 +16,19 @@ class Suplidor < ApplicationRecord
   end
 
   def self.create_update_suplidor(params , is_save=false)
-		res                          = Response.new
+    res                          = Response.new
     Suplidor.transaction do
 
-      unless params["id"]
-        suplidor                 = Suplidor.new
-      else
-        suplidor                 = Suplidor.find_by_id(params["id"])
-      end
+      suplidor                   = Suplidor.where(:id => params["id"]).first_or_create
 
       suplidor.nombre            = params["nombre"]
       suplidor.telefono          = params["telefono"]
       suplidor.direccion         = params["direccion"]
       suplidor.email             = params["email"]
       suplidor.estado            = true
+			suplidor.valid?
 
-
-      if suplidor.errors.empty? && suplidor.valid?
+      if suplidor.errors.empty?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: suplidor }]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
@@ -75,7 +71,7 @@ class Suplidor < ApplicationRecord
       res.set_data(suplidores, {all: true})
     else
       res.set_data([])
-			cantidad_registros = Suplidor.where({estado: true}).count
+      cantidad_registros = Suplidor.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen suplidores registrados." : "No existe suplidor con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

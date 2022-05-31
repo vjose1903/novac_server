@@ -7,13 +7,9 @@ class Provincia < ApplicationRecord
   def self.crear_actualizar_provincia(params, is_save=false)
     res = Response.new
 
-    unless params["id"]
-      provincia = Provincia.new
-    else
-      provincia = Provincia.find_by_id(params["id"])
-    end
+		provincia         = Provincia.where(:id => params["id"]).first_or_create
 
-    provincia.nombre = params["nombre"]
+    provincia.nombre  = params["nombre"]
 
     provincia.valid?
 

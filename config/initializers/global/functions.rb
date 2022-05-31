@@ -3,191 +3,181 @@ require "zlib"
 require 'openssl'
 
 class Response
-	def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
-		@paginate_class = Paginator.new(params)
+  def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
+    @paginate_class = Paginator.new(params)
 
-		@res = {status:status_, data: data,  msg: msg_}
-		set_data(data, parametros_opcionales) if data && parametros_opcionales
-	end
+    @res = {status:status_, data: data,  msg: msg_}
+    set_data(data, parametros_opcionales) if data && parametros_opcionales
+  end
 
-	def set_status(status)
-		@res[:status] = status
-	end
+  def set_status(status)
+    @res[:status] = status
+  end
 
-	def status_valid
-		@res[:status] == HTTP_STATUS_CODE[:ok]
+  def status_valid
+    @res[:status] == HTTP_STATUS_CODE[:ok]
 
-	end
+  end
 
-	def set_data(data, parametros_opcionales=nil)
+  def set_data(data, parametros_opcionales=nil, models_includes=nil)
 
-		# paginate = nil
-		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
-		@paginate_class.paginate_data(data)
+    @paginate_class.paginate_data(data, models_includes)
 
-		data_ = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
-		@res[:data]              = data_
-		@res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()
-		@res[:total_paginas]     = @paginate_class.get_total_paginas()    if @paginate_class.is_paginated()
+    datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
+    @res[:data]              = datos
+    @res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()
+    @res[:total_paginas]     = @paginate_class.get_total_paginas()    if @paginate_class.is_paginated()
 
-		# paginate = nil
-		# paginate = data.to_a.my_paginate(paginate_options['page'], paginate_options['per_page']) if paginate_options && paginate_options['paginado']
+  end
 
-		# data = serialize_parser(data , parametros_opcionales) unless parametros_opcionales.nil?
+  def has_data
+    !@res[:data].nil?
+  end
 
-		# @res[:data]             = data
-		# @res[:total_registros]  = paginate_options["total_registros"]  if paginate_options
-		# @res[:total_paginas]    = paginate_options["total_paginas"] if paginate_options
-	end
+  def get_data
+    @res[:data]
+  end
 
-	def has_data
-		!@res[:data].nil?
-	end
+  def add_msg(msg)
+    @res[:msg].push(msg) if msg.length > 0
+  end
 
-	def get_data
-		@res[:data]
-	end
+  def add_msgs(msgs)
+    msgs.each do |msg|
+      @res[:msg].push(msg) if msg.length > 0
+    end
+  end
 
-	def add_msg(msg)
-		@res[:msg].push(msg) if msg.length > 0
-	end
+  def get_msgs
+    @res[:msg]
+  end
 
-	def add_msgs(msgs)
-		msgs.each do |msg|
-			@res[:msg].push(msg) if msg.length > 0
-		end
-	end
-
-	def get_msgs
-		@res[:msg]
-	end
-
-	def send_response(controller)
-		controller.render json: @res.except(:status) , status: @res[:status]
-	end
+  def send_response(controller)
+    controller.render json: @res.except(:status) , status: @res[:status]
+  end
 end
 
 
 class Paginator
-	def initialize(params)
-		@paginate_options = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
-		@data_paginated={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
-		set_pagination_options(params)
-	end
+  def initialize(params)
+    @paginate_options = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
+    @data_paginated={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
+    set_pagination_options(params)
+  end
 
-	def set_pagination_options(params)
-		@paginate_options["page"]     = params['page']       if params && !params['page'].nil?
-		@paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
-		@paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
+  def set_pagination_options(params)
+    @paginate_options["page"]     = params['page']       if params && !params['page'].nil?
+    @paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
+    @paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
 
-	end
+  end
 
 
-	def paginate_data(data)
-		@data_paginated["data"] = data
+  def paginate_data(data, models_includes=nil)
+    @data_paginated["data"] = data
 
-		@data_paginated = paginate(data) if @paginate_options["paginado"]
-	end
+    @data_paginated = paginate(data, models_includes) if @paginate_options["paginado"]
+  end
 
-	def paginate(items)
-		page      = @paginate_options["page"].to_i
-		per_page  = @paginate_options["per_page"].to_i
+  def paginate(items, models_includes=nil)
+    page      = @paginate_options["page"].to_i
+    per_page  = @paginate_options["per_page"].to_i
 
-		inicio    = (page - 1).abs * per_page
+    inicio    = (page - 1).abs * per_page
 
-		itemsPaginated = items[inicio, per_page]
+    itemsPaginated = items[inicio, per_page]
 
-		total_pag = (items.length.to_f / per_page.to_f).ceil
+    total_pag = (items.length.to_f / per_page.to_f).ceil
 
-		return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
-	end
+    return { "data" => models_includes.nil? ? itemsPaginated : itemsPaginated.to_activerecord_relation.includes(models_includes) , "total_registros" => items.length, "total_paginas" => total_pag }
+  end
 
-	def is_paginated
-		@paginate_options['paginado']
-	end
+  def is_paginated
+    @paginate_options['paginado']
+  end
 
-	def get_data()
+  def get_data
 		@data_paginated["data"]
-	end
+  end
 
-	def get_total_registros()
-		@data_paginated["total_registros"]
-	end
+  def get_total_registros()
+    @data_paginated["total_registros"]
+  end
 
-	def get_total_paginas()
-		@data_paginated["total_paginas"]
-	end
+  def get_total_paginas()
+    @data_paginated["total_paginas"]
+  end
 
 end
 
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
-	pde = {"page" => params['page']|| 0, "per_page" => params['per_page'] || 0, "paginado" => params['paginado'].to_boolean || false}
-	return pde
+  pde = {"page" => params['page']|| 0, "per_page" => params['per_page'] || 0, "paginado" => params['paginado'].to_boolean || false}
+  return pde
 end
 # ---------------------------------------------------------------------------------------------------------
 
 def serialize_parser(modelo, params={})
-	ActiveModelSerializers::SerializableResource.new(modelo, params)
+  ActiveModelSerializers::SerializableResource.new(modelo, params)
 end
 # ---------------------------------------------------------------------------------------------------------
 
 def set_entidad(modelo, params, key="id")
-	res = Response.new
-	where = { "#{key}": params[key]}
-	entidad = modelo.where(where)
+  res = Response.new
+  where = { "#{key}": params[key]}
+  entidad = modelo.where(where)
 
-	unless entidad.length == 0
-		res.set_data(entidad.first)
-	else
-		res.set_status(HTTP_STATUS_CODE[:not_found])
-		res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", otro_valor:""))
-	end
+  unless entidad.length == 0
+    res.set_data(entidad.first)
+  else
+    res.set_status(HTTP_STATUS_CODE[:not_found])
+    res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", otro_valor:""))
+  end
 
-	return res
+  return res
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 def traducir(key, others=nil)
-	others_tem = {}
-	unless others.nil?
-		others.keys.each do |key_|
-			others_tem[key_] = (:valor == key_ or :otro_valor == key_) ? others[key_] : I18n.t(others[key_])
-		end
+  others_tem = {}
+  unless others.nil?
+    others.keys.each do |key_|
+      others_tem[key_] = (:valor == key_ or :otro_valor == key_) ? others[key_] : I18n.t(others[key_])
+    end
 
-		texto_traducido = I18n.t(key, **others_tem)
-	else
-		texto_traducido = I18n.t(key)
-	end
+    texto_traducido = I18n.t(key, **others_tem)
+  else
+    texto_traducido = I18n.t(key)
+  end
 
-	texto_traducido = texto_traducido.kind_of?(Array)? texto_traducido : [texto_traducido]
+  texto_traducido = texto_traducido.kind_of?(Array)? texto_traducido : [texto_traducido]
 
-	return texto_traducido.join(" ")
+  return texto_traducido.join(" ")
 end
 # ---------------------------------------------------------------------------------------------------------
 def borrar_entidad(obj)
-	res = Response.new
+  res = Response.new
 
-	begin
-		obj.destroy
-	rescue => exception
-		obj.estado = false
-		unless obj.save!
-			res.set_status(HTTP_STATUS_CODE[:conflict])
-			res.add_msg("Error borrando #{obj.model_name.element}.")
-			return res
-		end
-	end
-	res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
-	return res
+  begin
+    obj.destroy
+  rescue => exception
+    obj.estado = false
+    unless obj.save!
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.add_msg("Error borrando #{obj.model_name.element}.")
+      return res
+    end
+  end
+  res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
+  return res
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 
 def encrypt(str)
-	cipher_salt1 = '013213810'
+  cipher_salt1 = '013213810'
   cipher_salt2 = '013213810'
   cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').encrypt
   cipher.key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(cipher_salt1, cipher_salt2, 20_000, cipher.key_len)
@@ -241,31 +231,31 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def encriptarZlib(data_to_compress)
-	data_compressed = Zlib::Deflate.deflate(data_to_compress)
-	return data_compressed
+  data_compressed = Zlib::Deflate.deflate(data_to_compress)
+  return data_compressed
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 def desencriptarZlib(data_compressed)
-	uncompressed_data = Zlib::Inflate.inflate(data_compressed)
-	return uncompressed_data
+  uncompressed_data = Zlib::Inflate.inflate(data_compressed)
+  return uncompressed_data
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 def dobleEncriptar(data_to_compress)
-	data_compressed            = encriptarZlib(data_to_compress)
-	data_doble_compressed      = encriptarBase64(data_compressed)
-	return data_doble_compressed
+  data_compressed            = encriptarZlib(data_to_compress)
+  data_doble_compressed      = encriptarBase64(data_compressed)
+  return data_doble_compressed
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 def dobleDesEncriptar(data_to_compress)
-	data_doble_compressed      = desencriptarBase64(data_compressed)
-	data_uncompressed          = desencriptarZlib(data_doble_compressed)
-	return data_uncompressed
+  data_doble_compressed      = desencriptarBase64(data_compressed)
+  data_uncompressed          = desencriptarZlib(data_doble_compressed)
+  return data_uncompressed
 end
 # ---------------------------------------------------------------------------------------------------------
 def updateSecuencias(tipo_secuencia_id)
@@ -285,33 +275,54 @@ def updateSecuencias(tipo_secuencia_id)
 # ---------------------------------------------------------------------------------------------------------
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
-	dependencias.each do |dependencia|
-		if !parametros[dependencia[:key_object]].nil? && parametros[dependencia[:key_object]].kind_of?(Array)
-			res_dependencia = dependencia[:modelo].validar_e_inicializar(parametros[dependencia[:key_object]], dependencia[:padre], save)
-			if res_dependencia.status_valid
-				yield dependencia[:key_object], res_dependencia.get_data if block_given?
-			else
-				return res_dependencia
-			end
-		end
-	end
+  dependencias.each do |dependencia|
+    if !parametros[dependencia[:key_object]].nil? && parametros[dependencia[:key_object]].kind_of?(Array)
+      res_dependencia = dependencia[:modelo].validar_e_inicializar(parametros[dependencia[:key_object]], dependencia[:padre], save)
+      if res_dependencia.status_valid
+        yield dependencia[:key_object], res_dependencia.get_data if block_given?
+      else
+        return res_dependencia
+      end
+    end
+  end
 
-	return Response.new
+  return Response.new
 end
 
 # ---------------------------------------------------------------------------------------------------------
 class Array
-	def my_includes_str(str)
-		return  self.any? { |i| [str].include? i }
+  def my_includes_str(str)
+    return  self.any? { |i| [str].include? i }
+  end
+
+  def my_includes_obj(key, value)
+    return  self.any? { |item| item[key] = value }
+  end
+
+	def get_order
+		return "" if self.empty? || self[0]["id"].nil?
+
+		is_ascending = self.each_cons(2).all?{|left, right| left["id"] <= right["id"]}
+		is_desending = self.each_cons(2).all?{|left, right| left["id"] >= right["id"]}
+
+		return is_ascending ? "ASC" : is_desending ? "DESC" : ""
+
 	end
 
-	def my_includes_obj(key, value)
-		return  self.any? { |item| item[key] = value }
+	def to_activerecord_relation
+		return ApplicationRecord.none if self.empty?
+
+		clazzes = self.map(&:class).uniq
+		raise 'Array cannot be converted to ActiveRecord::Relation since it does not have same elements' if clazzes.size > 1
+
+		clazz = clazzes.first
+		raise 'Element class is not ApplicationRecord and as such cannot be converted' unless clazz.ancestors.include? ApplicationRecord
+
+		clazz.where(id: self.map(&:id)).order(self.get_order.blank? ? "" : "id #{self.get_order}")
 	end
 end
 
 # ---------------------------------------------------------------------------------------------------------
 def get_current_user
-	return Thread.current[:current_user]
+  return Thread.current[:current_user]
 end
-

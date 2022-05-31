@@ -2,12 +2,13 @@ class DetalleFactura < ApplicationRecord
   belongs_to :cabecera_factura
   belongs_to :articulo
 
+	has_one :detalles_facturas_notas
+
   #  --------------------------------------------------------------------------------------------------------------------------------
   def self.crear_detalle_factura(params, padre, is_save=false)
     res = Response.new
 
     detalle_factura                           = DetalleFactura.new
-
 
     detalle_factura.articulo_id               = params["articulo_id"]
     detalle_factura.unidad                    = params["unidad"]

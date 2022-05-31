@@ -12,15 +12,24 @@ class RecibosIngreso < ApplicationRecord
   validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
 
   # =========================================================================================================================================================
+
+	def self.models_includes
+		includes = [
+			{user: :documentos_de_identidad},
+			{cliente: :documentos_de_identidad},
+			:tipo_factura,
+			{detalle_recibos: [:recibos_ingreso, :cabecera_factura]},
+			{choferes_viajes: [{user: :documentos_de_identidad}]}
+		]
+		return includes
+	end
+
+  # =========================================================================================================================================================
   def self.create_update_recibo(params, is_save=false)
     res                            = Response.new
     RecibosIngreso.transaction do
 
-      unless params["id"]
-        recibo                     = RecibosIngreso.new
-      else
-        recibo                     = RecibosIngreso.find_by_id(params["id"])
-      end
+			recibo                       = RecibosIngreso.where(:id => params["id"]).first_or_create
 
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
@@ -38,6 +47,8 @@ class RecibosIngreso < ApplicationRecord
 
       recibo.devuelta              = params["devuelta"]
       recibo.total                 = params["total"]
+
+			recibo.valid?
 
 
       dependencias = [
@@ -103,10 +114,10 @@ class RecibosIngreso < ApplicationRecord
     .joins("inner join clientes on clientes.id = recibos_ingresos.cliente_id")
     .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
     .group("recibos_ingresos.id")
-    .order("recibos_ingresos.id DESC").to_a
+    .order("recibos_ingresos.id DESC")
 
     if recibos.length > 0
-      res.set_data(recibos, {all: true})
+      res.set_data(recibos, {all: true}, RecibosIngreso.models_includes)
     else
       cantidad_registros = RecibosIngreso.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen recibos de ingresos registrados." : "No existen recibos con las especificaciones introducidas")

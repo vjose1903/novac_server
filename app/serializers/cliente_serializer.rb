@@ -16,23 +16,19 @@ class ClienteSerializer < ActiveModel::Serializer
   attribute :nombre_completo
 
   def vendedor
-		vendedor = User.find_by_id(object.vendedor_id)
+    vendedor = User.find_by_id(object.vendedor_id)
     serialize_parser(vendedor, {nombre: true, apellido: true, vendedor_id: true })
-	end
+  end
 
   def nombre_completo
-		vendedor = object.nombre_completo
-	end
+    vendedor = object.nombre_completo
+  end
 
   def documentos_de_identidad
-    documentos = []
-    object.documentos_de_identidad.each do |documento|
-      documentos.push(serialize_parser(documento, {}))
-    end
-    documentos
+    serialize_parser(object.documentos_de_identidad, {all: true})
   end
 
   def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+    return @instance_options[:"#{col}"]
+  end
 end

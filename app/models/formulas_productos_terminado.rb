@@ -1,8 +1,6 @@
 class FormulasProductosTerminado < ApplicationRecord
   belongs_to :articulo
 
-
-
   validates :costo,     presence: { :message => "El costo del ingrediente de la formula no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
   validates :precio,    presence: { :message => "El precio del ingrediente de la formula no puede estar vacio." } , numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
 
@@ -20,21 +18,15 @@ class FormulasProductosTerminado < ApplicationRecord
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
     res = Response.new
-
-    unless params["id"]
-      formula                 = FormulasProductosTerminado.new
-    else
-      formula                 = FormulasProductosTerminado.find_by_id(params["id"])
-    end
+		formula                   = FormulasProductosTerminado.where(:id => params["id"]).first_or_create
 
     formula.cantidad          = params["cantidad"]
     formula.articulo_combo    = params["articulo_combo"]
     formula.precio            = params["precio"]
     formula.costo             = params["costo"]
     formula.medida            = params["medida"]
+    formula.valid?
 
-
-		puts "formula.valid? ".yellow + "#{formula.valid?}"
     formula.errors.delete(:articulo) if !is_save
 
     if formula.errors.empty? && (!is_save || (is_save && formula.save!))

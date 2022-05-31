@@ -18,6 +18,11 @@ class Cliente < ApplicationRecord
     self.balance = 0 unless self.balance
   end
 
+  def self.models_includes
+    includes = [:documentos_de_identidad]
+    return includes
+  end
+
   def nombre_completo
     nombre    = self.nombre.capitalize
     nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
@@ -28,14 +33,10 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.create_update_cliente(params , is_save=false)
-		res                            = Response.new
+    res                            = Response.new
     Cliente.transaction do
 
-      unless params["id"]
-        cliente                    = Cliente.new
-      else
-        cliente                    = Cliente.find_by_id(params["id"])
-      end
+      cliente                      = Cliente.where(:id => params["id"]).first_or_create
 
       cliente.imagen_id            = params["imagen_id"]
       cliente.nombre               = params["nombre"]
@@ -71,29 +72,28 @@ class Cliente < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback unless res.status_valid
+      raise ActiveRecord::Rollback unless res.status_valid
     end
 
-		return res
+    return res
   end
-
 
 
   # =========================================================================================================================================================
 
   def self.filtrarCliente(arg, params)
     res = Response.new(params)
-
+    puts "arg ". red + "#{arg}"
     clientes = Cliente
     .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
     .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")
-    .order("clientes.id ASC").to_a
+    .order("clientes.id ASC")
 
     if clientes.length > 0
-      res.set_data(clientes, {all: true})
+      res.set_data(clientes, {all: true}, Cliente.models_includes)
     else
       res.set_data([])
-			cantidad_registros = Cliente.where({estado: true}).count
+      cantidad_registros = Cliente.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen clientes registrados." : "No existe cliente con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
