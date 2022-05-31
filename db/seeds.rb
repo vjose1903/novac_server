@@ -233,48 +233,51 @@ PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
 end
 
 G_PERMISOS.each do | permiso |
+	if permiso[:mostrar_front]
+		permiso_backend = Permiso.find_by_descripcion(permiso[:descripcion])
 
-  permiso_backend = Permiso.find_by_descripcion(permiso[:descripcion])
+		if permiso_backend.nil?
+			puts "------".red * 7
+			puts "CREANDO PERMISO: #{permiso[:descripcion]}"
+			puts "------".red * 7
+			permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
+			puts " "
+			puts "ERROR- permiso: ".red + "#{permiso_backend.errors.to_json}"
+		end
 
-  if permiso_backend.nil?
-    puts "------".red * 7
-    puts "CREANDO PERMISO: #{permiso[:descripcion]}"
-    puts "------".red * 7
-    permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
-    puts " "
-    puts "ERROR- permiso: ".red + "#{permiso_backend.errors.to_json}"
-  end
+		puts " "
+		puts "permiso_backend ".red + "#{permiso_backend.to_json}"
+		puts " "
 
-  puts " "
-  puts "permiso_backend ".red + "#{permiso_backend.to_json}"
-  puts " "
+		permiso[:acciones].each do | accion |
+			if accion[:mostrar_front]
+				accion_backend = Accion.find_by_descripcion(accion[:descripcion])
 
-  permiso[:acciones].each do | accion |
-    accion_backend = Accion.find_by_descripcion(accion[:descripcion])
+				if accion_backend.nil?
+					puts " "
+					puts "------".yellow * 7
+					puts "CREANDO ACCION #{accion[:descripcion]}"
+					puts "------".yellow * 7
+					accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo], mostrar_front: accion[:mostrar_front]})
+					puts " "
+					puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}"
+				end
+				puts "accion_backend ".red + "#{accion_backend.to_json}"
 
-    if accion_backend.nil?
-      puts " "
-      puts "------".yellow * 7
-      puts "CREANDO ACCION #{accion[:descripcion]}"
-      puts "------".yellow * 7
-      accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo], mostrar_front: accion[:mostrar_front]})
-      puts " "
-      puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}"
-    end
-    puts "accion_backend ".red + "#{accion_backend.to_json}"
+				permiso_accion = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
 
-    permiso_accion = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
-
-    if permiso_accion.empty?
-      perm_action = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
-      puts " "
-      puts "------".magenta * 7
-      puts "CREANDO PERMISO_ACCION"
-      puts "------".magenta * 7
-      puts " "
-      puts "ERROR- permiso_accion: ".red + "#{perm_action.errors.to_json}"
-    end
-  end
+				if permiso_accion.empty?
+					perm_action = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+					puts " "
+					puts "------".magenta * 7
+					puts "CREANDO PERMISO_ACCION"
+					puts "------".magenta * 7
+					puts " "
+					puts "ERROR- permiso_accion: ".red + "#{perm_action.errors.to_json}"
+				end
+			end
+		end
+	end
 end
 
 puts "*******".green * 10
