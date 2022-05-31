@@ -104,4 +104,5 @@ development:
 production:
   <<: *default
   database: panaderia_brendy_production
-  host: admservidor.ddns.net
+  # host: admservidor.ddns.net
+  host: localhost
