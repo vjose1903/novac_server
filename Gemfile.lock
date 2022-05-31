@@ -110,6 +110,7 @@ GEM
     faraday-patron (1.0.0)
     faraday-rack (1.0.0)
     ffi (1.15.4)
+    ffi (1.15.4-x64-mingw32)
     gems (1.2.0)
     globalid (0.5.2)
       activesupport (>= 5.0)
@@ -165,6 +166,8 @@ GEM
     nio4r (2.5.8)
     nokogiri (1.12.4)
       mini_portile2 (~> 2.6.1)
+      racc (~> 1.4)
+    nokogiri (1.12.4-x64-mingw32)
       racc (~> 1.4)
     nokogiri (1.12.4-x86_64-linux)
       racc (~> 1.4)
@@ -246,6 +249,7 @@ GEM
     uber (0.1.0)
     warden (1.2.9)
       rack (>= 2.0.9)
+    wdm (0.1.1)
     webrick (1.7.0)
     websocket-driver (0.7.5)
       websocket-extensions (>= 0.1.0)
@@ -257,6 +261,7 @@ GEM
 
 PLATFORMS
   ruby
+  x64-mingw32
   x86_64-linux
 
 DEPENDENCIES
@@ -275,6 +280,7 @@ DEPENDENCIES
   spring
   spring-watcher-listen
   tzinfo-data
+  wdm (>= 0.1.0)
   whenever
   zlib
 

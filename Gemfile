@@ -31,6 +31,7 @@ gem 'bootsnap', require: false
 gem 'whenever', require: false
 gem 'google-api-client', require: false
 
+gem 'wdm', '>= 0.1.0', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 
 group :development, :test do
