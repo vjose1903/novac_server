@@ -31,11 +31,14 @@ RUN bundle config build.nokogiri --use-system-libraries
 RUN bundle install
 COPY [".", "/usr/src/novac_server/"]
 RUN bundle lock --add-platform x86_64-linux
+RUN export RAILS_ENV=development
+# RUN rails db:drop db:create db:migrate db:seed
+
 # RUN /bin/rails db:environment:set RAILS_ENV=development
 # Add a script to be executed every time the container starts.
 
 EXPOSE 3000
 
 # Configure the main process to run when running the image
-# CMD ["rails", "server", "-b", "0.0.0.0"]
-CMD ["/bin/sh"]
+CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3000"]
+# CMD ["/bin/sh"]

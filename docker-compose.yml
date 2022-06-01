@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_PASSWORD: password
 
-  novac_brendy:
+  brendy:
     build: .
     environment:
       PRUEBA: "probando"
@@ -21,7 +21,6 @@ services:
       - "3000:3000"
     volumes:
       - .:/usr/src/novac_server
-
 
 volumes:
   db_data:
