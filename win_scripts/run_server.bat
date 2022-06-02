@@ -1,7 +1,9 @@
 @echo off
 
-cd ..
+set scriptpath=%~dp0
+
+cd %scriptpath%..
 docker-compose up -d
 docker container ls -a
-cd win_scripts
+cd %scriptpath%
 EXIT /B 0

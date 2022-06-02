@@ -9,6 +9,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
+    restart: always
 
   brendy:
     build: .
@@ -21,6 +22,7 @@ services:
       - "3000:3000"
     volumes:
       - .:/usr/src/novac_server
+    restart: always
 
 volumes:
   db_data:

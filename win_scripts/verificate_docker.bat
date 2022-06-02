@@ -2,11 +2,10 @@
 set count=1
 
 :loop
-	docker container ps -a
+	docker container ps > temp_docker.txt
 	cls
 	echo .
 	echo .
-
 	IF %ERRORLEVEL% EQU 1	(
 
 		echo - %count%: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar...
@@ -20,10 +19,26 @@ set count=1
 		)
 
 	)	ELSE	(
+		echo aqui
+		call count_ocurrences.bat
+		TIMEOUT 1  > nul
+		echo aqui tambien
+
+		set /p IS_FULL_RUNNING=<temp_count.txt
+
+		echo ------ %IS_FULL_RUNNING%
+
+		IF %IS_FULL_RUNNING% GTR 0 (
+
 		echo .
 		echo  ========== Servicio de docker esta ejecutandose, puede continuar ==========
 		echo .
 		docker container ps -a
+
+		) ELSE (
+			goto loop
+		)
+
 		exit /b 0
 	)
 
