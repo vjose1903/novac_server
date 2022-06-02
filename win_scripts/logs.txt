@@ -1,19 +1,17 @@
 . 
 .. 
-proceso del dia: jue. 02/06/2022 10:00:15.45 
+proceso del dia: jue. 02/06/2022 11:20:58.83 
 .. 
 . 
-- 1: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 2: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 3: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 4: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 5: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 6: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 7: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 8: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 9: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 10: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
-- 11: Servicio de docker no esta ejecutandose, esperando a que se inicie el servicio para continuar... 
+. 
+---- veces que aparece ports en temp-docker: 1  
+. 
+.. 
+proceso del dia: jue. 02/06/2022 11:21:12.74 
+.. 
+. 
+. 
+---- veces que aparece ports en temp-docker: 1  
  
 ======= INICANDO PROCESO ======= 
  
@@ -24,14 +22,11 @@ proceso del dia: jue. 02/06/2022 10:00:15.45
 ----- EJECUCION DEL SERVICIO PARA INICIAR BASE DE DATOS COMPLETADO ----- 
 . 
 .. 
-proceso del dia: jue. 02/06/2022 11:06:47.42 
+proceso del dia: jue. 02/06/2022 11:22:49.37 
 .. 
 . 
 . 
-.. 
-proceso del dia: jue. 02/06/2022 11:07:51.09 
-.. 
-. 
+---- veces que aparece ports en temp-docker: 1  
  
 ======= INICANDO PROCESO ======= 
  

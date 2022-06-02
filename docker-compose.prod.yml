@@ -9,18 +9,20 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
+    restart: always
 
-  brendy:
+  brendy-prod:
     build: .
     environment:
       DATABASE_NAME: "panaderia_brendy"
-      RAILS_ENV: "development"
+      RAILS_ENV: "production"
+      RAILS_SERVE_STATIC_FILES: true
+      DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
     depends_on:
       - db
     ports:
       - "3000:3000"
-    volumes:
-      - .:/usr/src/novac_server
+    restart: always
 
 volumes:
   db_data:

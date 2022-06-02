@@ -36,9 +36,12 @@ set count=1
 
 		call %scriptpath%count_ocurrences.bat
 		TIMEOUT 1  > nul
-		echo aqui tambien
 
 		set /p IS_FULL_RUNNING=<%scriptpath%temp_count.txt
+		echo IS_FULL_RUNNING: %IS_FULL_RUNNING%
+		TIMEOUT 1  > nul
+		echo . >> %logs_path%
+		echo ---- veces que aparece ports en temp-docker: %IS_FULL_RUNNING% >> %logs_path%
 
 		IF %IS_FULL_RUNNING% GTR 0 (
 
@@ -46,8 +49,6 @@ set count=1
 		echo  ========== Servicio de docker esta ejecutandose, puede continuar ==========
 		echo .
 		docker container ps -a
-		del %scriptpath%temp_count.txt
-		del %scriptpath%temp_docker.txt
 
 		call :verificate_data_base
 		) ELSE (

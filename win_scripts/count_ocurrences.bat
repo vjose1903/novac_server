@@ -1,4 +1,5 @@
 @echo off
+echo contanto ocurrencias de PORTS en temp_docker.txt
 set scriptpath=%~dp0
 set str=PORTS
 set file=%scriptpath%temp_docker.txt

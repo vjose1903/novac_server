@@ -1,10 +1,12 @@
 *.log
 .dockerignore
 .git
+win_scripts
 .gitignore
 build/*
 Dockerfile
 docker-compose.yml
+docker-compose.prod.yml
 npm-debug.log*
 
 
