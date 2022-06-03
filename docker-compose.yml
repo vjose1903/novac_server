@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:14
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
@@ -21,6 +21,9 @@ services:
       - "3000:3000"
     volumes:
       - .:/usr/src/novac_server
+    command: >
+      sh -c "rm tmp/pids/server.pid ||
+      rails server -b 0.0.0.0 --port 3000"
 
 volumes:
-  db_data:
+  db-data:

@@ -15,7 +15,7 @@
 
 FROM ruby:3.0
 
-RUN apt-get update -qq && apt-get install -y build-essential postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano
+RUN apt-get update -qq && apt-get install -y build-essential postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron
 
 RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
@@ -31,9 +31,13 @@ RUN bundle config build.nokogiri --use-system-libraries
 RUN bundle install
 COPY [".", "/usr/src/novac_server/"]
 RUN bundle lock --add-platform x86_64-linux
-# RUN rails db:drop db:create db:migrate db:seed
 
-EXPOSE 3000
+RUN bundle exec wheneverize . &&\
+    whenever --update-crontab &&\
+    touch log/cron.log &&\
+    chmod +rw log/cron.log
+
 
 # Configure the main process to run when running the image
 CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3000"]
+
