@@ -10,6 +10,7 @@ class Role < ApplicationRecord
   validates :nombre,      presence: { :message => "Debe de especificar un nombre para el rol." },       uniqueness: { scope: [:estado, :descripcion], case_sensitive: false, :message => "Este rol ya esta creado."}, :if => :estado
   validates :descripcion, presence: { :message => "Debe de especificar una descripcion para el rol." }
 
+
   def self.models_includes
     includes = [:roles_permisos_acciones, {permisos_acciones: [:permiso, :accion]}, :acciones]
     return includes

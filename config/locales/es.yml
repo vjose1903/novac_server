@@ -35,6 +35,7 @@ es:
     otro_costo: "Otro costo"
     marca: "Marca"
     modelo: "Modelo"
+    secuencia_comprobante: "Paquete de comprobantes"
 
   errors:
     format: "%{message}"

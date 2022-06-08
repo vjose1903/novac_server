@@ -3,40 +3,24 @@ class SecuenciaComprobantesController < ApplicationController
 
   # GET /secuencia_comprobantes
   def index
-    @secuencia_comprobantes = SecuenciaComprobante.all
-
-    render json: @secuencia_comprobantes
+		return Response.new(params, nil, Cliente.all.order('id DESC'), nil, {all: true}).send_response self
   end
 
   # GET /secuencia_comprobantes/1
   def show
-    render json: @secuencia_comprobante
+		return Response.new(params, nil, @secuencia_comprobante, nil, {all: true}).send_response self
   end
 
   def getSecuenciaComprobantesFiltrados
-    arg = params["arg"]
-
-    page = params["page"]
-    per_page = params["per_page"]
-    paginado = params["paginado"] === "true" ? true : false
-
-    ncf_ = SecuenciaComprobante.filtrar_ncf(arg)
-
-    res = []
-
-    if paginado
-      res = ncf_.to_a.my_paginate(page, per_page)
-    else
-      res = ncf_
-    end
-
-    render json: res
+		arg               = params["arg"]
+    resultado         = SecuenciaComprobante.filtrar_ncf(arg, set_paginate_options(params))
+    resultado.send_response self
   end
 
 	def crear_actualizar_ncf
-		parametros = params
-		parametros["id"] = params["id"] if params["id"]
-    resultado = SecuenciaComprobante.create_update_ncf(parametros, true)
+		parametros        = params
+		parametros["id"]  = params["id"] if params["id"]
+    resultado         = SecuenciaComprobante.create_update_ncf(parametros, true)
 		resultado.send_response self
 	end
 
@@ -55,8 +39,6 @@ class SecuenciaComprobantesController < ApplicationController
     resultado.send_response self
   end
 
-
-
 	def destroy
 		res = Response.new(nil, HTTP_STATUS_CODE[:conflict])
 
@@ -74,12 +56,10 @@ class SecuenciaComprobantesController < ApplicationController
   private
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_secuencia_comprobante
-    @secuencia_comprobante = SecuenciaComprobante.find(params[:id])
-  end
+	def set_secuencia_comprobante
+    respuesta              = set_entidad(SecuenciaComprobante, params)
+    @secuencia_comprobante = respuesta.get_data
 
-  # Only allow a trusted parameter "white list" through.
-  def secuencia_comprobante_paramsa
-    params.fetch(:secuencia_comprobante).permit(:tipo_factura_id, :secuencia, :referencia, :desde, :hasta, :fecha_compra, :fecha_valida, :estado, :usado)
+    return respuesta.send_response self if @secuencia_comprobante.nil?
   end
 end
