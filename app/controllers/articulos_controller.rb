@@ -18,7 +18,6 @@ class ArticulosController < ApplicationController
   def crear_actualizar_articulo
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
-
     resultado = Articulo.create_update_articulo(parametros, @articulo, true)
 		resultado.send_response self
 	end

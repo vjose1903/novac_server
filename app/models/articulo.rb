@@ -58,6 +58,8 @@ class Articulo < ApplicationRecord
       articulo.calcular_saco                    = params["calcular_saco"]
       articulo.imagen_id                        = params["imagen_id"]
 
+			articulo.valid?
+
       # imagen_attributes
 
       dependencias = [
@@ -70,7 +72,7 @@ class Articulo < ApplicationRecord
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
 
-      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.valid? && articulo.save!
+      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
 
 
       if res.status_valid && articulo.errors.empty?

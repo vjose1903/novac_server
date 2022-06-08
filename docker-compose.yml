@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_PASSWORD: password
 
-  brendy:
+  brendy-dev:
     build: .
     environment:
       DATABASE_NAME: "panaderia_brendy"

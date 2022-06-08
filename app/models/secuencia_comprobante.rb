@@ -1,4 +1,65 @@
 class SecuenciaComprobante < ApplicationRecord
+
+  # =========================================================================================================================================================
+
+  def self.create_update_ncf(params , is_save=false)
+    res                            = Response.new
+    res_valid                      = Response.new
+    SecuenciaComprobante.transaction do
+
+      ncf                      = SecuenciaComprobante.where(:id => params["id"]).first_or_create
+
+      ncf.tipo_factura_id      = params["tipo_factura_id"]
+      ncf.secuencia            = params["secuencia"]
+      ncf.referencia           = params["referencia"]
+      ncf.desde                = params["desde"]
+      ncf.hasta                = params["hasta"]
+      ncf.fecha_compra         = params["fecha_compra"]
+      ncf.fecha_valida         = params["fecha_valida"]
+      ncf.estado               = params["estado"]
+      ncf.usado                = params["usado"]
+
+      ncf.valid?
+
+			if ncf.desde > ncf.hasta
+				res.add_msg("El inicio del paquete no puede ser mayor al final del mismo.")
+				res.set_status(HTTP_STATUS_CODE[:conflict])
+			end
+
+			if ncf.desde == ncf.hasta
+				res.add_msg("El final del paquete debe de ser mayor al inicio del mismo.")
+				res.set_status(HTTP_STATUS_CODE[:conflict])
+			end
+
+			if ncf.estado &&  ncf.desde != ncf.desde
+				res.add_msg("Este paquete ya esta en uso no puede cambiar el inicio del paquete.")
+				res.set_status(HTTP_STATUS_CODE[:conflict])
+			end
+
+      if ncf.errors.empty? && res.status_valid
+        res_valid = SecuenciaComprobante.validar_rango(ncf['id'], ncf, 'new')
+
+        if res_valid.status_valid && ncf.save!
+          res.set_data(serialize_parser(ncf, {all: true}))
+
+          action = params["id"] ? 'actualizado' : 'creado'
+          res.add_msg("Paquete de comprobantes #{action} correctamente.")
+        end
+      end
+
+      if !ncf.errors.empty? || !res.status_valid || !res_valid.status_valid
+        res.add_msgs(res_valid.get_msgs)
+        res.add_msgs(ncf.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+      raise ActiveRecord::Rollback unless res.status_valid
+    end
+
+    return res
+  end
+
+  # ============================================================================================================================================================
   def self.get_paquete_rnc_by_estado(tipo_factura_id, estado)
     res = Response.new
 
@@ -24,7 +85,7 @@ class SecuenciaComprobante < ApplicationRecord
       else
         res.add_msg("No se han solicitado paquetes de comprobantes para #{tipoFac["descripcion"]}.")
       end
-      
+
       res.set_status(HTTP_STATUS_CODE[:conflict])
       return res
     else
@@ -54,7 +115,7 @@ class SecuenciaComprobante < ApplicationRecord
   # ============================================================================================================================================================
   def self.get_paquetes_por_activar(tipo_factura_id)
     res = Response.new
-    
+
     paquete = SecuenciaComprobante
     .select("secuencia_comprobantes.* ,true as is_paquete")
     .where("estado = false AND usado = false AND tipo_factura_id = #{tipo_factura_id}")
@@ -66,13 +127,13 @@ class SecuenciaComprobante < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return res 
+    return res
   end
 
   # ============================================================================================================================================================
   def self.aumentar_secuencia_comprobante(paquete_id)
     res              = Response.new
-    
+
     paquete          = SecuenciaComprobante.find_by_id(paquete_id)
 
     if paquete["secuencia"] == paquete["hasta"]
@@ -86,7 +147,7 @@ class SecuenciaComprobante < ApplicationRecord
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
       end
-      
+
       paquete.update({ estado: false, usado: true })
     else
       unless paquete.update({ secuencia: paquete[:secuencia] + 1 })
@@ -94,7 +155,7 @@ class SecuenciaComprobante < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     end
-    
+
     return res
   end
 
@@ -105,7 +166,7 @@ class SecuenciaComprobante < ApplicationRecord
 
     res_nuevo = get_paquetes_por_activar(tipo_factura) if nuevo_paquete.blank?
 
-    if !nuevo_paquete.blank? || res_nuevo.status_valid 
+    if !nuevo_paquete.blank? || res_nuevo.status_valid
       newPac = nuevo_paquete.blank? ? res_nuevo.get_data : nuevo_paquete
       if newPac.update({ estado: true })
         res.set_data(newPac)
@@ -114,7 +175,7 @@ class SecuenciaComprobante < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     end
-    
+
     return res
   end
 
@@ -126,13 +187,13 @@ class SecuenciaComprobante < ApplicationRecord
 
     res.set_status(HTTP_STATUS_CODE[:conflict]) if paquete.blank?
 
-    return res 
+    return res
   end
 
   # ============================================================================================================================================================
   def self.ver_si_existen_paquetes_posteriores(tipo_factura_id)
     res = Response.new
-    
+
     paquete = SecuenciaComprobante
     .where("estado = false AND usado = false AND tipo_factura_id = #{tipo_factura_id}")
     .order("created_at ASC").limit(1)
@@ -143,11 +204,13 @@ class SecuenciaComprobante < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return res 
+    return res
   end
 
   # ============================================================================================================================================================
   def self.validar_rango(id, paquete_ingresando, tipo)
+		res = Response.new
+
     tipo_factura_id = paquete_ingresando["tipo_factura_id"]
 
     select_ = "select *"
@@ -156,27 +219,27 @@ class SecuenciaComprobante < ApplicationRecord
     order_ = "ORDER BY created_at ASC"
     query = "#{select_} #{from_} #{where_} #{order_}"
     paquetes_registrados = my_query(query)
-    
+
 
     paquetes_registrados.each do |paquete|
-      
-      if tipo === 'new'
+      if tipo == 'new'
         if paquete_ingresando["desde"] <= paquete["hasta"]
-          return { :error => true, :msg => "Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.", :body => {}, :status => 400 }
+					res.add_msg("Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.")
+					res.set_status(HTTP_STATUS_CODE[:conflict])
           break
         end
       else
-        if id !=  paquete["id"]
+        if id != paquete["id"]
           if (paquete_ingresando["desde"] <= paquete["hasta"] && paquete_ingresando["hasta"] >= paquete["desde"]) || (paquete_ingresando["desde"] >= paquete["desde"] && paquete_ingresando["desde"] <= paquete["hasta"])
-            return { :error => true, :msg => "Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.", :body => {}, :status => 400 }
+						res.add_msg("Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete["id"])}.")
+						res.set_status(HTTP_STATUS_CODE[:conflict])
             break
           end
-
         end
       end
-      
     end
-    return { :error => false }
+
+    return res
   end
 
   # ============================================================================================================================================================

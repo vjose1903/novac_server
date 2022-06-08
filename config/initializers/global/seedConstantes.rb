@@ -68,7 +68,7 @@ G_documentos_de_identidad = [
 
 G_tipos_articulo = [
   { "descripcion": "Dulces" },
-  { "descripcion": "Veterinaria" },
+  { "descripcion": "Materia prima" },
   { "descripcion": "Producto terminado" },
   { "descripcion": "Otros" },
 ]
@@ -102,10 +102,10 @@ G_PERMISOS = [
 	{ nombre:"mantenimientos articulos",      mostrar_front: true,     descripcion: "mantenimiento_articulo",  controlador: "MantenimientoArticulos",         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar articulo por fecha",mostrar_front: true, descripcion: "get_one_articulo_date", metodo: "getOneArticuloByDate"} ]},
 	{ nombre:"marcas",                        mostrar_front: false,    descripcion: "marca",                   controlador: "Marcas",                         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados",mostrar_front: true, descripcion: "get_filtrados", metodo: "getMarcasFiltradas"} ]},
 	{ nombre:"modelos",                       mostrar_front: false,    descripcion: "modelo",                  controlador: "Modelos",                        acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"ver modelos por marca",mostrar_front: true, descripcion: "get_modelos_by_marca", metodo: "getModelosPorMarca"}, {nombre:"buscar filtrados",mostrar_front: true, descripcion: "get_filtrados", metodo: "getModelosFiltrados"} ]},
-	{ nombre:"movimientos de inventarios",    mostrar_front: true,     descripcion: "movimiento_inventario",   controlador: "MovimientosInventarios",         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-	{ nombre:"municipios",                    mostrar_front: true,     descripcion: "municipio",               controlador: "Municipios",                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY]},
+	{ nombre:"movimientos de inventarios",    mostrar_front: false,     descripcion: "movimiento_inventario",   controlador: "MovimientosInventarios",         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"municipios",                    mostrar_front: false,     descripcion: "municipio",               controlador: "Municipios",                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY]},
 	{ nombre:"producciones",                  mostrar_front: true,     descripcion: "produccion",              controlador: "Producciones",                   acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados",mostrar_front: true, descripcion: "get_filtrados", metodo: "getProduccionesFiltradas"} ]},
-	{ nombre:"provincias",                    mostrar_front: true,     descripcion: "provincia",               controlador: "Provincias",                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+	{ nombre:"provincias",                    mostrar_front: false,     descripcion: "provincia",               controlador: "Provincias",                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
 	{ nombre:"recibos ingreso",               mostrar_front: true,     descripcion: "recibo_ingreso",          controlador: "RecibosIngresos",                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados",mostrar_front: true, descripcion: "get_filtrados", metodo: "getRecibosFiltrados"}, {nombre:"revertir recibo",mostrar_front: true, descripcion: "revertir_recibo", metodo: "revertirRecibos"} ]},
 	{ nombre:"reportes",                      mostrar_front: true,     descripcion: "reporte",                 controlador: "Reportes",                       acciones: [{nombre:"ver reportes",mostrar_front: true, descripcion: "get_reportes", metodo: "getReportes"} ]},
 	{ nombre:"comprobantes fiscales",         mostrar_front: true,     descripcion: "secuencia_comprobante",   controlador: "SecuenciaComprobantes",          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados",mostrar_front: true, descripcion: "get_filtrados", metodo: "getSecuenciaComprobantesFiltrados"}, {nombre:"buscar comprobanrte por estado",mostrar_front: true, descripcion: "get_paquete_rnc_estado", metodo: "getPaqueteRncByEstado"} ]},
