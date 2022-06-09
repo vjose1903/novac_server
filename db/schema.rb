@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_05_18_145843) do
+ActiveRecord::Schema.define(version: 2022_06_09_144712) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -222,6 +222,7 @@ ActiveRecord::Schema.define(version: 2022_05_18_145843) do
     t.boolean "calcular_saco"
     t.integer "detalle_factura_nota"
     t.boolean "is_devuelto"
+    t.boolean "is_defectuoso"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end

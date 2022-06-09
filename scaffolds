@@ -141,3 +141,4 @@ rails g migration AddPre_FacturaToCabeceraFactura
 rails g migration AddIsDefectuosoToDetalleFactura
 rails g migration AddMostrarFrontToAcciones
 rails g migration AddIsDevueltoToDetalleFactura
+rails g migration AddIsDefectuosoToDetalleFactura
