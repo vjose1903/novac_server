@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  db:
+  db-dev:
     image: postgres:14
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -16,7 +16,7 @@ services:
       DATABASE_NAME: "panaderia_brendy"
       RAILS_ENV: "development"
     depends_on:
-      - db
+      - db-dev
     ports:
       - "3000:3000"
     volumes:

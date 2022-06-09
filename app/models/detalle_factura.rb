@@ -23,8 +23,8 @@ class DetalleFactura < ApplicationRecord
     detalle_factura.descuento_valor           = params["descuento_valor"]
     detalle_factura.calcular_saco             = params["calcular_saco"] || false
     detalle_factura.detalle_factura_nota      = params["detalle_factura_nota"]
-    detalle_factura.is_defectuoso             = params["is_defectuoso"]
-    detalle_factura.is_devuelto               = params["is_devuelto"]
+    detalle_factura.is_defectuoso             = params["is_defectuoso"] || false
+    detalle_factura.is_devuelto               = params["is_devuelto"] || false
     detalle_factura.cabecera_factura_id       = padre["id"] if is_save
     detalle_factura.valid?
 

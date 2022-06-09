@@ -29,7 +29,7 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: db
+  host: db-dev
   username: postgres
   password: password
   port: 5432
