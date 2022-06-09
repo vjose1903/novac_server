@@ -448,10 +448,10 @@ ActiveRecord::Schema.define(version: 2022_05_18_145843) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.string "controlador"
-    t.boolean "mostrar_front"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "controlador"
+    t.boolean "mostrar_front"
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -504,10 +504,9 @@ ActiveRecord::Schema.define(version: 2022_05_18_145843) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
+    t.boolean "estado"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|

@@ -15,33 +15,32 @@
 # gem 'pg'
 #
 
-# default: &default
-#   adapter: postgresql
-#   encoding: unicode
-#   host: localhost
-#   username: postgres
-#   password: password
-#   # password: Vasquez1903
-#   port: 5432
-#   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-#   timeout: 5000
-
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: db
+  host: localhost
   username: postgres
-  password: password
+  password: Vasquez1903
   port: 5432
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
+
+# default: &default
+#   adapter: postgresql
+#   encoding: unicode
+#   host: db-dev
+#   username: postgres
+#   password: password
+#   port: 5432
+#   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+#   timeout: 5000
 
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
 
 development:
   <<: *default
-  database: panaderia_brendy_development
+  database: ADM_development
   # adapter: postgresql
   # encoding: unicode
   # host: admservidor.ddns.net
@@ -80,7 +79,7 @@ development:
 # Do not set this db to the same as development or production.
 # test:
 #   <<: *default
-#   database: panaderia_brendy_test
+#   database: ADM_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -103,6 +102,6 @@ development:
 #
 production:
   <<: *default
-  database: panaderia_brendy_production
-  host: db-prod
-  # host: admservidor.ddns.net
+  database: ADM_production
+  # host: db-prod
+  host: admservidor.ddns.net

@@ -1,22 +1,22 @@
 version: "3.8"
 
 services:
-  db:
+  db-dev:
     image: postgres:14
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-agrodemi-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
 
-  brendy-dev:
+  agrodemi-dev:
     build: .
     environment:
-      DATABASE_NAME: "panaderia_brendy"
+      DATABASE_NAME: "ADM"
       RAILS_ENV: "development"
     depends_on:
-      - db
+      - db-dev
     ports:
       - "3000:3000"
     volumes:
@@ -26,4 +26,4 @@ services:
       rails server -b 0.0.0.0 --port 3000"
 
 volumes:
-  db-data:
+  db-agrodemi-data:
