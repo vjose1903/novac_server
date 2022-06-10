@@ -62,7 +62,7 @@ class MantenimientoArticulo < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback unless res.status_valid
+			raise ActiveRecord::Rollback if !historico.errors.empty? || !res.status_valid
     end
 		return res
   end

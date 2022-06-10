@@ -4,7 +4,7 @@ services:
   db-dev:
     image: postgres:14
     volumes:
-      - ./tmp/db-data:/var/lib/postgresql/data
+      - ./db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
@@ -13,7 +13,7 @@ services:
   brendy-dev:
     build: .
     environment:
-      DATABASE_NAME: "panaderia_brendy"
+      DATABASE_NAME: "$$DATABASE_NAME$$"
       RAILS_ENV: "development"
     depends_on:
       - db-dev

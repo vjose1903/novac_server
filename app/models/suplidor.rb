@@ -26,7 +26,7 @@ class Suplidor < ApplicationRecord
       suplidor.direccion         = params["direccion"]
       suplidor.email             = params["email"]
       suplidor.estado            = true
-			suplidor.valid?
+      suplidor.valid?
 
       if suplidor.errors.empty?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: suplidor }]
@@ -44,17 +44,15 @@ class Suplidor < ApplicationRecord
       end
 
       unless suplidor.errors.empty?
-
         res.add_msgs(suplidor.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
-        return res
-        raise ActiveRecord::Rollback
-
       end
 
-      return res
+      raise ActiveRecord::Rollback if !suplidor.errors.empty? || !res.status_valid
+
     end
 
+    return res
   end
 
   # ============================================================================================================================================

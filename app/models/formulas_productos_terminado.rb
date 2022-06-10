@@ -4,8 +4,6 @@ class FormulasProductosTerminado < ApplicationRecord
   validates :costo,     presence: { :message => "El costo del ingrediente de la formula no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
   validates :precio,    presence: { :message => "El precio del ingrediente de la formula no puede estar vacio." } , numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
 
-  before_validation :otras_validaciones
-
   def otras_validaciones
     ingrediente = Articulo.find_by_id(self.articulo_combo)
 
@@ -26,6 +24,7 @@ class FormulasProductosTerminado < ApplicationRecord
     formula.costo             = params["costo"]
     formula.medida            = params["medida"]
     formula.valid?
+    formula.otras_validaciones
 
     formula.errors.delete(:articulo) if !is_save
 
@@ -49,8 +48,18 @@ class FormulasProductosTerminado < ApplicationRecord
 				res_temp = self.crear_actualizar_contenido_articulo(item, padre, !item[:id].nil?)
 
 				if res_temp.status_valid
+					puts "::::::::::::::::::::::::::::".green
+					puts "::::::::::::::::::::::::::::".green
+					puts ":::::::   CONTINUAR  :::::::".green
+					puts "::::::::::::::::::::::::::::".green
+					puts "::::::::::::::::::::::::::::".green
 					array_valid.push(res_temp.get_data)
 				else
+					puts "::::::::::::::::::::::::::::".red
+					puts "::::::::::::::::::::::::::::".red
+					puts "::::::: EXISTE ERROR :::::::".red
+					puts "::::::::::::::::::::::::::::".red
+					puts "::::::::::::::::::::::::::::".red
 					return res_temp
 				end
 			end

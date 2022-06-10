@@ -38,7 +38,6 @@ class CabeceraFactura < ApplicationRecord
     res                                    = Response.new
     CabeceraFactura.transaction do
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
-      # raise ActiveRecord::Rollback
       if res_secuencias.status_valid
 
         data_secuencias                    = res_secuencias.get_data
@@ -141,7 +140,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless res.status_valid
+      raise ActiveRecord::Rollback if !cabecera_factura.errors.empty? || !res.status_valid
     end
 
     return res
@@ -600,7 +599,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless res.status_valid
+      raise ActiveRecord::Rollback if !factura_original.errors.empty? || !res.status_valid
     end
 
     return res
@@ -626,7 +625,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless res.status_valid
+      raise ActiveRecord::Rollback if !factura_a_pagar.errors.empty? || !res.status_valid
     end
 
     return res

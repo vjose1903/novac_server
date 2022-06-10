@@ -112,11 +112,11 @@ class User < ApplicationRecord
       end
 
       unless user.errors.empty?
-
         res.add_msgs(user.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
-        raise ActiveRecord::Rollback
       end
+
+			raise ActiveRecord::Rollback if !user.errors.empty? || !res.status_valid
     end
 
 		return res

@@ -22,7 +22,6 @@ RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
 
 ENV TZ="America/Santo_Domingo"
 
-
 WORKDIR /usr/src/novac_server
 COPY ["Gemfile", "Gemfile.lock", "/usr/src/novac_server/"]
 RUN gem install rails

@@ -45,7 +45,7 @@ class CabeceraConduce < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless conduce.errors.empty?
+      raise ActiveRecord::Rollback if !conduce.errors.empty? || !res.status_valid
     end
 		return res
   end

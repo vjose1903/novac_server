@@ -71,7 +71,11 @@ class Articulo < ApplicationRecord
         articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
-
+			puts " "
+			puts " "
+			puts "res ".magenta + " #{res.to_json}"
+			puts " "
+			puts " "
       res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
 
 
@@ -100,7 +104,7 @@ class Articulo < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless articulo.errors.empty?
+      raise ActiveRecord::Rollback if !articulo.errors.empty? || !res.status_valid
     end
     return res
   end
