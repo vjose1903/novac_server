@@ -2,15 +2,15 @@ version: "3.8"
 
 services:
   db-dev:
-    image: postgres:14
+    image: postgres:13.7
     volumes:
-      - ./db-data:/var/lib/postgresql/data
+      - ./tmp/$$DB_PATH$$:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
 
-  brendy-dev:
+  $$NAME_IMG_DEV$$:
     build: .
     environment:
       DATABASE_NAME: "$$DATABASE_NAME$$"
