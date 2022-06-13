@@ -4,17 +4,17 @@ services:
   db-prod:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
     restart: always
 
-  brendy-prod:
+  agrodemi-prod:
     build: .
     environment:
-      DATABASE_NAME: "panaderia_brendy"
+      DATABASE_NAME: "ADM"
       RAILS_ENV: "production"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1

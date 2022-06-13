@@ -4,16 +4,16 @@ services:
   db-dev:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
 
-  brendy-dev:
+  agrodemi-dev:
     build: .
     environment:
-      DATABASE_NAME: "panaderia_brendy"
+      DATABASE_NAME: "ADM"
       RAILS_ENV: "development"
     depends_on:
       - db-dev

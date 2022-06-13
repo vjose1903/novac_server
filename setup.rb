@@ -8,6 +8,12 @@
 		:NAME_IMG_DEV  => "brendy-dev",
 		:NAME_IMG_PROD => "brendy-prod",
 		:DB_PATH       => "db-data",
+	},
+	:agrodemi => {
+		:DATABASE_NAME => "ADM",
+		:NAME_IMG_DEV  => "agrodemi-dev",
+		:NAME_IMG_PROD => "agrodemi-prod",
+		:DB_PATH       => "db-agrodemi-data",
 	}
 }
 
@@ -73,6 +79,8 @@ def move_files(tipo, obj_file)
 	puts " "
 	puts "ARCHIVO: #{obj_file[:file_name]} movido."
 end
+
+
 
 makeSetup(@tipo_selected)
 return 1
