@@ -555,7 +555,7 @@ class CabeceraFactura < ApplicationRecord
       if res_validado.status_valid
 
         factura_de         = params['FACTURA_DE']
-        factura_nueva      = params
+        factura_nueva      = params.with_indifferent_access
 
         factura_original   = CabeceraFactura.find_by_id(params["id"])
 
