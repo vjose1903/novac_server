@@ -78,6 +78,7 @@ class DetalleFactura < ApplicationRecord
 		accion         = "factura"
 
 		if cabecera["pre_factura"].nil?
+
 			res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
 
 			unless res_movimiento.status_valid

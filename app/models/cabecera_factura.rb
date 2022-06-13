@@ -554,6 +554,7 @@ class CabeceraFactura < ApplicationRecord
 
       if res_validado.status_valid
 
+
         factura_de         = params['FACTURA_DE']
         factura_nueva      = params.with_indifferent_access
 
