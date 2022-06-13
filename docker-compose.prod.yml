@@ -4,14 +4,14 @@ services:
   db-prod:
     image: postgres:13.7
     volumes:
-      - ./tmp/db_data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
     restart: always
 
-  brendy-prod:
+  agrodemi-prod:
     build: .
     environment:
       DATABASE_NAME: "ADM"
