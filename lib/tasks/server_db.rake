@@ -6,6 +6,7 @@ namespace :server_db do
     timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
     archive_path = "#{Rails.root}/db/backup_#{rails_env.downcase}_#{timestamp}.sql"
 
+
     ENV['PGPASSWORD'] = "password"
 
     pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h db-prod --dbname=panaderia_brendy_#{rails_env.downcase} -f #{archive_path}"
