@@ -4,7 +4,7 @@ services:
   db-dev:
     image: postgres:14
     volumes:
-      - db-agrodemi-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
@@ -24,6 +24,3 @@ services:
     command: >
       sh -c "rm tmp/pids/server.pid ||
       rails server -b 0.0.0.0 --port 3000"
-
-volumes:
-  db-agrodemi-data:
