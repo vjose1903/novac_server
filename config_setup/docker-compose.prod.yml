@@ -21,9 +21,9 @@ services:
     depends_on:
       - db-prod
     ports:
-      - "3000:3000"
+      - "$$DB_PORT$$:$$DB_PORT$$"
     restart: always
     command: >
       sh -c "rm tmp/pids/server.pid ||
       cron &&
-      rails server -b 0.0.0.0 --port 3000"
+      rails server -b 0.0.0.0 --port $$DB_PORT$$"

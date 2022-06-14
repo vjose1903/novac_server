@@ -38,5 +38,5 @@ RUN bundle exec wheneverize . &&\
 
 
 # Configure the main process to run when running the image
-CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3001"]
+CMD ["rails", "server", "-b", "0.0.0.0", "--port", "$$DB_PORT$$"]
 

@@ -19,7 +19,7 @@ setVariable() {
 	export DATABASE_NAME="ADM"
 	export BACKEND_PASSWORD="Vasquez1903"
 	export RAILS_SHOW_LOG=true
-	export PORT="3001"
+	export PORT="$$DB_PORT$$"
 }
 
 setNivel() {
