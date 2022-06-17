@@ -98,7 +98,7 @@ class RecibosIngreso < ApplicationRecord
         end
       end
 
-      raise ActiveRecord::Rollback if !recibido.errors.empty? || !res.status_valid
+      raise ActiveRecord::Rollback if !recibo.errors.empty? || !res.status_valid
     end
 
     return res
