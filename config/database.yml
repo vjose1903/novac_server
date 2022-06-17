@@ -17,7 +17,7 @@ default: &default
 #   password: password
 #   port: 5432
 #   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-#   timeout: 5000
+  # timeout: 5000
 
 # For details on connection pooling, see Rails configuration guide
 # https://guides.rubyonrails.org/configuring.html#database-pooling
@@ -47,6 +47,7 @@ development:
 #
 production:
   <<: *default
-  database: <%= ENV['DATABASE_NAME'] %>_production
+  # database: <%= ENV['DATABASE_NAME'] %>_production
+  database: ADM_production
   # host: db-prod
   host: admservidor.ddns.net
