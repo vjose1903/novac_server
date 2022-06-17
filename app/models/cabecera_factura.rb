@@ -12,6 +12,7 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
 
+
   def self.models_includes
     user_includes   = [:documentos_de_identidad, :roles_permisos_acciones ]
     includes = [ :tipo_factura,
@@ -50,7 +51,6 @@ class CabeceraFactura < ApplicationRecord
           if params["condicion"] == "Crédito" && params["tipo"] == "venta" || params["is_viaje"]
             res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
           end
-
           if res_valid.status_valid
 
             today_cuadre                              = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
@@ -140,7 +140,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !cabecera_factura.errors.empty? || !res.status_valid
+      raise ActiveRecord::Rollback unless res.status_valid
     end
 
     return res
@@ -248,14 +248,14 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
 
   def procesos_cabecera()
-		res               = Response.new
+    res               = Response.new
 
-		unless self.pre_factura.nil?
-			res = CabeceraFactura.payFactura(self.pre_factura, {"deposito" => self.total_factura})
-		end
+    unless self.pre_factura.nil?
+      res = CabeceraFactura.payFactura(self.pre_factura, {"deposito" => self.total_factura})
+    end
 
-		return res
-	end
+    return res
+  end
 
   # ===================================================================================================================================================
   def self.update_secuencias(params, data_secuencias)
@@ -273,8 +273,6 @@ class CabeceraFactura < ApplicationRecord
 
         res_aumento  = nil
         res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if !data_secuencias[:actual_paquete_comprobante].nil? &&  data_secuencias[:actual_paquete_comprobante][:is_paquete]
-        puts ">>>> res_aumento ".magenta + "#{res_aumento.to_json}"
-        puts "MMG ".yellow unless res_aumento.nil?
 
         unless res_aumento.nil?
           unless res_aumento.status_valid
@@ -367,9 +365,8 @@ class CabeceraFactura < ApplicationRecord
 
     facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_)
 
-		facturas.each do |klass|
-			puts "klass.id ".yellow + "#{klass.id}"
-		end
+    facturas.each do |klass|
+    end
 
     if facturas.length > 0
       res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
@@ -612,8 +609,6 @@ class CabeceraFactura < ApplicationRecord
     res               = Response.new
     CabeceraFactura.transaction do
       factura_a_pagar   = CabeceraFactura.find_by_id(factura_id)
-			puts "factura_a_pagar[balance] ".red + "#{factura_a_pagar["balance"]}"
-			puts "recibo[deposito]         ".yellow + "#{recibo["deposito"]}"
       newBalance                          = factura_a_pagar["balance"] - recibo["deposito"]
       is_pago_total                       = newBalance < 1 || recibo["deposito"] == factura_a_pagar["balance"]
 

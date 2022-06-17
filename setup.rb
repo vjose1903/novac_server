@@ -7,6 +7,7 @@
 		:DATABASE_NAME => "panaderia_brendy",
 		:NAME_IMG_DEV  => "brendy-dev",
 		:NAME_IMG_PROD => "brendy-prod",
+		# :DB_PATH       => "db-brendy-data",
 		:DB_PATH       => "db-data",
 		:DB_PORT       => "3001",
 	},
@@ -53,6 +54,8 @@ def makeSetup(tipo)
 
 			puts " "
 		end
+
+		File.write('config_setup/actual_cliente.txt', tipo)
 	else
 		puts "********************************************"
 		puts "**                                        **"

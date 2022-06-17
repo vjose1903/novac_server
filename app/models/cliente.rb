@@ -110,6 +110,7 @@ class Cliente < ApplicationRecord
     cliente          = Cliente.find_by_id(id)
     balance          = cliente.balance.nil? ? 0 : cliente.balance
 
+
     if operacion == "-" && totalFactura.to_f > balance
       unless ignoreMontoMayor
         res.add_msg("El monto ingresado es mayor al balance del cliente")
@@ -121,9 +122,9 @@ class Cliente < ApplicationRecord
     new_balance      = eval "#{balance} #{operacion} #{totalFactura.to_f}"
     new_balance      = new_balance.to_d.truncate(2).to_f
     cliente.balance  = new_balance
+    cliente.valid?
 
-
-    unless cliente.save!
+    if !cliente.errors.empty? || !cliente.save!
       res.add_msgs(cliente.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
