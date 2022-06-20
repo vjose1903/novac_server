@@ -36,7 +36,7 @@ class Nota < ApplicationRecord
 
             # NOTA DE CREDITO
             if params[:cliente_id] && params[:tipo_factura_id] == TiposNotasId.credito
-              res_valid                     = Cliente.calculate_balance_cliente(params[:cliente_id], params[:total].to_f.abs, '-')
+              res_valid                     = Cliente.calculate_balance_cliente(params[:cliente_id], params[:total].to_f.abs, '-', true)
             end
 
 
@@ -120,7 +120,7 @@ class Nota < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !nota.errors.empty? || !res.status_valid
+      raise ActiveRecord::Rollback unless res.status_valid
 
     end
     return res
@@ -263,8 +263,7 @@ class Nota < ApplicationRecord
     notas = Nota
     .joins('left join clientes on clientes.id = notas.cliente_id')
     .where("lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true")
-    .order('notas.numero_comprobante DESC')
-
+    .order('notas.id DESC')
 
     if notas.length > 0
       res.set_data(notas, {all: true}, Nota.models_includes)

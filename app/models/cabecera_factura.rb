@@ -550,12 +550,10 @@ class CabeceraFactura < ApplicationRecord
 
       if res_validado.status_valid
 
-
         factura_de         = params['FACTURA_DE']
         factura_nueva      = params
 
         factura_original   = CabeceraFactura.find_by_id(params["id"])
-
 
         if factura_original.condicion == "Crédito"
           calculo_para_balancear_cliente  = factura_nueva["total_factura"] - factura_original.total_factura
@@ -578,10 +576,12 @@ class CabeceraFactura < ApplicationRecord
           factura_original.pagada          = factura_nueva['pagada']
           factura_original.balance         = factura_nueva['balance']
           factura_original.devuelta        = factura_nueva['devuelta']
+          factura_original.forma_pago      = factura_nueva['forma_pago']
 
           if factura_original.save!
             factura_editada                = CabeceraFactura.find_by_id(params["id"])
             res.set_data(factura_editada, {all: true})
+						res.add_msg("Factura editada correctamente.")
           else
             res.add_msgs(factura_original.errors.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
