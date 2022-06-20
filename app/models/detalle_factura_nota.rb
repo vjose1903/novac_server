@@ -46,7 +46,7 @@ class DetalleFacturaNota < ApplicationRecord
     fecha            = nota["fecha_equivalente"]
     accion           = TiposNotas.get_tipo(nota["tipo_factura_id"])
 
-    res_valid          = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, nota )
+    res_valid        = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, nota )
 
     unless res_valid.status_valid
       res.add_msgs(res_valid.get_msgs.to_a)

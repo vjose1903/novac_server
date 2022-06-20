@@ -28,10 +28,10 @@ class Reporte < ApplicationRecord
     def self.buscar_suplidor(supli, max_lengt=0)
         suplidor={}
 
-				suplidor["nombre"]   = supli.nombre_completo
-				longitud             = suplidor["nombre"].length
+        suplidor["nombre"]   = supli.nombre_completo
+        longitud             = suplidor["nombre"].length
 
-				suplidor["nombre"] = "#{tempNom[0, (max_lengt + 1)]}..." if max_lengt > 0 && ( longitud > max_lengt )
+        suplidor["nombre"] = "#{tempNom[0, (max_lengt + 1)]}..." if max_lengt > 0 && ( longitud > max_lengt )
 
         documento              = supli.documentos_de_identidad.find { | doc |  doc.principal == true }
         suplidor["rnc"]        = documento.nil? ? '----------' : documento["documento"]
@@ -157,14 +157,50 @@ class Reporte < ApplicationRecord
 
 
     # ---------------------------------------------------------------------------------------------------------
+    def self.get_notas(params)
+      temp        = []
+      notas       = []
+      query       = {}
+      desde       = params["desde"]
+      hasta       = params["hasta"].nil? ? params["desde"] : params["hasta"]
+      tipo_nota   = params["tipo_factura_id"].to_i
+
+      query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+      query['tipo_factura_id']   = tipo_nota unless tipo_nota == 0
+
+      temp = FacturaAplicada
+			.joins("inner join notas on notas.id = facturas_aplicadas.nota_id")
+			.joins("inner join cabecera_facturas on cabecera_facturas.id = facturas_aplicadas.cabecera_factura_id")
+			.where(notas: query)
+			.order("id DESC").includes(FacturaAplicada.models_includes)
+
+      temp.each do | factura_aplicada |
+				tipo_nota = factura_aplicada.nota.tipo_factura_id == TiposFacturasId.nota_de_credito  ? 'Crédito' : 'Débito'
+
+				notas.push({
+					:factura => factura_aplicada.cabecera_factura.numero_comprobante,
+					:numero_comprobante => factura_aplicada.nota.numero_comprobante,
+					:tipo_nota => "nota de #{tipo_nota.downcase}",
+					:fecha => factura_aplicada.nota.fecha_equivalente,
+					:monto => factura_aplicada.total.abs,
+				})
+
+      end
+
+      subT = "Notas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
+      obj  = { body: notas, totalizacion: { bruto: 0, devuelto: 0, total: 0 }, sub_t: subT}
+    end
+
+    # ---------------------------------------------------------------------------------------------------------
+
     def self.get_recibos(params)
-        temp = []
-        recibos = []
-        query={}
-        desde = params["desde"]
-        hasta = params["hasta"]
-        tipo_recibo = params["tipo_recibo"]
-        order = params["order"]
+        temp         = []
+        recibos      = []
+        query        = {}
+        desde        = params["desde"]
+        hasta        = params["hasta"].nil? ? params["desde"] : params["hasta"]
+        tipo_recibo  = params["tipo_recibo"]
+        order        = params["order"]
 
         query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
 
@@ -215,11 +251,11 @@ class Reporte < ApplicationRecord
         temp = DetalleFactura.where(query).select("detalle_facturas.* ,cabecera_facturas.suplidor_id, cabecera_facturas.fecha_equivalente").joins(:cabecera_factura).where(cabecera_facturas: query_join).order('detalle_facturas.id ASC').includes([{ cabecera_factura: [{suplidor: [:documentos_de_identidad]}] } ])
 
         temp.each do |detalle|
-					att                          = detalle.attributes
-					suplidor                     = buscar_suplidor(detalle.cabecera_factura.suplidor)
-					att["suplidor_nombre"]       = suplidor['nombre']
+          att                          = detalle.attributes
+          suplidor                     = buscar_suplidor(detalle.cabecera_factura.suplidor)
+          att["suplidor_nombre"]       = suplidor['nombre']
 
-					contenido.push(att)
+          contenido.push(att)
         end
 
         articulo = Articulo.find_by_id(articulo_id)

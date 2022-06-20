@@ -10,7 +10,7 @@ class Nota < ApplicationRecord
   has_many :detalles_facturas_notas, through: :facturas_aplicadas, dependent: :destroy
 
 	def self.models_includes
-		includes = [ {user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, {facturas_aplicadas: :cabecera_factura}, {detalles_facturas_notas: [:articulo, :detalle_factura]} ]
+		includes = [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, {facturas_aplicadas: :cabecera_factura}, {detalles_facturas_notas: [:articulo, :detalle_factura]} ]
 		return includes
 	end
 
