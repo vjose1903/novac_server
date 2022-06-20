@@ -155,7 +155,6 @@ class Reporte < ApplicationRecord
         return obj
     end
 
-
     # ---------------------------------------------------------------------------------------------------------
     def self.get_notas(params)
       temp        = []
