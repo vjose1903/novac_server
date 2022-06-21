@@ -453,6 +453,7 @@ class CabeceraFactura < ApplicationRecord
     cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params["cliente_id"], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
 
     cabeceras.concat cabe_viajes_contado_deviendo
+		puts " >>>>>>>>>> ".red + " #{cabeceras.to_json}"
 
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true}, CabeceraFactura.models_includes)
