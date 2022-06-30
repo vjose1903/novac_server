@@ -64,6 +64,7 @@ while getopts $OPTIONS opt; do
   p)
     echo "la opcion -p"
     PRODUCTION='yes'
+		echo "${yellow} -=-=-=- EJECUTANDO EN PRODUCCION -=-=-=-${white}"
   ;;
   t)
     echo "la opcion -t"
