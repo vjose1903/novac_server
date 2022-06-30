@@ -294,6 +294,7 @@ if role_administrador.nil?
   puts "ERROR- role: ".red + "#{role_administrador.errors.to_json}"
 end
 
+
 puts "*******".green * 10
 puts "*******".green * 10
 
