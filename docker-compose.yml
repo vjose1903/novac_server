@@ -4,23 +4,23 @@ services:
   db-dev:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
+      - ./tmp/db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
 
-  agrodemi-dev:
+  brendy-dev:
     build: .
     environment:
-      DATABASE_NAME: "ADM"
+      DATABASE_NAME: "panaderia_brendy"
       RAILS_ENV: "development"
     depends_on:
       - db-dev
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - .:/usr/src/novac_server
     command: >
       sh -c "rm tmp/pids/server.pid ||
-      rails server -b 0.0.0.0 --port 3000"
+      rails server -b 0.0.0.0 --port 3001"
