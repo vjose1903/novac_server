@@ -44,30 +44,30 @@ class CuadreCaja < ApplicationRecord
 
       CuadreCaja.transaction do
         if cuadre.save!
-					att             = cuadre.attributes
-					att['usuario']  = current_user.nombre_completo
+          att             = cuadre.attributes
+          att['usuario']  = current_user.nombre_completo
 
-					att['contenido_reporte']  = [
+          att['contenido_reporte']  = [
 						{descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: att['total_venta_contado'] },
-						{descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', 	 valor: att['total_recibo_ingreso'] },
-						{descripcion: 'total_anterior', 	titulo: 'Total día anterior', 	 				 valor: att['total_anterior'] },
-						{descripcion: 'total_general', 		titulo: 'Total en caja', 						 valor: att['total_general'] },
-						{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: att['total_venta_credito'] },
-					]
+            {descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso',   valor: att['total_recibo_ingreso'] },
+            {descripcion: 'total_anterior', 	titulo: 'Total día anterior',        valor: att['total_anterior'] },
+            {descripcion: 'total_general', 		titulo: 'Total en caja',             valor: att['total_general'] },
+            {descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: att['total_venta_credito'] },
+          ]
 
-					res.set_data(att)
-					res.add_msg("Cuadre realizado correctamente")
-				else
-					res.add_msgs(cuadre.errors.to_a)
-					res.set_status(HTTP_STATUS_CODE[:conflict])
+          res.set_data(att)
+          res.add_msg("Cuadre realizado correctamente")
+        else
+          res.add_msgs(cuadre.errors.to_a)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
 
-					raise ActiveRecord::Rollback
+          raise ActiveRecord::Rollback
         end
       end
 
     else
 
-			cuadre = cuadre.first
+      cuadre = cuadre.first
 
       user_cuadro = cuadre.user
 
@@ -78,16 +78,16 @@ class CuadreCaja < ApplicationRecord
         numero_reporte:       cuadre["numero_reporte"],
         reimprimir:           true,
         contenido_reporte: [
-					{descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: cuadre["total_venta_contado"]},
-					{descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', 	 valor: cuadre["total_recibo_ingreso"]},
-					{descripcion: 'total_anterior', 	titulo: 'Total anterior', 	 				 valor: cuadre["total_anterior"]},
-					{descripcion: 'total_general', 		titulo: 'Total en caja', 						 valor: cuadre["total_general"]},
-					{descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: cuadre["total_venta_credito"]},
-				]
+          {descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: cuadre["total_venta_contado"]},
+          {descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', 	 valor: cuadre["total_recibo_ingreso"]},
+          {descripcion: 'total_anterior', 	titulo: 'Total anterior', 	 				 valor: cuadre["total_anterior"]},
+          {descripcion: 'total_general', 		titulo: 'Total en caja', 						 valor: cuadre["total_general"]},
+          {descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: cuadre["total_venta_credito"]},
+        ]
       }
-
+			res.set_data(obj)
     end
-		res.set_data(obj)
+
     return res
   end
 
