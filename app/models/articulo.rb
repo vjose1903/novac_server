@@ -3,7 +3,7 @@ class Articulo < ApplicationRecord
   belongs_to :imagen, optional: true
 
   has_many :contenido_articulos,           dependent: :destroy
-  has_many :formulas_productos_terminados, dependent: :destroy
+  has_many :formulas_productos_terminados
 
   attribute :contenido_articulos
   attribute :formulas_productos_terminados
@@ -71,11 +71,6 @@ class Articulo < ApplicationRecord
         articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
         articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
       }
-			puts " "
-			puts " "
-			puts "res ".magenta + " #{res.to_json}"
-			puts " "
-			puts " "
       res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
 
 
@@ -152,11 +147,12 @@ class Articulo < ApplicationRecord
     articulos_.map { |articulo|
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
-      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
+      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}60"
+
 
       if fecha < fecha_ultima_edicion_articulo
 
-        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, ">=", "ASC")
+        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, "<=", "DESC")
 
         if hist.blank?
           articulos.push(articulo)
@@ -165,10 +161,10 @@ class Articulo < ApplicationRecord
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           historicos.push(historico)
           # TODO: aqui se estan borrando las formulas
+
           articulos.push(Articulo.new(historico))
         end
       else
-
         articulos.push(articulo)
         historicos.push(articulo)
       end
@@ -177,9 +173,9 @@ class Articulo < ApplicationRecord
 
     if articulos.length > 0
 			# articulos.sort_by! { |k|
-			# 	puts "#{k["id"]}".red
 			# 	k["id"]
 			# }
+
 
       articulos = params["paginado"].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
       res.set_data(articulos, {all: true, historicos: historicos}, Articulo.models_includes)

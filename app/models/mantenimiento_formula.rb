@@ -6,11 +6,13 @@ class MantenimientoFormula < ApplicationRecord
 
       historico                    = MantenimientoFormula.new
 
+      historico.formula_id         = parametros["id"]
       historico.articulo_id        = parametros["articulo_id"]
       historico.articulo_combo     = parametros["articulo_combo"]
       historico.cantidad           = parametros["cantidad"]
       historico.costo              = parametros["costo"]
       historico.precio             = parametros["precio"]
+      historico.medida             = parametros["medida"]
       historico.secuencia          = secuencia
 
 

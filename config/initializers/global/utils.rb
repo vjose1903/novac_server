@@ -141,8 +141,51 @@ def reponer_formulas
 	 }
 
 
+
+
 	puts "cuenta ".yellow + "#{acu}"
 	res.set_data('fin')
 	return res
 
+end
+
+
+def agregar_formula_id_to_mantenimiento_formulas
+
+	MantenimientoFormula.all.each do | mantenimiento |
+		formula_equivalente          = FormulasProductosTerminado.where({ articulo_id: mantenimiento.articulo_id, articulo_combo: mantenimiento.articulo_combo }).first
+
+		puts "(#{formula_equivalente})".yellow
+
+		if formula_equivalente != nil
+			puts "#{mantenimiento.to_json}".red
+			puts "#{formula_equivalente.to_json}".green
+			puts " "
+
+			mantenimiento.formula_id   = formula_equivalente.id
+			mantenimiento.medida       = formula_equivalente.medida
+
+			mantenimiento.save!
+		end
+	end
+	nil
+end
+
+
+def modificar_secuencia_mantenimiento
+	MantenimientoArticulo.all.each do | mantenimiento |
+		if mantenimiento.ant_isCombo
+			query                = {}
+			query['created_at']  = (mantenimiento.created_at - 1)..(mantenimiento.created_at + 1)
+			query['articulo_id'] = mantenimiento.articulo_id
+			formulas_equivalentes  = MantenimientoFormula.where(query)
+			if(formulas_equivalentes.length > 0)
+				secuencia                              = "#{Time.now.to_i}#{mantenimiento.articulo_id}"
+				mantenimiento.secuencia = secuencia
+				mantenimiento.save!
+				formulas_equivalentes.update({secuencia: secuencia})
+			end
+		end
+	end
+	nil
 end
