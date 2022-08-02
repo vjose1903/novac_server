@@ -9,7 +9,7 @@
 		:NAME_IMG_PROD => "agrodemi-prod",
 		:DB_PATH       => "db-agrodemi-data",
 		:DB_PORT       => "3000",
-	}
+	},
 	:brendy => {
 		:DATABASE_NAME => "panaderia_brendy",
 		:NAME_IMG_DEV  => "brendy-dev",

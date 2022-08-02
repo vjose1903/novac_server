@@ -26,7 +26,7 @@ setClient() {
 
   echo "${cyan}setClient >> ${client}"
   echo "${white} "
-  if [ "$client" == "agrodemi" -o "$client" == "brendy" ]; then
+  if [ "$client" == "agrodemi" -o "$client" == "brendy" -o "$client" == "vasquez" ]; then
     ruby ./setup.rb $client
   else
     echo "${red}*************************************"
