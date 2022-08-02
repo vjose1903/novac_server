@@ -147,8 +147,9 @@ class Articulo < ApplicationRecord
     articulos_.map { |articulo|
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
-      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}60"
-
+      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
+			puts "fecha                         ==> ".red + " #{fecha}"
+			puts "fecha_ultima_edicion_articulo ==> ".yellow + " #{fecha_ultima_edicion_articulo}"
 
       if fecha < fecha_ultima_edicion_articulo
 
