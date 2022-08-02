@@ -1,8 +1,15 @@
 # ruby ./setup.rb brendy
 
-@clientes      = ['brendy', 'agrodemi']
+@clientes      = ['brendy', 'agrodemi', 'vasquez']
 @tipo_selected = ARGV[0]
 @setup_         = {
+	:agrodemi => {
+		:DATABASE_NAME => "ADM",
+		:NAME_IMG_DEV  => "agrodemi-dev",
+		:NAME_IMG_PROD => "agrodemi-prod",
+		:DB_PATH       => "db-agrodemi-data",
+		:DB_PORT       => "3000",
+	},
 	:brendy => {
 		:DATABASE_NAME => "panaderia_brendy",
 		:NAME_IMG_DEV  => "brendy-dev",
@@ -10,13 +17,13 @@
 		:DB_PATH       => "db-brendy-data",
 		:DB_PORT       => "3001",
 	},
-	:agrodemi => {
-		:DATABASE_NAME => "ADM",
-		:NAME_IMG_DEV  => "agrodemi-dev",
-		:NAME_IMG_PROD => "agrodemi-prod",
-		:DB_PATH       => "db-agrodemi-data",
-		:DB_PORT       => "3000",
-	}
+	:vasquez => {
+		:DATABASE_NAME => "vasquez_services",
+		:NAME_IMG_DEV  => "vasquez-dev",
+		:NAME_IMG_PROD => "vasquez-prod",
+		:DB_PATH       => "db-vasquez-data",
+		:DB_PORT       => "3002",
+	},
 }
 
 @files         = [

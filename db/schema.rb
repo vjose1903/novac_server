@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_09_144712) do
+ActiveRecord::Schema.define(version: 2022_07_22_195742) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -369,7 +369,7 @@ ActiveRecord::Schema.define(version: 2022_06_09_144712) do
     t.boolean "ant_isCombo"
     t.boolean "ant_calcularItbis"
     t.float "ant_otrosCostos"
-    t.integer "secuencia"
+    t.string "secuencia"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_materia_prima"
@@ -382,11 +382,13 @@ ActiveRecord::Schema.define(version: 2022_06_09_144712) do
     t.integer "articulo_id"
     t.float "cantidad"
     t.float "costo"
-    t.integer "secuencia"
+    t.string "secuencia"
     t.integer "articulo_combo"
     t.float "precio"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "formula_id"
+    t.string "medida"
   end
 
   create_table "marcas", force: :cascade do |t|

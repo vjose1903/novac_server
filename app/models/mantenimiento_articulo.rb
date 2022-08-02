@@ -5,12 +5,11 @@ class MantenimientoArticulo < ApplicationRecord
   attribute :user
 
   def self.add_historico(parametros, contenidos, formulas)
-		res = Response.new
+    res = Response.new
     MantenimientoArticulo.transaction do
 
-
       historico                              = MantenimientoArticulo.new
-      secuencia                              = MantenimientoArticulo.last.nil? ? 0 : (MantenimientoArticulo.last.id + 1)
+      secuencia                              = "#{Time.now.to_i}#{parametros["id"]}"
 
       historico.articulo_id                  = parametros["id"]
       historico.user_id                      = get_current_user['id']
@@ -50,21 +49,21 @@ class MantenimientoArticulo < ApplicationRecord
 
 
       if historico.save!
-				res_proceso = MantenimientoFormula.add_historico(formulas, secuencia)
+        res_proceso = MantenimientoFormula.add_historico(formulas, secuencia)
 
-				unless res_proceso.status_valid
-					res.add_msgs(res_proceso.get_msgs)
-					res.set_status(HTTP_STATUS_CODE[:conflict])
-				end
+        unless res_proceso.status_valid
+          res.add_msgs(res_proceso.get_msgs)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
 
-			else
+      else
         res.add_msgs(historico.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback if !historico.errors.empty? || !res.status_valid
+      raise ActiveRecord::Rollback if !historico.errors.empty? || !res.status_valid
     end
-		return res
+    return res
   end
 
   # 2021-12-27 09:53:06.892
@@ -72,6 +71,7 @@ class MantenimientoArticulo < ApplicationRecord
   # ============================================================================================================================================================
 
   def self.get_historico_by_date_mayor_or_menor(date, articulo_id, operador, order)
+
     historico = MantenimientoArticulo
     .where("mantenimiento_articulos.created_at #{operador} '#{date}' AND mantenimiento_articulos.articulo_id = #{articulo_id}")
     .order("mantenimiento_articulos.id #{order}").limit(1)
@@ -146,7 +146,7 @@ class MantenimientoArticulo < ApplicationRecord
           conte["cantidad"]       = historico["ant_cantidadHijo"]
           conte["medida"]         = historico["ant_medidaHijo"]
           conte["id"]             = contenido["id"]
-          conte["referencia"]     = contenido["referencia"]
+          conte["referencia"]     = contenido["ant_referenciaHijo"]
           conte["condicion"]      = contenido["condicion"]
           conte["articulo_id"]    = contenido["articulo_id"]
         else
@@ -156,7 +156,7 @@ class MantenimientoArticulo < ApplicationRecord
           conte["medida"]         = historico["ant_medidaPadre"]
           conte["articulo_id"]    = contenido["articulo_id"]
           conte["id"]             = contenido["id"]
-          conte["referencia"]     = contenido["referencia"]
+          conte["referencia"]     = contenido["ant_referenciaPadre"]
           conte["condicion"]      = contenido["condicion"]
         end
         contents.push(ContenidoArticulo.new(conte))
@@ -164,26 +164,21 @@ class MantenimientoArticulo < ApplicationRecord
     end
 
     articuloHistorico["contenido_articulos"] = contents
-		puts "historico ".red + "#{historico.to_json}"
-		puts "historico[ant_isCombo] ".yellow + "#{historico["ant_isCombo"]}"
 
     if historico["ant_isCombo"]
       fomulaS = []
 
       formulas = MantenimientoFormula.where({secuencia: historico["secuencia"]})
-			formulaArticulo
+      formulaArticulo
 
       formulas.to_a.each do |f|
-				obj_formula = {}
-				obj_formula["articulo_combo"]   = f["articulo_combo"]
-				obj_formula["cantidad"]         = f["cantidad"]
-				obj_formula["costo"]            = f["costo"]
-				obj_formula["precio"]           = f["precio"]
+
+        obj_formula = f.slice(:articulo_id, :articulo_combo, :cantidad, :costo, :precio, :medida)
+        obj_formula["id"]               = f["formula_id"]
 
         fomulaS.push(FormulasProductosTerminado.new(obj_formula))
       end
 
-			puts "fomulaS ".magenta + "#{fomulaS.to_json}"
       articuloHistorico["formulas_productos_terminados"] = fomulaS
     end
 

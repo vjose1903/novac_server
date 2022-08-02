@@ -142,3 +142,8 @@ rails g migration AddIsDefectuosoToDetalleFactura
 rails g migration AddMostrarFrontToAcciones
 rails g migration AddIsDevueltoToDetalleFactura
 rails g migration AddIsDefectuosoToDetalleFactura
+
+
+rails g migration change_secuencua_to_be_string_in_tables
+rails g migration add_formula_id_to_mantenimiento_formula
+rails g migration addMedidaToMantenimientoFormula
