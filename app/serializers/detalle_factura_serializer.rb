@@ -12,6 +12,8 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :retirado_en_venta,                          if: Proc.new { self.get_param('retirado_en_venta') || self.get_param('all') }
   attribute :calcular_saco,                              if: Proc.new { self.get_param('calcular_saco') || self.get_param('all') }
   attribute :detalle_factura_nota,                       if: Proc.new { self.get_param('detalle_factura_nota') || self.get_param('all') }
+  attribute :is_devuelto,                                if: Proc.new { self.get_param('is_devuelto') || self.get_param('all') }
+  attribute :is_defectuoso,                              if: Proc.new { self.get_param('is_defectuoso') || self.get_param('all') }
 
   attribute :articulo,                                   if: Proc.new { self.get_param('articulo') || self.get_param('all') }
   attribute :precio,                                     if: Proc.new { self.get_param('precio') || self.get_param('all') }
@@ -47,6 +49,8 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
       @peso_saco               = @unidad[2]
     else
       descripcion              = "#{@articuloSelect["nombre"]}"
+
+			descripcion += " D*" if object.is_defectuoso
     end
 
     descripcion

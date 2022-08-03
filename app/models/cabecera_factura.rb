@@ -383,7 +383,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_pre_facturas(params, paginate_options)
     res          = Response.new(paginate_options)
 
-    tipoFactura  = TipoFactura.find_by_descripcion("Pre_factura")
+    tipoFactura  = TipoFactura.find_by_descripcion("pre_venta")
 
     id           = params["id"]
     tipo         = params["tipo"]
