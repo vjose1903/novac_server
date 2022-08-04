@@ -43,10 +43,8 @@ class Reporte < ApplicationRecord
     def self.buscar_cliente(factura, max_lengt, retornar)
         cliente = {}
         if !factura["cliente_id"].nil?
-
             cli = factura.cliente if (factura.instance_of? CabeceraFactura) || (factura.instance_of? RecibosIngreso)
             cli = Cliente.find_by_id(factura['cliente_id']) if (!factura.instance_of? CabeceraFactura) && (!factura.instance_of? RecibosIngreso)
-
 
             tempNom = cli.nombre_completo
             longitud= tempNom.length
@@ -71,49 +69,52 @@ class Reporte < ApplicationRecord
         # tipo 1 = por cliente
         # tipo 2 = general detallado
         # tipo 3 = general agrupado
+
+        current_user        = get_current_user
         tipo                = params["tipo"]
         cliente_id          = params["cliente_id"]
         longitud            = tipo == '1' ? 55 : tipo == '2' ? 75 : 100
         cuentas_temp        = []
 
-        query               = {}
-        query['tipo']       = "venta"
-        query['estado']     = true
+        result_has_permiso_pre_venta = current_user.verificateHasPermiso('pre_venta')
 
-        query['cliente_id'] = cliente_id if tipo == '1'
+        has_permiso_pre_venta = result_has_permiso_pre_venta.status_valid
+
+        query  = "( cabecera_facturas.tipo = 'venta' #{has_permiso_pre_venta ? "OR cabecera_facturas.tipo = 'pre_venta' )": ")" } AND cabecera_facturas.estado = true"
+        query += " AND cabecera_facturas.cliente_id = #{cliente_id}" if tipo == '1'
 
         total_cuentas       = 0
         cuentas             = []
-        inicio_select       = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante'}"
+        inicio_select       = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
 
         select_ = ""
         if tipo == "1"
-            select_ = "#{inicio_select}, cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
-            cabecera_facturas.balance as total_pendiente"
-        else
-            select_ = "#{inicio_select}, #{tipo == '3' ? 'sum (' : ''} cabecera_facturas.balance#{tipo == '3' ? ')' : ''} as total_pendiente,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
-            #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
-        end
+					select_ = "#{inicio_select}, cabecera_facturas.numero_comprobante, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
+				else
+					select_ = "#{inicio_select}, #{tipo == '3' ? 'sum (' : ''} cabecera_facturas.balance#{tipo == '3' ? ')' : ''} as total_pendiente,
+					#{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
+					#{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
+					#{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
+					#{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
+				end
 
         group_by = tipo == "1" ? "" : tipo == "2" ? "cabecera_facturas.id, clientes.id" : "clientes.id"
 
         CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
         .select(select_).where(query).where("cabecera_facturas.balance >= 1").group(group_by)
         .order("#{tipo == '3' ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
-            cabeza = cf.attributes
-            total_cuentas += cabeza['total_pendiente']
-            cabeza = sustituirMonto(cabeza ) if tipo == "2"
+            cabeza                      = cf.attributes
+
+            total_cuentas              += cabeza['total_pendiente']
+						cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
+						cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != "3"
+            cabeza                      = sustituirMonto(cabeza ) if tipo == "2"
             cuentas.push(cabeza)
         end
 
         cuentas = cuentas.sort_by! { |k| k["total_pendiente"]}.reverse if tipo == '3'
 
-        # numero_comprobante IN ('B0200005287')
-
-        obj = { body: cuentas, totalizacion: { bruto: 0, devuelto: 0, total: total_cuentas }, sub_t: "Cliente: #{ buscar_cliente(query, 48, ['nombre'])["nombre"] }"}
+        obj = { body: cuentas, totalizacion: { bruto: 0, devuelto: 0, total: total_cuentas }, sub_t: "Cliente: #{ buscar_cliente({cliente_id: cliente_id}.with_indifferent_access , 48, ['nombre'])["nombre"] }"}
         return obj
 
     end
@@ -122,7 +123,7 @@ class Reporte < ApplicationRecord
     def self.sustituirMonto(detalle)
         arrayDias = [ 'cero_to_treinta', 'treinta_uno_to_sesenta', 'sesenta_uno_to_noventa', 'noventa_uno_to_more' ]
         arrayDias.each do |item|
-            detalle[item] = detalle[item] >= 1 ? detalle['numero_comprobante'] : 0
+            detalle[item] = detalle[item] >= 1 ? detalle['numero_documento'] : 0
         end
         return detalle
     end
@@ -168,21 +169,21 @@ class Reporte < ApplicationRecord
       query['tipo_factura_id']   = tipo_nota unless tipo_nota == 0
 
       temp = FacturaAplicada
-			.joins("inner join notas on notas.id = facturas_aplicadas.nota_id")
-			.joins("inner join cabecera_facturas on cabecera_facturas.id = facturas_aplicadas.cabecera_factura_id")
-			.where(notas: query)
-			.order("id DESC").includes(FacturaAplicada.models_includes)
+      .joins("inner join notas on notas.id = facturas_aplicadas.nota_id")
+      .joins("inner join cabecera_facturas on cabecera_facturas.id = facturas_aplicadas.cabecera_factura_id")
+      .where(notas: query)
+      .order("id DESC").includes(FacturaAplicada.models_includes)
 
       temp.each do | factura_aplicada |
-				tipo_nota = factura_aplicada.nota.tipo_factura_id == TiposFacturasId.nota_de_credito  ? 'Crédito' : 'Débito'
+        tipo_nota = factura_aplicada.nota.tipo_factura_id == TiposFacturasId.nota_de_credito  ? 'Crédito' : 'Débito'
 
-				notas.push({
-					:factura => factura_aplicada.cabecera_factura.numero_comprobante,
-					:numero_comprobante => factura_aplicada.nota.numero_comprobante,
-					:tipo_nota => "nota de #{tipo_nota.downcase}",
-					:fecha => factura_aplicada.nota.fecha_equivalente,
-					:monto => factura_aplicada.total.abs,
-				})
+        notas.push({
+          :factura => factura_aplicada.cabecera_factura.numero_comprobante,
+          :numero_comprobante => factura_aplicada.nota.numero_comprobante,
+          :tipo_nota => "nota de #{tipo_nota.downcase}",
+          :fecha => factura_aplicada.nota.fecha_equivalente,
+          :monto => factura_aplicada.total.abs,
+        })
 
       end
 

@@ -28,16 +28,13 @@ class ApplicationController < ActionController::API
   def testFunction
 
 		res = Response.new
+		user_id                  = get_current_user[:id]
+		result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
+		# result = Permiso.verificateUserPermiso(user_id, 'articulo')
+		# result = Permiso.verificateUserPermiso(user_id, 'marca')
 
-		CabeceraFactura.all.each do |factura|
-			identificador         = CabeceraFactura.makeIdentificador(factura)
-			my_print_log("identificador ".red + "#{identificador}" )
-			factura.identificador = identificador
+		res = result
 
-			factura.save!
-		end
-
-		res.set_data("fin")
     res.send_response self
 
 	end
@@ -46,19 +43,6 @@ class ApplicationController < ActionController::API
     res = Response.new
 
     res.send_response self
-
-    #  -------------------------------------------------------------------------------------
-
-    # a = CabeceraFactura.find_by_id(3244)
-    # puts ":::::::: a".red + "#{a.to_json}"
-
-    # b = serialize_parser(a,{all:true})
-    # render json:  b.to_json, status: 200
-
-
-    # param = params[:param]
-    # res = User.mudar_info(param)
-    # render json: { body: res }, status: 200
   end
 
   # ============================================================================================
