@@ -69,14 +69,15 @@ class Reporte < ApplicationRecord
         # tipo 1 = por cliente
         # tipo 2 = general detallado
         # tipo 3 = general agrupado
-
-        current_user        = get_current_user
-        tipo                = params["tipo"]
-        cliente_id          = params["cliente_id"]
-        longitud            = tipo == '1' ? 55 : tipo == '2' ? 75 : 100
-        cuentas_temp        = []
-
+        current_user                 = get_current_user
         result_has_permiso_pre_venta = current_user.verificateHasPermiso('pre_venta')
+
+        cuentas_temp                 = []
+        tipo                         = params["tipo"]
+        cliente_id                   = params["cliente_id"]
+        longitud                     = tipo == '1' ? 60 : tipo == '2' ? 78 : 100
+        longitud                     = tipo == '1' ? 49 : tipo == '2' ? 64 : 100 if result_has_permiso_pre_venta.status_valid
+
 
         has_permiso_pre_venta = result_has_permiso_pre_venta.status_valid
 
@@ -85,7 +86,11 @@ class Reporte < ApplicationRecord
 
         total_cuentas       = 0
         cuentas             = []
-        inicio_select       = "clientes.id, SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,#{longitud}) as cliente_nombre #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
+        inicio_select       = "CASE WHEN LENGTH(clientes.nombre || ' ' || clientes.apellido) > #{longitud}
+																THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
+															ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre,"
+
+        inicio_select       += "clientes.id #{tipo == '3' ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
 
         select_ = ""
         if tipo == "1"
@@ -114,7 +119,7 @@ class Reporte < ApplicationRecord
 
         cuentas = cuentas.sort_by! { |k| k["total_pendiente"]}.reverse if tipo == '3'
 
-        obj = { body: cuentas, totalizacion: { bruto: 0, devuelto: 0, total: total_cuentas }, sub_t: "Cliente: #{ buscar_cliente({cliente_id: cliente_id}.with_indifferent_access , 48, ['nombre'])["nombre"] }"}
+        obj = { body: cuentas, totalizacion: { bruto: 0, devuelto: 0, total: total_cuentas }, sub_t: "Cliente: #{ buscar_cliente({cliente_id: cliente_id}.with_indifferent_access , 125, ['nombre'])["nombre"] }"}
         return obj
 
     end
@@ -131,12 +136,13 @@ class Reporte < ApplicationRecord
     # ---------------------------------------------------------------------------------------------------------
     def self.calcularCantidades(articulos)
         array                         =[]
-        plural                        = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
+        plural                        = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Galon: 'Galones', Funda: 'Fundas', Producto: 'Productos' }
         articulos.each do |articulo|
             obj                       = articulo.attributes
             obj["cantidades"]         = Articulo.calcularCantidades(articulo)
 
             cant                      = number_with_delimiter( ("%.2f" % obj["cantidades"][articulo['medida']]).gsub(',','.'))
+
             obj['cantidad_principal'] = "#{cant} #{cant.to_i == 1 ? articulo['medida'] : plural[articulo['medida'].to_sym]}"
             array.push(obj)
         end
@@ -330,6 +336,7 @@ class Reporte < ApplicationRecord
         end
 
 
+				cliente = Cliente.find_by_id(params['cliente_id']) if cliente == nil
 
         subtitulo = "Cliente: #{ cliente.nombre_completo }, Facturas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
         obj = { body: facturas, totalizacion: { bruto: 0, devuelto: 0, total: total_cuentas }, sub_t: subtitulo}
