@@ -114,6 +114,22 @@ module FacturasParams
 
 end
 
+module TipoArticuloType
+	VENTA_NORMAL = 'venta_normal'
+	SERVICIO = 'servicio'
+
+
+	def self.venta_normal
+		return VENTA_NORMAL
+	end
+
+	def self.servicio
+		return SERVICIO
+	end
+
+end
+
+TIPO_ARTICULO_TYPES_VALIDOS = [ TipoArticuloType.venta_normal, TipoArticuloType.servicio ]
 
 module TiposNotas
 

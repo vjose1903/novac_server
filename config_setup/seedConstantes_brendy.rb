@@ -67,10 +67,10 @@ G_documentos_de_identidad = [
 
 
 G_tipos_articulo = [
-  { "descripcion": "Dulces" },
-  { "descripcion": "Materia prima" },
-  { "descripcion": "Producto terminado" },
-  { "descripcion": "Otros" },
+  { "descripcion": "Dulces", "tipo": "venta_normal", "codigo": "dulces" },
+  { "descripcion": "Materia prima", "tipo": "venta_normal", "codigo": "materia_prima" },
+  { "descripcion": "Producto terminado", "tipo": "venta_normal", "codigo": "producto_terminado" },
+  { "descripcion": "Otros", "tipo": "venta_normal", "codigo": "otros" },
 ]
 
 
