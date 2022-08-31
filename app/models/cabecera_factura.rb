@@ -453,7 +453,7 @@ class CabeceraFactura < ApplicationRecord
     cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params["cliente_id"], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
 
     cabeceras.concat cabe_viajes_contado_deviendo
-		puts " >>>>>>>>>> ".red + " #{cabeceras.to_json}"
+    puts " >>>>>>>>>> ".red + " #{cabeceras.to_json}"
 
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true}, CabeceraFactura.models_includes)
@@ -582,7 +582,7 @@ class CabeceraFactura < ApplicationRecord
           if factura_original.save!
             factura_editada                = CabeceraFactura.find_by_id(params["id"])
             res.set_data(factura_editada, {all: true})
-						res.add_msg("Factura editada correctamente.")
+            res.add_msg("Factura editada correctamente.")
           else
             res.add_msgs(factura_original.errors.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -684,9 +684,15 @@ class CabeceraFactura < ApplicationRecord
   def self.agregar_nota_a_CabeceraFactura(factura_aplicada, operador)
     res                 = Response.new
     factura             = CabeceraFactura.find_by_id(factura_aplicada[:cabecera_factura_id])
+    dias_de_creada      = (DateTime.now - Date.parse(factura.fecha_equivalente.to_s)).to_i
+
+    total_factura       = factura.Bruto - factura.descuento
+    total_factura      -= factura.itbis if dias_de_creada >= 30
+
+    total_nota          = factura.get_total_devuelto_por_notas + (factura_aplicada[:total].to_d).abs
 
     factura.balance     = eval "#{factura.balance} #{operador} #{(factura_aplicada[:total].to_d).abs}" if !factura.is_contado || ( factura.is_viaje && !factura.pagada )
-    factura.estado      = false if (factura.is_contado && ((factura.Bruto - factura.descuento) - (factura.get_total_devuelto_por_notas + (factura_aplicada[:total].to_d).abs ) < 1)) || (!factura.is_contado && factura.balance < 1)
+    factura.estado      = false if (total_factura - total_nota < 1) || (!factura.is_contado && factura.balance < 1)
     factura.tiene_nota  = true
 
     unless factura.save!

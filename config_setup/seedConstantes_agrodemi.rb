@@ -66,10 +66,10 @@ G_documentos_de_identidad = [
 
 
 G_tipos_articulo = [
-	{ "descripcion": "Materia prima", "tipo": "venta_normal", "codigo": "materia" },
-  { "descripcion": "Veterinaria", "tipo": "venta_normal", "codigo": "veterinaria" },
-  { "descripcion": "Producto terminado", "tipo": "venta_normal", "codigo": "producto_terminado" },
-  { "descripcion": "Otros", "tipo": "venta_normal", "codigo": "otros" },
+	{ "descripcion": "Materia prima",       "tipo": "venta_normal", "codigo": "materia_prima" },
+  { "descripcion": "Veterinaria",         "tipo": "venta_normal", "codigo": "veterinaria" },
+  { "descripcion": "Producto terminado",  "tipo": "venta_normal", "codigo": "producto_terminado" },
+  { "descripcion": "Otros",               "tipo": "venta_normal", "codigo": "otros" },
 ]
 
 

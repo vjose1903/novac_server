@@ -40,6 +40,7 @@ class ArticulosController < ApplicationController
 
   def checkIfExcede
     excede = @articulo.existencia.to_f < params["cantidad"].to_f
+		excede = false if @articulo.tipo_articulo.tipo == TipoArticuloType.servicio
     return Response.new(params, nil, excede, nil, nil).send_response self
   end
 

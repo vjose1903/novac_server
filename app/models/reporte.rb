@@ -11,7 +11,7 @@ class Reporte < ApplicationRecord
         obj = {
             titulo_reporte:         titulo,
             tipo_reporte:           _tipo_reporte,
-            fecha:                  formatearFecha(DateTime.now.to_s ,2),
+            fecha:                  formatearFecha(DateTime.now.to_s ,TipoFecha.con_hora),
             realizado_por:          longitud > 15 ? "#{temp_Emp[0, 15]}..." : temp_Emp,
             bruto:                  totalizacion[:bruto].round(2),
             devuelto:               totalizacion[:devuelto].round(2),
@@ -193,7 +193,7 @@ class Reporte < ApplicationRecord
 
       end
 
-      subT = "Notas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
+      subT = "Notas entre las fechas: #{formatearFecha(params["desde"], TipoFecha.sin_hora)} y #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
       obj  = { body: notas, totalizacion: { bruto: 0, devuelto: 0, total: 0 }, sub_t: subT}
     end
 
@@ -338,7 +338,7 @@ class Reporte < ApplicationRecord
 
 				cliente = Cliente.find_by_id(params['cliente_id']) if cliente == nil
 
-        subtitulo = "Cliente: #{ cliente.nombre_completo }, Facturas entre las fechas: #{formatearFecha(params["desde"], 1)} y #{formatearFecha(params["hasta"], 1)}"
+        subtitulo = "Cliente: #{ cliente.nombre_completo }, Facturas entre las fechas: #{formatearFecha(params["desde"], TipoFecha.sin_hora)} y #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
         obj = { body: facturas, totalizacion: { bruto: 0, devuelto: 0, total: total_cuentas }, sub_t: subtitulo}
         return obj
     end
@@ -350,7 +350,7 @@ class Reporte < ApplicationRecord
         desde = params["desde"]
         hasta = params["hasta"].nil? ? params["desde"] : params["hasta"]
 
-        sub_titulo = desde == hasta ? "Fecha: #{formatearFecha(desde, 1)}" : "Entre las fechas: #{formatearFecha(desde, 1)} y #{formatearFecha(hasta, 1)}"
+        sub_titulo = desde == hasta ? "Fecha: #{formatearFecha(desde, TipoFecha.sin_hora)}" : "Entre las fechas: #{formatearFecha(desde, TipoFecha.sin_hora)} y #{formatearFecha(hasta, TipoFecha.sin_hora)}"
         total_venta = 0
         query={}
 

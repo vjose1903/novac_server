@@ -11,7 +11,7 @@ class ReportesController < ApplicationController
 		if tipo_reporte == 'ventas'
 			# ------------------- REPORTE DE VENTAS --------------------
 			body = Reporte.get_ventas(params)
-			titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], 1)} hasta #{formatearFecha(params["hasta"], 1)}" }"
+			titulo = "Reporte de ventas #{ params["tipo"] == '1' ? 'diarias' : "desde #{formatearFecha(params["desde"], TipoFecha.sin_hora)} hasta #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}" }"
 
 		elsif tipo_reporte == 'cuentas_cobrar'
 			# ------------------- REPORTE DE CUENTAS POR COBRAR --------------------

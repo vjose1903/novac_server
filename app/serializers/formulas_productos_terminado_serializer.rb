@@ -36,6 +36,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
       end
     end
 
+		articulo['medida']                    = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
     contenidos[articulo["medida"]]        = contenido.length == 0 ? 1 : contenido.first["cantidad"]
     contenidos[contenido.first["medida"]] = 1 if contenido.length > 0
 

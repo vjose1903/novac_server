@@ -25,7 +25,7 @@ class UserSerializer < ActiveModel::Serializer
   # end
 
   def fecha_nacimiento
-    formatearFecha(object.fecha_nacimiento.to_s, 1)
+    formatearFecha(object.fecha_nacimiento.to_s, TipoFecha.sin_hora)
   end
 
   def nombre

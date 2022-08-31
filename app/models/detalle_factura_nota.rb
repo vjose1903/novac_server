@@ -40,7 +40,7 @@ class DetalleFacturaNota < ApplicationRecord
 
   #  --------------------------------------------------------------------------------------------------------------------------------
   def procesos_detalles_facturas_notas(params, nota)
-    res                = Response.new
+    res              = Response.new
 
     operador         = nota["tipo_factura_id"] == TiposNotasId.credito ? "+" : "-"
     fecha            = nota["fecha_equivalente"]

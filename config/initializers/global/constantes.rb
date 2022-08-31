@@ -38,10 +38,14 @@ module Identificador
 end
 
 module TipoArticulos
-	VETERINARIA         = "1"
-	MATERIA_PRIMA       = "2"
-	PRODUCTO_TERMINADO  = "3"
-	OTRO                = "4"
+	VETERINARIA               = "veterinaria"
+	MATERIA_PRIMA             = "materia_prima"
+	PRODUCTO_TERMINADO        = "producto_terminado"
+	OTRO                      = "otro"
+	MATERIALES_DE_OFICINA     = "materiales_de_oficina"
+	SERVICIOS_LEGALES         = "servicios_legales"
+	SERVICIOS_CONTABLES       = "servicios_contables"
+	DULCES                    = "dulces"
 
 	def self.veterinaria
 		return VETERINARIA
@@ -57,6 +61,22 @@ module TipoArticulos
 
 	def self.otro
 		return OTRO
+	end
+
+	def self.materiales_de_oficina
+		return MATERIALES_DE_OFICINA
+	end
+
+	def self.servicios_legales
+		return SERVICIOS_LEGALES
+	end
+
+	def self.servicios_contables
+		return SERVICIOS_CONTABLES
+	end
+
+	def self.dulces
+		return DULCES
 	end
 
 end
@@ -111,6 +131,20 @@ module FacturasParams
   def self.last_50
     return LAST_50
   end
+
+end
+
+module TipoFecha
+	SIN_HORA = 'sin_hora'
+	CON_HORA = 'con_hora'
+
+	def self.sin_hora
+		return SIN_HORA
+	end
+
+	def self.con_hora
+		return CON_HORA
+	end
 
 end
 
