@@ -86,14 +86,21 @@ class CabeceraConduce < ApplicationRecord
 
 	# ===================================================================================================================================================
 
-	def self.revertir(recibo_a_anular)
+	def self.revertir(conduce_a_anular)
 		res                 = Response.new
 		CabeceraConduce.transaction do
-			res_valid         = recibo_a_anular.procesoRevertirConduce
+			res_valid         = conduce_a_anular.procesoRevertirConduce
 
-			if res_valid.status_valid && recibo_a_anular.destroy
-				msg             = params["tipo"] === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
-				res.add_msg(msg)
+			if res_valid.status_valid
+				conduce_a_anular.estado = false
+
+				if conduce_a_anular.save!
+					msg           =  "Conduce de mercancía anulado correctamente."
+					res.add_msg(msg)
+				else
+					res.add_msgs(conduce_a_anular.errors.to_a)
+					res.set_status(HTTP_STATUS_CODE[:conflict])
+				end
 			else
 				res.add_msgs(res_valid.get_msgs)
 				res.set_status(HTTP_STATUS_CODE[:conflict])
