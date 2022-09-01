@@ -24,6 +24,6 @@ services:
       - "$$DB_PORT$$:$$DB_PORT$$"
     restart: always
     command: >
-      sh -c "rm tmp/pids/server.pid ||
+      sh -c "./wait-for-it.sh db-prod:5432 --
       cron &&
       rails server -b 0.0.0.0 --port $$DB_PORT$$"

@@ -21,6 +21,4 @@ services:
       - "3002:3002"
     volumes:
       - .:/usr/src/novac_server
-    command: >
-      sh -c "rm tmp/pids/server.pid ||
-      rails server -b 0.0.0.0 --port 3002"
+    command: ["./wait-for-it.sh", "db-dev:5432", "--", "rails", "server", "-b", "0.0.0.0", "--port", "3002"]
