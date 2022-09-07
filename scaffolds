@@ -149,3 +149,6 @@ rails g migration add_formula_id_to_mantenimiento_formula
 rails g migration addMedidaToMantenimientoFormula
 rails g migration addTipoToTipoArticulo
 rails g migration addEstadoToCabeceraConduces
+rails g migration addCamposToDetallesFacturasNotas
+rails g migration addMoreCamposToDetallesFacturasNotas
+rails g migration addCamposToFacturasAplicadas

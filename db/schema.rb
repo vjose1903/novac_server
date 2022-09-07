@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_08_31_151625) do
+ActiveRecord::Schema.define(version: 2022_09_06_181414) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -258,9 +258,14 @@ ActiveRecord::Schema.define(version: 2022_08_31_151625) do
     t.float "descuento"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.float "precio_real"
+    t.float "itbis_real"
+    t.float "descuento_real"
+    t.bigint "tipo_factura_id"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
+    t.index ["tipo_factura_id"], name: "index_detalles_facturas_notas_on_tipo_factura_id"
   end
 
   create_table "detalles_produccion", force: :cascade do |t|
@@ -298,8 +303,10 @@ ActiveRecord::Schema.define(version: 2022_08_31_151625) do
     t.float "total"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.bigint "tipo_factura_id"
     t.index ["cabecera_factura_id"], name: "index_facturas_aplicadas_on_cabecera_factura_id"
     t.index ["nota_id"], name: "index_facturas_aplicadas_on_nota_id"
+    t.index ["tipo_factura_id"], name: "index_facturas_aplicadas_on_tipo_factura_id"
   end
 
   create_table "formulas_productos_terminados", force: :cascade do |t|

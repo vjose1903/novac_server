@@ -16,6 +16,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :is_defectuoso,                              if: Proc.new { self.get_param('is_defectuoso') || self.get_param('all') }
 
   attribute :articulo,                                   if: Proc.new { self.get_param('articulo') || self.get_param('all') }
+  attribute :calcular_itbis,                             if: Proc.new { self.get_param('calcular_itbis') || self.get_param('all') }
   attribute :precio,                                     if: Proc.new { self.get_param('precio') || self.get_param('all') }
   attribute :costo,                                      if: Proc.new { self.get_param('costo') || self.get_param('all') }
   attribute :tipo,                                       if: Proc.new { self.get_param('tipo') || self.get_param('all') }
@@ -31,6 +32,10 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     @articuloSelect = object.articulo
     @articuloSelect["nombre"]
 
+  end
+
+  def calcular_itbis
+    @articuloSelect.calcular_itbis
   end
 
   def tipo

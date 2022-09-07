@@ -108,7 +108,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     notas = []
     if object.tiene_nota
       notas = object.facturas_aplicadas.filter { | factura_aplicada | factura_aplicada.nota.estado == true }
-      notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true})
+      notas = serialize_parser(notas, {numero_comprobante: true, id: true, user_id: true, detalles_facturas_notas: true, total: true, tipo: true, tipo_label:true})
     end
     notas
   end

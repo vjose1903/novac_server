@@ -1,7 +1,7 @@
 class FacturaAplicada < ApplicationRecord
   belongs_to :nota
   belongs_to :cabecera_factura
-
+	belongs_to :tipo_factura
 	has_many :detalles_facturas_notas, dependent: :destroy
 
 
@@ -33,7 +33,7 @@ class FacturaAplicada < ApplicationRecord
 			factura_aplicada.detalles_facturas_notas   = dependencia_data if key_object == 'detalles_facturas_notas'
 		}
 
-		res_proceso                                  = factura_aplicada.procesos_facturas_aplicadas(params) if res_proceso.status_valid
+		res_proceso                                  = factura_aplicada.procesos_facturas_aplicadas(params, padre) if res_proceso.status_valid
 
     if res_proceso && res_proceso.status_valid && factura_aplicada.errors.empty? && (!is_save || (is_save && factura_aplicada.save!))
       res.set_data(factura_aplicada)
@@ -47,10 +47,9 @@ class FacturaAplicada < ApplicationRecord
   end
 
 	#  --------------------------------------------------------------------------------------------------------------------------------
-	def procesos_facturas_aplicadas(params)
+	def procesos_facturas_aplicadas(params, nota)
 		res                = Response.new
-
-		res_valid          = CabeceraFactura.agregar_nota_a_CabeceraFactura(params, '-')
+		res_valid          = CabeceraFactura.agregar_nota_a_CabeceraFactura(params, nota)
 
 		unless res_valid.status_valid
 			res.add_msgs(res_valid.get_msgs.to_a)
@@ -105,4 +104,9 @@ class FacturaAplicada < ApplicationRecord
 
 		return res
 	end
+
+	# ===================================================================================================================================================
+  def tipo_nota
+    return TiposNotas.get_tipo(self.tipo_factura_id)
+  end
 end

@@ -197,6 +197,10 @@ module TiposNotasId
 	def self.debito
 		return DEBITO
 	end
+
+	def self.get_id(tipo)
+		return tipo == TiposNotas.credito ? self.credito : self.debito
+	end
 end
 
 

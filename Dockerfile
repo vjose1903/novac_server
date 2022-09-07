@@ -1,18 +1,3 @@
-# FROM ruby:3.0.4-alpine3.15
-
-# COPY ["Gemfile", "Gemfile.lock", "/usr/src/novac_server/"]
-
-# WORKDIR /usr/src/novac_server
-
-# RUN apk add build-base postgresql-dev
-# RUN gem install rails
-# RUN bundle install
-
-# COPY [".", "/usr/src/novac_server/"]
-
-# CMD ["sh"]
-# FROM  ubuntu:latest
-
 FROM ruby:3.0
 
 RUN apt-get update -qq && apt-get install -y build-essential postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron
@@ -34,7 +19,9 @@ RUN bundle lock --add-platform x86_64-linux
 RUN bundle exec wheneverize . &&\
     whenever --update-crontab &&\
     touch log/cron.log &&\
-    chmod +rw log/cron.log
+    chmod +rw log/cron.log &&\
+		chmod +x /usr/src/novac_server/run_server.sh &&\
+		chmod +x /usr/src/novac_server/wait-for-it.sh
 
 
 # Configure the main process to run when running the image
