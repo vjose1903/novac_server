@@ -11,8 +11,10 @@ services:
       POSTGRES_PASSWORD: password
     restart: always
 
-  vasquez-prod:
-    build: .
+  vasquez-dev:
+    build:
+      context: .
+      dockerfile: docker/services/server/Dockerfile
     environment:
       DATABASE_NAME: "vasquez_services"
       RAILS_ENV: "production"
@@ -20,8 +22,14 @@ services:
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
     depends_on:
       - db-prod
-    ports:
-      - "3002:3002"
     restart: always
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
+
+  nginx-proxy-prod:
+    build: ./docker/services/nginx
+    ports:
+      - 9092:9092
+    depends_on:
+      - vasquez-dev
+    restart: always

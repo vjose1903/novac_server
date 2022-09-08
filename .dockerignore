@@ -4,9 +4,8 @@
 win_scripts
 .gitignore
 build/*
-Dockerfile
-docker-compose.yml
-docker-compose.prod.yml
+/docker/*
+
 npm-debug.log*
 
 

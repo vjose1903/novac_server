@@ -11,14 +11,14 @@ PRODUCTION='no'
 BACKGROUND='no'
 
 getActualClient() {
-	cliente=$(cat config_setup/actual_cliente.txt)
-	echo " "
-	echo "${green} ||-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=||"
-	echo "${green} ||          ${white}CLIENTE ACTUAL${green}          ||"
-	echo "${green} ||-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=||"
-	echo " "
-	echo "${white}  $cliente"
-	echo " "
+  cliente=$(cat config_setup/actual_cliente.txt)
+  echo " "
+  echo "${green} ||-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=||"
+  echo "${green} ||          ${white}CLIENTE ACTUAL${green}          ||"
+  echo "${green} ||-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=||"
+  echo " "
+  echo "${white}  $cliente"
+  echo " "
 }
 
 setClient() {
@@ -26,8 +26,11 @@ setClient() {
 
   echo "${cyan}setClient >> ${client}"
   echo "${white} "
+
+	if [ "$PRODUCTION" == "yes" ]; then environment_selected='prod'; else environment_selected='dev'; fi
+
   if [ "$client" == "agrodemi" -o "$client" == "brendy" -o "$client" == "vasquez" ]; then
-    ruby ./setup.rb $client
+    ruby ./setup.rb $client $environment_selected
   else
     echo "${red}*************************************"
     echo "${red}**                                 **"
@@ -59,14 +62,14 @@ while getopts $OPTIONS opt; do
   case "${opt}" in
   a)
     echo "la opcion -a"
-		getActualClient
+    getActualClient
   ;;
   p)
     echo "la opcion -p"
     PRODUCTION='yes'
-		echo "${white} "
-		echo "${yellow} -=-=-=- EJECUTANDO EN PRODUCCION -=-=-=-${white}"
-		echo "${white} "
+    echo "${white} "
+    echo "${yellow} -=-=-=- EJECUTANDO EN PRODUCCION -=-=-=-${white}"
+    echo "${white} "
   ;;
   t)
     echo "la opcion -t"

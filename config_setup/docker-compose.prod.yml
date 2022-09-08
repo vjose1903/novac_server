@@ -11,8 +11,10 @@ services:
       POSTGRES_PASSWORD: password
     restart: always
 
-  $$NAME_IMG_PROD$$:
-    build: .
+  $$ENVIRONMENT_NAME_IMG$$:
+    build:
+      context: .
+      dockerfile: docker/services/server/Dockerfile
     environment:
       DATABASE_NAME: "$$DATABASE_NAME$$"
       RAILS_ENV: "production"
@@ -20,8 +22,14 @@ services:
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
     depends_on:
       - db-prod
-    ports:
-      - "$$DB_PORT$$:$$DB_PORT$$"
     restart: always
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
+
+  nginx-proxy-prod:
+    build: ./docker/services/nginx
+    ports:
+      - $$FRONT_PORT$$:$$FRONT_PORT$$
+    depends_on:
+      - $$ENVIRONMENT_NAME_IMG$$
+    restart: always
