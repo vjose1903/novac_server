@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+OPTIONS="e:"
+
+
+while getopts $OPTIONS opt; do
+  echo " "
+
+  case "${opt}" in
+  e)
+    client=$OPTARG
+		echo "${cyan}setClient >> ${client}"
+
+  ;;
+  *)
+    echo "${red}*************************************"
+    echo "${red}**                                 **"
+    echo "${red}**        FLAG NO PERMITIDO        **"
+    echo "${red}**                                 **"
+    echo "${red}*************************************"
+    exit 2
+    ;;
+  esac
+done

@@ -10,15 +10,22 @@ services:
     environment:
       POSTGRES_PASSWORD: password
 
-  vasquez-dev:
-    build: .
+  vasquez-prod:
+    build:
+      context: .
+      dockerfile: docker/services/server/Dockerfile
     environment:
       DATABASE_NAME: "vasquez_services"
       RAILS_ENV: "development"
     depends_on:
       - db-dev
-    ports:
-      - "3002:3002"
     volumes:
       - .:/usr/src/novac_server
     command: ["./wait-for-it.sh", "db-dev:5432", "--", "sh", "./run_server.sh"]
+
+  nginx-proxy-dev:
+    build: ./docker/services/nginx
+    ports:
+      - 9092:9092
+    depends_on:
+      - vasquez-prod
