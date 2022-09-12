@@ -137,7 +137,7 @@ tipos_factura = [
   # 19
   {
     "referencia": nil,
-    "descripcion": "Pre_factura",
+    "descripcion": "pre_venta",
   },
 ]
 

@@ -4,18 +4,18 @@ services:
   db-dev:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-vasquez-data:/var/lib/postgresql/data
+      - ./tmp/db-brendy-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
 
-  vasquez-prod:
+  brendy-prod:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
     environment:
-      DATABASE_NAME: "vasquez_services"
+      DATABASE_NAME: "panaderia_brendy"
       RAILS_ENV: "development"
     depends_on:
       - db-dev
@@ -26,6 +26,6 @@ services:
   nginx-proxy-dev:
     build: ./docker/services/nginx
     ports:
-      - 9092:9092
+      - 9091:9091
     depends_on:
-      - vasquez-prod
+      - brendy-prod
