@@ -142,12 +142,12 @@ tipos_factura = [
 ]
 
 tipos_factura.each do |tipo_fac|
-
+~
   if (TipoFactura.find_by_descripcion(tipo_fac[:descripcion])).nil?
     tipo = TipoFactura.create(tipo_fac)
     puts " "
     puts "ERROR- tipo_factura: ".red + "#{tipo.errors.to_json}" if !tipo.errors.empty?
-
+~
     secuencia = SecuenciaFactura.create( { "tipo_factura_id": tipo.id, "secuencia": 0, } )
     puts " "
     puts "ERROR - secuencia_factura: ".red + "#{secuencia.errors.to_json}" if !secuencia.errors.empty?
