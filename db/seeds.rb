@@ -141,6 +141,7 @@ tipos_factura = [
   },
 ]
 
+
 tipos_factura.each do |tipo_fac|
 ~
   if (TipoFactura.find_by_descripcion(tipo_fac[:descripcion])).nil?
