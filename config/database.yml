@@ -38,7 +38,6 @@ development:
 #
 production:
   <<: *default
-  # database: <%= ENV['DATABASE_NAME'] %>_production
-  database: ADM_production
+  database: <%= ENV['DATABASE_NAME'] %>_production
   # host: db-prod
   host: admservidor.ddns.net
