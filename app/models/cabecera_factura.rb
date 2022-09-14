@@ -383,7 +383,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_pre_facturas(params, paginate_options)
     res          = Response.new(paginate_options)
 
-    tipoFactura  = TipoFactura.find_by_descripcion("Pre_factura")
+    tipoFactura  = TipoFactura.find_by_descripcion("pre_venta")
 
     id           = params["id"]
     tipo         = params["tipo"]
@@ -453,7 +453,6 @@ class CabeceraFactura < ApplicationRecord
     cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params["cliente_id"], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
 
     cabeceras.concat cabe_viajes_contado_deviendo
-		puts " >>>>>>>>>> ".red + " #{cabeceras.to_json}"
 
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true}, CabeceraFactura.models_includes)
@@ -582,7 +581,7 @@ class CabeceraFactura < ApplicationRecord
           if factura_original.save!
             factura_editada                = CabeceraFactura.find_by_id(params["id"])
             res.set_data(factura_editada, {all: true})
-						res.add_msg("Factura editada correctamente.")
+            res.add_msg("Factura editada correctamente.")
           else
             res.add_msgs(factura_original.errors.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -651,15 +650,24 @@ class CabeceraFactura < ApplicationRecord
 
   # =====================================================================================================================
 
-  def get_total_devuelto_por_notas
+  def get_total_modificado_por_notas(tipo)
     aplicaciones_en_notas           = FacturaAplicada.where(cabecera_factura_id: self.id)
-    total_devuelto                  = 0
+    total_modificado                = 0
 
     aplicaciones_en_notas.each do |fact_aplicada|
-      total_devuelto += fact_aplicada.total
+      tipo_nota = fact_aplicada.tipo_nota
+
+      if tipo_nota    == tipo
+        total_modificado += fact_aplicada.total
+
+      elsif tipo_nota == tipo
+        total_modificado += fact_aplicada.total
+
+      end
+
     end
 
-    return total_devuelto
+    return total_modificado
   end
 
   # =====================================================================================================================
@@ -681,13 +689,24 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.agregar_nota_a_CabeceraFactura(factura_aplicada, operador)
+  def self.agregar_nota_a_CabeceraFactura(factura_aplicada, nota)
     res                 = Response.new
     factura             = CabeceraFactura.find_by_id(factura_aplicada[:cabecera_factura_id])
+    dias_de_creada      = (DateTime.now - Date.parse(factura.fecha_equivalente.to_s)).to_i
+    operador            = nota.tipo_nota == TiposNotas.credito ? "-" : "+"
 
-    factura.balance     = eval "#{factura.balance} #{operador} #{(factura_aplicada[:total].to_d).abs}" if !factura.is_contado || ( factura.is_viaje && !factura.pagada )
-    factura.estado      = false if (factura.is_contado && ((factura.Bruto - factura.descuento) - (factura.get_total_devuelto_por_notas + (factura_aplicada[:total].to_d).abs ) < 1)) || (!factura.is_contado && factura.balance < 1)
-    factura.tiene_nota  = true
+
+    total_en_favor_factura     = factura.total_factura
+    total_en_favor_factura    += factura.get_total_modificado_por_notas(TiposNotas.debito)
+    total_en_favor_factura    -= factura.itbis if dias_de_creada >= 30
+
+    total_en_favor_factura    -= factura.itbis if dias_de_creada >= 30
+
+    total_en_contra_factura    = factura.get_total_modificado_por_notas(TiposNotas.credito) + (factura_aplicada[:total].to_d).abs
+
+    factura.balance      = eval "#{factura.balance} #{operador} #{(factura_aplicada[:total].to_d).abs}" if !factura.is_contado || ( factura.is_viaje && !factura.pagada )
+    factura.estado       = false if (total_en_favor_factura - total_en_contra_factura) < 1
+    factura.tiene_nota   = true
 
     unless factura.save!
       res.add_msgs(factura.errors.to_a)

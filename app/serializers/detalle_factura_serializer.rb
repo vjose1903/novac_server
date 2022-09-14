@@ -12,8 +12,11 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :retirado_en_venta,                          if: Proc.new { self.get_param('retirado_en_venta') || self.get_param('all') }
   attribute :calcular_saco,                              if: Proc.new { self.get_param('calcular_saco') || self.get_param('all') }
   attribute :detalle_factura_nota,                       if: Proc.new { self.get_param('detalle_factura_nota') || self.get_param('all') }
+  attribute :is_devuelto,                                if: Proc.new { self.get_param('is_devuelto') || self.get_param('all') }
+  attribute :is_defectuoso,                              if: Proc.new { self.get_param('is_defectuoso') || self.get_param('all') }
 
   attribute :articulo,                                   if: Proc.new { self.get_param('articulo') || self.get_param('all') }
+  attribute :calcular_itbis,                             if: Proc.new { self.get_param('calcular_itbis') || self.get_param('all') }
   attribute :precio,                                     if: Proc.new { self.get_param('precio') || self.get_param('all') }
   attribute :costo,                                      if: Proc.new { self.get_param('costo') || self.get_param('all') }
   attribute :tipo,                                       if: Proc.new { self.get_param('tipo') || self.get_param('all') }
@@ -24,11 +27,15 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :contenidos,                                 if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
 
   def articulo
-		# TODO: hacer una peticion para solo buscar el nombre en el historico
+    # TODO: hacer una peticion para solo buscar el nombre en el historico
     # @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0]
-		@articuloSelect = object.articulo
+    @articuloSelect = object.articulo
     @articuloSelect["nombre"]
 
+  end
+
+  def calcular_itbis
+    @articuloSelect.calcular_itbis
   end
 
   def tipo
@@ -43,10 +50,12 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     @unidad                     = object.unidad.split(" ")
 
     if @unidad.length > 1
-			descripcion              = "#{@articuloSelect["nombre"]} (#{@unidad[2]} LBS)"
+      descripcion              = "#{@articuloSelect["nombre"]} (#{@unidad[2]} LBS)"
       @peso_saco               = @unidad[2]
     else
       descripcion              = "#{@articuloSelect["nombre"]}"
+
+      descripcion += " D*" if object.is_defectuoso
     end
 
     descripcion
@@ -77,22 +86,23 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
       end
     end
 
-    contenidos[articulo["medida"]] = contenido.length == 0 ? 1 : contenido.first["cantidad"]
-    contenidos[contenido.first["medida"]] = 1 if contenido.length > 0
+    articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
+    contenidos[articulo["medida"]]         = contenido.length == 0 ? 1 : contenido.first["cantidad"]
+    contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
 
 
     if contenido.length == 2
 
       cantPrincipal = 1
-      cantHijo = 1
-      cantPadre = 1
+      cantHijo      = 1
+      cantPadre     = 1
 
       contenido.each do |conte|
         cantPrincipal *= conte["cantidad"]
-        cantPadre = conte["cantidad"] if conte["referencia"] != nil
+        cantPadre      = conte["cantidad"] if conte["referencia"] != nil
       end
 
-      contenidos[articulo["medida"]] = cantPrincipal
+      contenidos[articulo["medida"]]     = cantPrincipal
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
@@ -101,7 +111,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
 
 
   def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+    return @instance_options[:"#{col}"]
+  end
 
 end

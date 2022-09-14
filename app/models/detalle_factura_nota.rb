@@ -2,7 +2,7 @@ class DetalleFacturaNota < ApplicationRecord
   belongs_to :factura_aplicada
   belongs_to :articulo
   belongs_to :detalle_factura
-
+	belongs_to :tipo_factura
 
   def self.crear_detalle_factura_nota(params, padre, is_save=false)
     res = Response.new
@@ -15,10 +15,13 @@ class DetalleFacturaNota < ApplicationRecord
     detalle_factura_nota.cantidad                    = params[:cantidad]
     detalle_factura_nota.cantidad_en_unidades        = params[:cantidad_en_unidades]
     detalle_factura_nota.itbis                       = params[:itbis]
+    detalle_factura_nota.itbis_real                  = params[:itbis_real]
     detalle_factura_nota.costo                       = params[:costo]
     detalle_factura_nota.precio                      = params[:precio]
+    detalle_factura_nota.precio_real                 = params[:precio_real]
     detalle_factura_nota.total                       = params[:total]
     detalle_factura_nota.descuento                   = params[:descuento]
+    detalle_factura_nota.descuento_real              = params[:descuento_real]
 
     detalle_factura_nota.valid?
 
@@ -42,16 +45,20 @@ class DetalleFacturaNota < ApplicationRecord
   def procesos_detalles_facturas_notas(params, nota)
     res                = Response.new
 
-    operador         = nota["tipo_factura_id"] == TiposNotasId.credito ? "+" : "-"
-    fecha            = nota["fecha_equivalente"]
-    accion           = TiposNotas.get_tipo(nota["tipo_factura_id"])
+		if nota.tipo_nota == TiposNotas.credito
+			operador         = nota["tipo_factura_id"] == TiposNotasId.credito ? "+" : "-"
+			fecha            = nota["fecha_equivalente"]
+			accion           = TiposNotas.get_tipo(nota["tipo_factura_id"])
 
-    res_valid        = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, nota )
+			if params["cantidad_en_unidades"] > 0
+				res_valid        = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, nota )
 
-    unless res_valid.status_valid
-      res.add_msgs(res_valid.get_msgs.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
+				unless res_valid.status_valid
+					res.add_msgs(res_valid.get_msgs.to_a)
+					res.set_status(HTTP_STATUS_CODE[:conflict])
+				end
+			end
+		end
 
     return res
   end
@@ -74,5 +81,10 @@ class DetalleFacturaNota < ApplicationRecord
 
     res_valid.set_data array_valid
     return res_valid
+  end
+
+	# ===================================================================================================================================================
+  def tipo_nota
+    return TiposNotas.get_tipo(self.tipo_factura_id)
   end
 end

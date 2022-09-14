@@ -4,26 +4,32 @@ services:
   db-prod:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
+      - ./tmp/db-brendy-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
     restart: always
 
-  agrodemi-prod:
-    build: .
+  brendy-dev:
+    build:
+      context: .
+      dockerfile: docker/services/server/Dockerfile
     environment:
-      DATABASE_NAME: "ADM"
+      DATABASE_NAME: "panaderia_brendy"
       RAILS_ENV: "production"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
     depends_on:
       - db-prod
-    ports:
-      - "3000:3000"
     restart: always
     command: >
-      sh -c "rm tmp/pids/server.pid ||
-      cron &&
-      rails server -b 0.0.0.0 --port 3000"
+      sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
+
+  nginx-proxy-prod:
+    build: ./docker/services/nginx
+    ports:
+      - 9091:9091
+    depends_on:
+      - brendy-dev
+    restart: always

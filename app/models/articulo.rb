@@ -12,14 +12,23 @@ class Articulo < ApplicationRecord
   accepts_nested_attributes_for :contenido_articulos
 
   validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Articulo ya esta registrado" }, :if => :estado
-  validates :medida,              presence: { :message => "Medida articulo no puede estar vacio." }
-  validates :vendido_en,          presence: { :message => "Debe de especificar en que medida se vende el articulo." }
-  validates :costo_principal,     presence: { :message => "El costo del articulo no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del articulo debe de ser mayor a 0." }
+  validates :costo_principal,     presence: { :message => "El costo del articulo no puede estar vacio." }
   validates :precio_principal,    presence: { :message => "El precio del articulo no puede estar vacio." },  numericality: { greater_than: 0, :message => "El precio del articulo debe de ser mayor a 0." }
 
-  # before_validation :otras_validaciones
 
   def otras_validaciones
+
+    tipo_articulo = TipoArticulo.find_by_id(self.tipo_articulo_id)
+
+    if tipo_articulo.tipo == TipoArticuloType.venta_normal
+
+      self.errors.add(:base, "Medida articulo no puede estar vacio.") if self.medida == nil
+      self.errors.add(:base, "Debe de especificar en que medida se vende el articulo.") if self.vendido_en == nil
+      self.errors.add(:base, "Debe de especificar una medida de alerta en venta.") if self.medida_alerta == nil
+      self.errors.add(:base, "El costo del articulo debe de ser mayor a 0.") if self.costo_principal == 0
+
+    end
+
   end
 
   def self.models_includes
@@ -58,7 +67,8 @@ class Articulo < ApplicationRecord
       articulo.calcular_saco                    = params["calcular_saco"]
       articulo.imagen_id                        = params["imagen_id"]
 
-			articulo.valid?
+      articulo.valid?
+      articulo.otras_validaciones
 
       # imagen_attributes
 
@@ -123,17 +133,16 @@ class Articulo < ApplicationRecord
 
 
   def self.filtrarArticulo(params)
-    res        = Response.new(set_paginate_options(params))
-    arg        = params["arg"]
-    fecha      = "#{params["fecha"]}:00"
+    res              = Response.new(set_paginate_options(params))
+    arg              = params["arg"]
+    fecha            = "#{params["fecha"]}:00"
+    is_compra        = params["is_compra"].to_boolean
+    signo            = is_compra ? "!=" : "="
+    codigo_tipo      = is_compra ? TipoArticulos.producto_terminado : params["tipo"]
 
-    where      = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
+    where            = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
 
-    is_compra  = params["is_compra"].to_boolean
-    signo      = is_compra ? "!=" : "="
-    tipo_id    = is_compra ? "3" : params["tipo"]
-
-    where += "AND articulos.tipo_articulo_id #{signo} #{tipo_id} " if params["tipo"] != "todos" || is_compra
+    where += "AND tipo_articulos.codigo #{signo} '#{codigo_tipo}' #{ is_compra ? "AND tipo_articulos.tipo != '#{TipoArticuloType.servicio}'" : ""} " if params["tipo"] != "todos" || is_compra
 
     where += "OR ( articulos.is_materia_prima = true AND articulos.estado = true) " if params["tipo"] == TipoArticulos.materia_prima
 
@@ -147,8 +156,7 @@ class Articulo < ApplicationRecord
     articulos_.map { |articulo|
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
-      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}60"
-
+      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
 
       if fecha < fecha_ultima_edicion_articulo
 
@@ -161,7 +169,6 @@ class Articulo < ApplicationRecord
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           historicos.push(historico)
           # TODO: aqui se estan borrando las formulas
-
           articulos.push(Articulo.new(historico))
         end
       else
@@ -172,9 +179,9 @@ class Articulo < ApplicationRecord
     }
 
     if articulos.length > 0
-			# articulos.sort_by! { |k|
-			# 	k["id"]
-			# }
+      # articulos.sort_by! { |k|
+      # 	k["id"]
+      # }
 
 
       articulos = params["paginado"].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
@@ -199,12 +206,12 @@ class Articulo < ApplicationRecord
     end
 
     att = att[0] if att.kind_of?(Array)
-    id = att["id"]
+    id  = att["id"]
 
-    att["contenido_articulos"] = ContenidoArticulo.where({ articulo_id: id })
+    att["contenido_articulos"]           = ContenidoArticulo.where({ articulo_id: id })
     att["formulas_productos_terminados"] = FormulasProductosTerminado.where({ articulo_id: id })
 
-    tipoArt = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
+    tipoArt            = TipoArticulo.find_by_id(objeto["tipo_articulo_id"])
     att["descripcion"] = tipoArt["descripcion"]
     return att
   end
@@ -231,22 +238,23 @@ class Articulo < ApplicationRecord
       end
     end
 
-    contenidos[articulo["medida"]] = contenido.length == 0 ? 1 : contenido.first["cantidad"]
-    contenidos[contenido.first["medida"]] = 1 if contenido.length > 0
+		articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
+    contenidos[articulo["medida"]]         = contenido.length == 0 ? 1 : contenido.first["cantidad"]
+    contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
 
 
     if contenido.length == 2
 
       cantPrincipal = 1
-      cantHijo = 1
-      cantPadre = 1
+      cantHijo      = 1
+      cantPadre     = 1
 
       contenido.each do |conte|
         cantPrincipal *= conte["cantidad"]
-        cantPadre = conte["cantidad"] if conte["referencia"] != nil
+        cantPadre      = conte["cantidad"] if conte["referencia"] != nil
       end
 
-      contenidos[articulo["medida"]] = cantPrincipal
+      contenidos[articulo["medida"]]     = cantPrincipal
       contenidos[contenido[0]["medida"]] = cantPadre
       contenidos[contenido[1]["medida"]] = cantHijo
     end
@@ -260,20 +268,21 @@ class Articulo < ApplicationRecord
 
     cantidades = {}
 
-    cantidades[articulo["medida"]] = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
-    cantidades[contenido.first["medida"]] = existencia if contenido.length > 0
+		articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
+    cantidades[articulo["medida"]]         = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
+    cantidades[contenido.first["medida"]]  = existencia if contenido.length > 0
 
     if contenido.length == 2
 
-      maxCant = 1
+      maxCant   = 1
       cantPadre = 1
 
       contenido.each do |conte|
-        maxCant = conte["cantidad"] * maxCant
+        maxCant   = conte["cantidad"] * maxCant
         cantPadre = conte["cantidad"] if conte["condicion"] == "hijo"
       end
 
-      cantidades[articulo["medida"]] = (existencia / maxCant)
+      cantidades[articulo["medida"]]     = (existencia / maxCant)
       cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
       cantidades[contenido[1]["medida"]] = existencia
     end

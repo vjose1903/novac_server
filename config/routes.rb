@@ -8,7 +8,6 @@ Rails.application.routes.draw do
   resources :incidencia
   resources :detalles_produccion
   resources :detalle_conduces
-  resources :cabecera_conduces
   resources :detalle_recibos
   resources :tipo_recibos
   resources :movimientos_inventarios
@@ -100,6 +99,13 @@ Rails.application.routes.draw do
     collection do
       get "filtro/:arg"                                => "recibos_ingresos#getRecibosFiltrados"
       get "revertir/:tipo/:id"                         => "recibos_ingresos#revertirRecibos"
+    end
+  end
+
+  resources :cabecera_conduces do
+    collection do
+      get "filtro/:arg"                                => "cabecera_conduces#getConducesFiltrados"
+      get "revertir/:tipo/:id"                         => "cabecera_conduces#revertirConduce"
     end
   end
 

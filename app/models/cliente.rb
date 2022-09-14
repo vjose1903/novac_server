@@ -83,7 +83,7 @@ class Cliente < ApplicationRecord
 
   def self.filtrarCliente(arg, params)
     res = Response.new(params)
-    puts "arg ". red + "#{arg}"
+
     clientes = Cliente
     .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
     .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")

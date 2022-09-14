@@ -1,5 +1,5 @@
 class CabeceraConducesController < ApplicationController
-  before_action :set_cabecera_conduce, only: [:show, :update, :destroy]
+  before_action :set_cabecera_conduce, only: [:show, :update, :destroy, :revertirConduce]
 
   # GET /cabecera_conduces
   def index
@@ -11,13 +11,24 @@ class CabeceraConducesController < ApplicationController
     return Response.new(params, nil, @cabecera_conduce, nil, get_parametros_opcionales).send_response self
   end
 
+  def getConducesFiltrados
+    arg = params["arg"]
+    resultado = CabeceraConduce.filtrarConduces(arg, set_paginate_options(params))
+    resultado.send_response self
+  end
+
+  def revertirConduce
+    resultado = CabeceraConduce.revertir(@cabecera_conduce)
+    resultado.send_response self
+  end
+
   def crear_actualizar_conduce
-		parametros = params
-		parametros["id"] = params["id"] if params["id"]
+    parametros = params
+    parametros["id"] = params["id"] if params["id"]
 
     resultado = CabeceraConduce.create_update_conduce(parametros, true)
-		resultado.send_response self
-	end
+    resultado.send_response self
+  end
 
   # POST /cabecera_conduces
   def create
@@ -46,7 +57,7 @@ class CabeceraConducesController < ApplicationController
   end
 
 
-  def get_parametros_opcionales 
+  def get_parametros_opcionales
     return {
       all:                params['all'] || false,
       id:                 params['id'] || false,

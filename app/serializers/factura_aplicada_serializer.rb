@@ -7,6 +7,8 @@ class FacturaAplicadaSerializer < ActiveModel::Serializer
 	attribute :numero_comprobante,            if: Proc.new { self.get_param('numero_comprobante') }
 	attribute :user_id,                       if: Proc.new { self.get_param('user_id') }
 	attribute :estado,                        if: Proc.new { self.get_param('estado') }
+	attribute :tipo,                          if: Proc.new { self.get_param('tipo') }
+	attribute :tipo_label,                    if: Proc.new { self.get_param('tipo_label') }
 
 	def cabecera_factura
 		serialize_parser(object.cabecera_factura, {id: true, numero_comprobante: true, fecha_equivalente: true})
@@ -26,6 +28,14 @@ class FacturaAplicadaSerializer < ActiveModel::Serializer
 
 	def estado
 		object.nota.estado
+	end
+
+	def tipo
+		object.tipo_nota
+	end
+
+	def tipo_label
+		object.tipo_nota == TiposNotas.credito  ? 'Crédito' : 'Débito'
 	end
 
 	def get_param(col)

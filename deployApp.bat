@@ -42,13 +42,13 @@ SET is_actualizar=%false%
 @REM     exit 0
 @REM )
 
-:Start2 
+:Start2
     cls
     goto Start
     :Start
     echo ---------------------------------------
-    echo           ACTUALIZAR PROGRAMA          
-    echo ---------------------------------------           
+    echo           ACTUALIZAR PROGRAMA
+    echo ---------------------------------------
 
     if %input% equ %one% goto Z if NOT goto Start2
     if %input% geq %four% goto N

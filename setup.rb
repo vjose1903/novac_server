@@ -1,22 +1,34 @@
 # ruby ./setup.rb brendy
 
-@clientes      = ['brendy', 'agrodemi']
-@tipo_selected = ARGV[0]
-@setup_         = {
-	:brendy => {
-		:DATABASE_NAME => "panaderia_brendy",
-		:NAME_IMG_DEV  => "brendy-dev",
-		:NAME_IMG_PROD => "brendy-prod",
-		:DB_PATH       => "db-brendy-data",
-		:DB_PORT       => "3001",
-	},
+@clientes             = ['brendy', 'agrodemi', 'vasquez']
+@tipo_selected        = ARGV[0]
+@environment_selected = ARGV[1]
+
+@setup_               = {
 	:agrodemi => {
-		:DATABASE_NAME => "ADM",
-		:NAME_IMG_DEV  => "agrodemi-dev",
-		:NAME_IMG_PROD => "agrodemi-prod",
-		:DB_PATH       => "db-agrodemi-data",
-		:DB_PORT       => "3000",
-	}
+		:DATABASE_NAME          => "ADM",
+		:ENVIRONMENT_NAME_IMG   => "agrodemi-",
+		:DB_PATH                => "db-agrodemi-data",
+		:DB_PORT                => "3000",
+		:FRONT_PORT             => "9090",
+		:NGINX_SERVER_NAME      => "localhost admservidor.ddns.net *.admservidor.ddns.net"
+	},
+	:brendy => {
+		:DATABASE_NAME          => "panaderia_brendy",
+		:ENVIRONMENT_NAME_IMG   => "brendy-",
+		:DB_PATH                => "db-brendy-data",
+		:DB_PORT                => "3001",
+		:FRONT_PORT             => "9091",
+		:NGINX_SERVER_NAME      => "localhost novac-brendy.ddns.net *.novac-brendy.ddns.net"
+	},
+	:vasquez => {
+		:DATABASE_NAME          => "vasquez_services",
+		:ENVIRONMENT_NAME_IMG   => "vasquez-",
+		:DB_PATH                => "db-vasquez-data",
+		:DB_PORT                => "3002",
+		:FRONT_PORT             => "9092",
+		:NGINX_SERVER_NAME      => "localhost"
+	},
 }
 
 @files         = [
@@ -27,7 +39,8 @@
 
 	{ :tipo => 'reemplazo',  :file_name => 'docker-compose.prod.yml',                       :path => 'docker-compose.prod.yml' },
 	{ :tipo => 'reemplazo',  :file_name => 'docker-compose.yml',                            :path => 'docker-compose.yml' },
-	{ :tipo => 'reemplazo',  :file_name => 'Dockerfile',                                    :path => 'Dockerfile' },
+	{ :tipo => 'reemplazo',  :file_name => 'Dockerfile',                                    :path => 'docker/services/server/Dockerfile' },
+	{ :tipo => 'reemplazo',  :file_name => 'default.conf',                                  :path => 'docker/services/nginx/default.conf' },
 	{ :tipo => 'reemplazo',  :file_name => 'run_server.sh',                                 :path => 'run_server.sh' },
 ]
 
@@ -70,7 +83,11 @@ def remplace_files(tipo, obj_file)
 	file_data = File.read("config_setup/#{obj_file[:file_name]}")
 
 	@setup_[tipo.to_sym].each_key do | key |
-		file_data.gsub!("$$#{key}$$", @setup_[tipo.to_sym][key])
+		remplace_string = @setup_[tipo.to_sym][key]
+
+		remplace_string += @environment_selected if key.to_s.include? "ENVIRONMENT_"
+
+		file_data.gsub!("$$#{key}$$", remplace_string)
 	end
 
 	File.write(obj_file[:path], file_data)

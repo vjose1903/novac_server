@@ -7,11 +7,9 @@ namespace :server_db do
     archive_path = "#{Rails.root}/db/backup_#{rails_env.downcase}_#{timestamp}.sql"
 
 
-
     ENV['PGPASSWORD'] = "password"
 
-    # pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h db-dev --dbname=panaderia_brendy_development -f /usr/src/novac_server/db/backup_test.sql"
-    pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h db-dev --dbname=panaderia_brendy_#{rails_env.downcase} -f #{archive_path}"
+    pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h db-prod --dbname=vasquez_services_#{rails_env.downcase} -f #{archive_path}"
     `cd #{Rails.root}/public && #{pg_dump}`
 
     require 'google/apis/drive_v2'
@@ -22,7 +20,7 @@ namespace :server_db do
     metadata = {title: File.basename(archive_path, '.sql')}
     file = drive.insert_file(metadata, upload_source: archive_path, content_type: 'application/sql')
 
-    EMAILS = ['novacbrendy@gmail.com']
+    EMAILS = ['novacvasquez@gmail.com']
     EMAILS.each do |email|
       perm_id = drive.get_permission_id_for_email(email)
       perm = Google::Apis::DriveV2::Permission.new(role: 'writer', id: perm_id.id, type: 'user')

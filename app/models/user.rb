@@ -155,6 +155,10 @@ class User < ApplicationRecord
 			roles_permisos_acciones
 		end
     # =========================================================================================================================================================
+		def  verificateHasPermiso(permiso_descripcion)
+			return Permiso.verificateUserPermiso(self.id, permiso_descripcion)
+		end
+    # =========================================================================================================================================================
 
     def self.mudar_info(param)
       res = {"correcto" => true}

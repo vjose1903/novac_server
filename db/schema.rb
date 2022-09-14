@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_07_22_195742) do
+ActiveRecord::Schema.define(version: 2022_09_08_154018) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -58,6 +58,7 @@ ActiveRecord::Schema.define(version: 2022_07_22_195742) do
     t.datetime "fecha_equivalente"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "estado"
     t.index ["cliente_id"], name: "index_cabecera_conduces_on_cliente_id"
     t.index ["user_id"], name: "index_cabecera_conduces_on_user_id"
   end
@@ -257,9 +258,14 @@ ActiveRecord::Schema.define(version: 2022_07_22_195742) do
     t.float "descuento"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.float "precio_real"
+    t.float "itbis_real"
+    t.float "descuento_real"
+    t.bigint "tipo_factura_id"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
+    t.index ["tipo_factura_id"], name: "index_detalles_facturas_notas_on_tipo_factura_id"
   end
 
   create_table "detalles_produccion", force: :cascade do |t|
@@ -297,8 +303,10 @@ ActiveRecord::Schema.define(version: 2022_07_22_195742) do
     t.float "total"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.bigint "tipo_factura_id"
     t.index ["cabecera_factura_id"], name: "index_facturas_aplicadas_on_cabecera_factura_id"
     t.index ["nota_id"], name: "index_facturas_aplicadas_on_nota_id"
+    t.index ["tipo_factura_id"], name: "index_facturas_aplicadas_on_tipo_factura_id"
   end
 
   create_table "formulas_productos_terminados", force: :cascade do |t|
@@ -451,10 +459,10 @@ ActiveRecord::Schema.define(version: 2022_07_22_195742) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
     t.string "controlador"
     t.boolean "mostrar_front"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -507,9 +515,10 @@ ActiveRecord::Schema.define(version: 2022_07_22_195742) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
+    t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.boolean "estado"
+    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
@@ -559,6 +568,8 @@ ActiveRecord::Schema.define(version: 2022_07_22_195742) do
     t.text "descripcion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "tipo"
+    t.string "codigo"
   end
 
   create_table "tipo_facturas", force: :cascade do |t|

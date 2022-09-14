@@ -56,6 +56,7 @@ class DetalleConduce < ApplicationRecord
     return res_valid
   end
 
+    # ===================================================================================================================================================
 
   def procesos_detalle(params, padre)
     res = Response.new
@@ -87,6 +88,21 @@ class DetalleConduce < ApplicationRecord
     else
       return res
     end
+  end
+
+    # ===================================================================================================================================================
+
+  def procesoAnularConduceDetalle(conduce)
+    res             = Response.new
+
+		res_movimiento  = MovimientosInventario.movimientos_de_inventario(self, "+", DateTime.now.strftime("%d/%m/%Y"), 'conduce', conduce)
+
+		unless res_movimiento.status_valid
+			res.add_msgs(res_movimiento.get_msgs.to_a)
+			res.set_status(HTTP_STATUS_CODE[:conflict])
+		end
+
+    return res
   end
 
 end

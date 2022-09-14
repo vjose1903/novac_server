@@ -5,14 +5,17 @@ class MovimientosInventario < ApplicationRecord
   # --------------------------------------------------------------------------------------------------------------------------------
 
   def self.movimientos_de_inventario(movimiento, operador, fecha_movimiento, accion, padre )
-    res          = Response.new
+    res               = Response.new
 		MovimientosInventario.transaction do
 
-			articulo   = Articulo.find_by_id(movimiento["articulo_id"])
-			if articulo.nombre != 'Transporte'
-				mov      = eval("#{articulo.existencia} #{operador} #{movimiento["cantidad_en_unidades"]}")
+			articulo        = Articulo.find_by_id(movimiento["articulo_id"])
+			tipo_articulo   = articulo.tipo_articulo
 
-				mov      = 0 if mov < 0 && movimiento['vende_sin_inventario'].presence && movimiento['vende_sin_inventario']
+
+			if articulo.nombre != 'Transporte' && tipo_articulo.tipo != TipoArticuloType.servicio
+				mov           = eval("#{articulo.existencia} #{operador} #{movimiento["cantidad_en_unidades"]}")
+
+				mov           = 0 if mov < 0 && movimiento['vende_sin_inventario'].presence && movimiento['vende_sin_inventario']
 
 				if operador == "-" # --------- SALIDA ---------
 
