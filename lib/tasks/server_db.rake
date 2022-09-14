@@ -9,7 +9,7 @@ namespace :server_db do
 
     ENV['PGPASSWORD'] = "password"
 
-    pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h db-prod --dbname=panaderia_brendy_#{rails_env.downcase} -f #{archive_path}"
+    pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h db-dev --dbname=panaderia_brendy_#{rails_env.downcase} -f #{archive_path}"
     `cd #{Rails.root}/public && #{pg_dump}`
 
     require 'google/apis/drive_v2'
