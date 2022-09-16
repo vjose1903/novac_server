@@ -153,3 +153,6 @@ rails g migration addEstadoToCabeceraConduces
 rails g migration addCamposToDetallesFacturasNotas
 rails g migration addMoreCamposToDetallesFacturasNotas
 rails g migration addCamposToFacturasAplicadas
+
+rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
+

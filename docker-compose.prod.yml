@@ -4,19 +4,19 @@ services:
   db-prod:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-brendy-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: password
     restart: always
 
-  brendy-dev:
+  agrodemi-dev:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
     environment:
-      DATABASE_NAME: "panaderia_brendy"
+      DATABASE_NAME: "ADM"
       RAILS_ENV: "production"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
@@ -29,7 +29,7 @@ services:
   nginx-proxy-prod:
     build: ./docker/services/nginx
     ports:
-      - 9091:9091
+      - 9090:9090
     depends_on:
-      - brendy-dev
+      - agrodemi-dev
     restart: always

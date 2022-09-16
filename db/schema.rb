@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_09_08_154018) do
+ActiveRecord::Schema.define(version: 2022_09_14_224204) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -195,7 +195,7 @@ ActiveRecord::Schema.define(version: 2022_09_08_154018) do
     t.bigint "detalle_factura_id"
     t.bigint "articulo_id"
     t.float "cantidad"
-    t.integer "cantidad_en_unidades"
+    t.float "cantidad_en_unidades"
     t.string "unidad"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -210,12 +210,12 @@ ActiveRecord::Schema.define(version: 2022_09_08_154018) do
     t.string "unidad"
     t.float "total"
     t.float "cantidad"
-    t.integer "cantidad_en_unidades"
+    t.float "cantidad_en_unidades"
     t.float "itbis"
     t.float "precio"
     t.float "costo"
-    t.integer "retirado"
-    t.integer "retirado_en_venta"
+    t.float "retirado"
+    t.float "retirado_en_venta"
     t.float "descuento_valor"
     t.float "descuento_porciento"
     t.datetime "created_at", null: false
@@ -250,7 +250,7 @@ ActiveRecord::Schema.define(version: 2022_09_08_154018) do
     t.bigint "detalle_factura_id", null: false
     t.string "unidad"
     t.float "cantidad"
-    t.integer "cantidad_en_unidades"
+    t.float "cantidad_en_unidades"
     t.float "itbis"
     t.float "costo"
     t.float "precio"
@@ -272,7 +272,7 @@ ActiveRecord::Schema.define(version: 2022_09_08_154018) do
     t.bigint "produccion_id"
     t.bigint "articulo_id"
     t.float "cantidad"
-    t.integer "cantidad_en_unidades"
+    t.float "cantidad_en_unidades"
     t.string "medida"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -459,10 +459,10 @@ ActiveRecord::Schema.define(version: 2022_09_08_154018) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.string "controlador"
-    t.boolean "mostrar_front"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "controlador"
+    t.boolean "mostrar_front"
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -515,10 +515,9 @@ ActiveRecord::Schema.define(version: 2022_09_08_154018) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "estado"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
+    t.boolean "estado"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|

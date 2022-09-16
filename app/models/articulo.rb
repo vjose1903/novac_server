@@ -16,7 +16,7 @@ class Articulo < ApplicationRecord
   validates :precio_principal,    presence: { :message => "El precio del articulo no puede estar vacio." },  numericality: { greater_than: 0, :message => "El precio del articulo debe de ser mayor a 0." }
 
 
-  def otras_validaciones
+  def otras_validaciones(params)
 
     tipo_articulo = TipoArticulo.find_by_id(self.tipo_articulo_id)
 
@@ -28,6 +28,10 @@ class Articulo < ApplicationRecord
       self.errors.add(:base, "El costo del articulo debe de ser mayor a 0.") if self.costo_principal == 0
 
     end
+
+		if self.medida == 'Caja' && (!params['contenido_articulos'].present? || params['contenido_articulos'].length == 0)
+			self.errors.add(:base, "Los articulos comprados en caja debem de tener la cantidad especificada.")
+		end
 
   end
 
@@ -45,30 +49,30 @@ class Articulo < ApplicationRecord
       ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
 
 
-      articulo                                  = Articulo.where(:id => params["id"]).first_or_create
+      articulo                                  = Articulo.where(:id => params['id']).first_or_create
 
-      articulo.tipo_articulo_id                 = params["tipo_articulo_id"]
-      articulo.nombre                           = params["nombre"]
-      articulo.estado                           = params["estado"]
-      articulo.costo_principal                  = params["costo_principal"]
-      articulo.precio_principal                 = params["precio_principal"]
-      articulo.medida_alerta                    = params["medida_alerta"]
-      articulo.existencia                       = params["existencia"]
-      articulo.codigo                           = params["codigo"]
-      articulo.fecha_ingreso                    = params["fecha_ingreso"]
-      articulo.medida                           = params["medida"]
-      articulo.is_detallable                    = params["is_detallable"]
-      articulo.aviso_existencia                 = params["aviso_existencia"]
-      articulo.calcular_itbis                   = params["calcular_itbis"]
-      articulo.is_combo                         = params["is_combo"]
-      articulo.otros_costos                     = params["otros_costos"]
-      articulo.vendido_en                       = params["vendido_en"]
-      articulo.is_materia_prima                 = params["is_materia_prima"]
-      articulo.calcular_saco                    = params["calcular_saco"]
-      articulo.imagen_id                        = params["imagen_id"]
+      articulo.tipo_articulo_id                 = params['tipo_articulo_id']
+      articulo.nombre                           = params['nombre']
+      articulo.estado                           = params['estado']
+      articulo.costo_principal                  = params['costo_principal']
+      articulo.precio_principal                 = params['precio_principal']
+      articulo.medida_alerta                    = params['medida_alerta']
+      articulo.existencia                       = params['existencia']
+      articulo.codigo                           = params['codigo']
+      articulo.fecha_ingreso                    = params['fecha_ingreso']
+      articulo.medida                           = params['medida']
+      articulo.is_detallable                    = params['is_detallable']
+      articulo.aviso_existencia                 = params['aviso_existencia']
+      articulo.calcular_itbis                   = params['calcular_itbis']
+      articulo.is_combo                         = params['is_combo']
+      articulo.otros_costos                     = params['otros_costos']
+      articulo.vendido_en                       = params['vendido_en']
+      articulo.is_materia_prima                 = params['is_materia_prima']
+      articulo.calcular_saco                    = params['calcular_saco']
+      articulo.imagen_id                        = params['imagen_id']
 
       articulo.valid?
-      articulo.otras_validaciones
+      articulo.otras_validaciones(params)
 
       # imagen_attributes
 
@@ -97,7 +101,7 @@ class Articulo < ApplicationRecord
         if res_historico.status_valid
 
           res.set_data(articulo)
-          action = params["id"] ? 'actualizado' : 'creado'
+          action = params['id'] ? 'actualizado' : 'creado'
           res.add_msg("Articulo #{action} correctamente.")
         else
           res.add_msgs(res_historico.get_msgs)
@@ -134,17 +138,17 @@ class Articulo < ApplicationRecord
 
   def self.filtrarArticulo(params)
     res              = Response.new(set_paginate_options(params))
-    arg              = params["arg"]
-    fecha            = "#{params["fecha"]}:00"
-    is_compra        = params["is_compra"].to_boolean
+    arg              = params['arg']
+    fecha            = "#{params['fecha']}:00"
+    is_compra        = params['is_compra'].to_boolean
     signo            = is_compra ? "!=" : "="
-    codigo_tipo      = is_compra ? TipoArticulos.producto_terminado : params["tipo"]
+    codigo_tipo      = is_compra ? TipoArticulos.producto_terminado : params['tipo']
 
     where            = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
 
-    where += "AND tipo_articulos.codigo #{signo} '#{codigo_tipo}' #{ is_compra ? "AND tipo_articulos.tipo != '#{TipoArticuloType.servicio}'" : ""} " if params["tipo"] != "todos" || is_compra
+    where += "AND tipo_articulos.codigo #{signo} '#{codigo_tipo}' #{ is_compra ? "AND tipo_articulos.tipo != '#{TipoArticuloType.servicio}'" : ""} " if params['tipo'] != "todos" || is_compra
 
-    where += "OR ( articulos.is_materia_prima = true AND articulos.estado = true) " if params["tipo"] == TipoArticulos.materia_prima
+    where += "OR ( articulos.is_materia_prima = true AND articulos.estado = true) " if params['tipo'] == TipoArticulos.materia_prima
 
     articulos_ = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
@@ -184,7 +188,7 @@ class Articulo < ApplicationRecord
       # }
 
 
-      articulos = params["paginado"].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
+      articulos = params['paginado'].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
       res.set_data(articulos, {all: true, historicos: historicos}, Articulo.models_includes)
       # res.set_data(articulos)
     else
@@ -232,7 +236,7 @@ class Articulo < ApplicationRecord
     contenido = articulo.contenido_articulos
     contenidos = {}
 
-    if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal" && articulo["calcular_saco"]
+    if sacos && articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
       [100, 50, 25].each do |c|
         contenidos["Saco_#{c}"] = c
       end
