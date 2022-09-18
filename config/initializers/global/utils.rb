@@ -98,7 +98,6 @@ def reponer_formulas
 	formulas_sin_repetir = []
 
 	mantenimiento = MantenimientoFormula.select("mantenimiento_formulas.*, articulos.nombre").joins("inner join articulos on mantenimiento_formulas.articulo_id = articulos.id").order("mantenimiento_formulas.created_at desc")
-	acu = 0
 	mantenimiento.each do |artic|
 
 		unless formulas_sin_repetir.any? { |item| item.articulo_id == artic.articulo_id && item.secuencia != artic.secuencia }
@@ -136,14 +135,12 @@ def reponer_formulas
 
 		end
 
-		acu +=1
 		puts " "
 	 }
 
 
 
 
-	puts "cuenta ".yellow + "#{acu}"
 	res.set_data('fin')
 	return res
 
@@ -216,13 +213,15 @@ def make_producto_terminado_calcular_saco
 
 	return nil
 end
-
+# detalles a arreglar:
+# 21472 -> Saco de 100 libras
+# 16662 -> Quintal
+# 47352 -> Quintal
+# 793   -> Libra
 def recalcular_cantidad_en_undidades
-
-	query_principal = "cabecera_facturas.tipo = 'venta' AND articulo_id not in (102, 213)"
+	# query_principal = "cabecera_facturas.tipo = 'venta' AND articulo_id not in (102, 213, 165, 69, 214, 108, 214)"
+	query_principal = "cabecera_facturas.tipo = 'venta'"
 	DetalleFactura.where(query_principal).joins("inner join cabecera_facturas on detalle_facturas.cabecera_factura_id = cabecera_facturas.id").includes([ {articulo: [:contenido_articulos, :tipo_articulo]}, :cabecera_factura ]).each do | detalle |
-		puts " " * 15
-		puts " -=-=-=-=-=" * 15
 		articulo           = detalle.articulo
 		cabecera_factura   = detalle.cabecera_factura
 		tipo_articulo      = articulo.tipo_articulo
@@ -235,75 +234,36 @@ def recalcular_cantidad_en_undidades
 		contenidos         = calcularContenidos(articulo_historico)
 		contenido_en_turno = contenidos[unidad_en_turno]
 
-		# puts " "
-		# puts " "
-		# puts " "
-		# puts "-------------" * 3
-		# puts "( #{acu} )  - #{detalle.articulo.nombre}"
-		# puts "-------------" * 3
-		# puts " "
-		# puts " "
+		calculo   = 0
 
-		if contenido_en_turno.nil?
-			costos           = calcular_costos(articulo_historico, tipo_articulo.descripcion, contenidos.with_indifferent_access, detalle.cantidad)
-			obj              = { "vendido_en": articulo.vendido_en, "calcular_saco": articulo.calcular_saco, "costos": costos }.with_indifferent_access
-			medida_correct   = get_correct_medida(obj, detalle.total)
+		if unidad_en_turno.include? "Saco_"
 
+			unidad_en_turno_split = unidad_en_turno.split("_")
+			saco                  = unidad_en_turno_split[1].to_i
+			calculo               = saco * detalle.cantidad if !saco.nil?
+
+
+		elsif unidad_en_turno.include? "Saco de"
+			unidad_en_turno_split = unidad_en_turno.split(" ")
+			saco                  = unidad_en_turno_split[2].to_i
+			calculo               = saco * detalle.cantidad if !saco.nil?
+
+
+		else
+
+			calculo = detalle.cantidad * contenido_en_turno if !contenido_en_turno.nil?
 		end
+
+		if calculo > 0 && (calculo.to_f >= detalle.cantidad_en_unidades + 0.1 || calculo.to_f <= detalle.cantidad_en_unidades - 0.1)
+			detalle.cantidad_en_unidades = calculo
+			detalle.save!
+		end
+
 	end
 
 	return nil
 end
 
-def get_correct_medida(obj, total)
-	medida_selected=nil
-	obj["costos"].each { |key, value|
-			if obj["vendido_en"] == "Saco" && obj["calcular_saco"] == true && key != "Quintal"
-					medida_selected = key if total <= value["calculo"] + 100  && total >=  value["calculo"] - 100
-			elsif obj["vendido_en"] != "Saco" || obj["calcular_saco"] == false
-					medida_selected = key if total <= value["calculo"] + 100  && total >=  value["calculo"] - 100
-			end
-			break if medida_selected != nil
-	}
-
-	if medida_selected.include? "Saco_"
-		medida_selected_split = medida_selected.split("_")
-		medida_selected = "Saco de #{medida_selected_split[1]} libras"
-	end
-
-	medida_selected
-end
-
-def calcular_costos(articulo, tipo_articulo, contenidos, cantidad)
-
-	obj = {}
-
-	obj["#{articulo['medida']}"]             = {}
-	obj["#{articulo['medida']}"]["precio"]   = articulo['precio_principal']
-	obj["#{articulo['medida']}"]["calculo"]  = (articulo['precio_principal'] * cantidad)
-
-	if articulo['contenido_articulos'].present? && articulo['contenido_articulos'].length > 0
-
-		articulo['contenido_articulos'].each do |conte|
-			obj["#{conte.medida}"]            = {}
-			obj["#{conte.medida}"]["precio"]  =  conte.precio
-			obj["#{conte.medida}"]["calculo"] =  ((conte.precio) * cantidad)
-		end
-
-	end
-
-	if articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
-		[100, 50, 25].each do | saco |
-			if contenidos["Saco_#{saco}"] != nil
-				obj["Saco_#{saco}"]            = {}
-				obj["Saco_#{saco}"]["precio"]  = (saco / (100).to_f) * articulo['precio_principal']
-				obj["Saco_#{saco}"]["calculo"] = (((saco / (100).to_f) * articulo['precio_principal']) * cantidad)
-			end
-		end
-	end
-
-	obj
-end
 
 def calcularContenidos(articulo )
 
