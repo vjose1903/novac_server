@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: password
     restart: always
 
-  agrodemi-dev:
+  agrodemi-prod:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
@@ -30,6 +30,7 @@ services:
     build: ./docker/services/nginx
     ports:
       - 9090:9090
+      - 6060:6060
     depends_on:
-      - agrodemi-dev
+      - agrodemi-prod
     restart: always

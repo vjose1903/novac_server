@@ -30,6 +30,7 @@ services:
     build: ./docker/services/nginx
     ports:
       - $$FRONT_PORT$$:$$FRONT_PORT$$
+      - 6060:6060
     depends_on:
       - $$ENVIRONMENT_NAME_IMG$$
     restart: always
