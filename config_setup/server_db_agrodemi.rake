@@ -6,7 +6,7 @@ namespace :server_db do
     timestamp = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
     archive_path = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
 
-    ENV['PGPASSWORD'] = "Vasquez1903"
+    ENV['PGPASSWORD'] = "password"
     pg_dump = "pg_dump --verbose --format=c --inserts -U postgres -h admservidor.ddns.net --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
     `cd #{Rails.root}/public && #{pg_dump}`
 
