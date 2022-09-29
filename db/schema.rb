@@ -10,8 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_09_14_224204) do
-
+ActiveRecord::Schema[7.0].define(version: 2022_09_14_224204) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,8 +18,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "nombre"
     t.string "descripcion"
     t.string "metodo"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.boolean "mostrar_front"
   end
 
@@ -42,8 +41,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.boolean "is_combo"
     t.float "otros_costos"
     t.string "vendido_en"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.boolean "is_materia_prima"
     t.boolean "calcular_saco"
     t.index ["estado", "nombre"], name: "index_articulos_on_estado_and_nombre", unique: true, where: "(estado = true)"
@@ -55,9 +54,9 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.bigint "user_id"
     t.bigint "cliente_id"
     t.integer "numero_conduce"
-    t.datetime "fecha_equivalente"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "fecha_equivalente", precision: nil
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.boolean "estado"
     t.index ["cliente_id"], name: "index_cabecera_conduces_on_cliente_id"
     t.index ["user_id"], name: "index_cabecera_conduces_on_user_id"
@@ -68,11 +67,11 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.bigint "suplidor_id"
     t.bigint "cliente_id"
     t.bigint "user_id"
-    t.datetime "fecha_viaje"
-    t.datetime "fecha_equivalente"
-    t.datetime "fecha_vencimiento"
-    t.datetime "fecha_valida"
-    t.datetime "fecha_completada"
+    t.datetime "fecha_viaje", precision: nil
+    t.datetime "fecha_equivalente", precision: nil
+    t.datetime "fecha_vencimiento", precision: nil
+    t.datetime "fecha_valida", precision: nil
+    t.datetime "fecha_completada", precision: nil
     t.string "numero_comprobante"
     t.integer "numero_factura"
     t.string "condicion"
@@ -95,8 +94,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.boolean "is_viaje"
     t.boolean "tiene_nota"
     t.string "aplicada_a"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "identificador"
     t.integer "pre_factura"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
@@ -107,8 +106,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
 
   create_table "camiones_viajes", force: :cascade do |t|
     t.bigint "vehiculo_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.string "origen_type"
     t.bigint "origen_id"
     t.index ["origen_type", "origen_id"], name: "index_camiones_viajes_on_origen"
@@ -118,8 +117,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
   create_table "choferes_viajes", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "recibos_ingreso_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["recibos_ingreso_id"], name: "index_choferes_viajes_on_recibos_ingreso_id"
     t.index ["user_id"], name: "index_choferes_viajes_on_user_id"
   end
@@ -136,8 +135,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.float "maximo_credito"
     t.integer "vendedor_id"
     t.float "balance"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
   end
 
@@ -150,8 +149,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "medida"
     t.string "condicion"
     t.boolean "calcular_itbis"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["articulo_id"], name: "index_contenido_articulos_on_articulo_id"
   end
 
@@ -159,8 +158,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.bigint "municipio_id", null: false
     t.float "costo", default: 0.0
     t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["municipio_id"], name: "index_costo_fletes_on_municipio_id"
   end
 
@@ -170,8 +169,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.integer "municipio_id"
     t.float "costo"
     t.boolean "estado"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["costo_flete_id"], name: "index_costos_fletes_historiales_on_costo_flete_id"
     t.index ["user_id"], name: "index_costos_fletes_historiales_on_user_id"
   end
@@ -184,9 +183,9 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.float "total_recibo_ingreso"
     t.float "total_anterior"
     t.integer "numero_reporte"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "fecha_equivalente"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.datetime "fecha_equivalente", precision: nil
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
 
@@ -197,8 +196,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.float "cantidad"
     t.float "cantidad_en_unidades"
     t.string "unidad"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["articulo_id"], name: "index_detalle_conduces_on_articulo_id"
     t.index ["cabecera_conduce_id"], name: "index_detalle_conduces_on_cabecera_conduce_id"
     t.index ["detalle_factura_id"], name: "index_detalle_conduces_on_detalle_factura_id"
@@ -218,8 +217,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.float "retirado_en_venta"
     t.float "descuento_valor"
     t.float "descuento_porciento"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.boolean "calcular_saco"
     t.integer "detalle_factura_nota"
     t.boolean "is_devuelto"
@@ -238,8 +237,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "descripcion"
     t.boolean "pago_a_tiempo"
     t.boolean "is_ultimo"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
@@ -256,8 +255,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.float "precio"
     t.float "total"
     t.float "descuento"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.float "precio_real"
     t.float "itbis_real"
     t.float "descuento_real"
@@ -274,8 +273,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.float "cantidad"
     t.float "cantidad_en_unidades"
     t.string "medida"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["articulo_id"], name: "index_detalles_produccion_on_articulo_id"
     t.index ["produccion_id"], name: "index_detalles_produccion_on_produccion_id"
   end
@@ -287,8 +286,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "descripcion"
     t.string "documento"
     t.boolean "principal"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "origen_type"
     t.bigint "origen_id"
     t.index ["cliente_id"], name: "index_documentos_de_identidad_on_cliente_id"
@@ -301,8 +300,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.bigint "nota_id", null: false
     t.bigint "cabecera_factura_id", null: false
     t.float "total"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.bigint "tipo_factura_id"
     t.index ["cabecera_factura_id"], name: "index_facturas_aplicadas_on_cabecera_factura_id"
     t.index ["nota_id"], name: "index_facturas_aplicadas_on_nota_id"
@@ -315,8 +314,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.float "costo"
     t.integer "articulo_combo"
     t.float "precio"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "medida"
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
   end
@@ -326,8 +325,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.bigint "articulo_id"
     t.float "cantidad"
     t.string "medida"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["articulo_id"], name: "index_historico_producciones_on_articulo_id"
     t.index ["user_id"], name: "index_historico_producciones_on_user_id"
   end
@@ -336,15 +335,15 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "file_name"
     t.string "base_64"
     t.string "path"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
   end
 
   create_table "incidencias", force: :cascade do |t|
     t.integer "referencia"
     t.string "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "origen_type"
     t.bigint "origen_id"
     t.index ["origen_type", "origen_id"], name: "index_incidencias_on_origen"
@@ -378,8 +377,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.boolean "ant_calcularItbis"
     t.float "ant_otrosCostos"
     t.string "secuencia"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.boolean "is_materia_prima"
     t.boolean "calcular_saco"
     t.index ["articulo_id"], name: "index_mantenimiento_articulos_on_articulo_id"
@@ -393,23 +392,23 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "secuencia"
     t.integer "articulo_combo"
     t.float "precio"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.integer "formula_id"
     t.string "medida"
   end
 
   create_table "marcas", force: :cascade do |t|
     t.string "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
   end
 
   create_table "modelos", force: :cascade do |t|
     t.bigint "marca_id"
     t.string "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["marca_id"], name: "index_modelos_on_marca_id"
   end
 
@@ -421,8 +420,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "motivo"
     t.string "medida"
     t.string "tipo_salida"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.integer "cantidad_en_unidades"
     t.index ["articulo_id"], name: "index_movimientos_inventarios_on_articulo_id"
     t.index ["user_id"], name: "index_movimientos_inventarios_on_user_id"
@@ -431,8 +430,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
   create_table "municipios", force: :cascade do |t|
     t.bigint "provincia_id"
     t.string "nombre"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
   end
 
@@ -444,13 +443,13 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "identificador"
     t.integer "numero_documento"
     t.string "numero_comprobante"
-    t.datetime "fecha_equivalente"
+    t.datetime "fecha_equivalente", precision: nil
     t.string "no_cliente_nombre"
     t.string "no_cliente_direccion"
     t.boolean "estado"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.datetime "fecha_valida"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "fecha_valida", precision: nil
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"
@@ -459,8 +458,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.string "controlador"
     t.boolean "mostrar_front"
   end
@@ -468,8 +467,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
   create_table "permisos_acciones", force: :cascade do |t|
     t.bigint "permiso_id", null: false
     t.bigint "accion_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["accion_id"], name: "index_permisos_acciones_on_accion_id"
     t.index ["permiso_id", "accion_id"], name: "index_permisos_acciones_on_permiso_id_and_accion_id"
     t.index ["permiso_id"], name: "index_permisos_acciones_on_permiso_id"
@@ -478,16 +477,16 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
   create_table "producciones", force: :cascade do |t|
     t.bigint "user_id"
     t.integer "numero"
-    t.datetime "fecha_equivalente"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "fecha_equivalente", precision: nil
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["user_id"], name: "index_producciones_on_user_id"
   end
 
   create_table "provincias", force: :cascade do |t|
     t.string "nombre"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
   end
 
   create_table "recibos_ingresos", force: :cascade do |t|
@@ -501,9 +500,9 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.integer "numero_recibo"
     t.integer "incidencia"
     t.float "devuelta"
-    t.datetime "fecha_equivalente"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "fecha_equivalente", precision: nil
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.boolean "estado"
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
@@ -515,16 +514,16 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.boolean "estado"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
     t.bigint "role_id", null: false
     t.bigint "permiso_accion_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["permiso_accion_id"], name: "index_roles_permisos_acciones_on_permiso_accion_id"
     t.index ["role_id", "permiso_accion_id"], name: "index_roles_permisos_acciones_on_role_id_and_permiso_accion_id"
     t.index ["role_id"], name: "index_roles_permisos_acciones_on_role_id"
@@ -535,12 +534,12 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.bigint "secuencia"
     t.bigint "desde"
     t.bigint "hasta"
-    t.datetime "fecha_compra"
-    t.datetime "fecha_valida"
+    t.datetime "fecha_compra", precision: nil
+    t.datetime "fecha_valida", precision: nil
     t.boolean "estado"
     t.boolean "usado"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "referencia"
     t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
   end
@@ -548,8 +547,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
   create_table "secuencia_facturas", force: :cascade do |t|
     t.bigint "tipo_factura_id"
     t.integer "secuencia"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["tipo_factura_id"], name: "index_secuencia_facturas_on_tipo_factura_id"
   end
 
@@ -559,14 +558,14 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "direccion"
     t.string "email"
     t.boolean "estado"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
   end
 
   create_table "tipo_articulos", force: :cascade do |t|
     t.text "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "tipo"
     t.string "codigo"
   end
@@ -574,8 +573,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
   create_table "tipo_facturas", force: :cascade do |t|
     t.string "referencia"
     t.string "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
   end
 
   create_table "users", force: :cascade do |t|
@@ -583,16 +582,16 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "uid", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
+    t.datetime "reset_password_sent_at", precision: nil
     t.boolean "allow_password_change", default: false
-    t.datetime "remember_created_at"
+    t.datetime "remember_created_at", precision: nil
     t.string "confirmation_token"
-    t.datetime "confirmed_at"
-    t.datetime "confirmation_sent_at"
+    t.datetime "confirmed_at", precision: nil
+    t.datetime "confirmation_sent_at", precision: nil
     t.string "unconfirmed_email"
     t.integer "sign_in_count", default: 0, null: false
-    t.datetime "current_sign_in_at"
-    t.datetime "last_sign_in_at"
+    t.datetime "current_sign_in_at", precision: nil
+    t.datetime "last_sign_in_at", precision: nil
     t.string "current_sign_in_ip"
     t.string "last_sign_in_ip"
     t.bigint "imagen_id"
@@ -606,8 +605,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.boolean "estado"
     t.string "role"
     t.json "tokens"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["imagen_id"], name: "index_users_on_imagen_id"
@@ -628,8 +627,8 @@ ActiveRecord::Schema.define(version: 2022_09_14_224204) do
     t.string "marca"
     t.string "modelo"
     t.integer "cantidad_viajes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "nombre_no_empleado"
     t.string "apellido_no_empleado"
     t.string "telefono_no_empleado"

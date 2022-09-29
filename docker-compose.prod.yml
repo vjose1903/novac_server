@@ -5,10 +5,11 @@ services:
     image: postgres:13.7
     volumes:
       - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: N0v@cgu@rd
+      POSTGRES_USER: novacSystem
+    ports:
+      - 9731:5432
     restart: always
 
   agrodemi-prod:
@@ -16,8 +17,10 @@ services:
       context: .
       dockerfile: docker/services/server/Dockerfile
     environment:
-      DATABASE_NAME: "ADM"
+      ALMACEN: "ADM"
       RAILS_ENV: "production"
+      TULU: "N0v@cgu@rd"
+      FRAGA: "novacSystem"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
     depends_on:

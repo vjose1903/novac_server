@@ -5,18 +5,21 @@ services:
     image: postgres:13.7
     volumes:
       - ./tmp/$$DB_PATH$$:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: N0v@cgu@rd
+      POSTGRES_USER: novacSystem
+    ports:
+      - 9731:5432
 
   $$ENVIRONMENT_NAME_IMG$$:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
     environment:
-      DATABASE_NAME: "$$DATABASE_NAME$$"
+      ALMACEN: "$$ALMACEN$$"
       RAILS_ENV: "development"
+      TULU: "N0v@cgu@rd"
+      FRAGA: "novacSystem"
     depends_on:
       - db-dev
     volumes:
