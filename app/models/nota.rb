@@ -262,7 +262,6 @@ class Nota < ApplicationRecord
 		arg         = params["arg"]
 		tipo_nota   = params["tipo_nota"] || nil
 		query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true"
-		puts "!!!!!!!!!!!! tipo_nota ".yellow + " (#{params["tipo_nota"]})"
 		query      += " AND notas.tipo_factura_id = #{TiposNotasId.get_id(tipo_nota)}" if tipo_nota != nil
 
     notas = Nota

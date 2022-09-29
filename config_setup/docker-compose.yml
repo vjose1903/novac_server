@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: N0v@cgu@rd
       POSTGRES_USER: novacSystem
     ports:
-      - 9731:5432
+      - 127.0.0.1:9731:5432
 
   $$ENVIRONMENT_NAME_IMG$$:
     build:

@@ -14,7 +14,6 @@ class Permiso < ApplicationRecord
 	def self.verificateUserPermiso( user_id, permiso_descripcion )
 		res         = Response.new
 		permiso     = Permiso.find_by_descripcion(permiso_descripcion)
-		puts "permiso => ".yellow + " #{permiso.to_json}"
 
 		if permiso != nil
 

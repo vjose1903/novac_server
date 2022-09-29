@@ -5,7 +5,7 @@ class ApplicationController < ActionController::API
   before_action :configure_permitted_parameters, if: :devise_controller?
 
   # if ENV["RAILS_ENV"] != "development"
-    before_action :validateUserIsLogging!
+    # before_action :validateUserIsLogging!
   # end
 
   around_action :encarsular_usuario

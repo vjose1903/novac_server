@@ -52,7 +52,6 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def formulas_productos_terminados
     formulas = getContentHistorico('formulas')
-    puts "#{formulas.to_json}".green
     serialize_parser(formulas, {all: true})
   end
 

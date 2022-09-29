@@ -361,7 +361,7 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.is_nota']           = false
 
         TipoArticulo.all.each do |tipo_articulo|
-          puts " MMG ".red
+
           total_grupo = 0
           temp_ventas = []
           query['articulos.tipo_articulo_id'] = tipo_articulo.id
@@ -394,18 +394,6 @@ class Reporte < ApplicationRecord
 
             notas = DetalleFacturaNota.select(select_notas).joins(joins_notas).where(query_notas)
             notas = notas[0]
-
-            if df.articulo_id == 191
-							puts " "
-							puts " ======================= DetalleFactura (#{acu})".cyan
-
-							puts "detalle ".light_yellow + "#{df.to_json}"
-							puts "notas ".yellow + "#{notas.to_json}"
-							puts "cantidad_devuelto ".green + "#{notas['cantidad_devuelto']}"
-							puts "total_devuelto    ".magenta + "#{notas['total_devuelto']}"
-							puts "------" * 10
-							puts "articulo    ".cyan + "#{df.articulo.nombre}"
-						end
 
             detalle                          = df.attributes
             detalle['cantidad_devuelto']     = notas['cantidad_devuelto']
@@ -456,9 +444,6 @@ class Reporte < ApplicationRecord
 
       # contenidos_menores     = contenidos.values.select { | contenido_cant | contenido_cant >= 0.25 }
       # contenido_seleccionado = contenidos.key(contenidos_menores.sort.reverse.first)
-
-      puts "detalle['contenido'] ".light_green + "#{detalle['contenido']}"
-
 
       if detalle['cantidad_en_unidades'] >= 1
         seleccionados          = detalle['contenido'].values.select { | contenido_cant | contenido_cant <= detalle['cantidad_en_unidades'] }

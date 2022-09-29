@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: N0v@cgu@rd
       POSTGRES_USER: novacSystem
     ports:
-      - 9731:5432
+      - 127.0.0.1:9731:5432
     restart: always
 
   agrodemi-prod:
@@ -33,7 +33,6 @@ services:
     build: ./docker/services/nginx
     ports:
       - 9090:9090
-      - 6060:6060
     depends_on:
       - agrodemi-prod
     restart: always

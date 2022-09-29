@@ -118,8 +118,6 @@ GEM
       webrick
     google-apis-discovery_v1 (0.12.0)
       google-apis-core (>= 0.9.0, < 2.a)
-    google-apis-drive_v3 (0.5.0)
-      google-apis-core (~> 0.1)
     google-apis-generator (0.10.0)
       activesupport (>= 5.0)
       gems (~> 1.2)
@@ -255,7 +253,6 @@ DEPENDENCIES
   colorize
   devise_token_auth
   google-api-client
-  google-apis-drive_v3 (~> 0.5.0)
   listen
   pg
   puma
