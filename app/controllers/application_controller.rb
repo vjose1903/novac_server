@@ -4,9 +4,9 @@ class ApplicationController < ActionController::API
   # protect_from_forgery with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  # if ENV["RAILS_ENV"] != "development"
-    # before_action :validateUserIsLogging!
-  # end
+  if ENV["RAILS_ENV"] != "development"
+    before_action :validateUserIsLogging!
+  end
 
   around_action :encarsular_usuario
 
