@@ -33,7 +33,7 @@
 		:DB_PORT                => "3002",
 		:CORS_PORT              => "5222",
 		:FRONT_PORT             => "9092",
-		:NGINX_SERVER_NAME      => "localhost"
+		:NGINX_SERVER_NAME      => "localhost novac-vasquez.ddns.net *.novac-vasquez.ddns.net"
 	},
 }
 

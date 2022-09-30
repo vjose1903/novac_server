@@ -10,7 +10,7 @@ if [ -e ./tmp/pids/server.pid ]; then
 	rm ./tmp/pids/server.pid
 fi
 
-rails server -b 0.0.0.0 --port 3000
+rails server -b 0.0.0.0 --port 3002
 
 
 
