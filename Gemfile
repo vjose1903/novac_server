@@ -30,7 +30,7 @@ gem 'bootsnap', require: false
 
 gem 'whenever', require: false
 gem 'google-api-client', require: false
-
+# gem 'google-apis-drive_v3', '~> 0.5.0'
 gem 'wdm', '>= 0.1.0', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 

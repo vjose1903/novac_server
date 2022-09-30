@@ -300,7 +300,7 @@ class Reporte < ApplicationRecord
 
             pagos_notas.push({
               numero_documento: "%08d" % recibo.numero_recibo,
-							tipo:             'Recibo ingreso',
+              tipo:             'Recibo ingreso',
               fecha:            recibo.fecha_equivalente,
               total:            detalle_recibo.deposito
               })
@@ -354,20 +354,22 @@ class Reporte < ApplicationRecord
 
         sub_titulo  = desde == hasta ? "Fecha: #{formatearFecha(desde, TipoFecha.sin_hora)}" : "Entre las fechas: #{formatearFecha(desde, TipoFecha.sin_hora)} y #{formatearFecha(hasta, TipoFecha.sin_hora)}"
         total_venta = 0
-        query       ={}
+        query       = {}
 
         query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
         query['cabecera_facturas.tipo']              = 'venta'
         query['cabecera_facturas.is_nota']           = false
 
         TipoArticulo.all.each do |tipo_articulo|
+
           total_grupo = 0
           temp_ventas = []
           query['articulos.tipo_articulo_id'] = tipo_articulo.id
 
+          # (SELECT coalesce( SUM (cantidad_en_unidades), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as cantidad_devuelto,
+          # (SELECT coalesce( SUM (total), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as total_devuelto,
+
           select_ = "detalle_facturas.articulo_id,
-										(SELECT coalesce( SUM (cantidad_en_unidades), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as cantidad_devuelto,
-                    (SELECT coalesce( SUM (total), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as total_devuelto,
                     coalesce( SUM ( detalle_facturas.descuento_valor ), 0) as descuento_valor,
                     coalesce( SUM ( detalle_facturas.total ), 0) as total,
                     coalesce( SUM ( detalle_facturas.cantidad_en_unidades ), 0) as cantidad_en_unidades,
@@ -376,13 +378,29 @@ class Reporte < ApplicationRecord
           joins_ = "INNER JOIN cabecera_facturas ON cabecera_facturas.id = detalle_facturas.cabecera_factura_id
                     INNER JOIN articulos ON articulos.id = detalle_facturas.articulo_id"
 
-          DetalleFactura.select(select_).joins(joins_).where(query).order('articulo_id ASC').group("detalle_facturas.articulo_id, detalle_facturas.id")
+          acu = 0
+          DetalleFactura.select(select_).joins(joins_).where(query).order('articulo_id ASC').group("detalle_facturas.articulo_id")
           .includes([{articulo: [:contenido_articulos, :tipo_articulo]} ]).each do |df|
+            acu += 1
+            query_notas       = {}
+            query_notas['detalles_facturas_notas.articulo_id']      = df.articulo_id
+						query_notas['detalles_facturas_notas.tipo_factura_id']  = TiposFacturasId.nota_de_credito
+            query_notas['notas.fecha_equivalente']                  = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+
+            select_notas = "coalesce( SUM (detalles_facturas_notas.cantidad_en_unidades), 0) as cantidad_devuelto, coalesce( SUM (detalles_facturas_notas.total), 0) as total_devuelto"
+
+            joins_notas  = "INNER JOIN facturas_aplicadas ON facturas_aplicadas.id = detalles_facturas_notas.factura_aplicada_id
+                            INNER JOIN notas ON notas.id = facturas_aplicadas.nota_id"
+
+            notas = DetalleFacturaNota.select(select_notas).joins(joins_notas).where(query_notas)
+            notas = notas[0]
 
             detalle                          = df.attributes
+            detalle['cantidad_devuelto']     = notas['cantidad_devuelto']
+            detalle['total_devuelto']        = notas['total_devuelto']
             detalle['nombre']                = df.articulo.nombre
             detalle['total_vendido']         = df.total
-            detalle['total_general']         = detalle['total_vendido'] - df.total_devuelto
+            detalle['total_general']         = detalle['total_vendido'] - detalle['cantidad_devuelto']
             detalle['contenido']             = Articulo.calcularContenidos(df.articulo, false)
 
             mostrar = calcular_cantidad_proporcional(detalle)
@@ -415,28 +433,50 @@ class Reporte < ApplicationRecord
     end
 
     # ---------------------------------------------------------------------------------------------------------
-    def self.calcular_cantidad_proporcional(producto)
-      total_venta=0
-      plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos' }
+    def self.calcular_cantidad_proporcional(detalle)
 
-      vendido_mostrar = "0.00"
+      total_venta=0
+      plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Funda: 'Fundas' }
+
+      vendido_mostrar  = "0.00"
       devuelto_mostrar = "0.00"
 
-      producto['contenido'].each do |key, value|
-        if producto['cantidad_en_unidades'] >= value
-          cant = producto['cantidad_en_unidades'] / value.to_f
-          vendido_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
-          break
-        end
-      end
 
-      producto['contenido'].each do |key, value|
-        if producto['cantidad_devuelto'] >= value
-          cant = producto['cantidad_devuelto'] / value.to_f
-          devuelto_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
-          break
-        end
+      # contenidos_menores     = contenidos.values.select { | contenido_cant | contenido_cant >= 0.25 }
+      # contenido_seleccionado = contenidos.key(contenidos_menores.sort.reverse.first)
+
+      if detalle['cantidad_en_unidades'] >= 1
+        seleccionados          = detalle['contenido'].values.select { | contenido_cant | contenido_cant <= detalle['cantidad_en_unidades'] }
+        contenido_seleccionado = detalle['contenido'].key(seleccionados.sort.reverse.first)
+      else
+        seleccionados          = detalle['contenido'].values
+        contenido_seleccionado = detalle['contenido'].key(seleccionados.sort.first)
       end
+      contenido_seleccionado_valor = detalle['contenido'][contenido_seleccionado]
+
+      cant_vendido = detalle['cantidad_en_unidades'] / contenido_seleccionado_valor.to_f
+      vendido_mostrar = "#{("%.2f" % cant_vendido).gsub(',','.')} #{cant_vendido == 1 ? contenido_seleccionado : plural[contenido_seleccionado.to_sym]}"
+
+      if detalle['cantidad_devuelto'] >= 1
+        seleccionados          = detalle['contenido'].values.select { | contenido_cant | contenido_cant <= detalle['cantidad_devuelto'] }
+        contenido_seleccionado = detalle['contenido'].key(seleccionados.sort.reverse.first)
+      else
+        seleccionados          = detalle['contenido'].values
+        contenido_seleccionado = detalle['contenido'].key(seleccionados.sort.first)
+      end
+      contenido_seleccionado_valor = detalle['contenido'][contenido_seleccionado]
+
+      cant_devuelto = detalle['cantidad_devuelto'] / contenido_seleccionado_valor.to_f
+      devuelto_mostrar = "#{("%.2f" % cant_devuelto).gsub(',','.')} #{cant_devuelto == 1 ? contenido_seleccionado : plural[contenido_seleccionado.to_sym]}"
+      # TODO: revisar esto
+
+      # detalle['contenido'].each do |key, value|
+      #   if detalle['cantidad_devuelto'] >= value
+      #     cant = detalle['cantidad_devuelto'] / value.to_f
+      #     devuelto_mostrar = "#{("%.2f" % cant).gsub(',','.')} #{cant == 1 ? key : plural[key.to_sym]}"
+      #     break
+      #   end
+      # end
 
       return { "vendido_mostrar" => vendido_mostrar, "devuelto_mostrar" => devuelto_mostrar }
     end

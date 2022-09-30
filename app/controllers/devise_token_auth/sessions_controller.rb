@@ -11,14 +11,16 @@ module DeviseTokenAuth
     end
 
     def create
-			@res = Response.new
-      user = User.find_by_usuario(params[:usuario])
+      @res = Response.new
+      @user_en_turno = User.find_by_usuario(params[:usuario])
 
-      unless user.nil?
-        @resource = user
+      unless @user_en_turno.nil?
+        @resource = @user_en_turno
       else
         return render_create_error_bad_credentials
       end
+
+
 
       field = (params.keys.map(&:to_sym) & resource_class.authentication_keys).first
 
@@ -26,20 +28,26 @@ module DeviseTokenAuth
         q_value = get_case_insensitive_field_from_resource_params(field)
       end
 
+
       if !@resource.nil? and @resource[:estado] == "I"
         return render json: { msg: "Usuario desactivado, favor de comunicarse con el administrador del sistema." }, status: 401
       end
 
+
       if @resource && valid_params?(field, q_value) && (!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
+
         valid_password = @resource.valid_password?(resource_params[:password])
+
         if (@resource.respond_to?(:valid_for_authentication?) && !@resource.valid_for_authentication? { valid_password }) || !valid_password
           return render_create_error_bad_credentials
         end
 
         @token = @resource.create_token
+
         @resource.save
 
         sign_in(:user, @resource, store: false, bypass: false)
+
         yield @resource if block_given?
 
         render_create_success
@@ -89,7 +97,8 @@ module DeviseTokenAuth
 
       # honor devise configuration for case_insensitive_keys
       if resource_class.case_insensitive_keys.include?(auth_key)
-        auth_val.downcase!
+
+        # auth_val.downcase!
       end
 
       { key: auth_key, val: auth_val }
@@ -100,9 +109,10 @@ module DeviseTokenAuth
     end
 
     def render_create_success
-			data = resource_data(resource_json: @resource.token_validation_response)
+      data = resource_data(resource_json: @resource.token_validation_response)
       user = User.find_by_id(data["id"])
-      @res.set_data(user, {documentos_de_identidad:true, all:true, permisos: true, roles: true})
+
+      @res.set_data(@user_en_turno, {documentos_de_identidad:true, all:true, permisos: true, roles: true})
 
       @res.send_response self
     end

@@ -52,7 +52,6 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def formulas_productos_terminados
     formulas = getContentHistorico('formulas')
-    puts "#{formulas.to_json}".green
     serialize_parser(formulas, {all: true})
   end
 
@@ -78,7 +77,7 @@ class ArticuloSerializer < ActiveModel::Serializer
 
     contenidos = {}
 
-    if sacos && articulo['vendido_en'] == 'Saco' && articulo['medida'] == 'Quintal'
+    if sacos && articulo['vendido_en'] == 'Saco' && articulo["calcular_saco"]
       [100, 50, 25].each do |c|
         contenidos["Saco_#{c}"] = c
       end

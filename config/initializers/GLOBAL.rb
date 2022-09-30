@@ -122,7 +122,7 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 def formatearFecha(fecha, tipo)
-  fecha_ = ''
+  fecha_   = ''
   if tipo == TipoFecha.sin_hora
     fecha_ = Date.parse(fecha).strftime("%d/%m/%Y")
   else

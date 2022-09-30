@@ -312,6 +312,7 @@ class CabeceraFactura < ApplicationRecord
     tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime("%a")
 
     next_date = ""
+
     if tomorrow.downcase === "sun"
       next_date = (DateTime.now.beginning_of_day + 2.days).strftime("%Y-%m-%d")
     else

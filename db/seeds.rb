@@ -27,7 +27,7 @@ G_clientes.each do |client|
   end
 end
 
-G_documentos_de_identidad.each do |doc|
+G_documentos_de_identidad.each do | doc |
   if DocumentoDeIdentidad.find_by_documento(doc[:documento]).nil?
     documento = DocumentoDeIdentidad.create(doc)
     puts " "
@@ -137,7 +137,7 @@ tipos_factura = [
   # 19
   {
     "referencia": nil,
-    "descripcion": "Pre_factura",
+    "descripcion": "pre_venta",
   },
 ]
 

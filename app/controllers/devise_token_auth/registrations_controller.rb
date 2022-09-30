@@ -44,7 +44,7 @@ module DeviseTokenAuth
         end
 
         # @resource.documentos_de_identidad = params["documentos_de_identidad"] unless params["documentos_de_identidad"].nil?
-        
+
         if @resource.save
           yield @resource if block_given?
 
@@ -112,6 +112,7 @@ module DeviseTokenAuth
 
       # honor devise configuration for case_insensitive_keys
       if resource_class.case_insensitive_keys.include?(:email)
+
         @resource.email = sign_up_params[:email].try(:downcase)
       else
         @resource.email = sign_up_params[:email]

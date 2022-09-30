@@ -297,7 +297,7 @@ class Array
   end
 
   def my_includes_obj(key, value)
-    return  self.any? { |item| item[key] = value }
+    return  self.any? { |item| item[key] == value }
   end
 
 	def get_order

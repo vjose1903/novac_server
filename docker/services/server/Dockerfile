@@ -13,6 +13,8 @@ RUN gem install rails
 RUN gem install nokogiri --platform=ruby
 RUN bundle config build.nokogiri --use-system-libraries
 RUN bundle install
+RUN gem install bundler
+RUN bundle update --bundler
 COPY [".", "/usr/src/novac_server/"]
 RUN bundle lock --add-platform x86_64-linux
 
@@ -24,6 +26,5 @@ RUN bundle exec wheneverize . &&\
 		chmod +x /usr/src/novac_server/wait-for-it.sh
 
 
-# Configure the main process to run when running the image
-CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3002"]
+CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3000"]
 

@@ -30,7 +30,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
     contenido = articulo.contenido_articulos
     contenidos = {}
 
-    if sacos && articulo["vendido_en"] == "Saco" && articulo["medida"] == "Quintal"
+    if sacos && articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
       [100, 50, 25].each do |c|
         contenidos["Saco_#{c}"] = c
       end
