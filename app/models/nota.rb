@@ -9,10 +9,10 @@ class Nota < ApplicationRecord
   has_many :facturas_aplicadas, dependent: :destroy
   has_many :detalles_facturas_notas, through: :facturas_aplicadas, dependent: :destroy
 
-	def self.models_includes
-		includes = [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, {facturas_aplicadas: :cabecera_factura}, {detalles_facturas_notas: [:articulo, :detalle_factura]} ]
-		return includes
-	end
+  def self.models_includes
+    includes = [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, {facturas_aplicadas: :cabecera_factura}, {detalles_facturas_notas: [:articulo, :detalle_factura]} ]
+    return includes
+  end
 
   def self.create_nota(params)
     res                                     = Response.new
@@ -62,7 +62,6 @@ class Nota < ApplicationRecord
               nota.no_cliente_nombre        = data_facturas[:no_cliente_nombre]
               nota.no_cliente_direccion     = data_facturas[:no_cliente_direccion]
               nota.valid?
-
 
               dependencias                  = [ {modelo: FacturaAplicada, key_object: 'facturas_aplicadas', padre: nota} ]
 
@@ -259,10 +258,10 @@ class Nota < ApplicationRecord
 
   def self.filtrarNota(params, paginate_params)
     res         = Response.new(params)
-		arg         = params["arg"]
-		tipo_nota   = params["tipo_nota"] || nil
-		query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true"
-		query      += " AND notas.tipo_factura_id = #{TiposNotasId.get_id(tipo_nota)}" if tipo_nota != nil
+    arg         = params["arg"]
+    tipo_nota   = params["tipo_nota"] || nil
+    query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true"
+    query      += " AND notas.tipo_factura_id = #{TiposNotasId.get_id(tipo_nota)}" if tipo_nota != nil
 
     notas = Nota
     .joins('left join clientes on clientes.id = notas.cliente_id')

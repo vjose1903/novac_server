@@ -443,13 +443,13 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ===================================================================================================================================================
-  def self.get_facturas_by_cliente_id_and_estado(params, paginate_options)
+  def self.# Un método que obtiene las facturas por ID de cliente y estado.
+	get_facturas_by_cliente_id_and_estado(params, paginate_options)
     res                          = Response.new(paginate_options)
 
-    joins                        = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id  inner join users on cabecera_facturas.user_id = users.id"
     where                        = "cliente_id=#{params["cliente_id"]} AND pagada=#{params["pagada"]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
 
-    cabeceras                    = CabeceraFactura.joins(joins).where(where).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
+    cabeceras                    = CabeceraFactura.where(where).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
 
     cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params["cliente_id"], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
 

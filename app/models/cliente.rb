@@ -101,7 +101,54 @@ class Cliente < ApplicationRecord
     return res
   end
 
-    # =========================================================================================================================================================
+
+
+  # =========================================================================================================================================================
+  def get_balances(paginate_options)
+		paginate_class               = Paginator.new(paginate_options)
+    res                          = Response.new()
+    cliente_en_turno             = self
+
+		puts " paginate_class ".yellow + "#{paginate_class.to_json}"
+
+    query     = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND (cabecera_facturas.tipo = 'venta' OR cabecera_facturas.tipo = 'pre_venta') AND cabecera_facturas.estado = true  AND cabecera_facturas.cliente_id = #{cliente_en_turno.id}"
+
+
+		data  = {'balances' => { 'total_facturado' => 0, 'notas_credito' => 0, 'notas_debito' => 0, 'debiendo' => 0, 'abonado' => 0}, 'facturas' => []}
+		includes_ = [{facturas_aplicadas: [:nota]}, :detalle_recibos]
+
+    facturas   = CabeceraFactura.where(query).includes(CabeceraFactura.models_includes).each do | factura |
+			data['balances']['total_facturado'] += factura.total_factura
+			data['balances']['debiendo']        += factura.balance
+
+
+      facturas_aplicadas           = factura.facturas_aplicadas
+			notas_credito                = facturas_aplicadas.select { | factura_aplicada | factura_aplicada.nota.tipo_factura_id == TiposNotasId.credito }
+			notas_debito                 = facturas_aplicadas.select { | factura_aplicada | factura_aplicada.nota.tipo_factura_id == TiposNotasId.debito }
+
+			data['balances']['notas_credito']   += notas_credito.reduce(0) { | acu, item |  (item.total).abs + acu }
+			data['balances']['notas_debito']    += notas_debito.reduce(0) { | acu, item |  (item.total).abs + acu }
+
+      recibos                              = factura.detalle_recibos
+			data['balances']['abonado']         += recibos.reduce(0) { | acu, item |  item.deposito + acu }
+
+			# puts "------".red * 11
+			# puts "factura            ".green + " #{factura.to_json}"
+			# puts "facturas_aplicadas ".yellow + " #{facturas_aplicadas.to_json}"
+			# puts "recibos            ".blue + " #{recibos.to_json}"
+			# puts "------".red * 11
+
+    end
+		paginate_class.paginate_data(facturas)
+
+		data['facturas']         = paginate_class.data_paginated
+		data['facturas']['data'] = serialize_parser(paginate_class.get_data, {all: true})
+
+    res.set_data(data)
+    return res
+
+  end
+  # =========================================================================================================================================================
 
   def self.calculate_balance_cliente(id, totalFactura, operacion, ignoreMontoMayor=false)
 

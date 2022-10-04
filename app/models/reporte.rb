@@ -94,7 +94,7 @@ class Reporte < ApplicationRecord
 
         select_ = ""
         if tipo == "1"
-          select_ = "#{inicio_select}, cabecera_facturas.numero_comprobante, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
+          select_ = "#{inicio_select}, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
         else
           select_ = "#{inicio_select}, #{tipo == '3' ? 'sum (' : ''} cabecera_facturas.balance#{tipo == '3' ? ')' : ''} as total_pendiente,
           #{tipo == '3' ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
