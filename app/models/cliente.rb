@@ -111,7 +111,6 @@ class Cliente < ApplicationRecord
 
     query      = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND (cabecera_facturas.tipo = 'venta' OR cabecera_facturas.tipo = 'pre_venta') AND cabecera_facturas.estado = true  AND cabecera_facturas.cliente_id = #{cliente_en_turno.id}"
 
-
     data       = {'balances' => { 'total_facturado' => 0, 'notas_credito' => 0, 'notas_debito' => 0, 'debiendo' => 0, 'abonado' => 0}, 'facturas' => []}
     includes_  = [{facturas_aplicadas: [:nota]}, :detalle_recibos]
 
