@@ -21,10 +21,6 @@ class Response
   def set_data(data, parametros_opcionales=nil, models_includes=nil)
 
     @paginate_class.paginate_data(data, models_includes)
-		puts " ANDO AQUII ".yellow
-		puts "data:                  ".green + " #{data.to_json}"
-		puts "parametros_opcionales: ".green + " #{parametros_opcionales.to_json}"
-		puts "models_includes:       ".green + " #{models_includes.to_json}"
 
     datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
     @res[:data]              = datos

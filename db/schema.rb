@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_10_03_203121) do
+ActiveRecord::Schema[7.0].define(version: 2022_09_14_224204) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -260,7 +260,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_203121) do
     t.float "precio_real"
     t.float "itbis_real"
     t.float "descuento_real"
-    t.integer "tipo_factura_id"
+    t.bigint "tipo_factura_id"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
@@ -302,7 +302,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_203121) do
     t.float "total"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "tipo_factura_id"
+    t.bigint "tipo_factura_id"
     t.index ["cabecera_factura_id"], name: "index_facturas_aplicadas_on_cabecera_factura_id"
     t.index ["nota_id"], name: "index_facturas_aplicadas_on_nota_id"
     t.index ["tipo_factura_id"], name: "index_facturas_aplicadas_on_tipo_factura_id"
@@ -458,10 +458,10 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_203121) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.string "controlador"
     t.boolean "mostrar_front"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -514,9 +514,10 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_203121) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
+    t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "estado"
+    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|

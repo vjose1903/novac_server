@@ -152,7 +152,7 @@ class Articulo < ApplicationRecord
 
     articulos_ = Articulo
     .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
-    .where(where)
+    .where(where).includes(models_includes)
     .order("articulos.id ASC")
 
     articulos = []
