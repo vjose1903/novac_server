@@ -118,6 +118,7 @@ Rails.application.routes.draw do
   resources :clientes do
     collection do
       get "filtro/:arg"                                => "clientes#getClientesFiltrados"
+      get "custom/get_balances/:id"                    => "clientes#getBalances"
     end
   end
 

@@ -16,12 +16,15 @@ class Response
 
   def status_valid
     @res[:status] == HTTP_STATUS_CODE[:ok]
-
   end
 
   def set_data(data, parametros_opcionales=nil, models_includes=nil)
 
     @paginate_class.paginate_data(data, models_includes)
+		puts " ANDO AQUII ".yellow
+		puts "data:                  ".green + " #{data.to_json}"
+		puts "parametros_opcionales: ".green + " #{parametros_opcionales.to_json}"
+		puts "models_includes:       ".green + " #{models_includes.to_json}"
 
     datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
     @res[:data]              = datos
@@ -60,8 +63,8 @@ end
 
 class Paginator
   def initialize(params)
-    @paginate_options = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
-    @data_paginated={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
+    @paginate_options  = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
+    @data_paginated    ={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
     set_pagination_options(params)
   end
 
@@ -74,9 +77,8 @@ class Paginator
 
 
   def paginate_data(data, models_includes=nil)
-    @data_paginated["data"] = data
-
-    @data_paginated = paginate(data, models_includes) if @paginate_options["paginado"]
+		@data_paginated["data"] = data
+    @data_paginated         = paginate(data, models_includes) if @paginate_options["paginado"]
   end
 
   def paginate(items, models_includes=nil)
@@ -95,6 +97,10 @@ class Paginator
 
   def is_paginated
     @paginate_options['paginado']
+  end
+
+  def data_paginated
+		@data_paginated
   end
 
   def get_data

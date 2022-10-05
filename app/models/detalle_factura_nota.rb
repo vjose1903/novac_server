@@ -22,6 +22,7 @@ class DetalleFacturaNota < ApplicationRecord
     detalle_factura_nota.total                       = params[:total]
     detalle_factura_nota.descuento                   = params[:descuento]
     detalle_factura_nota.descuento_real              = params[:descuento_real]
+		detalle_factura_nota.tipo_factura_id             = padre.tipo_factura_id
 
     detalle_factura_nota.valid?
 

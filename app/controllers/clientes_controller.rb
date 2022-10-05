@@ -1,5 +1,5 @@
 class ClientesController < ApplicationController
-  before_action :set_cliente, only: [:show, :destroy]
+  before_action :set_cliente, only: [:show, :destroy, :getBalances]
 
   # GET /clientes
   def index
@@ -23,6 +23,11 @@ class ClientesController < ApplicationController
 		parametros["id"] = params["id"] if params["id"]
 
     resultado = Cliente.create_update_cliente(parametros, true)
+		resultado.send_response self
+	end
+
+  def getBalances
+		resultado = @cliente.get_balances(set_paginate_options(params))
 		resultado.send_response self
 	end
 
