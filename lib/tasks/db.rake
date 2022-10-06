@@ -1,15 +1,22 @@
+namespace :db do
+  desc "Backup DB and upload to Google Drive"
+  task backup: :environment do
+    puts " "
+    puts "|==============================|"
+    puts "|        CREANDO BACKUP        |"
+    puts "|==============================|"
+    puts " "
 
-namespace :server_db do
-  desc 'Backup DB and upload to Google Drive'
-  task :backup do
     rails_env         = ENV.fetch("RAILS_ENV") { "development" }
     tulu              = ENV.fetch("TULU")
     timestamp         = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
-    archive_path      = "#{Rails.root}/db/$$ALMACEN$$_#{rails_env.downcase}_#{timestamp}.sql"
+    archive_path      = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
 
     ENV['PGPASSWORD'] = tulu
 
-    pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-prod --dbname=$$ALMACEN$$_#{rails_env.downcase} -f #{archive_path}"
+    # pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-dev --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+    pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-prod --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+
     `cd #{Rails.root}/public && #{pg_dump}`
 
     require 'google/apis/drive_v2'
@@ -20,7 +27,7 @@ namespace :server_db do
     metadata             = {title: File.basename(archive_path, '.sql')}
     file                 = drive.insert_file(metadata, upload_source: archive_path, content_type: 'application/sql')
 
-    EMAILS               = ['$$ALMACEN_MAIL$$']
+    EMAILS               = ['novacagrodemi@gmail.com']
     EMAILS.each do |email|
       perm_id   = drive.get_permission_id_for_email(email)
       perm      = Google::Apis::DriveV2::Permission.new(role: 'writer', id: perm_id.id, type: 'user')
@@ -28,6 +35,12 @@ namespace :server_db do
     end
 
     FileUtils.remove_file(archive_path)
-  end
-end
 
+    puts " "
+    puts "|==============================|"
+    puts "|         BACKUP CREADO        |"
+    puts "|==============================|"
+    puts " "
+  end
+
+end

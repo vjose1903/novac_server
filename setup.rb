@@ -40,7 +40,6 @@
 @files         = [
 	{ :tipo => 'move',       :file_name => 'google_api_credentials',  :extension => 'json', :path => 'config/google_api_credentials.json' },
 	{ :tipo => 'move',       :file_name => 'seedConstantes',          :extension => 'rb',   :path => 'config/initializers/global/seedConstantes.rb' },
-	# { :tipo => 'move',       :file_name => 'server_db',               :extension => 'rake', :path => 'lib/tasks/server_db.rake' },
 
 	{ :tipo => 'reemplazo',  :file_name => 'docker-compose.prod.yml',                       :path => 'docker-compose.prod.yml' },
 	{ :tipo => 'reemplazo',  :file_name => 'docker-compose.yml',                            :path => 'docker-compose.yml' },
@@ -48,7 +47,7 @@
 	{ :tipo => 'reemplazo',  :file_name => 'default.conf',                                  :path => 'docker/services/nginx/default.conf' },
 	{ :tipo => 'reemplazo',  :file_name => 'run_server.sh',                                 :path => 'run_server.sh' },
 	{ :tipo => 'reemplazo',  :file_name => 'cors.rb',                                       :path => 'config/initializers/cors.rb' },
-	{ :tipo => 'reemplazo',  :file_name => 'server_db.rake',                                :path => 'lib/tasks/server_db.rake' },
+	{ :tipo => 'reemplazo',  :file_name => 'db.rake',                                       :path => 'lib/tasks/db.rake' },
 ]
 
 
