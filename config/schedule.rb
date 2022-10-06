@@ -8,6 +8,6 @@ set :output, {:standard => 'log/cron.log', :error => 'log/error.log'}
 set :environment, ENV['RAILS_ENV']
 
 
-every 1.minute do
+every 1.hours do
 	rake 'db:backup'
 end
