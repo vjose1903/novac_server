@@ -347,22 +347,16 @@ class CabeceraFactura < ApplicationRecord
     valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
     limit_             = campo == "last_50" ? 50 : nil
 
-
     valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
 
     where_ = "cabecera_facturas.tipo = '#{fact_de}' AND cabecera_facturas.is_adelantada = #{is_adelantada} "
-
-    where_ = "detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades "  if is_adelantada
-
-    where_ += "and cabecera_facturas.#{campo} = #{valor_where} "              unless campo == "last_50"
-
-    where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"    unless tipo_factura_id == "0"
-
+    where_ += "and (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) "  if is_adelantada
+    where_ += "and cabecera_facturas.#{campo} = #{valor_where} "                        unless campo == "last_50"
+    where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"              unless tipo_factura_id == "0"
 
     joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
-
-    joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id" if is_adelantada
-
+    joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id " if is_adelantada
+    joins_ += "inner join articulos on detalle_facturas.articulo_id = articulos.id"                        if is_adelantada
 
     facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_)
 
@@ -379,6 +373,7 @@ class CabeceraFactura < ApplicationRecord
 
     return res
   end
+
 
   # ===================================================================================================================================================
   def self.get_pre_facturas(params, paginate_options)
