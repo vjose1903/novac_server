@@ -128,6 +128,7 @@ Rails.application.routes.draw do
 		end
 	end
 
+
 	resources :notas do
 		collection do
 			post "anular_nota/:id"                           => "notas#cancelarNota"
