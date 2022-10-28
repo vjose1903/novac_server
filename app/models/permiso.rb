@@ -11,6 +11,24 @@ class Permiso < ApplicationRecord
 		Permiso.all.where({mostrar_front: true}).includes(Permiso.models_includes)
 	end
 
+	def self.parse_permisos_front
+		res          = Response.new
+		obj_permisos = {}
+		Permiso.all.each do | permiso |
+			obj_permisos["#{permiso.descripcion}"]  = {}
+
+			permiso.acciones.each do | accion |
+				obj_permisos["#{permiso.descripcion}"]["#{accion.descripcion}"] = "#{permiso.descripcion}_#{accion.descripcion}"
+			end
+
+		end
+
+		res.set_data(obj_permisos)
+
+		return res
+	end
+
+
 	def self.verificateUserPermiso( user_id, permiso_descripcion )
 		res         = Response.new
 		permiso     = Permiso.find_by_descripcion(permiso_descripcion)

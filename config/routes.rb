@@ -21,7 +21,6 @@ Rails.application.routes.draw do
   resources :contenido_articulos
   resources :tipo_articulos
   resources :secuencia_facturas
-  resources :permisos
   resources :acciones
 
   resources :roles do
@@ -161,6 +160,12 @@ Rails.application.routes.draw do
   end
 
   post "ruta/test"              => "application#testFunction"
+
+	resources :permisos do
+		collection do
+			get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
+		end
+	end
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
                                         sessions: "devise_token_auth/sessions",
