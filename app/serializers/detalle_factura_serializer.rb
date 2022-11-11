@@ -25,12 +25,13 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :unidad,                                     if: Proc.new { self.get_param('unidad') || self.get_param('all') }
   attribute :peso_saco,                                  if: Proc.new { self.get_param('peso_saco') || self.get_param('all') }
   attribute :contenidos,                                 if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
+  attribute :articulo_estado,                            if: Proc.new { self.get_param('articulo_estado') || self.get_param('all') }
 
   def articulo
     # TODO: hacer una peticion para solo buscar el nombre en el historico
     # @articuloSelect     = MantenimientoArticulo.get_one_articulo_by_date(calculateDateUTC(object.cabecera_factura.fecha_equivalente), object.articulo_id)[0]
     @articuloSelect = object.articulo
-    @articuloSelect["nombre"]
+    @articuloSelect['nombre']
 
   end
 
@@ -50,10 +51,10 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     @unidad                     = object.unidad.split(" ")
 
     if @unidad.length > 1
-      descripcion              = "#{@articuloSelect["nombre"]} (#{@unidad[2]} LBS)"
+      descripcion              = "#{@articuloSelect['nombre']} (#{@unidad[2]} LBS)"
       @peso_saco               = @unidad[2]
     else
-      descripcion              = "#{@articuloSelect["nombre"]}"
+      descripcion              = "#{@articuloSelect['nombre']}"
 
       descripcion += " D*" if object.is_defectuoso
     end
@@ -74,6 +75,9 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     calcularContenidos(object.articulo, true)
   end
 
+	def articulo_estado
+		@articuloSelect['estado']
+	end
 
   def calcularContenidos(articulo, sacos)
 

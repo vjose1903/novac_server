@@ -128,6 +128,7 @@ Rails.application.routes.draw do
 		end
 	end
 
+
 	resources :notas do
 		collection do
 			post "anular_nota/:id"                           => "notas#cancelarNota"
@@ -148,7 +149,7 @@ Rails.application.routes.draw do
       get "custom/comprobar_serial"                               => "cabecera_facturas#comprobarSerial"
       get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
       get "custom/get_group/:ids"                                 => "cabecera_facturas#getGroup"
-      get "custom/pre_factura/:id"                               => "cabecera_facturas#getPreFactura"
+      get "custom/pre_factura/:id"                                => "cabecera_facturas#getPreFactura"
     end
   end
 
