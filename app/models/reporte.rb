@@ -356,6 +356,9 @@ class Reporte < ApplicationRecord
         total_venta = 0
         query       = {}
 
+				tipoFacturaNotaCredito = TipoFactura.find_by_descripcion(TiposFacturasDescripcion.nota_de_credito)
+
+
         query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
         query['cabecera_facturas.tipo']              = 'venta'
         query['cabecera_facturas.is_nota']           = false
@@ -384,7 +387,7 @@ class Reporte < ApplicationRecord
             acu += 1
             query_notas       = {}
             query_notas['detalles_facturas_notas.articulo_id']      = df.articulo_id
-						query_notas['detalles_facturas_notas.tipo_factura_id']  = TiposFacturasId.nota_de_credito
+						query_notas['detalles_facturas_notas.tipo_factura_id']  = tipoFacturaNotaCredito.id
             query_notas['notas.fecha_equivalente']                  = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
 
             select_notas = "coalesce( SUM (detalles_facturas_notas.cantidad_en_unidades), 0) as cantidad_devuelto, coalesce( SUM (detalles_facturas_notas.total), 0) as total_devuelto"

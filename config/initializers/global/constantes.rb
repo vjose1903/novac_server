@@ -100,18 +100,19 @@ DOCUMENTOS_DE_IDENTIDAD_VALIDOS = [Documentos.cedula, Documentos.rnc]
 module FacturasParams
 
   CLIENTE_ID = "cliente_id"
+  SUPLIDOR_ID = "suplidor_id"
   NUMERO_COMPROBANTE = "numero_comprobante"
   NUMERO_FACTURA = "numero_factura"
   LAST_50 = "last_50"
 
-  PARAMETROS = { :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50 }
+  PARAMETROS = { :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50, :_5_ => SUPLIDOR_ID }
 
   def self.get_campo_by_param(param)
     return PARAMETROS[:"_#{param}_"]
   end
 
   def self.parse_valor_by_param(param, valor=nil)
-    valor = param == "1" || param == "3" ? valor.to_i : valor.upcase unless param == "4"
+    valor = param == "1" || param == "3" || param == "5" ? valor.to_i : valor.upcase unless param == "4"
     return valor
   end
 
@@ -269,26 +270,28 @@ PROVINCIAS_MUNICIPIOS=[
   { nombre: "Peravia",	municipios: ["Bani", "Nizao"] }
 ]
 
-module TiposFacturasId
-	FACTURA_SIN_COMPROBANTE = 1
-	FACTURA_CON_VALOR_FISCAL = 2
-	FACTURA_DE_CONSUMO = 3
-	NOTA_DE_DEBITO = 4
-	NOTA_DE_CREDITO = 5
-	COMPROBANTE_DE_COMPRAS = 6
-	REGISTRO_DE_UNICO_INGRESO = 7
-	COMPROBANTE_PARA_GASTOS_MENORES = 8
-	COMPROBANTE_DE_REGIMEN_ESPECIALES = 9
-	COMPROBANTE_GUBERNAMENTAL = 10
-	COMPROBANTE_PARA_EXPORTACIONES = 11
-	COMPROBANTES_PARA_PAGO_AL_EXTERIOR = 12
-	VENTA_CONTADO = 13
-	COMPRA = 14
-	CONDUCE = 15
-	PRODUCCION = 16
-	RECIBO_INGRESO = 17
-	VENTA_CREDITO = 18
-	PRE_FACTURA = 19
+
+module TiposFacturasDescripcion
+	FACTURA_SIN_COMPROBANTE = "Factura sin comprobante"
+	FACTURA_CON_VALOR_FISCAL = "Factura con valor fiscal"
+	FACTURA_DE_CONSUMO = "Factura de consumo"
+	NOTA_DE_DEBITO = "Nota de debito"
+	NOTA_DE_CREDITO = "Nota de credito"
+	COMPROBANTE_DE_COMPRAS = "Comprobante de compras"
+	REGISTRO_DE_UNICO_INGRESO = "Registro de unico ingreso"
+	COMPROBANTE_PARA_GASTOS_MENORES = "Comprobante para gastos menores"
+	COMPROBANTE_DE_REGIMEN_ESPECIALES = "Comprobante de regimen especiales"
+	COMPROBANTE_GUBERNAMENTAL = "Comprobante gubernamental"
+	COMPROBANTE_PARA_EXPORTACIONES = "Comprobante para exportaciones"
+	COMPROBANTES_PARA_PAGO_AL_EXTERIOR = "Comprobantes para pago al exterior"
+	VENTA_CONTADO = "Venta Contado"
+	COMPRA = "Compra"
+	CONDUCE = "Conduce"
+	PRODUCCION = "Produccion"
+	RECIBO_INGRESO = "Recibo_ingreso"
+	VENTA_CREDITO = "Venta Credito"
+	PRE_VENTA = "pre_venta"
+	COTIZACION = "cotizacion"
 
 	def self.factura_sin_comprobante
 		return FACTURA_SIN_COMPROBANTE
@@ -362,12 +365,15 @@ module TiposFacturasId
 		return VENTA_CREDITO
 	end
 
-	def self.pre_factura
-		return PRE_FACTURA
+	def self.pre_venta
+		return PRE_VENTA
+	end
+
+	def self.cotizacion
+		return COTIZACION
 	end
 
 end
-
 
 # G_OTROS_COSTOS=[
 # 	{descripcion:"Saco 100 libras", key: "saco_100", costo:9, precio:20 },

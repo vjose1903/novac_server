@@ -43,6 +43,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
   attribute :camiones,                                       if: Proc.new { self.get_param('camiones') }
+  attribute :cotizacion,                                     if: Proc.new { self.get_param('cotizacion') || self.get_param('all') }
+  attribute :pre_factura,                                    if: Proc.new { self.get_param('pre_factura') || self.get_param('all') }
 
 
   def tipo_factura

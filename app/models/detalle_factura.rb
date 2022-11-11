@@ -65,30 +65,33 @@ class DetalleFactura < ApplicationRecord
 
   #  --------------------------------------------------------------------------------------------------------------------------------
   def procesos_detalle(params, cabecera)
-    res          = Response.new
+    res           = Response.new
 
-    operador     = cabecera["tipo"] == "compra" || cabecera["tipo"] == "nota_credito" ? "+" : "-"
-    fecha        = cabecera["fecha_equivalente"]
+    operador      = cabecera["tipo"] == "compra" ? "+" : "-"
+    fecha         = cabecera["fecha_equivalente"]
 
-    accion         = "factura"
+    accion        = "factura"
 
-    if cabecera["pre_factura"].nil?
-
-      res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
-
-      unless res_movimiento.status_valid
-        res.add_msgs(res_movimiento.get_msgs.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
-    else
-      if params['is_devuelto'] && !params['is_defectuoso']
-        operador     = "+"
+    if cabecera["tipo"] != TiposFacturasDescripcion.cotizacion
+      if cabecera["pre_factura"].nil?
         res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
+
         unless res_movimiento.status_valid
           res.add_msgs(res_movimiento.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
+      else
+        if params['is_devuelto'] && !params['is_defectuoso']
+          operador     = "+"
+          res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
+          unless res_movimiento.status_valid
+            res.add_msgs(res_movimiento.get_msgs.to_a)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+        end
       end
+		else
+			puts "--- ES UNA COTIZACION NO QUITO NADA DEL INVENTARIO ---".red
     end
 
     return res

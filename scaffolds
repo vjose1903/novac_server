@@ -157,4 +157,5 @@ rails g migration addCamposToFacturasAplicadas
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 
 rails g migration changeTipoFacturaToAceptNullNotas
+rails g migration addCotizacionToCabeceraFactura
 
