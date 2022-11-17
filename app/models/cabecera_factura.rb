@@ -254,7 +254,11 @@ class CabeceraFactura < ApplicationRecord
     res               = Response.new
 
     unless self.pre_factura.nil?
-      res = CabeceraFactura.payFactura(self.pre_factura, {"deposito" => self.total_factura})
+      res = CabeceraFactura.payFactura(self.pre_factura, {"deposito" => self.total_factura}, true)
+    end
+
+    unless self.cotizacion.nil?
+      res = CabeceraFactura.payFactura(self.cotizacion, {"deposito" => self.total_factura}, true)
     end
 
     return res
@@ -321,6 +325,11 @@ class CabeceraFactura < ApplicationRecord
 
     return res
   end
+
+  # ===================================================================================================================================================
+  # def self.get_one_by_id(params)
+	# end
+
   # ===================================================================================================================================================
   def self.get_facturas_by_params(params, paginate_options)
     res                  = Response.new(paginate_options)
@@ -330,25 +339,25 @@ class CabeceraFactura < ApplicationRecord
     tipo_factura_id    = params[:tipo_factura_id]
     is_adelantada      = params[:is_adelantada].to_boolean
     fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
+    pagada             = params[:pagada] != "0" ? params[:pagada].to_boolean : "0"
 
-		puts "campoNum ==> ".yellow + " (#{campoNum})"
+
     campo              = FacturasParams.get_campo_by_param(campoNum)
     valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
-    limit_             = campo == "last_50" ? 50 : nil
+    limit_             = campo == FacturasParams.last_50 ? 50 : nil
 
 
-		puts "campo ==> ".red + " (#{campo})"
-
-    valor_where = campo == "cliente_id" || campo == "numero_factura" ? valor_des : "'#{valor_des}' "
+    valor_where = campo == FacturasParams.cliente_id || campo == FacturasParams.numero_factura ? valor_des : "'#{valor_des}' "
 
     where_ = "cabecera_facturas.tipo = '#{fact_de}' AND cabecera_facturas.is_adelantada = #{is_adelantada} "
     where_ += "and (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) "  if is_adelantada
-    where_ += "and cabecera_facturas.#{campo} = #{valor_where} "                        unless campo == "last_50"
+    where_ += "and cabecera_facturas.#{campo} = #{valor_where} "                        unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
     where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"              unless tipo_factura_id == "0"
+    where_ += "and cabecera_facturas.pagada = #{pagada}"                                if params[:pagada].present? && pagada != "0"
 
     joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
     joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id " if is_adelantada
-    joins_ += "inner join articulos on detalle_facturas.articulo_id = articulos.id"                        if is_adelantada
+    joins_ += "inner join articulos on detalle_facturas.articulo_id = articulos.id"                         if is_adelantada
 
     facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_)
 
@@ -359,7 +368,10 @@ class CabeceraFactura < ApplicationRecord
       res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.all.count
-      res.add_msg("No existen facturas con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
+
+			documento =  fact_de == TiposFacturasDescripcion.cotizacion  ? 'Cotizaciones' : fact_de == TiposFacturasDescripcion.pre_venta ? 'Pre-Ventas' : 'Facturas'
+
+      res.add_msg("No existen #{documento} con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -368,7 +380,7 @@ class CabeceraFactura < ApplicationRecord
 
 
   # ===================================================================================================================================================
-  def self.get_pre_ventas(params, paginate_options)
+  def self.get_pre_venta_by_filter(params, paginate_options)
     res          = Response.new(paginate_options)
 
     tipoFactura  = TipoFactura.find_by_descripcion(TiposFacturasDescripcion.pre_venta)
@@ -430,8 +442,8 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ===================================================================================================================================================
-  def self.# Un método que obtiene las facturas por ID de cliente y estado.
-  get_facturas_by_cliente_id_and_estado(params, paginate_options)
+	# Un método que obtiene las facturas por ID de cliente y estado.
+  def self.get_facturas_by_cliente_id_and_estado(params, paginate_options)
     res                          = Response.new(paginate_options)
 
     where                        = "cliente_id=#{params["cliente_id"]} AND pagada=#{params["pagada"]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
@@ -593,12 +605,12 @@ class CabeceraFactura < ApplicationRecord
 
 
   # ====================================================================================================
-  def self.payFactura(factura_id, recibo)
+  def self.payFactura(factura_id, recibo, is_pago_total = false)
     res               = Response.new
     CabeceraFactura.transaction do
       factura_a_pagar   = CabeceraFactura.find_by_id(factura_id)
       newBalance                          = factura_a_pagar["balance"] - recibo["deposito"]
-      is_pago_total                       = newBalance < 1 || recibo["deposito"] == factura_a_pagar["balance"]
+      is_pago_total                       = is_pago_total ? is_pago_total : newBalance < 1 || recibo["deposito"] == factura_a_pagar["balance"]
 
       factura_a_pagar.balance             = newBalance >= 1 ? newBalance : 0
       factura_a_pagar.pagada              = true           if is_pago_total

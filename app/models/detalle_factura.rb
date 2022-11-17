@@ -90,8 +90,6 @@ class DetalleFactura < ApplicationRecord
           end
         end
       end
-		else
-			puts "--- ES UNA COTIZACION NO QUITO NADA DEL INVENTARIO ---".red
     end
 
     return res

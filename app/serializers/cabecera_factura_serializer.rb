@@ -52,7 +52,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def detalle_facturas
-    serialize_parser(object.detalle_facturas, {all: true})
+    serialize_parser(object.detalle_facturas, @instance_options)
   end
 
 

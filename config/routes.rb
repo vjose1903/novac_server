@@ -141,14 +141,14 @@ Rails.application.routes.draw do
       # cabecera facturas
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
-      get "params/:campo/:valor/:tipo_factura_id/:is_adelantada"  => "cabecera_facturas#getFacturasByParams"
+      get "custom/get_documentos/params"                          => "cabecera_facturas#getFacturasByParams"
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
       get "custom/viajes/:estado/:arg"                            => "cabecera_facturas#getViajesSinCompletar"
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
       get "custom/comprobar_serial"                               => "cabecera_facturas#comprobarSerial"
       get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
       get "custom/get_group/:ids"                                 => "cabecera_facturas#getGroup"
-      get "custom/pre_venta/:id"                                  => "cabecera_facturas#getPreVenta"
+      get "custom/pre_venta/:id"                                  => "cabecera_facturas#getPreVentaByFilter"
     end
   end
 

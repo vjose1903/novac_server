@@ -74,7 +74,6 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def calcularContenidos(articulo, sacos)
 
-
     contenidos = {}
 
     if sacos && articulo['vendido_en'] == 'Saco' && articulo["calcular_saco"]
