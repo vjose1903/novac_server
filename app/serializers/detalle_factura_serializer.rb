@@ -26,6 +26,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   attribute :peso_saco,                                  if: Proc.new { self.get_param('peso_saco') || self.get_param('all') }
   attribute :contenidos,                                 if: Proc.new { self.get_param('contenidos') || self.get_param('all') }
   attribute :articulo_estado,                            if: Proc.new { self.get_param('articulo_estado') || self.get_param('all') }
+  attribute :actual_price,                               if: Proc.new { self.get_param('actual_price') }
 
   def articulo
     # TODO: hacer una peticion para solo buscar el nombre en el historico
@@ -75,9 +76,38 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     calcularContenidos(object.articulo, true)
   end
 
-	def articulo_estado
-		@articuloSelect['estado']
-	end
+  def articulo_estado
+    @articuloSelect['estado']
+  end
+
+  def actual_price
+    costos()
+  end
+
+
+  def costos
+    obj = {}
+
+    obj["#{@articuloSelect.medida}"]            = {}
+    obj["#{@articuloSelect.medida}"]['costo']   = @articuloSelect.costo_principal
+    obj["#{@articuloSelect.medida}"]['precio']  = @articuloSelect.precio_principal
+
+    @articuloSelect.contenido_articulos.each do |conte|
+      obj["#{conte.medida}"]           = {}
+      obj["#{conte.medida}"]['costo']  = conte.costo
+      obj["#{conte.medida}"]['precio'] = conte.precio
+    end
+
+    if @articuloSelect.calcular_saco
+      [100, 50, 25].each do | peso |
+        obj["Saco_#{peso}"]              = {}
+        obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * obj['Quintal']['costo']
+        obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * obj['Quintal']['precio']
+      end
+    end
+
+    obj
+  end
 
   def calcularContenidos(articulo, sacos)
 

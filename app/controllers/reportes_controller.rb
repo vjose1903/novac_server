@@ -54,8 +54,9 @@ class ReportesController < ApplicationController
 		elsif tipo_reporte == 'notas'
 			# ------------------- REPORTE DE NOTAS --------------------
 			body = Reporte.get_notas(params)
+			tipo_de_factura = TipoFactura.find_by_id(params['tipo_factura_id'])
 
-			tipo_nota = params["tipo_factura_id"].to_i == TiposFacturasId.nota_de_credito  ? 'Crédito' : params["tipo_factura_id"].to_i == TiposFacturasId.nota_de_debito ? 'Débito' : 'Crédito y Débito'
+			tipo_nota = tipo_de_factura.descripcion == TiposFacturasDescripcion.nota_de_credito  ? 'Crédito' : tipo_de_factura.descripcion == TiposFacturasDescripcion.nota_de_debito ? 'Débito' : 'Crédito y Débito'
 			titulo = "Reporte de notas de #{tipo_nota}"
 
 		end

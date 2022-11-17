@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_09_14_224204) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_01_132804) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -98,6 +98,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_14_224204) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "identificador"
     t.integer "pre_factura"
+    t.integer "cotizacion"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
@@ -458,10 +459,10 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_14_224204) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.string "controlador"
-    t.boolean "mostrar_front"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "controlador"
+    t.boolean "mostrar_front"
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -514,10 +515,9 @@ ActiveRecord::Schema[7.0].define(version: 2022_09_14_224204) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
+    t.boolean "estado"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|

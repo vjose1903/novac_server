@@ -4,16 +4,18 @@ class CabeceraFacturasController < ApplicationController
   before_action :set_cabecera_factura, only: [:show, :update, :destroy]
   # GET /cabecera_facturas
   def index
-    return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
   end
 
   # GET /cabecera_facturas/1
   def show
-    return Response.new(params, nil, @cabecera_factura, nil, {all: true}).send_response self
+		# resultado = CabeceraFactura.get_one_by_id(params)
+
+    return Response.new(params, nil, @cabecera_factura, nil, get_parametros_opcionales).send_response self
   end
 
-  def getPreFactura
-		resultado = CabeceraFactura.get_pre_facturas(params, set_paginate_options(params))
+  def getPreVentaByFilter
+		resultado = CabeceraFactura.get_pre_ventas(params, set_paginate_options(params))
 		resultado.send_response self
   end
 
@@ -62,6 +64,13 @@ class CabeceraFacturasController < ApplicationController
   def cancelarFactura
     resultado = CabeceraFactura.anular_factura(params)
     resultado.send_response self
+  end
+
+	def get_parametros_opcionales
+    return {
+      actual_price: params['actual_price'] || false,
+			all: true
+    }
   end
 
   private
