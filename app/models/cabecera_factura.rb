@@ -329,13 +329,13 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
   # def self.get_one_by_id(params)
 	# end
-
   # ===================================================================================================================================================
+
   def self.get_facturas_by_params(params, paginate_options)
     res                  = Response.new(paginate_options)
 
     campoNum           = params[:campo]
-    valor_des          = desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\'))
+    valor_des          = params[:valor].present? ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
     tipo_factura_id    = params[:tipo_factura_id]
     is_adelantada      = params[:is_adelantada].to_boolean
     fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
