@@ -1,4 +1,4 @@
-FROM ruby:3.0
+FROM ruby:3.0.4
 
 RUN apt-get update -qq && apt-get install -y build-essential postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron
 

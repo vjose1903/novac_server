@@ -115,7 +115,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
   def pagos
     pago_parseo    = []
-
+		puts "----> object.Bruto ".red + " #{object.to_json}"
     if ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
       pagos          = object.detalle_recibos
 
