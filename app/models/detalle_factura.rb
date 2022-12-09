@@ -96,10 +96,12 @@ class DetalleFactura < ApplicationRecord
   end
 
   #  --------------------------------------------------------------------------------------------------------------------------------
-  def self.anular_detalles(detalle)
+  def self.anular_detalles(detalle, documento)
     res              = Response.new
     articulo         = detalle.articulo
-    mov              = (articulo.existencia + detalle.cantidad_en_unidades)
+    operacion        = documento.tipo == TiposFacturasDescripcion.compra ? '-' : '+'
+
+    mov              = eval "#{articulo.existencia} #{operacion} #{detalle.cantidad_en_unidades.to_f}"
 
     if articulo.update({ existencia: mov }) && !detalle.destroy
       res.add_msgs(articulo.errors.to_a)
@@ -116,7 +118,7 @@ class DetalleFactura < ApplicationRecord
     res                = Response.new
 
     factura_original.detalle_facturas.each do |detalle|
-      res_anular       = DetalleFactura.anular_detalles(detalle)
+      res_anular       = DetalleFactura.anular_detalles(detalle, factura_original)
       return res_anular unless res_anular.status_valid
     end
 
@@ -126,5 +128,14 @@ class DetalleFactura < ApplicationRecord
       return res_temp unless res_temp.status_valid
     end
     return res
+  end
+
+  #  --------------------------------------------------------------------------------------------------------------------------------
+  def self.proceso_borrar_detalles(documento)
+
+    documento.detalle_facturas.each do |detalle|
+      DetalleFactura.anular_detalles(detalle, documento)
+    end
+
   end
 end

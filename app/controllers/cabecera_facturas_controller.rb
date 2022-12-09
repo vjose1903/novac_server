@@ -9,19 +9,14 @@ class CabeceraFacturasController < ApplicationController
 
   # GET /cabecera_facturas/1
   def show
-		# resultado = CabeceraFactura.get_one_by_id(params)
+    # resultado = CabeceraFactura.get_one_by_id(params)
 
     return Response.new(params, nil, @cabecera_factura, nil, get_parametros_opcionales).send_response self
   end
 
-  def getPreVentaByFilter
-		resultado = CabeceraFactura.get_pre_ventas(params, set_paginate_options(params))
-		resultado.send_response self
-  end
-
   def getGroup
-		resultado = CabeceraFactura.get_group_facturas_by_id(params)
-		resultado.send_response self
+    resultado = CabeceraFactura.get_group_facturas_by_id(params)
+    resultado.send_response self
   end
 
   def getFacturasByParams
@@ -52,24 +47,24 @@ class CabeceraFacturasController < ApplicationController
   # POST /cabecera_facturas
   def create
     resultado = CabeceraFactura.create_factura(params, true)
-		resultado.send_response self
-	end
+    resultado.send_response self
+  end
 
   # PATCH /cabecera_facturas/1
   def update
     resultado = CabeceraFactura.updateFactura(params)
-		resultado.send_response self
-  end
-
-  def cancelarFactura
-    resultado = CabeceraFactura.anular_factura(params)
     resultado.send_response self
   end
 
-	def get_parametros_opcionales
+  def deleteDocumentos
+    resultado = CabeceraFactura.delete_documentos(params)
+    resultado.send_response self
+  end
+
+  def get_parametros_opcionales
     return {
       actual_price: params['actual_price'] || false,
-			all: true
+      all: true
     }
   end
 

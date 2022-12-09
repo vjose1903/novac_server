@@ -51,7 +51,7 @@ class CabeceraFactura < ApplicationRecord
 
           res_valid                        = Response.new
 
-          if params["condicion"] == "Crédito" && params["tipo"] == "venta" || params["is_viaje"]
+          if params["condicion"] == "Crédito" && params["tipo"] != TiposFacturasDescripcion.compra || params["is_viaje"]
             res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
           end
 
@@ -115,7 +115,7 @@ class CabeceraFactura < ApplicationRecord
                 if res_valid.status_valid
                   res.set_data(cabecera_factura, {all: true})
 
-									documento =  @tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : @tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
+                  documento =  @tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : @tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
                   res.add_msg("#{documento} creada correctamente.")
                 else
@@ -240,7 +240,7 @@ class CabeceraFactura < ApplicationRecord
     data_secuencias[:actual_secuencia_entidad]      = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id)
     data_secuencias[:numero_factura]                = data_secuencias[:actual_secuencia_entidad]['secuencia'] + 1
 
-    numero_comprobante                              = params['tipo'] == 'compra' ? params['numero_comprobante'].upcase : params['tipo'] == 'venta' ? "B#{@tipo_de_factura.referencia}#{"%08d" % next_secuencia_comprobante}" : nil
+    numero_comprobante                              = params['tipo'] == TiposFacturasDescripcion.compra ? params['numero_comprobante'].upcase : params['tipo'] == 'venta' ? "B#{@tipo_de_factura.referencia}#{"%08d" % next_secuencia_comprobante}" : nil
     data_secuencias[:numero_comprobante]            = numero_comprobante
 
 
@@ -328,7 +328,7 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   # def self.get_one_by_id(params)
-	# end
+  # end
   # ===================================================================================================================================================
 
   def self.get_facturas_by_params(params, paginate_options)
@@ -340,6 +340,7 @@ class CabeceraFactura < ApplicationRecord
     is_adelantada      = params[:is_adelantada].to_boolean
     fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
     pagada             = params[:pagada] != "0" ? params[:pagada].to_boolean : "0"
+    estado             = params[:estado] != "0" ? params[:estado].to_boolean : "0"
 
 
     campo              = FacturasParams.get_campo_by_param(campoNum)
@@ -353,7 +354,8 @@ class CabeceraFactura < ApplicationRecord
     where_ += "and (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) "  if is_adelantada
     where_ += "and cabecera_facturas.#{campo} = #{valor_where} "                        unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
     where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"              unless tipo_factura_id == "0"
-    where_ += "and cabecera_facturas.pagada = #{pagada}"                                if params[:pagada].present? && pagada != "0"
+    where_ += "and cabecera_facturas.pagada = #{pagada} "                                if params[:pagada].present? && pagada != "0"
+    where_ += "and cabecera_facturas.estado = #{estado} "                                if params[:estado].present? && estado != "0"
 
     joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
     joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id " if is_adelantada
@@ -369,47 +371,11 @@ class CabeceraFactura < ApplicationRecord
     else
       cantidad_registros = CabeceraFactura.all.count
 
-			documento =  fact_de == TiposFacturasDescripcion.cotizacion  ? 'Cotizaciones' : fact_de == TiposFacturasDescripcion.pre_venta ? 'Pre-Ventas' : 'Facturas'
+      documento =  fact_de == TiposFacturasDescripcion.cotizacion  ? 'Cotizaciones' : fact_de == TiposFacturasDescripcion.pre_venta ? 'Pre-Ventas' : 'Facturas'
 
       res.add_msg("No existen #{documento} con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-
-    return res
-  end
-
-
-  # ===================================================================================================================================================
-  def self.get_pre_venta_by_filter(params, paginate_options)
-    res          = Response.new(paginate_options)
-
-    tipoFactura  = TipoFactura.find_by_descripcion(TiposFacturasDescripcion.pre_venta)
-
-    id           = params["id"]
-    tipo         = params["tipo"]
-    desde        = params["desde"].nil? ? nil : params["desde"]
-    hasta        = params["hasta"].nil? ? params["desde"] : params["hasta"]
-
-    joins_       = "left join clientes on clientes.id = cabecera_facturas.cliente_id"
-
-    query        = {}
-    query['cabecera_facturas.tipo_factura_id']   = tipoFactura.id
-    query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if !tipo.nil? && tipo == 'all'
-
-    facturas     = CabeceraFactura.joins(joins_).where(query)
-    .where("#{tipo == 'all' ? "lower(cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{id}%')" : "cabecera_facturas.numero_factura = #{params["id"].to_i}" }")
-    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
-
-
-    if facturas.length > 0
-      facturas = facturas.first if tipo == 'single'
-      res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
-    else
-      cantidad_registros = CabeceraFactura.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen Pre-facturas registradas." : "No existen Pre-facturas con las especificaciones introducidas.")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
 
     return res
   end
@@ -427,8 +393,6 @@ class CabeceraFactura < ApplicationRecord
     .where("#{where} AND lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{arg}%') ")
     .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
 
-
-
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true, camiones: true}, CabeceraFactura.models_includes)
     else
@@ -437,12 +401,10 @@ class CabeceraFactura < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-
     return res
   end
 
   # ===================================================================================================================================================
-	# Un método que obtiene las facturas por ID de cliente y estado.
   def self.get_facturas_by_cliente_id_and_estado(params, paginate_options)
     res                          = Response.new(paginate_options)
 
@@ -628,24 +590,54 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.anular_factura(params)
-    res               = Response.new
-    cabecera          = CabeceraFactura.find_by_id(params["id"])
-    cabecera.estado   = false
+  def self.delete_documentos(params)
+    res                 = Response.new
+    res_valid           = Response.new
 
-    if cabecera.condicion == "Crédito" && ( cabecera.tipo == "venta" || cabecera.is_viaje )
-      res_valid       = Cliente.calculate_balance_cliente(cabecera.cliente_id, cabecera.total_factura, "-")
+    ids                 = params[:ids].split(",").map(&:to_i)
+    documentos          = CabeceraFactura.where(id: ids).includes(CabeceraFactura.models_includes)
+    obj_deleted         = { success: [], error: [] }.with_indifferent_access
+
+    documentos.each do | documento |
+      success_deleted   = true
+
+      if documento.tipo != TiposFacturasDescripcion.cotizacion && documento.tipo != TiposFacturasDescripcion.compra && documento.condicion == "Crédito" || documento.is_viaje
+        res_valid       = Cliente.calculate_balance_cliente(documento.cliente_id, documento.total_factura, "-")
+      end
+
+      if res_valid.status_valid
+
+				if documento.tipo != TiposFacturasDescripcion.cotizacion
+					res_valid     = DetalleFactura.proceso_borrar_detalles(documento)
+				end
+
+        if params[:tipo] == 'anular'
+          documento.estado  = false
+          success_deleted   = false unless documento.save!
+
+        elsif params[:tipo] == 'delete'
+          success_deleted   = false unless documento.destroy
+        end
+
+				if success_deleted
+				else
+				end
+        type                = success_deleted ? 'success' : 'error'
+        obj_deleted[type].push(documento)
+
+      else
+        obj_deleted[:error].push(documento)
+      end
+
     end
 
-    if res_valid.status_valid && cabecera.save!
-      res.add_msg("Factura anulada correctamente.")
-    else
-      res.add_msgs(res_valid.get_msgs.to_a)
-      res.add_msgs(cabecera.errors.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
+    res.set_data(obj_deleted)
     return res
+  end
+
+  # ---------------------------------------------------------------------------------------------------------------------
+  def procesos_delete(data)
+
   end
 
   # =====================================================================================================================

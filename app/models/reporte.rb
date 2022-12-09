@@ -106,7 +106,7 @@ class Reporte < ApplicationRecord
         group_by = tipo == "1" ? "" : tipo == "2" ? "cabecera_facturas.id, clientes.id" : "clientes.id"
 
         CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
-        .select(select_).where(query).where("cabecera_facturas.balance >= 1").group(group_by)
+        .select(select_).where(query).where("cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false").group(group_by)
         .order("#{tipo == '3' ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
             cabeza                      = cf.attributes
 
