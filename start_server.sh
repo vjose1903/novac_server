@@ -6,7 +6,7 @@ white=$(tput setaf 7)
 yellow=$(tput setaf 3)
 cyan=$(tput setaf 6)
 
-OPTIONS="aptc:buds"
+OPTIONS="waptc:buds"
 PRODUCTION='no'
 BACKGROUND='no'
 
@@ -60,6 +60,10 @@ while getopts $OPTIONS opt; do
   echo " "
 
   case "${opt}" in
+  w)
+    echo "la opcion -w"
+    docker system prune -f
+  ;;
   a)
     echo "la opcion -a"
     getActualClient

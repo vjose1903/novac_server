@@ -20,8 +20,6 @@ module DeviseTokenAuth
         return render_create_error_bad_credentials
       end
 
-
-
       field = (params.keys.map(&:to_sym) & resource_class.authentication_keys).first
 
       if field
@@ -44,7 +42,9 @@ module DeviseTokenAuth
 
         @token = @resource.create_token
 
+
         @resource.save
+
 
         sign_in(:user, @resource, store: false, bypass: false)
 

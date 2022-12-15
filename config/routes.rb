@@ -21,7 +21,6 @@ Rails.application.routes.draw do
   resources :contenido_articulos
   resources :tipo_articulos
   resources :secuencia_facturas
-  resources :permisos
   resources :acciones
 
   resources :roles do
@@ -142,14 +141,14 @@ Rails.application.routes.draw do
       # cabecera facturas
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
-      get "params/:campo/:valor/:tipo_factura_id/:is_adelantada"  => "cabecera_facturas#getFacturasByParams"
+      get "custom/get_documentos/params"                          => "cabecera_facturas#getFacturasByParams"
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
       get "custom/viajes/:estado/:arg"                            => "cabecera_facturas#getViajesSinCompletar"
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
       get "custom/comprobar_serial"                               => "cabecera_facturas#comprobarSerial"
       get "custom/canUpdate/:id"                                  => "cabecera_facturas#verificateCanUpdateById"
       get "custom/get_group/:ids"                                 => "cabecera_facturas#getGroup"
-      get "custom/pre_factura/:id"                                => "cabecera_facturas#getPreFactura"
+      get "custom/delete/:ids"                                    => "cabecera_facturas#deleteDocumentos"
     end
   end
 
@@ -161,6 +160,12 @@ Rails.application.routes.draw do
   end
 
   post "ruta/test"              => "application#testFunction"
+
+	resources :permisos do
+		collection do
+			get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
+		end
+	end
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
                                         sessions: "devise_token_auth/sessions",

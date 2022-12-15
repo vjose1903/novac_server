@@ -65,28 +65,29 @@ class DetalleFactura < ApplicationRecord
 
   #  --------------------------------------------------------------------------------------------------------------------------------
   def procesos_detalle(params, cabecera)
-    res          = Response.new
+    res           = Response.new
 
-    operador     = cabecera["tipo"] == "compra" || cabecera["tipo"] == "nota_credito" ? "+" : "-"
-    fecha        = cabecera["fecha_equivalente"]
+    operador      = cabecera["tipo"] == "compra" ? "+" : "-"
+    fecha         = cabecera["fecha_equivalente"]
 
-    accion         = "factura"
+    accion        = "factura"
 
-    if cabecera["pre_factura"].nil?
-
-      res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
-
-      unless res_movimiento.status_valid
-        res.add_msgs(res_movimiento.get_msgs.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
-    else
-      if params['is_devuelto'] && !params['is_defectuoso']
-        operador     = "+"
+    if cabecera["tipo"] != TiposFacturasDescripcion.cotizacion
+      if cabecera["pre_factura"].nil?
         res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
+
         unless res_movimiento.status_valid
           res.add_msgs(res_movimiento.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+      else
+        if params['is_devuelto'] && !params['is_defectuoso']
+          operador     = "+"
+          res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
+          unless res_movimiento.status_valid
+            res.add_msgs(res_movimiento.get_msgs.to_a)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
         end
       end
     end
@@ -95,10 +96,12 @@ class DetalleFactura < ApplicationRecord
   end
 
   #  --------------------------------------------------------------------------------------------------------------------------------
-  def self.anular_detalles(detalle)
+  def self.anular_detalles(detalle, documento)
     res              = Response.new
     articulo         = detalle.articulo
-    mov              = (articulo.existencia + detalle.cantidad_en_unidades)
+    operacion        = documento.tipo == TiposFacturasDescripcion.compra ? '-' : '+'
+
+    mov              = eval "#{articulo.existencia} #{operacion} #{detalle.cantidad_en_unidades.to_f}"
 
     if articulo.update({ existencia: mov }) && !detalle.destroy
       res.add_msgs(articulo.errors.to_a)
@@ -115,7 +118,7 @@ class DetalleFactura < ApplicationRecord
     res                = Response.new
 
     factura_original.detalle_facturas.each do |detalle|
-      res_anular       = DetalleFactura.anular_detalles(detalle)
+      res_anular       = DetalleFactura.anular_detalles(detalle, factura_original)
       return res_anular unless res_anular.status_valid
     end
 
@@ -125,5 +128,14 @@ class DetalleFactura < ApplicationRecord
       return res_temp unless res_temp.status_valid
     end
     return res
+  end
+
+  #  --------------------------------------------------------------------------------------------------------------------------------
+  def self.proceso_borrar_detalles(documento)
+
+    documento.detalle_facturas.each do |detalle|
+      DetalleFactura.anular_detalles(detalle, documento)
+    end
+
   end
 end
