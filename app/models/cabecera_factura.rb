@@ -12,6 +12,18 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
 
+  def otras_validaciones(params, tipo_de_factura)
+
+    documento =  tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
+
+    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.") if self.total_factura == nil
+    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")      if self.Bruto == nil
+
+
+  end
+
+  # ===================================================================================================================================================
+
 
   def self.models_includes
     user_includes   = [:documentos_de_identidad, :roles_permisos_acciones ]
@@ -93,6 +105,8 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.tiene_nota               = params["tiene_nota"]
             cabecera_factura.pre_factura              = params["pre_factura"]
             cabecera_factura.cotizacion               = params["cotizacion"]
+
+            cabecera_factura.otras_validaciones(params, @tipo_de_factura)
 
             dependencias = [
               {modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura},
@@ -607,9 +621,9 @@ class CabeceraFactura < ApplicationRecord
 
       if res_valid.status_valid
 
-				if documento.tipo != TiposFacturasDescripcion.cotizacion
-					res_valid     = DetalleFactura.proceso_borrar_detalles(documento)
-				end
+        if documento.tipo != TiposFacturasDescripcion.cotizacion
+          res_valid     = DetalleFactura.proceso_borrar_detalles(documento)
+        end
 
         if params[:tipo] == 'anular'
           documento.estado  = false
@@ -619,9 +633,9 @@ class CabeceraFactura < ApplicationRecord
           success_deleted   = false unless documento.destroy
         end
 
-				if success_deleted
-				else
-				end
+        if success_deleted
+        else
+        end
         type                = success_deleted ? 'success' : 'error'
         obj_deleted[type].push(documento)
 

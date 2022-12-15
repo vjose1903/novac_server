@@ -502,6 +502,7 @@ class Reporte < ApplicationRecord
 
         is_viaje_credito = "( lower(condicion) = 'crédito' )"
         is_viaje_contado = tipo == TipoReporteVentas.ventas_hoy ? "( lower(condicion) = 'contado' AND is_viaje = false )" : "( lower(condicion) = 'contado')"
+
         query_is_viaje   = condicion.downcase == 'todos' ?  "#{is_viaje_contado} OR #{is_viaje_credito}" : condicion.downcase == 'contado' ? is_viaje_contado : is_viaje_credito
 
         query['fecha_equivalente'] = tipo == TipoReporteVentas.ventas_hoy ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
@@ -530,7 +531,7 @@ class Reporte < ApplicationRecord
         .select(select_).joins(joins_).where(query).where(where_formas).where(query_is_viaje).group(group_by)
         .order("cabecera_facturas.fecha_equivalente ASC").each do |cf|
             total_devuelto += cf['total_devuelto']
-            bruto   += cf['total_factura']
+            bruto   += cf['total_factura'] || 0
         end
 
         total_ventas = bruto - total_devuelto
