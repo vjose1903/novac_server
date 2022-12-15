@@ -141,6 +141,20 @@ module FacturasParams
 
 end
 
+module TipoReporteVentas
+  VENTAS_HOY = '1'
+  VENTAS_RANGO = '2'
+
+  def self.ventas_hoy
+    return VENTAS_HOY
+  end
+
+  def self.ventas_rango
+    return VENTAS_RANGO
+  end
+
+end
+
 module TipoFecha
   SIN_HORA = 'sin_hora'
   CON_HORA = 'con_hora'

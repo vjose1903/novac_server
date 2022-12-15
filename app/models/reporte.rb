@@ -271,7 +271,6 @@ class Reporte < ApplicationRecord
 
     end
 
-
     # ---------------------------------------------------------------------------------------------------------
 
     def self.get_cuentas_con_pagos(params)
@@ -356,7 +355,7 @@ class Reporte < ApplicationRecord
         total_venta = 0
         query       = {}
 
-				tipoFacturaNotaCredito = TipoFactura.find_by_descripcion(TiposFacturasDescripcion.nota_de_credito)
+        tipoFacturaNotaCredito = TipoFactura.find_by_descripcion(TiposFacturasDescripcion.nota_de_credito)
 
 
         query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
@@ -387,7 +386,7 @@ class Reporte < ApplicationRecord
             acu += 1
             query_notas       = {}
             query_notas['detalles_facturas_notas.articulo_id']      = df.articulo_id
-						query_notas['detalles_facturas_notas.tipo_factura_id']  = tipoFacturaNotaCredito.id
+            query_notas['detalles_facturas_notas.tipo_factura_id']  = tipoFacturaNotaCredito.id
             query_notas['notas.fecha_equivalente']                  = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
 
             select_notas = "coalesce( SUM (detalles_facturas_notas.cantidad_en_unidades), 0) as cantidad_devuelto, coalesce( SUM (detalles_facturas_notas.total), 0) as total_devuelto"
@@ -488,21 +487,25 @@ class Reporte < ApplicationRecord
 
     def self.get_ventas(params)
 
-        tipo           = params["tipo"]
+        tipo_reporte   = params["tipo_reporte"]
+        tipo           = tipo_reporte == 'ventas_cliente' ? TipoReporteVentas.ventas_rango : params["tipo"]
         condicion      = params["condicion"]
         desde          = params["desde"]
         hasta          = params["hasta"]
         formas_pago    = params["formas_pago"]
+        cliente_id     = params["cliente_id"]
+        sub_titulo     = ""
 
         ventas_temp    = []
         where_formas   = "forma_pago IN #{formas_pago}"
         query          = {}
 
         is_viaje_credito = "( lower(condicion) = 'crédito' )"
-        is_viaje_contado = tipo == '1' ? "( lower(condicion) = 'contado' AND is_viaje = false )" : "( lower(condicion) = 'contado')"
+        is_viaje_contado = tipo == TipoReporteVentas.ventas_hoy ? "( lower(condicion) = 'contado' AND is_viaje = false )" : "( lower(condicion) = 'contado')"
         query_is_viaje   = condicion.downcase == 'todos' ?  "#{is_viaje_contado} OR #{is_viaje_credito}" : condicion.downcase == 'contado' ? is_viaje_contado : is_viaje_credito
 
-        query['fecha_equivalente'] = tipo == '1' ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+        query['fecha_equivalente'] = tipo == TipoReporteVentas.ventas_hoy ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+        query['cliente_id']        = cliente_id if tipo_reporte == 'ventas_cliente'
 
         query['tipo']    = 'venta'
         query['is_nota'] = false
@@ -532,7 +535,9 @@ class Reporte < ApplicationRecord
 
         total_ventas = bruto - total_devuelto
 
-        obj = { body: ventas, totalizacion: { bruto: bruto, devuelto: total_devuelto, total: total_ventas } , sub_t:''}
+				sub_titulo = "Cliente: #{ buscar_cliente({cliente_id: params['cliente_id']}.with_indifferent_access , 125, ['nombre'])["nombre"] }" if tipo_reporte == 'ventas_cliente'
+
+        obj = { body: ventas, totalizacion: { bruto: bruto, devuelto: total_devuelto, total: total_ventas } , sub_t: sub_titulo}
 
         return obj
     end
