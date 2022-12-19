@@ -63,7 +63,7 @@ class CabeceraFactura < ApplicationRecord
 
           res_valid                        = Response.new
 
-          if params["condicion"] == "Crédito" && params["tipo"] != TiposFacturasDescripcion.compra || params["is_viaje"]
+          if params["condicion"] == "Crédito" && params["tipo"] != TiposFacturasDescripcion.compra.downcase || params["is_viaje"]
             res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
           end
 
@@ -351,8 +351,8 @@ class CabeceraFactura < ApplicationRecord
     campoNum           = params[:campo]
     valor_des          = params[:valor].present? ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
     tipo_factura_id    = params[:tipo_factura_id]
-    is_adelantada      = params[:is_adelantada].to_boolean
-    fact_de            = params[:fact_de] ? params[:fact_de] : "venta"
+    is_adelantada      = params[:is_adelantada] != "0" ? params[:is_adelantada].to_boolean : "0"
+    tipo               = params[:tipo] ? params[:tipo] : "venta"
     pagada             = params[:pagada] != "0" ? params[:pagada].to_boolean : "0"
     estado             = params[:estado] != "0" ? params[:estado].to_boolean : "0"
 
@@ -364,12 +364,13 @@ class CabeceraFactura < ApplicationRecord
 
     valor_where = campo == FacturasParams.cliente_id || campo == FacturasParams.numero_factura ? valor_des : "'#{valor_des}' "
 
-    where_ = "cabecera_facturas.tipo = '#{fact_de}' AND cabecera_facturas.is_adelantada = #{is_adelantada} "
-    where_ += "and (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) "  if is_adelantada
-    where_ += "and cabecera_facturas.#{campo} = #{valor_where} "                        unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
-    where_ += "and cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"              unless tipo_factura_id == "0"
-    where_ += "and cabecera_facturas.pagada = #{pagada} "                                if params[:pagada].present? && pagada != "0"
-    where_ += "and cabecera_facturas.estado = #{estado} "                                if params[:estado].present? && estado != "0"
+    where_ = "cabecera_facturas.tipo = '#{tipo}' "
+    where_ += "AND cabecera_facturas.is_adelantada = #{is_adelantada} "                                               if is_adelantada != "0"
+    where_ += "AND (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) "  if is_adelantada == true
+    where_ += "AND cabecera_facturas.#{campo} = #{valor_where} "                                                      unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
+    where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"                                            unless tipo_factura_id == "0"
+    where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params[:pagada].present? && pagada != "0"
+    where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params[:estado].present? && estado != "0"
 
     joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
     joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id " if is_adelantada
@@ -385,7 +386,7 @@ class CabeceraFactura < ApplicationRecord
     else
       cantidad_registros = CabeceraFactura.all.count
 
-      documento =  fact_de == TiposFacturasDescripcion.cotizacion  ? 'Cotizaciones' : fact_de == TiposFacturasDescripcion.pre_venta ? 'Pre-Ventas' : 'Facturas'
+      documento =  tipo == TiposFacturasDescripcion.cotizacion  ? 'Cotizaciones' : tipo == TiposFacturasDescripcion.pre_venta ? 'Pre-Ventas' : 'Facturas'
 
       res.add_msg("No existen #{documento} con las especificaciones introducidas") unless is_adelantada && cantidad_registros != 0
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -408,7 +409,7 @@ class CabeceraFactura < ApplicationRecord
     .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true, camiones: true}, CabeceraFactura.models_includes)
+      res.set_data(cabeceras, {all: true, camiones_viajes: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen facturas registradas." : "No existen facturas con las especificaciones introducidas")

@@ -63,7 +63,8 @@ class CabeceraFacturasController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      actual_price: params['actual_price'] || false,
+      actual_price:       params['actual_price']     || false,
+      camiones_viajes:    params['camiones_viajes']  || false,
       all: true
     }
   end

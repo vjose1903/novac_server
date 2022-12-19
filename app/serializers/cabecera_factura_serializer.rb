@@ -42,7 +42,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
-  attribute :camiones,                                       if: Proc.new { self.get_param('camiones') }
+  attribute :camiones_viajes,                                       if: Proc.new { self.get_param('camiones_viajes') }
   attribute :cotizacion,                                     if: Proc.new { self.get_param('cotizacion') || self.get_param('all') }
   attribute :pre_factura,                                    if: Proc.new { self.get_param('pre_factura') || self.get_param('all') }
 
@@ -117,7 +117,6 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
   def pagos
     pago_parseo    = []
-		puts "----> object.Bruto ".red + " #{object.to_json}"
     if object.Bruto != nil && ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
       pagos          = object.detalle_recibos
 
@@ -139,7 +138,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     pago_parseo
   end
 
-  def camiones
+  def camiones_viajes
     object.camiones_viajes
   end
 

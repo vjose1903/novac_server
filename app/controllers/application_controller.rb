@@ -12,7 +12,7 @@ class ApplicationController < ActionController::API
 
 	def validateUserIsLogging!
 		unless user_signed_in?
-			render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_ssesion" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
+			render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_session" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
 		end
   end
 

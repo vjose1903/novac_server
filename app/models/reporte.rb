@@ -362,11 +362,17 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.tipo']              = 'venta'
         query['cabecera_facturas.is_nota']           = false
 
-        TipoArticulo.all.each do |tipo_articulo|
+        TipoArticulo.all.each do | tipo_articulo |
 
           total_grupo = 0
           temp_ventas = []
           query['articulos.tipo_articulo_id'] = tipo_articulo.id
+
+					# puts " "
+					# puts "====================".red
+					# puts "#{tipo_articulo.to_json}"
+					# puts "====================".red
+					# puts " "
 
           # (SELECT coalesce( SUM (cantidad_en_unidades), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as cantidad_devuelto,
           # (SELECT coalesce( SUM (total), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as total_devuelto,
