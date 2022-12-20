@@ -345,6 +345,8 @@ class Reporte < ApplicationRecord
 
     # ---------------------------------------------------------------------------------------------------------
     def self.get_ventas_por_producto(params)
+
+
         temp        = []
         temp_ventas = []
         ventas      = []
@@ -493,29 +495,30 @@ class Reporte < ApplicationRecord
 
     def self.get_ventas(params)
 
-        tipo_reporte   = params["tipo_reporte"]
-        tipo           = tipo_reporte == 'ventas_cliente' ? TipoReporteVentas.ventas_rango : params["tipo"]
-        condicion      = params["condicion"]
-        desde          = params["desde"]
-        hasta          = params["hasta"]
-        formas_pago    = params["formas_pago"]
-        cliente_id     = params["cliente_id"]
-        sub_titulo     = ""
+        tipo_reporte      = params["tipo_reporte"]
+        tipo              = tipo_reporte == 'ventas_cliente' ? TipoReporteVentas.ventas_rango : params["tipo"]
+        tipo_factura_id   = params["tipo_factura_id"]
+        condicion         = params["condicion"]
+        desde             = params["desde"]
+        hasta             = params["hasta"]
+        formas_pago       = params["formas_pago"]
+        cliente_id        = params["cliente_id"]
+        sub_titulo        = ""
 
-        ventas_temp    = []
-        where_formas   = "forma_pago IN #{formas_pago}"
-        query          = {}
+        ventas_temp       = []
+        where_formas      = "forma_pago IN #{formas_pago}"
+        query             = {}
 
         is_viaje_credito = "( lower(condicion) = 'crédito' )"
         is_viaje_contado = tipo == TipoReporteVentas.ventas_hoy ? "( lower(condicion) = 'contado' AND is_viaje = false )" : "( lower(condicion) = 'contado')"
 
         query_is_viaje   = condicion.downcase == 'todos' ?  "#{is_viaje_contado} OR #{is_viaje_credito}" : condicion.downcase == 'contado' ? is_viaje_contado : is_viaje_credito
 
-        query['fecha_equivalente'] = tipo == TipoReporteVentas.ventas_hoy ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
-        query['cliente_id']        = cliente_id if tipo_reporte == 'ventas_cliente'
-
-        query['tipo']    = 'venta'
-        query['is_nota'] = false
+        query['fecha_equivalente']    = tipo == TipoReporteVentas.ventas_hoy ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+        query['cliente_id']           = cliente_id         if tipo_reporte == 'ventas_cliente'
+        query['tipo_factura_id']      = tipo_factura_id    if params[:tipo_factura_id].present? && tipo_factura_id != "0"
+        query['tipo']                 = 'venta'
+        query['is_nota']              = false
 
         select_ = "cabecera_facturas.id, coalesce(SUBSTRING(clientes.nombre || ' ' || clientes.apellido,0 ,48),'Cliente contado') as cliente_nombre,
         cabecera_facturas.tipo_factura_id as tipo_factura_id,

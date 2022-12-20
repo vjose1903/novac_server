@@ -1,6 +1,7 @@
 class ReportesController < ApplicationController
 
   def getReportes
+
     tipo_reporte = params["tipo_reporte"]
     tipo         = tipo_reporte
     tipo_tabla   = 'normal'
