@@ -11,6 +11,7 @@ class DetalleFactura < ApplicationRecord
     self.errors.add(:base, "No se puede registrar la factura, el articulo <<#{self.articulo.nombre}>> no tiene cantidad.")    if params[:cantidad] == nil || params[:cantidad] == 0
   end
 
+
   # ===================================================================================================================================================
   def self.crear_detalle_factura(params, padre, is_save=false)
     res = Response.new
