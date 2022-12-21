@@ -16,10 +16,8 @@ class CabeceraFactura < ApplicationRecord
 
     documento =  tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
-    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.") if self.total_factura == nil
+    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")      if self.total_factura == nil
     self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")      if self.Bruto == nil
-
-
   end
 
   # ===================================================================================================================================================

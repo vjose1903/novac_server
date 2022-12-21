@@ -44,106 +44,26 @@ G_tipos_articulo.each do |tipo|
 end
 
 tipos_factura = [
-  # 1
-  {
-    "referencia": "00",
-    "descripcion": "Factura sin comprobante",
-  },
-  # 2
-  {
-    "referencia": "01",
-    "descripcion": "Factura con valor fiscal",
-  },
-  # 3
-  {
-    "referencia": "02",
-    "descripcion": "Factura de consumo",
-  },
-  # 4
-  {
-    "referencia": "03",
-    "descripcion": "Nota de debito",
-  },
-  # 5
-  {
-    "referencia": "04",
-    "descripcion": "Nota de credito",
-  },
-  # 6
-  {
-    "referencia": "11",
-    "descripcion": "Comprobante de compras",
-  },
-  # 7
-  {
-    "referencia": "12",
-    "descripcion": "Registro de unico ingreso",
-  },
-  # 8
-  {
-    "referencia": "13",
-    "descripcion": "Comprobante para gastos menores",
-  },
-  # 9
-  {
-    "referencia": "14",
-    "descripcion": "Comprobante de regimen especiales",
-  },
-  # 10
-  {
-    "referencia": "15",
-    "descripcion": "Comprobante gubernamental",
-  },
-  # 11
-  {
-    "referencia": "16",
-    "descripcion": "Comprobante para exportaciones",
-  },
-  # 12
-  {
-    "referencia": "17",
-    "descripcion": "Comprobantes para pago al exterior",
-  },
-  # 13
-  {
-    "referencia": nil,
-    "descripcion": "Venta Contado",
-  },
-  # 14
-  {
-    "referencia": nil,
-    "descripcion": "Compra",
-  },
-  # 15
-  {
-    "referencia": nil,
-    "descripcion": "Conduce",
-  },
-  # 16
-  {
-    "referencia": nil,
-    "descripcion": "Produccion",
-  },
-  # 17
-  {
-    "referencia": nil,
-    "descripcion": "Recibo_ingreso",
-  },
-  # 18
-  {
-    "referencia": nil,
-    "descripcion": "Venta Credito",
-  },
-  # 19
-  {
-    "referencia": nil,
-    "descripcion": "pre_venta",
-  },
-  # 20
-  {
-    "referencia": nil,
-    "descripcion": "cotizacion",
-  },
+  { "referencia": "00", "descripcion": "Factura sin comprobante", },
+  { "referencia": "01", "descripcion": "Factura con valor fiscal", },
+  { "referencia": "02", "descripcion": "Factura de consumo", },
+  { "referencia": "03", "descripcion": "Nota de debito", },
+  { "referencia": "04", "descripcion": "Nota de credito", },
+  { "referencia": "11", "descripcion": "Comprobante de compras", },
+  { "referencia": "12", "descripcion": "Registro de unico ingreso", },
+  { "referencia": "13", "descripcion": "Comprobante para gastos menores", },
+  { "referencia": "14", "descripcion": "Comprobante de regimen especiales", },
+  { "referencia": "15", "descripcion": "Comprobante gubernamental", },
+  { "referencia": "16", "descripcion": "Comprobante para exportaciones", },
+  { "referencia": "17", "descripcion": "Comprobantes para pago al exterior", },
+  { "referencia": nil, "descripcion": "Venta Contado", },
+  { "referencia": nil, "descripcion": "Compra", },
+  { "referencia": nil, "descripcion": "Conduce", },
+  { "referencia": nil, "descripcion": "Produccion", },
+  { "referencia": nil, "descripcion": "Recibo_ingreso", },
+  { "referencia": nil, "descripcion": "Venta Credito", },
+  { "referencia": nil, "descripcion": "pre_venta", },
+  { "referencia": nil, "descripcion": "cotizacion", },
 ]
 
 tipos_factura.each do |tipo_fac|
@@ -190,11 +110,7 @@ secuencias.each do |secuencia|
   end
 end
 
-marcas = [
-  {
-    "descripcion": "Daihatsu"
-  },
-]
+marcas = [ { "descripcion": "Daihatsu" }, ]
 
 marcas.each do |marca|
   if Marca.find_by_descripcion(marca[:descripcion]).nil?
@@ -204,12 +120,7 @@ marcas.each do |marca|
   end
 end
 
-modelos = [
-  {
-    "marca_id": 1,
-    "descripcion": "Delta"
-  },
-]
+modelos = [ { "marca_id": 1, "descripcion": "Delta" }, ]
 
 modelos.each do |modelo|
   if Modelo.find_by_descripcion(modelo[:descripcion]).nil?
