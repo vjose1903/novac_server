@@ -65,6 +65,7 @@ class CabeceraFacturasController < ApplicationController
     return {
       actual_price:       params['actual_price']     || false,
       camiones_viajes:    params['camiones_viajes']  || false,
+      movimientos_viaje:  params['movimientos_viaje']  || false,
       all: true
     }
   end

@@ -42,7 +42,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
-  attribute :camiones_viajes,                                       if: Proc.new { self.get_param('camiones_viajes') }
+	# movimientos_viaje
+  attribute :camiones_viajes,                                if: Proc.new { self.get_param('camiones_viajes') }
   attribute :cotizacion,                                     if: Proc.new { self.get_param('cotizacion') || self.get_param('all') }
   attribute :pre_factura,                                    if: Proc.new { self.get_param('pre_factura') || self.get_param('all') }
 

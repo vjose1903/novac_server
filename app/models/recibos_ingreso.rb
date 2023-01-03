@@ -43,7 +43,6 @@ class RecibosIngreso < ApplicationRecord
       recibo.forma_pago            = params["forma_pago"]
       recibo.tipo_factura_id       = params["tipo_factura_id"]
       recibo.estado                = params["estado"]
-      recibo.estado                = params["estado"]
 
       recibo.devuelta              = params["devuelta"]
       recibo.total                 = params["total"]

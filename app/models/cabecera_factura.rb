@@ -8,6 +8,7 @@ class CabeceraFactura < ApplicationRecord
   has_many :detalle_recibos, dependent: :destroy
   has_many :facturas_aplicadas
   has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
+  has_many :movimientos_viaje, dependent: :destroy
 
 
   # ===================================================================================================================================================
@@ -37,6 +38,7 @@ class CabeceraFactura < ApplicationRecord
         {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}},
         {detalle_recibos: {recibos_ingreso: :user}},
         {camiones_viajes: :vehiculo},
+        {movimientos_viaje: [:vehiculo, :user]},
         {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]}
     ]
     return includes
@@ -112,13 +114,13 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.otras_validaciones(params, @tipo_de_factura)
 
             dependencias = [
-              {modelo: DetalleFactura, key_object: "detalle_facturas", padre: cabecera_factura},
-              {modelo: CamionViaje,    key_object: "camiones_viajes",  padre: cabecera_factura},
+              {modelo: DetalleFactura,     key_object: "detalle_facturas",   padre: cabecera_factura},
+              {modelo: MovimientoViaje,    key_object: "movimientos_viaje",  padre: cabecera_factura},
             ]
 
             res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
               cabecera_factura.detalle_facturas   = dependencia_data if key_object == 'detalle_facturas'
-              cabecera_factura.camiones_viajes    = dependencia_data if key_object == 'camiones_viajes'
+              cabecera_factura.movimientos_viaje  = dependencia_data if key_object == 'movimientos_viaje'
             }
 
             if res.status_valid && cabecera_factura.errors.empty? && (!is_save || (is_save && cabecera_factura.save!))
@@ -412,6 +414,7 @@ class CabeceraFactura < ApplicationRecord
     .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
 
     if cabeceras.length > 0
+			# TODO: cambiar camiones_viajes por movimientos_viaje
       res.set_data(cabeceras, {all: true, camiones_viajes: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
