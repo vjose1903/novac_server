@@ -16,9 +16,12 @@ class CabeceraFactura < ApplicationRecord
 
     documento =  tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
-    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.") if self.total_factura == nil
-    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")      if self.Bruto == nil
+    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.total_factura == nil
+    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.Bruto == nil
 
+		if self.is_viaje && self.cliente_id == nil
+			self.errors.add(:base, "Para realizar una factura de viajes, tiene que seleccionar un cliente.")
+		end
 
   end
 
@@ -63,8 +66,8 @@ class CabeceraFactura < ApplicationRecord
 
           res_valid                        = Response.new
 
-          if params["condicion"] == "Crédito" && params["tipo"] != TiposFacturasDescripcion.compra.downcase || params["is_viaje"]
-            res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
+          if params["condicion"] == "Crédito" && params["tipo"] != TiposFacturasDescripcion.compra.downcase
+          res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
           end
 
           if res_valid.status_valid
@@ -73,7 +76,7 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura                          = CabeceraFactura.new
 
             cabecera_factura.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : today_cuadre.blank? ? DateTime.now : CabeceraFactura.calculateNextDay
-            cabecera_factura.fecha_completada         = params["condicion"] == "Contado" && !params["is_viaje"] ? cabecera_factura.fecha_equivalente : nil
+            cabecera_factura.fecha_completada         = params["condicion"] == "Contado" ? cabecera_factura.fecha_equivalente : nil
             cabecera_factura.user_id                  = get_current_user["id"]
             cabecera_factura.numero_comprobante       = data_secuencias[:numero_comprobante]
             cabecera_factura.numero_factura           = data_secuencias[:numero_factura]
