@@ -209,7 +209,7 @@ class Articulo < ApplicationRecord
       att = objeto
     end
 
-    att = att[0] if att.kind_of?(Array)
+    att = att.first if att.kind_of?(Array)
     id  = att["id"]
 
     att["contenido_articulos"]           = ContenidoArticulo.where({ articulo_id: id })

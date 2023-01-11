@@ -238,57 +238,56 @@ end
 
 G_PERMISOS.each do | permiso |
 
-	permiso_backend = Permiso.find_by_descripcion(permiso[:descripcion])
+  permiso_backend = Permiso.find_by_descripcion(permiso[:descripcion])
 
-	if permiso_backend.nil?
-		puts "------".red * 7
-		puts "CREANDO PERMISO: #{permiso[:descripcion]}"
-		puts "------".red * 7
-		permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
-		puts " " if !permiso_backend.errors.empty?
-		puts "ERROR- permiso: ".red + "#{permiso_backend.errors.to_json}" if !permiso_backend.errors.empty?
-	end
+  if permiso_backend.nil?
+    puts "------".red * 7
+    puts "CREANDO PERMISO: #{permiso[:descripcion]}"
+    puts "------".red * 7
+    permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
+    puts " " if !permiso_backend.errors.empty?
+    puts "ERROR- permiso: ".red + "#{permiso_backend.errors.to_json}" if !permiso_backend.errors.empty?
+  end
 
-	permiso[:acciones].each do | accion |
-		accion_backend = Accion.find_by_descripcion(accion[:descripcion])
+  permiso[:acciones].each do | accion |
+    accion_backend = Accion.find_by_descripcion(accion[:descripcion])
 
-		if accion_backend.nil?
-			puts " "
-			puts "------".yellow * 7
-			puts "CREANDO ACCION #{accion[:descripcion]}"
-			puts "------".yellow * 7
-			accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo], mostrar_front: accion[:mostrar_front]})
-			puts " " if !accion_backend.errors.empty?
-			puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}" if !accion_backend.errors.empty?
-		end
+    if accion_backend.nil?
+      puts " "
+      puts "------".yellow * 7
+      puts "CREANDO ACCION #{accion[:descripcion]}"
+      puts "------".yellow * 7
+      accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo], mostrar_front: accion[:mostrar_front]})
+      puts " " if !accion_backend.errors.empty?
+      puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}" if !accion_backend.errors.empty?
+    end
 
 
-		permiso_accion = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+    permiso_accion = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
 
-		if permiso_accion.empty?
-			perm_action = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
-			puts " "
-			puts "------".magenta * 7
-			puts "CREANDO PERMISO_ACCION"
-			puts "------".magenta * 7
-			puts " " if !perm_action.errors.empty?
-			puts "ERROR- permiso_accion: ".red + "#{perm_action.errors.to_json}" if !perm_action.errors.empty?
-		end
-	end
+    if permiso_accion.empty?
+      perm_action = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+      puts " "
+      puts "------".magenta * 7
+      puts "CREANDO PERMISO_ACCION"
+      puts "------".magenta * 7
+      puts " " if !perm_action.errors.empty?
+      puts "ERROR- permiso_accion: ".red + "#{perm_action.errors.to_json}" if !perm_action.errors.empty?
+    end
+  end
 end
 
 role_administrador = Role.find_by_nombre("Administrador")
 
 if role_administrador.nil?
-  role_administrador = Role.create({  nombre: "Administrador", descripcion:"Persona encargada de los procesos administrativos de la empresa.", ruta_defecto:"/", estado: true})
+  role_administrador = Role.create({  nombre: "Administrador", key:'admin', descripcion:"Persona encargada de los procesos administrativos de la empresa.", ruta_defecto:"/", estado: true})
   puts " "
   puts "------".yellow * 7
   puts "CREANDO ROLE"
   puts "------".yellow * 7
   puts " "
-  puts "ERROR- role: ".red + "#{role_administrador.errors.to_json}" if !role_administrador.errors.empty?
+  puts "ERROR- role administrador: ".red + "#{role_administrador.errors.to_json}" if !role_administrador.errors.empty?
 end
-
 
 all_permisos_aciones         = PermisoAccion.all
 
@@ -325,9 +324,48 @@ unless usuario_admin.nil?
   end
 end
 
-# otros_roles = [
-# 	{  nombre: "Vendedor", descripcion:"Persona encargada de los procesos administrativos de la empresa.", ruta_defecto:"/", estado: true}
-# ]
+
+G_ROLES_CUSTOM.each do | rol |
+  rol_backend = Role.find_by_key(rol[:key])
+
+  if rol_backend.nil?
+    rol_backend = Role.create({ nombre: rol[:nombre], key: rol[:key], descripcion: rol[:descripcion], ruta_defecto: rol[:ruta_defecto], estado: true})
+    puts " "
+    puts "------".yellow * 7
+    puts "CREANDO ROLE <<#{rol_backend.nombre}>> "
+    puts "------".yellow * 7
+    puts " "
+    puts "ERROR- role: ".red + "#{rol_backend.errors.to_json}" if !rol_backend.errors.empty?
+  end
+
+  rol[:permisos_acciones].each do | permiso_accion |
+
+    permiso_backend = Permiso.find_by_descripcion(permiso_accion[:permiso_descripcion])
+
+    permiso_accion[:acciones].each do |accion|
+      accion_backend = Accion.find_by_descripcion(accion)
+
+      permiso_accion_backend = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+
+      permiso_accion_backend = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id}) if permiso_accion_backend.empty?
+
+			permiso_accion_backend = permiso_accion_backend.first if permiso_accion_backend.kind_of?(Array)
+
+      rol_permiso_accion       = RolPermisoAccion.where({role_id: rol_backend.id , permiso_accion_id: permiso_accion_backend.id})
+
+      if rol_permiso_accion.empty?
+        rol_permiso_accion     = RolPermisoAccion.create({role_id: rol_backend.id , permiso_accion_id: permiso_accion_backend.id})
+
+        puts " "
+        puts "------".magenta * 7
+        puts "CREANDO ROL_PERMISO_ACCION"
+        puts "------".magenta * 7
+        puts " "
+        puts "ERROR- role: ".red + "#{rol_permiso_accion.errors.to_json}" if !rol_permiso_accion.errors.empty?
+      end
+    end
+  end
+end
 
 # G_OTROS_COSTOS.each do | otro_costo |
 # 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])

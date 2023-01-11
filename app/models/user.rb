@@ -50,18 +50,16 @@ class User < ApplicationRecord
   # HANDLE FILTER
   # ============================================================================================
   def self.handleFilter(parametros)
-    filter_key = parametros["filter_key"]
-    filter_value = parametros["filter_value"]
 
-    if filter_key == 'role'
-      return User.all.where("lower(role) like lower('%#{filter_value}%') and estado = true")
-    elsif filter_key == 'cedula'
+    if parametros["filter_key"] == 'role'
+			return User.joins(:roles).where(roles: {key: parametros["filter_value"]})
+    elsif parametros["filter_key"] == 'cedula'
 
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: filter_value})
-    elsif filter_key == 'rnc'
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: filter_value})
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: parametros["filter_value"]})
+    elsif parametros["filter_key"] == 'rnc'
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: parametros["filter_value"]})
     else
-      return User.all.where("#{filter_key} = #{filter_value} and estado = true")
+      return User.all.where("#{parametros["filter_key"]} = #{parametros["filter_value"]} and estado = true")
     end
 
   end

@@ -119,3 +119,10 @@ G_PERMISOS = [
 	{ nombre:"sesion de usuario",             mostrar_front: true,     descripcion: "device",                  controlador: "devise_token_auth/sessions",     acciones: [{nombre:"iniciar sesión",mostrar_front: true, descripcion: "login", metodo: "create"}]},
 	{ nombre:"roles",                         mostrar_front: true,     descripcion: "role",                    controlador: "Roles",                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:"buscar filtrados",mostrar_front: true, descripcion: "get_filtrados", metodo: "getRolesFiltrados"}]}
 ]
+
+# ejemplo de permisos_acciones
+# {permiso_descripcion:'algo', acciones:['descripcion', 'descripcion2']}
+G_ROLES_CUSTOM = [
+	{  nombre: "Chofer", key:'chofer', descripcion: "Persona encargada de realizar los viajes de pedidos a los clientes.", ruta_defecto:"/", estado: true, permisos_acciones: []},
+	{  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
+]

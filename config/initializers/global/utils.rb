@@ -74,23 +74,26 @@ def agregar_movimientos_viajes
   facturas_sin_vehiculo              = []
 
   choferes_viajes.each do | chofer_viaje |
-    movimiento                       = {:user_id => nil, :vehiculo_id => nil, :cabecera_factura_id => nil}
+    movimiento                       = { :user_id => nil, :vehiculo_id => nil, :cabecera_factura_id => nil, :created_at => nil, :updated_at => nil }
 
     recibo                           = chofer_viaje.recibos_ingreso
     cabecera_factura                 = recibo.detalle_recibos[0].cabecera_factura
     vehiculo                         = cabecera_factura.camiones_viajes[0] || nil
 
-    cabecera_factura_id              = cabecera_factura.id
-    chofer_id                        = chofer_viaje.user_id
     vehiculo_id                      = vehiculo != nil ? vehiculo.vehiculo_id : recibo.vehiculo_id
 
-    movimiento[:user_id]             = chofer_id
+    movimiento[:user_id]             = chofer_viaje.user_id
     movimiento[:vehiculo_id]         = vehiculo_id
-    movimiento[:cabecera_factura_id] = cabecera_factura_id
+    movimiento[:cabecera_factura_id] = cabecera_factura.id
+    movimiento[:created_at]          = cabecera_factura.created_at
+    movimiento[:updated_at]          = cabecera_factura.updated_at
 
     if movimiento[:vehiculo_id] == nil
       facturas_sin_vehiculo.push(cabecera_factura.numero_comprobante)
     end
+
+
+		movimiento_viaje = MovimientoViaje.create(movimiento)
   end
 
 

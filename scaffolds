@@ -163,3 +163,4 @@ rails g migration addCotizacionToCabeceraFactura
 rails g model movimiento_viaje user:references vehiculo:references cabecera_factura:references
 rails generate serializer movimiento_viaje
 
+rails g migration AddKeyToRoles

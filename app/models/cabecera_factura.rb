@@ -7,7 +7,8 @@ class CabeceraFactura < ApplicationRecord
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos, dependent: :destroy
   has_many :facturas_aplicadas
-  has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
+	# TODO: quitar esto despues de que todo este modificado
+	has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
   has_many :movimientos_viaje, dependent: :destroy
 
 
@@ -15,14 +16,14 @@ class CabeceraFactura < ApplicationRecord
 
   def otras_validaciones(params, tipo_de_factura)
 
-    documento =  tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
+    documento = tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
     self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.total_factura == nil
     self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.Bruto == nil
 
-		if self.is_viaje && self.cliente_id == nil
-			self.errors.add(:base, "Para realizar una factura de viajes, tiene que seleccionar un cliente.")
-		end
+    if self.is_viaje && self.cliente_id == nil
+      self.errors.add(:base, "Para realizar una factura de viajes, tiene que seleccionar un cliente.")
+    end
 
   end
 
@@ -37,7 +38,6 @@ class CabeceraFactura < ApplicationRecord
         {user: user_includes},
         {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}},
         {detalle_recibos: {recibos_ingreso: :user}},
-        {camiones_viajes: :vehiculo},
         {movimientos_viaje: [:vehiculo, :user]},
         {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]}
     ]
@@ -414,8 +414,7 @@ class CabeceraFactura < ApplicationRecord
     .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
 
     if cabeceras.length > 0
-			# TODO: cambiar camiones_viajes por movimientos_viaje
-      res.set_data(cabeceras, {all: true, camiones_viajes: true}, CabeceraFactura.models_includes)
+      res.set_data(cabeceras, {all: true, movimientos_viaje: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen facturas registradas." : "No existen facturas con las especificaciones introducidas")

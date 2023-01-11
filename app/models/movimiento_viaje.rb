@@ -12,6 +12,7 @@ class MovimientoViaje < ApplicationRecord
 
       movimiento_viaje.vehiculo_id     = params["vehiculo_id"]
       movimiento_viaje.user_id         = params["user_id"]
+      movimiento_viaje.cabecera_factura_id         = params["cabecera_factura_id"]
 
       movimiento_viaje.valid?
 
