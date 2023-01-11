@@ -11,9 +11,11 @@ class VehiculoSerializer < ActiveModel::Serializer
   attribute :apellido_no_empleado,          if: Proc.new { self.get_param('apellido_no_empleado') || self.get_param('all') }
   attribute :telefono_no_empleado,          if: Proc.new { self.get_param('telefono_no_empleado') || self.get_param('all') }
 
+  attribute :info_vehiculo,                 if: Proc.new { self.get_param('info_vehiculo')  }
+
   def propietario
-    
-    if !object.user_id.nil? 
+
+    if !object.user_id.nil?
       serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
     else
       if !object.nombre_no_empleado.nil?
@@ -25,6 +27,22 @@ class VehiculoSerializer < ActiveModel::Serializer
       end
     end
   end
+
+	def info_vehiculo
+		return "#{object.marca} #{object.modelo} - #{object.anio} (#{get_propietario()})"
+	end
+
+	def get_propietario
+		propietario = nil
+
+		if !object.user_id.nil?
+			propietario =  object.user.nombre_completo
+		else
+			propietario =  "#{object.nombre_no_empleado} #{object.apellido_no_empleado}"
+		end
+
+		return propietario
+	end
 
   def get_param(col)
 		return @instance_options[:"#{col}"]

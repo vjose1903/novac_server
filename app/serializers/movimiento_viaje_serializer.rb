@@ -11,6 +11,6 @@ class MovimientoViajeSerializer < ActiveModel::Serializer
 
   def vehiculo
     vehiculo_ = object.vehiculo
-    serialize_parser(vehiculo_, { id:true, propietario:true, user_id:true })
+    serialize_parser(vehiculo_, { id:true, propietario:true, user_id:true, info_vehiculo:true })
   end
 end
