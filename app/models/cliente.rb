@@ -114,7 +114,8 @@ class Cliente < ApplicationRecord
     data       = {'balances' => { 'total_facturado' => 0, 'notas_credito' => 0, 'notas_debito' => 0, 'debiendo' => 0, 'abonado' => 0}, 'facturas' => []}
     includes_  = [{facturas_aplicadas: [:nota]}, :detalle_recibos]
 
-    facturas   = CabeceraFactura.where(query).includes(CabeceraFactura.models_includes).each do | factura |
+
+    facturas   = CabeceraFactura.where(query).order('id DESC').includes(CabeceraFactura.models_includes).each do | factura |
       data['balances']['total_facturado'] += factura.total_factura
       data['balances']['debiendo']        += factura.balance
 
