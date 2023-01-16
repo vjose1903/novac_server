@@ -75,8 +75,9 @@ class Reporte < ApplicationRecord
         cuentas_temp                 = []
         tipo                         = params["tipo"]
         cliente_id                   = params["cliente_id"]
-        longitud                     = tipo == '1' ? 60 : tipo == '2' ? 78 : 100
-        longitud                     = tipo == '1' ? 49 : tipo == '2' ? 64 : 100 if result_has_permiso_pre_venta.status_valid
+
+        longitud                     = tipo == '1' ? 60 : tipo == '2' ? 58 : 78
+        longitud                     = tipo == '1' ? 49 : tipo == '2' ? 44 : 58 if result_has_permiso_pre_venta.status_valid
 
 
         has_permiso_pre_venta = result_has_permiso_pre_venta.status_valid
@@ -202,26 +203,14 @@ class Reporte < ApplicationRecord
     def self.get_recibos(params)
         temp         = []
         recibos      = []
-        query        = {}
         desde        = params["desde"]
         hasta        = params["hasta"].nil? ? params["desde"] : params["hasta"]
-        tipo_recibo  = params["tipo_recibo"]
         order        = params["order"]
 
+        query        = {}
         query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
 
-        if tipo_recibo == 'todos'
-          subT='Tipo de recibo: TODOS'
-          temp = RecibosIngreso.where(query).order("id #{order}").includes(RecibosIngreso.models_includes)
-        else
-          if tipo_recibo == 'viajes'
-            subT='Tipo de recibo: VIAJES'
-            temp = RecibosIngreso.where(query).where.not(vehiculo_id: nil).order("id #{order}").includes(RecibosIngreso.models_includes)
-          elsif tipo_recibo == 'normal'
-            subT='Tipo de recibo: NORMAL'
-            temp = RecibosIngreso.where(query).where(vehiculo_id: nil).order("id #{order}").includes(RecibosIngreso.models_includes)
-          end
-        end
+        temp = RecibosIngreso.where(query).order("id #{order}").includes(RecibosIngreso.models_includes)
 
         total_recibido = 0
         temp.each do |recibo|
@@ -230,11 +219,10 @@ class Reporte < ApplicationRecord
 
           client                 = buscar_cliente(recibo, 55, ['nombre'])
           att['cliente_nombre']  = client['nombre']
-          att['tipo_recibo']     = att["vehiculo_id"] ? 'Viaje' : 'Normal'
           recibos.push(att)
         end
 
-        obj = { body: recibos, totalizacion: { bruto: 0, devuelto: 0, total: total_recibido }, sub_t: subT}
+        obj = { body: recibos, totalizacion: { bruto: 0, devuelto: 0, total: total_recibido }, sub_t: ''}
 
 
     end
@@ -370,11 +358,11 @@ class Reporte < ApplicationRecord
           temp_ventas = []
           query['articulos.tipo_articulo_id'] = tipo_articulo.id
 
-					# puts " "
-					# puts "====================".red
-					# puts "#{tipo_articulo.to_json}"
-					# puts "====================".red
-					# puts " "
+          # puts " "
+          # puts "====================".red
+          # puts "#{tipo_articulo.to_json}"
+          # puts "====================".red
+          # puts " "
 
           # (SELECT coalesce( SUM (cantidad_en_unidades), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as cantidad_devuelto,
           # (SELECT coalesce( SUM (total), 0) from detalles_facturas_notas WHERE detalles_facturas_notas.tipo_factura_id = #{TiposNotasId.credito} AND detalles_facturas_notas.detalle_factura_id = detalle_facturas.id) as total_devuelto,
@@ -545,7 +533,7 @@ class Reporte < ApplicationRecord
 
         total_ventas = bruto - total_devuelto
 
-				sub_titulo = "Cliente: #{ buscar_cliente({cliente_id: params['cliente_id']}.with_indifferent_access , 125, ['nombre'])["nombre"] }" if tipo_reporte == 'ventas_cliente'
+        sub_titulo = "Cliente: #{ buscar_cliente({cliente_id: params['cliente_id']}.with_indifferent_access , 125, ['nombre'])["nombre"] }" if tipo_reporte == 'ventas_cliente'
 
         obj = { body: ventas, totalizacion: { bruto: bruto, devuelto: total_devuelto, total: total_ventas } , sub_t: sub_titulo}
 

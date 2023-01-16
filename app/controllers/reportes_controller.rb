@@ -6,7 +6,7 @@ class ReportesController < ApplicationController
     tipo         = tipo_reporte
     tipo_tabla   = 'normal'
 
-    muestra_sub_titulo = ['inventario','recibos','ventas_productos','suplidor_prod','cuentas_con_pagos', 'notas', 'ventas_cliente']
+    muestra_sub_titulo = ['inventario','ventas_productos','suplidor_prod','cuentas_con_pagos', 'notas', 'ventas_cliente']
     muestra_sub_titulo.push("cuentas_cobrar") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '1'
 
     if tipo_reporte == 'ventas' || tipo_reporte == 'ventas_cliente'
@@ -58,9 +58,11 @@ class ReportesController < ApplicationController
     elsif tipo_reporte == 'notas'
       # ------------------- REPORTE DE NOTAS --------------------
       body            = Reporte.get_notas(params)
+			puts "params['tipo_factura_id'] => ".red + " #{params['tipo_factura_id']}"
       tipo_de_factura = TipoFactura.find_by_id(params['tipo_factura_id'])
+			puts "tipo_de_factura => ".red + " #{tipo_de_factura.to_json}"
 
-      tipo_nota       = tipo_de_factura.descripcion == TiposFacturasDescripcion.nota_de_credito  ? 'Crédito' : tipo_de_factura.descripcion == TiposFacturasDescripcion.nota_de_debito ? 'Débito' : 'Crédito y Débito'
+      tipo_nota       = tipo_de_factura.nil? ? 'Crédito y Débito' : tipo_de_factura.descripcion == TiposFacturasDescripcion.nota_de_credito  ? 'Crédito' : 'Débito'
       titulo          = "Reporte de notas de #{tipo_nota}"
 
     end

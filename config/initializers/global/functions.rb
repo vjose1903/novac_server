@@ -68,12 +68,12 @@ class Paginator
     @paginate_options["page"]     = params['page']       if params && !params['page'].nil?
     @paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
     @paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
-
+    puts "@paginate_options =========> ".green + " #{@paginate_options.to_json}"
   end
 
 
   def paginate_data(data, models_includes=nil)
-		@data_paginated["data"] = data
+    @data_paginated["data"] = data
     @data_paginated         = paginate(data, models_includes) if @paginate_options["paginado"]
   end
 
@@ -95,12 +95,17 @@ class Paginator
     @paginate_options['paginado']
   end
 
+  def set_page(page)
+    @paginate_options['page'] = page
+  end
+
+
   def data_paginated
-		@data_paginated
+    @data_paginated
   end
 
   def get_data
-		@data_paginated["data"]
+    @data_paginated["data"]
   end
 
   def get_total_registros()
@@ -109,6 +114,15 @@ class Paginator
 
   def get_total_paginas()
     @data_paginated["total_paginas"]
+  end
+
+  def get_page
+    @paginate_options['page']
+  end
+
+  def get_per_page
+    puts " @paginate_options ==> " + " #{@paginate_options.to_json}"
+    @paginate_options['per_page']
   end
 
 end
@@ -302,27 +316,27 @@ class Array
     return  self.any? { |item| item[key] == value }
   end
 
-	def get_order
-		return "" if self.empty? || self[0]["id"].nil?
+  def get_order
+    return "" if self.empty? || self[0]["id"].nil?
 
-		is_ascending = self.each_cons(2).all?{|left, right| left["id"] <= right["id"]}
-		is_desending = self.each_cons(2).all?{|left, right| left["id"] >= right["id"]}
+    is_ascending = self.each_cons(2).all?{|left, right| left["id"] <= right["id"]}
+    is_desending = self.each_cons(2).all?{|left, right| left["id"] >= right["id"]}
 
-		return is_ascending ? "ASC" : is_desending ? "DESC" : ""
+    return is_ascending ? "ASC" : is_desending ? "DESC" : ""
 
-	end
+  end
 
-	def to_activerecord_relation
-		return ApplicationRecord.none if self.empty?
+  def to_activerecord_relation
+    return ApplicationRecord.none if self.empty?
 
-		clazzes = self.map(&:class).uniq
-		raise 'Array cannot be converted to ActiveRecord::Relation since it does not have same elements' if clazzes.size > 1
+    clazzes = self.map(&:class).uniq
+    raise 'Array cannot be converted to ActiveRecord::Relation since it does not have same elements' if clazzes.size > 1
 
-		clazz = clazzes.first
-		raise 'Element class is not ApplicationRecord and as such cannot be converted' unless clazz.ancestors.include? ApplicationRecord
+    clazz = clazzes.first
+    raise 'Element class is not ApplicationRecord and as such cannot be converted' unless clazz.ancestors.include? ApplicationRecord
 
-		clazz.where(id: self.map(&:id)).order(self.get_order.blank? ? "" : "id #{self.get_order}")
-	end
+    clazz.where(id: self.map(&:id)).order(self.get_order.blank? ? "" : "id #{self.get_order}")
+  end
 end
 
 # ---------------------------------------------------------------------------------------------------------
