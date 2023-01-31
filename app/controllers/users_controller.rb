@@ -41,7 +41,7 @@ class UsersController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      nombreCompleto: params['nombreCompleto'] || false,
+      nombre_completo: params['nombre_completo'] || false,
       all: params['all'] || false,
       id: params['id'] || false,
       nombre: params['nombre'] || false,

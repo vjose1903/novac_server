@@ -12,39 +12,54 @@ class VehiculoSerializer < ActiveModel::Serializer
   attribute :telefono_no_empleado,          if: Proc.new { self.get_param('telefono_no_empleado') || self.get_param('all') }
 
   attribute :info_vehiculo,                 if: Proc.new { self.get_param('info_vehiculo')  }
+  attribute :nombre_completo_propietario,   if: Proc.new { self.get_param('nombre_completo_propietario')  }
 
   def propietario
-
+    @propietario = nil
     if !object.user_id.nil?
-      serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
+      @propietario = serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
     else
       if !object.nombre_no_empleado.nil?
-        usuario={}
-        usuario["nombre"]   = object.nombre_no_empleado
-        usuario["apellido"] = object.apellido_no_empleado
-        usuario["telefono"] = object.telefono_no_empleado
+        usuario             = {}
+        usuario[:nombre]   = object.nombre_no_empleado
+        usuario[:apellido] = object.apellido_no_empleado
+        usuario[:telefono] = object.telefono_no_empleado
+        @propietario        = usuario
         usuario
       end
     end
   end
 
-	def info_vehiculo
-		return "#{object.marca} #{object.modelo} - #{object.anio} (#{get_propietario()})"
-	end
+  def info_vehiculo
+    return "#{object.marca} #{object.modelo} - #{object.anio} (#{get_propietario()})"
+  end
 
-	def get_propietario
-		propietario = nil
+  def nombre_completo_propietario
+    if !object.user_id.nil?
+      object.user.nombre_completo
+    else
+			puts "@propietario ==> ".red + " #{@propietario.to_json}"
+      nombre    = @propietario[:nombre].capitalize
+      nombre    += " #{@propietario[:apellido].capitalize}" unless @propietario[:apellido].blank?
+      nombre    = nombre.gsub("  ", " ").strip
+      nombre
+    end
 
-		if !object.user_id.nil?
-			propietario =  object.user.nombre_completo
-		else
-			propietario =  "#{object.nombre_no_empleado} #{object.apellido_no_empleado}"
-		end
+  end
 
-		return propietario
-	end
+  def get_propietario
+    propietario = nil
+
+    if !object.user_id.nil?
+      propietario =  object.user.nombre_completo
+    else
+      propietario =  "#{object.nombre_no_empleado} #{object.apellido_no_empleado}"
+    end
+
+    return propietario
+  end
 
   def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+    return @instance_options[:"#{col}"]
+  end
 end

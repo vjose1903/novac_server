@@ -68,7 +68,6 @@ class Paginator
     @paginate_options["page"]     = params['page']       if params && !params['page'].nil?
     @paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
     @paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
-    puts "@paginate_options =========> ".green + " #{@paginate_options.to_json}"
   end
 
 

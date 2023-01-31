@@ -144,6 +144,7 @@ Rails.application.routes.draw do
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
       get "custom/:ruta_complemento"                              => "cabecera_facturas#custom_route"
+      patch ":id/update/movimientos_viaje"                        => "cabecera_facturas#updateMovimientosViaje"
     end
   end
 

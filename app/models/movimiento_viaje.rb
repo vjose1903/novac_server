@@ -8,19 +8,17 @@ class MovimientoViaje < ApplicationRecord
     res_valid   = Response.new
 
     MovimientoViaje.transaction do
-      movimiento_viaje                 = MovimientoViaje.where(:id => params["id"]).first_or_create
+      movimiento_viaje                         = MovimientoViaje.where(:id => params["id"]).first_or_create
 
-      movimiento_viaje.vehiculo_id     = params["vehiculo_id"]
-      movimiento_viaje.user_id         = params["user_id"]
-      movimiento_viaje.cabecera_factura_id         = params["cabecera_factura_id"]
+      movimiento_viaje.vehiculo_id             = params["vehiculo_id"]
+      movimiento_viaje.user_id                 = params["user_id"]
+      movimiento_viaje.cabecera_factura_id     = params["cabecera_factura_id"]
 
       movimiento_viaje.valid?
 
       movimiento_viaje.errors.delete(:cabecera_factura) if !is_save
 
-      # TODO: revisar como hacer que se reduzsa si el viaje es modificado
-      # res_valid                            = movimiento_viaje.vehiculo.ajustarCantViaje("+") if padre.model_name.element == "recibos_ingreso"
-      res_valid                            = movimiento_viaje.vehiculo.ajustarCantViaje("+")
+      res_valid                                = movimiento_viaje.vehiculo.ajustarCantViaje("+")
 
       if res_valid.status_valid && movimiento_viaje.errors.empty? && (!is_save || (is_save && movimiento_viaje.save!))
         res.set_data(movimiento_viaje)

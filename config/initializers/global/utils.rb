@@ -93,7 +93,11 @@ def agregar_movimientos_viajes
     end
 
 
-		movimiento_viaje = MovimientoViaje.create(movimiento)
+		movimiento_backend   = MovimientoViaje.where({user_id: movimiento[:user_id], vehiculo_id: movimiento[:vehiculo_id], cabecera_factura_id: movimiento[:cabecera_factura_id]})
+
+		if movimiento_backend.empty?
+			movimiento_viaje   = MovimientoViaje.create(movimiento)
+		end
   end
 
 

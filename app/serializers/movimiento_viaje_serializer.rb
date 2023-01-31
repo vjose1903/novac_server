@@ -2,6 +2,8 @@ class MovimientoViajeSerializer < ActiveModel::Serializer
   attributes :id
   attribute :chofer
   attribute :vehiculo
+  attribute :vehiculo_id
+  attribute :user_id
 
 
   def chofer

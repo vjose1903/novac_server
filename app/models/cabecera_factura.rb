@@ -286,7 +286,7 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
   def self.update_secuencias(params, data_secuencias)
     res   = Response.new
-		puts "@tipo_de_documento.descripcion ".red + " #{@tipo_de_documento.descripcion}"
+    puts "@tipo_de_documento.descripcion ".red + " #{@tipo_de_documento.descripcion}"
     if @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
       # --------- COMPRA ---------
       unless data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
@@ -584,6 +584,37 @@ class CabeceraFactura < ApplicationRecord
     return res
   end
 
+  # =====================================================================================================================
+
+  def self.update_movimientos_viaje(params)
+    res                          = Response.new
+    factura                      = CabeceraFactura.find_by_id(params[:id])
+		CabeceraFactura.transaction do
+
+			factura.movimientos_viaje.each do | movimiento |
+				movimiento.vehiculo.ajustarCantViaje('-') unless movimiento.vehiculo_id.nil?
+				movimiento.destroy
+			end
+
+			dependencias                 = [ {modelo: MovimientoViaje,    key_object: "movimientos_viaje",  padre: factura} ]
+			puts "params ==> ".red  + " #{params}"
+			res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+
+				factura.movimientos_viaje  = dependencia_data if key_object == 'movimientos_viaje'
+			}
+
+			if factura.save!
+				res.add_msg("Pedido actualizado correctamente.")
+			else
+				res.add_msgs(factura.errors.to_a)
+				res.set_status(HTTP_STATUS_CODE[:conflict])
+			end
+
+			raise ActiveRecord::Rollback if !factura.errors.empty? || !res.status_valid
+		end
+
+    return res
+  end
 
   # ====================================================================================================
   def self.payFactura(factura_id, recibo, is_pago_total = false)
@@ -732,14 +763,4 @@ class CabeceraFactura < ApplicationRecord
     return res
   end
 
-  # =====================================================================================================================
-  def self.get_group_content_one_factura(params)
-    res                   = Response.new
-    factura_id            = params[:factura_id]
-    cliente_id            = params[:cliente_id]
-
-		get_balances
-
-    return res
-  end
 end

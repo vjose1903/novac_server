@@ -31,8 +31,6 @@ class CabeceraFacturasController < ApplicationController
       resultado = CabeceraFactura.verificate_can_update_factura(params["id"])
     when 'delete'
       resultado = CabeceraFactura.delete_documentos(params)
-    when 'get_group_content_one_factura'
-      resultado = CabeceraFactura.get_group_content_one_factura(params)
     else
       resultado.add_msg('Ruta no encontrada.')
       resultado.set_status(HTTP_STATUS_CODE[:not_implemented])
@@ -41,6 +39,11 @@ class CabeceraFacturasController < ApplicationController
     resultado.send_response self
   end
 
+
+  def updateMovimientosViaje
+		resultado = CabeceraFactura.update_movimientos_viaje(params)
+		resultado.send_response self
+	end
 
   def getFacturasByClienteIdAndEstado
     resultado = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params, set_paginate_options(params))

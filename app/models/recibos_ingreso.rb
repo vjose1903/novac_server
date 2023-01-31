@@ -197,12 +197,6 @@ class RecibosIngreso < ApplicationRecord
       return res_temp unless res_temp.status_valid
     end
 
-    self.camiones_viajes.each do |camion_viaje|
-      res_temp    = camion_viaje.vehiculo.ajustarCantViaje("-")
-      return res_temp unless res_temp.status_valid
-    end
-
-
     return res_valid
   end
 

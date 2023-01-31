@@ -18,6 +18,9 @@ class Cliente < ApplicationRecord
     self.balance = 0 unless self.balance
   end
 
+
+
+
   def self.models_includes
     includes = [:documentos_de_identidad]
     return includes
@@ -110,7 +113,7 @@ class Cliente < ApplicationRecord
     cliente_en_turno             = self
 
     factura_a_buscar             = params[:factura_a_buscar]
-    index_factura_a_buscar       = nil
+    next_page       = nil
     next_page                    = nil
 
     query      = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND (cabecera_facturas.tipo = 'venta' OR cabecera_facturas.tipo = 'pre_venta') AND cabecera_facturas.estado = true  AND cabecera_facturas.cliente_id = #{cliente_en_turno.id}"
@@ -136,8 +139,10 @@ class Cliente < ApplicationRecord
 
     unless factura_a_buscar.nil?
       index_factura_a_buscar = facturas.index { |fact| "#{fact.id}" == "#{factura_a_buscar}" }
+
       unless index_factura_a_buscar.nil?
         next_page              = (index_factura_a_buscar / paginate_class.get_per_page.to_f).ceil
+        next_page = 1 if next_page == 0
 
         paginate_class.set_page(next_page)
         data['page']           = paginate_class.get_page

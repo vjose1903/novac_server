@@ -8,7 +8,7 @@ class Vehiculo < ApplicationRecord
   # =====================================================================================================================
 
 
-  def self.filtrarVehiculo(arg, params)
+  def self.filtrarVehiculo(arg, params, parametros_opcionales)
     res = Response.new(params)
 
     vehiculos = Vehiculo
@@ -17,9 +17,9 @@ class Vehiculo < ApplicationRecord
     .order("vehiculos.id DESC").to_a
 
     if vehiculos.length > 0
-      res.set_data(vehiculos, {all: true})
+      res.set_data(vehiculos, {all: true, **parametros_opcionales})
     else
-			cantidad_registros = Vehiculo.where({estado: true}).count
+      cantidad_registros = Vehiculo.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen vehículos registrados." : "No existen vehiculos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
