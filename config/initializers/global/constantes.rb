@@ -113,7 +113,6 @@ module FacturasParams
   end
 
   def self.parse_valor_by_param(param, valor=nil)
-    # TODO: seguir aqui agregando el todos
     valor = param == "1" || param == "3" || param == "5" ? valor.to_i : valor.upcase unless param == "4"
     return valor
   end
