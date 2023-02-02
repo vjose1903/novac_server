@@ -31,7 +31,7 @@ class VehiculoSerializer < ActiveModel::Serializer
   end
 
   def info_vehiculo
-    return "#{object.marca} #{object.modelo} - #{object.anio} (#{get_propietario()})"
+    object.info_vehiculo
   end
 
   def nombre_completo_propietario
@@ -45,18 +45,6 @@ class VehiculoSerializer < ActiveModel::Serializer
       nombre
     end
 
-  end
-
-  def get_propietario
-    propietario = nil
-
-    if !object.user_id.nil?
-      propietario =  object.user.nombre_completo
-    else
-      propietario =  "#{object.nombre_no_empleado} #{object.apellido_no_empleado}"
-    end
-
-    return propietario
   end
 
   def get_param(col)

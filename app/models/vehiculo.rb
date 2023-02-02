@@ -5,6 +5,21 @@ class Vehiculo < ApplicationRecord
     self.cantidad_viajes = 0 unless self.cantidad_viajes
   end
 
+  def info_vehiculo
+    return "#{self.marca} #{self.modelo} - #{self.anio} (#{get_propietario()})"
+  end
+
+	def get_propietario
+    propietario = nil
+
+    if !self.user_id.nil?
+      propietario =  self.user.nombre_completo
+    else
+      propietario =  "#{self.nombre_no_empleado} #{self.apellido_no_empleado}"
+    end
+
+    return propietario
+  end
   # =====================================================================================================================
 
 

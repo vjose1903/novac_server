@@ -142,8 +142,9 @@ module FacturasParams
 end
 
 module TipoReporteVentas
-  VENTAS_HOY = '1'
-  VENTAS_RANGO = '2'
+  VENTAS_HOY      = 'ventas_diarias'
+  VENTAS_RANGO    = 'ventas_rango'
+  VENTAS_CLIENTE  = 'ventas_cliente'
 
   def self.ventas_hoy
     return VENTAS_HOY
@@ -151,6 +152,10 @@ module TipoReporteVentas
 
   def self.ventas_rango
     return VENTAS_RANGO
+  end
+
+  def self.ventas_cliente
+    return VENTAS_CLIENTE
   end
 
 end
