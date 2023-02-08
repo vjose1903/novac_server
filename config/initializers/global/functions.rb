@@ -298,6 +298,7 @@ def updateSecuencias(tipo_secuencia_id)
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
   dependencias.each do |dependencia|
+
     if !parametros[dependencia[:key_object]].nil? && parametros[dependencia[:key_object]].kind_of?(Array)
       res_dependencia = dependencia[:modelo].validar_e_inicializar(parametros[dependencia[:key_object]], dependencia[:padre], save)
       if res_dependencia.status_valid
@@ -306,8 +307,8 @@ def crear_actualizar_dependencias(dependencias, parametros, save)
         return res_dependencia
       end
     end
+		acu = acu + 1
   end
-
   return Response.new
 end
 
