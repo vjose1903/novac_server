@@ -95,6 +95,8 @@ class ConfigArticulo < ApplicationRecord
 
 
       new_precio                 = articulo.costo_principal / ( (100 - params[:porciento_ganancia]).to_f / 100 )
+			puts " "
+			puts "new_precio -> ".green + " #{new_precio}"
       new_precio_rounded         = round_to_nearest_multiple_of_5(new_precio)
 
       articulo.precio_principal  = new_precio_rounded
