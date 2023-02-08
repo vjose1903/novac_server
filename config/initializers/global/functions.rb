@@ -307,7 +307,6 @@ def crear_actualizar_dependencias(dependencias, parametros, save)
         return res_dependencia
       end
     end
-		acu = acu + 1
   end
   return Response.new
 end
