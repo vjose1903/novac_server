@@ -60,13 +60,13 @@ class ConfigArticulo < ApplicationRecord
 		if tipo == 'producto_terminado'
 			lista_articulo                 = Articulo.joins(:formulas_productos_terminados).includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}]).distinct
 		else
-			lista_articulo                 = Articulo.left_outer_joins(:formulas_productos_terminados).where(formulas_productos_terminados: { id: nil }).includes([{contenido_articulos: :articulo}])
+			lista_articulo                 = Articulo.left_outer_joins(:formulas_productos_terminados).where(formulas_productos_terminados: { id: nil }).includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}])
 		end
 
 		lista_articulo.each do | articulo |
 
 
-			if articulo.is_combo
+			if articulo.is_combo && articulo.formulas_productos_terminados.length > 0
 				costo_en_turno      = 0
 
 				articulo.formulas_productos_terminados.each do | formula |
