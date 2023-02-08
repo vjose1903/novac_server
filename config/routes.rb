@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :detalles_facturas_notas
 
   resources :costos_fletes_historiales
   resources :provincias
@@ -22,6 +21,9 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
   resources :acciones
+  resources :detalles_facturas_notas
+  resources :config_articulos
+
 
   resources :roles do
     collection do
@@ -37,7 +39,7 @@ Rails.application.routes.draw do
 
   resources :cuadre_cajas do
     collection do
-			post "custom"            => "cuadre_cajas#create"
+      post "custom"            => "cuadre_cajas#create"
       get "check_today_cuadre" => "cuadre_cajas#checkTodayCuadre"
     end
   end
@@ -121,19 +123,19 @@ Rails.application.routes.draw do
     end
   end
 
-	resources :facturas_aplicadas do
-		collection do
-			get "custom/get_cantidad_devuelto/:ids"          => "facturas_aplicadas#getCantidadDevuelto"
-		end
-	end
+  resources :facturas_aplicadas do
+    collection do
+      get "custom/get_cantidad_devuelto/:ids"          => "facturas_aplicadas#getCantidadDevuelto"
+    end
+  end
 
 
-	resources :notas do
-		collection do
-			post "anular_nota/:id"                           => "notas#cancelarNota"
-			get "filtro/:arg"                                => "notas#getNotasFiltradas"
-		end
-	end
+  resources :notas do
+    collection do
+      post "anular_nota/:id"                           => "notas#cancelarNota"
+      get "filtro/:arg"                                => "notas#getNotasFiltradas"
+    end
+  end
 
   resources :cabecera_facturas do
     collection do
@@ -157,11 +159,11 @@ Rails.application.routes.draw do
 
   post "ruta/test"              => "application#testFunction"
 
-	resources :permisos do
-		collection do
-			get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
-		end
-	end
+  resources :permisos do
+    collection do
+      get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
+    end
+  end
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
                                         sessions: "devise_token_auth/sessions",

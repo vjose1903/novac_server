@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_01_10_153442) do
+ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -139,6 +139,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_01_10_153442) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
+  end
+
+  create_table "config_articulos", force: :cascade do |t|
+    t.float "porciento_ganancia"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "contenido_articulos", force: :cascade do |t|

@@ -367,6 +367,18 @@ G_ROLES_CUSTOM.each do | rol |
   end
 end
 
+
+configuracion_articulo_backend =  ConfigArticulo.find_by_id(1)
+
+if configuracion_articulo_backend.nil?
+	configuracion_articulo_backend = ConfigArticulo.create({ porciento_ganancia: 15})
+	puts " "
+	puts "------".cyan * 7
+	puts "CREANDO CONFIGURACION ARTICULO"
+	puts "------".cyan * 7
+	puts " "
+	puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_backend.errors.to_json}" if !configuracion_articulo_backend.errors.empty?
+end
 # G_OTROS_COSTOS.each do | otro_costo |
 # 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])
 #

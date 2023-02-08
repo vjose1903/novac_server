@@ -164,3 +164,4 @@ rails g model movimiento_viaje user:references vehiculo:references cabecera_fact
 rails generate serializer movimiento_viaje
 
 rails g migration AddKeyToRoles
+rails g scaffold config_articulo porciento_ganancia:float
