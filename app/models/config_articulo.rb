@@ -37,89 +37,91 @@ class ConfigArticulo < ApplicationRecord
 
 
   def self.procesos_articulos(params)
-		res = Response.new
+    res = Response.new
 
-		if params[:update_articulos]
-			resultado = ConfigArticulo.recalcular_precio_articulos('materia_prima', params)
+    if params[:update_articulos]
+      resultado = ConfigArticulo.recalcular_precio_articulos('materia_prima', params)
 
-			resultado = ConfigArticulo.recalcular_precio_articulos('producto_terminado', params)
-		end
+      resultado = ConfigArticulo.recalcular_precio_articulos('producto_terminado', params)
+    end
 
-		return res
+    return res
   end
 
 
-	# ===================================================================================================================================================
+  # ===================================================================================================================================================
 
-	def self.recalcular_precio_articulos(tipo, params)
-
-		res                     = Response.new
-
-		lista_articulo          = []
-
-		if tipo == 'producto_terminado'
-			lista_articulo                 = Articulo.joins(:formulas_productos_terminados).includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}]).distinct
-		else
-			lista_articulo                 = Articulo.left_outer_joins(:formulas_productos_terminados).where(formulas_productos_terminados: { id: nil }).includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}])
-		end
-
-		lista_articulo.each do | articulo |
+  def self.recalcular_precio_articulos(tipo, params)
 
 
-			if articulo.is_combo && articulo.formulas_productos_terminados.length > 0
-				costo_en_turno      = 0
+    res                     = Response.new
 
-				articulo.formulas_productos_terminados.each do | formula |
-					unidades_minimas        = [ 'Unidad', 'Libra', 'Onza' ];
+    lista_articulo          = []
 
-					articulo_combo          = Articulo.find_by_id(formula.articulo_combo)
-					contenido_minimo        = articulo_combo.contenido_articulos.find { | contenido | unidades_minimas.my_includes_str(contenido.medida) }
+    if tipo == 'producto_terminado'
+      lista_articulo                 = Articulo.joins(:formulas_productos_terminados).includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}]).distinct
+    else
+      lista_articulo                 = Articulo.left_outer_joins(:formulas_productos_terminados).where(formulas_productos_terminados: { id: nil }).includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}])
+    end
 
-					formula.costo           = contenido_minimo.costo
-					formula.precio          = contenido_minimo.precio
+    lista_articulo.each do | articulo |
 
-					formula.save!
+      puts " "
+      puts "articulo -> ".red + " #{articulo}"
+      if articulo.is_combo && articulo.formulas_productos_terminados.length > 0
+        costo_en_turno      = 0
 
-					costo_en_turno         += (formula.cantidad * formula.costo)
+        articulo.formulas_productos_terminados.each do | formula |
+          unidades_minimas        = [ 'Unidad', 'Libra', 'Onza' ];
 
-				end
+          articulo_combo          = Articulo.find_by_id(formula.articulo_combo)
+          contenido_minimo        = articulo_combo.contenido_articulos.find { | contenido | unidades_minimas.my_includes_str(contenido.medida) }
 
+          formula.costo           = contenido_minimo.costo
+          formula.precio          = contenido_minimo.precio
 
-				costo_en_turno           += articulo.otros_costos
-				costo_en_turno            = costo_en_turno.to_d.truncate(2).to_f
+          formula.save!
 
-				articulo.costo_principal  = costo_en_turno
-			end
+          costo_en_turno         += (formula.cantidad * formula.costo)
 
-
-			new_precio                 = articulo.costo_principal / ( (100 - params[:porciento_ganancia]).to_f / 100 )
-			new_precio_rounded         = round_to_nearest_multiple_of_5(new_precio)
-
-			articulo.precio_principal  = new_precio_rounded
-			articulo.save!
+        end
 
 
-			articulo.contenido_articulos.each do | contenido |
-				precio_referencial       = articulo.precio_principal
-				costo_referencial        = articulo.costo_principal
+        costo_en_turno           += articulo.otros_costos
+        costo_en_turno            = costo_en_turno.to_d.truncate(2).to_f
 
-				unless contenido.referencia.nil?
-					cotenido_referencia    = ContenidoArticulo.find_by_id(contenido.referencia)
+        articulo.costo_principal  = costo_en_turno
+      end
 
-					precio_referencial     = cotenido_referencia.precio_principal
-					costo_referencial      = cotenido_referencia.costo_principal
-				end
 
-				contenido.costo          = costo_referencial / contenido.cantidad
-				contenido.precio         = precio_referencial / contenido.cantidad
+      new_precio                 = articulo.costo_principal / ( (100 - params[:porciento_ganancia]).to_f / 100 )
+      new_precio_rounded         = round_to_nearest_multiple_of_5(new_precio)
 
-				contenido.save!
-			end
+      articulo.precio_principal  = new_precio_rounded
+      articulo.save!
 
-		end
+
+      articulo.contenido_articulos.each do | contenido |
+        precio_referencial       = articulo.precio_principal
+        costo_referencial        = articulo.costo_principal
+
+        unless contenido.referencia.nil?
+          cotenido_referencia    = ContenidoArticulo.find_by_id(contenido.referencia)
+
+          precio_referencial     = cotenido_referencia.precio_principal
+          costo_referencial      = cotenido_referencia.costo_principal
+        end
+
+        contenido.costo          = costo_referencial / contenido.cantidad
+        contenido.precio         = precio_referencial / contenido.cantidad
+
+        contenido.save!
+      end
+
+    end
 
     return res
 
-	end
+  end
 
 end
