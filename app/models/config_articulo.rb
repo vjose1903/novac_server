@@ -66,10 +66,7 @@ class ConfigArticulo < ApplicationRecord
 
     lista_articulo.each do | articulo |
 
-      my_print_log( " ")
-      my_print_log( "articulo -> ".red + " #{articulo.to_json}")
       if articulo.is_combo && articulo.formulas_productos_terminados.length > 0
-				my_print_log( "ENTROOOOO ".yellow)
         costo_en_turno      = 0
 
         articulo.formulas_productos_terminados.each do | formula |
@@ -96,7 +93,6 @@ class ConfigArticulo < ApplicationRecord
 
 
       new_precio                 = articulo.costo_principal / ( (100 - params[:porciento_ganancia]).to_f / 100 )
-			my_print_log( "new_precio -> ".green + " #{new_precio}")
       new_precio_rounded         = round_to_nearest_multiple_of_5(new_precio)
 
       articulo.precio_principal  = new_precio_rounded
