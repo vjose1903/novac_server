@@ -32,17 +32,17 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :tiene_nota,                                     if: Proc.new { self.get_param('tiene_nota') || self.get_param('all') }
   attribute :aplicada_a,                                     if: Proc.new { self.get_param('aplicada_a') || self.get_param('all') }
   attribute :identificador,                                  if: Proc.new { self.get_param('identificador') || self.get_param('all') }
+  attribute :movimientos_viaje,                              if: Proc.new { self.get_param('movimientos_viaje') }
 
   attribute :tipo_factura,                                   if: Proc.new { self.get_param('tipo_factura') || self.get_param('all') }
 
   attribute :detalle_facturas,                               if: Proc.new { self.get_param('detalle_facturas') || self.get_param('all') }
-  attribute :cliente,                                        if: Proc.new { self.get_param('cliente') || self.get_param('all') }
-  attribute :suplidor,                                       if: Proc.new { self.get_param('suplidor') || self.get_param('all') }
+  attribute :cliente,                                        if: Proc.new { !object.cliente_id.nil? && (self.get_param('cliente') || self.get_param('all')) }
+  attribute :suplidor,                                       if: Proc.new { !object.suplidor_id.nil? && (self.get_param('suplidor') || self.get_param('all')) }
   attribute :usuario,                                        if: Proc.new { self.get_param('usuario') || self.get_param('all') }
   attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
-  attribute :camiones_viajes,                                       if: Proc.new { self.get_param('camiones_viajes') }
   attribute :cotizacion,                                     if: Proc.new { self.get_param('cotizacion') || self.get_param('all') }
   attribute :pre_factura,                                    if: Proc.new { self.get_param('pre_factura') || self.get_param('all') }
 
@@ -55,8 +55,9 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     serialize_parser(object.detalle_facturas, @instance_options)
   end
 
-
   def cliente
+
+		puts "object.cliente_id.nil? ".red  + " #{ object.cliente_id.nil? }"
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre
@@ -130,7 +131,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
           detalle_recibo["recibo_creado_por"] = recibo.user.nombre_completo
           detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
 
-					pago_parseo.push( detalle_recibo )
+          pago_parseo.push( detalle_recibo )
         end
       end
 
@@ -138,8 +139,8 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     pago_parseo
   end
 
-  def camiones_viajes
-    object.camiones_viajes
+  def movimientos_viaje
+    serialize_parser(object.movimientos_viaje, @instance_options)
   end
 
 

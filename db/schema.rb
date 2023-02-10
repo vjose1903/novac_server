@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_01_132804) do
+ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -139,6 +139,12 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_01_132804) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
+  end
+
+  create_table "config_articulos", force: :cascade do |t|
+    t.float "porciento_ganancia"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "contenido_articulos", force: :cascade do |t|
@@ -428,6 +434,17 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_01_132804) do
     t.index ["user_id"], name: "index_movimientos_inventarios_on_user_id"
   end
 
+  create_table "movimientos_viaje", force: :cascade do |t|
+    t.bigint "user_id"
+    t.bigint "vehiculo_id"
+    t.bigint "cabecera_factura_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cabecera_factura_id"], name: "index_movimientos_viaje_on_cabecera_factura_id"
+    t.index ["user_id"], name: "index_movimientos_viaje_on_user_id"
+    t.index ["vehiculo_id"], name: "index_movimientos_viaje_on_vehiculo_id"
+  end
+
   create_table "municipios", force: :cascade do |t|
     t.bigint "provincia_id"
     t.string "nombre"
@@ -518,7 +535,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_01_132804) do
     t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
+    t.boolean "estado"
+    t.string "key"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
@@ -681,6 +699,9 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_01_132804) do
   add_foreign_key "modelos", "marcas"
   add_foreign_key "movimientos_inventarios", "articulos"
   add_foreign_key "movimientos_inventarios", "users"
+  add_foreign_key "movimientos_viaje", "cabecera_facturas"
+  add_foreign_key "movimientos_viaje", "users"
+  add_foreign_key "movimientos_viaje", "vehiculos"
   add_foreign_key "municipios", "provincias"
   add_foreign_key "notas", "clientes"
   add_foreign_key "notas", "tipo_facturas"

@@ -3,26 +3,20 @@ class VehiculosController < ApplicationController
 
   # GET /vehiculos
   def index
-    vehiculos = []
-    @vehiculos = Vehiculo.all
-    @vehiculos.each do |item|
-      if item.estado
-        vehiculos.push(item)
-      end
-    end
-
-    render json: vehiculos
+    puts "get_parametros_opcionales ===> ".red + " #{get_parametros_opcionales}"
+    return Response.new(params, nil, Vehiculo.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
   end
+
 
   # GET /vehiculos/1
   def show
-    render json: @vehiculo
+    return Response.new(params, nil, @vehiculo, nil, get_parametros_opcionales).send_response self
   end
 
 
   def getVehiculosFiltrados
     arg = params["arg"]
-    resultado = Vehiculo.filtrarVehiculo(arg, set_paginate_options(params))
+    resultado = Vehiculo.filtrarVehiculo(arg, set_paginate_options(params), get_parametros_opcionales)
     resultado.send_response self
   end
 
@@ -50,11 +44,18 @@ class VehiculosController < ApplicationController
   end
 
   def destroy
-		is_deleted = @vehiculo.update({estado: false})
+    is_deleted = @vehiculo.update({estado: false})
 
-		render json: { msg: is_deleted ? "Vehiculo borrado" : "error borrando vehiculo." }
+    render json: { msg: is_deleted ? "Vehiculo borrado" : "error borrando vehiculo." }
   end
 
+  def get_parametros_opcionales
+    return {
+      all:                          true,
+      info_vehiculo:                params['info_vehiculo'] || false,
+      nombre_completo_propietario:  params['nombre_completo_propietario'] || false,
+    }
+  end
 
   private
     # Use callbacks to share common setup or constraints between actions.

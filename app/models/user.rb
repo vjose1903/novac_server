@@ -9,10 +9,10 @@ class User < ApplicationRecord
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
   accepts_nested_attributes_for :documentos_de_identidad
 
-	has_many :users_roles, dependent: :destroy
-	has_and_belongs_to_many :roles, join_table: :users_roles
+  has_many :users_roles, dependent: :destroy
+  has_and_belongs_to_many :roles, join_table: :users_roles
 
-	has_many :roles_permisos_acciones, through: :roles
+  has_many :roles_permisos_acciones, through: :roles
 
   devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
 
@@ -24,16 +24,16 @@ class User < ApplicationRecord
   validates :sexo,                presence: { :message => "Sexo del empleado no puede estar vacio." }
   validates :fecha_nacimiento,    presence: { :message => "Fecha de nacimiento del empleado no puede estar vacia." }
 
-	before_validation :otras_validaciones
-	include DeviseTokenAuth::Concerns::User
+  before_validation :otras_validaciones
+  include DeviseTokenAuth::Concerns::User
 
   def otras_validaciones
   end
 
-	def self.models_includes
-		includes = [:documentos_de_identidad, {roles_permisos_acciones: [:role, :permiso_accion]}]
+  def self.models_includes
+    includes = [:documentos_de_identidad, {roles_permisos_acciones: [:role, :permiso_accion]}]
     return includes
-	end
+  end
 
   def nombre_completo
     nombre    = self.nombre.capitalize
@@ -50,37 +50,31 @@ class User < ApplicationRecord
   # HANDLE FILTER
   # ============================================================================================
   def self.handleFilter(parametros)
-    filter_key = parametros["filter_key"]
-    filter_value = parametros["filter_value"]
 
-    if filter_key == 'role'
-      return User.all.where("lower(role) like lower('%#{filter_value}%') and estado = true")
-    elsif filter_key == 'cedula'
+    if parametros["filter_key"] == 'role'
+			return User.joins(:roles).where(roles: {key: parametros["filter_value"]})
+    elsif parametros["filter_key"] == 'cedula'
 
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: filter_value})
-    elsif filter_key == 'rnc'
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: filter_value})
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: parametros["filter_value"]})
+    elsif parametros["filter_key"] == 'rnc'
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: parametros["filter_value"]})
     else
-      return User.all.where("#{filter_key} = #{filter_value} and estado = true")
+      return User.all.where("#{parametros["filter_key"]} = #{parametros["filter_value"]} and estado = true")
     end
 
   end
   # =====================================================================================================================
 
-	def checkRoles(params)
-			self.errors.add(:base, "Debe de especificar almenos un role al empleado.") if params["ids_roles"].length == 0
-	end
+  def checkRoles(params)
+      self.errors.add(:base, "Debe de especificar almenos un role al empleado.") if !params[:ids_roles].present? || params[:ids_roles].length == 0
+  end
 
   # =====================================================================================================================
 
   def self.crear_actualizar_user(params , is_save=false)
-		res                           = Response.new
+    res                           = Response.new
     User.transaction do
-
       user                        = User.where(:id => params["id"]).first_or_create
-
-
-			user.checkRoles(params)
 
       user.nombre                 = params["nombre"]
       user.apellido               = params["apellido"]
@@ -92,9 +86,10 @@ class User < ApplicationRecord
       user.password               = params["password"] if params["password"]
       user.password_confirmation  = params["password"] if params["password"]
       user.estado                 = true
-
       user.roles                  = Role.where(id: params["ids_roles"])
-			user.valid?
+
+      user.valid?
+      user.checkRoles(params)
 
       if user.errors.empty?
         dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]
@@ -116,10 +111,10 @@ class User < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback if !user.errors.empty? || !res.status_valid
+      raise ActiveRecord::Rollback if !user.errors.empty? || !res.status_valid
     end
 
-		return res
+    return res
   end
 
   # =====================================================================================================================
@@ -135,7 +130,7 @@ class User < ApplicationRecord
       # res.set_data(users, {all: true, roles: true})
     else
       res.set_data([])
-			cantidad_registros = User.where({estado: true}).count
+      cantidad_registros = User.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
@@ -144,20 +139,20 @@ class User < ApplicationRecord
   end
 
     # =========================================================================================================================================================
-		def get_permisos
+    def get_permisos
 
-			joins_ = "INNER JOIN permisos_acciones on permisos_acciones.id = roles_permisos_acciones.permiso_accion_id"
-			joins_ += " INNER JOIN acciones on acciones.id = permisos_acciones.accion_id"
-			joins_ += " INNER JOIN permisos on permisos.id = permisos_acciones.permiso_id"
+      joins_ = "INNER JOIN permisos_acciones on permisos_acciones.id = roles_permisos_acciones.permiso_accion_id"
+      joins_ += " INNER JOIN acciones on acciones.id = permisos_acciones.accion_id"
+      joins_ += " INNER JOIN permisos on permisos.id = permisos_acciones.permiso_id"
 
-			roles_permisos_acciones                    = self.roles_permisos_acciones.joins(joins_).select("roles_permisos_acciones.permiso_accion_id, CONCAT(permisos.descripcion, '_', acciones.descripcion) as permiso").group("roles_permisos_acciones.permiso_accion_id, permisos.descripcion, acciones.descripcion")
+      roles_permisos_acciones                    = self.roles_permisos_acciones.joins(joins_).select("roles_permisos_acciones.permiso_accion_id, CONCAT(permisos.descripcion, '_', acciones.descripcion) as permiso").group("roles_permisos_acciones.permiso_accion_id, permisos.descripcion, acciones.descripcion")
 
-			roles_permisos_acciones
-		end
+      roles_permisos_acciones
+    end
     # =========================================================================================================================================================
-		def  verificateHasPermiso(permiso_descripcion)
-			return Permiso.verificateUserPermiso(self.id, permiso_descripcion)
-		end
+    def  verificateHasPermiso(permiso_descripcion)
+      return Permiso.verificateUserPermiso(self.id, permiso_descripcion)
+    end
     # =========================================================================================================================================================
 
     def self.mudar_info(param)

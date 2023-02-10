@@ -109,7 +109,7 @@ class DetalleFactura < ApplicationRecord
   def self.anular_detalles(detalle, documento)
     res              = Response.new
     articulo         = detalle.articulo
-    operacion        = documento.tipo == TiposFacturasDescripcion.compra ? '-' : '+'
+    operacion        = documento.tipo == TiposFacturasDescripcion.compra.downcase ? '-' : '+'
 
     mov              = eval "#{articulo.existencia} #{operacion} #{detalle.cantidad_en_unidades.to_f}"
 

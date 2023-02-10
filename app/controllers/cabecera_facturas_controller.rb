@@ -14,30 +14,36 @@ class CabeceraFacturasController < ApplicationController
     return Response.new(params, nil, @cabecera_factura, nil, get_parametros_opcionales).send_response self
   end
 
-  def getGroup
-    resultado = CabeceraFactura.get_group_facturas_by_id(params)
+  def custom_route
+    resultado              = Response.new()
+    ruta_complemento       = params[:ruta_complemento]
+
+    case ruta_complemento
+    when 'get_group'
+      resultado = CabeceraFactura.get_group_facturas_by_id(params)
+    when 'get_documentos'
+      resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
+    when 'viajes'
+      resultado = CabeceraFactura.get_viajes_by_completar(params, set_paginate_options(params))
+    when 'comprobar_serial'
+      resultado = CabeceraFactura.comprobar_serial(params)
+    when 'can_update'
+      resultado = CabeceraFactura.verificate_can_update_factura(params["id"])
+    when 'delete'
+      resultado = CabeceraFactura.delete_documentos(params)
+    else
+      resultado.add_msg('Ruta no encontrada.')
+      resultado.set_status(HTTP_STATUS_CODE[:not_implemented])
+    end
+
     resultado.send_response self
   end
 
-  def getFacturasByParams
-    resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
-    resultado.send_response self
-  end
 
-  def comprobarSerial
-    resultado = CabeceraFactura.comprobar_serial(params)
-    resultado.send_response self
-  end
-
-  def verificateCanUpdateById
-    resultado = CabeceraFactura.verificateCanUpdate(params["id"])
-    resultado.send_response self
-  end
-
-  def getViajesSinCompletar
-    resultado = CabeceraFactura.get_viajes_by_completar(params, set_paginate_options(params))
-    resultado.send_response self
-  end
+  def updateMovimientosViaje
+		resultado = CabeceraFactura.update_movimientos_viaje(params)
+		resultado.send_response self
+	end
 
   def getFacturasByClienteIdAndEstado
     resultado = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params, set_paginate_options(params))
@@ -56,15 +62,11 @@ class CabeceraFacturasController < ApplicationController
     resultado.send_response self
   end
 
-  def deleteDocumentos
-    resultado = CabeceraFactura.delete_documentos(params)
-    resultado.send_response self
-  end
 
   def get_parametros_opcionales
     return {
       actual_price:       params['actual_price']     || false,
-      camiones_viajes:    params['camiones_viajes']  || false,
+      movimientos_viaje:  params['movimientos_viaje']  || false,
       all: true
     }
   end
