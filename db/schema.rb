@@ -535,8 +535,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "estado"
     t.string "key"
+    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|

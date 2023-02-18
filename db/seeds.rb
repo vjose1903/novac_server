@@ -12,7 +12,7 @@ G_usuarios.each do |user|
 
   if User.find_by_usuario(user[:usuario]).nil?
     puts "===================================".blue
-    puts "a crear el ususario #{user["ususario"]}"
+    puts "a crear el ususario #{user["usuario"]}"
     puts "===================================".blue
     usuario_creado = User.create(user)
     puts "ERROR- Usuario: ".red + "#{usuario_creado.errors.to_json}" if !usuario_creado.errors.empty?
@@ -219,21 +219,6 @@ all_permisos_aciones.each do | permiso_accion_backend |
   end
 end
 
-usuario_admin           = User.find_by_usuario("ADMIN")
-
-unless usuario_admin.nil?
-  roles_usuario         = usuario_admin.roles
-  if roles_usuario.empty?
-    puts " "
-    puts "------".cyan * 7
-    puts "AGREGANDO ROLE ADMINISTRADOR AL USUARIO ADMIN"
-    puts "------".cyan * 7
-    usuario_admin.roles = Role.where({nombre: "Administrador"})
-    usuario_admin.save!
-    puts " " if !usuario_admin.errors.empty?
-    puts "ERROR- agregando role admin: ".red + "#{usuario_admin.errors.to_json}" if !usuario_admin.errors.empty?
-  end
-end
 
 
 G_ROLES_CUSTOM.each do | rol |
@@ -279,17 +264,62 @@ G_ROLES_CUSTOM.each do | rol |
 end
 
 
-configuracion_articulo_backend =  ConfigArticulo.find_by_id(1)
 
-if configuracion_articulo_backend.nil?
-	configuracion_articulo_backend = ConfigArticulo.create({ porciento_ganancia: 15})
-	puts " "
-	puts "------".cyan * 7
-	puts "CREANDO CONFIGURACION ARTICULO"
-	puts "------".cyan * 7
-	puts " "
-	puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_backend.errors.to_json}" if !configuracion_articulo_backend.errors.empty?
+['ADMIN','novac'].each do | username |
+
+	usuario_admin           = User.find_by_usuario(username)
+
+	unless usuario_admin.nil?
+		roles_usuario         = usuario_admin.roles
+		if roles_usuario.empty?
+			puts " "
+			puts "------".cyan * 7
+			puts "AGREGANDO ROLE ADMINISTRADOR AL USUARIO: #{usuario_admin.nombre}"
+			puts "------".cyan * 7
+			usuario_admin.roles = Role.where({key: "admin"})
+			usuario_admin.save!
+			puts " " if !usuario_admin.errors.empty?
+			puts "ERROR- agregando role admin: ".red + "#{usuario_admin.errors.to_json}" if !usuario_admin.errors.empty?
+		end
+	end
+
 end
+
+vendedor_default           = User.find_by_usuario('adm01')
+
+unless vendedor_default.nil?
+	roles_usuario         = vendedor_default.roles
+	if roles_usuario.empty?
+		puts " "
+		puts "------".cyan * 7
+		puts "AGREGANDO ROLE VENDEDOR AL USUARIO TIENDA"
+		puts "------".cyan * 7
+		vendedor_default.roles = Role.where({key: "vendedor"})
+		vendedor_default.save!
+		puts " " if !vendedor_default.errors.empty?
+		puts "ERROR- agregando role admin: ".red + "#{vendedor_default.errors.to_json}" if !vendedor_default.errors.empty?
+	end
+end
+
+
+G_CONFIG_ARTICULOS.each do |config|
+
+	configuracion_articulo_backend =  ConfigArticulo.find_by_id(1)
+
+
+	if configuracion_articulo_backend.nil?
+		configuracion_articulo_backend = ConfigArticulo.create(config)
+		puts " "
+		puts "------".cyan * 7
+		puts "CREANDO CONFIGURACION ARTICULO"
+		puts "------".cyan * 7
+		puts " "
+		puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_backend.errors.to_json}" if !configuracion_articulo_backend.errors.empty?
+	end
+
+end
+
+
 # G_OTROS_COSTOS.each do | otro_costo |
 # 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])
 #
