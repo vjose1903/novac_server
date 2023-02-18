@@ -121,7 +121,6 @@ class CabeceraConduce < ApplicationRecord
 			res_temp    = detalle_conduce.procesoAnularConduceDetalle(self)
 			return res_temp unless res_temp.status_valid
 		end
-		# TODO: probar a ver si funciona el proceso de anular
 
 		return res_valid
 	end

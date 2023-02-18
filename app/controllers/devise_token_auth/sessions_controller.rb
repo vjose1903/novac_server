@@ -20,7 +20,10 @@ module DeviseTokenAuth
         return render_create_error_bad_credentials
       end
 
+
+
       field = (params.keys.map(&:to_sym) & resource_class.authentication_keys).first
+
 
       if field
         q_value = get_case_insensitive_field_from_resource_params(field)
@@ -28,8 +31,12 @@ module DeviseTokenAuth
 
 
       if !@resource.nil? and @resource[:estado] == "I"
-        return render json: { msg: "Usuario desactivado, favor de comunicarse con el administrador del sistema." }, status: 401
+        @res.set_status(HTTP_STATUS_CODE[:locked])
+        @res.add_msg("Usuario desactivado, favor de comunicarse con el administrador del sistema.")
+        @res.send_response self
       end
+
+
 
 
       if @resource && valid_params?(field, q_value) && (!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
@@ -40,13 +47,19 @@ module DeviseTokenAuth
           return render_create_error_bad_credentials
         end
 
-        @token = @resource.create_token
 
+        @token = @resource.create_token
 
         @resource.save
 
+				puts "@resource --> ".green + " #{@resource.to_json}"
 
-        sign_in(:user, @resource, store: false, bypass: false)
+        hola = sign_in(:user, @resource, store: false, bypass: false)
+				puts "hola --> ".magenta + " #{hola}"
+
+				puts " "
+				puts "ANDO AQUIII".yellow
+				puts " "
 
         yield @resource if block_given?
 
@@ -110,6 +123,7 @@ module DeviseTokenAuth
 
     def render_create_success
       data = resource_data(resource_json: @resource.token_validation_response)
+			puts "data ".green + " #{data.to_json}"
       user = User.find_by_id(data["id"])
 
       @res.set_data(@user_en_turno, {documentos_de_identidad:true, all:true, permisos: true, roles: true})

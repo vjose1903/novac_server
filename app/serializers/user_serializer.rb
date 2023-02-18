@@ -15,7 +15,6 @@ class UserSerializer < ActiveModel::Serializer
   attribute :sign_in_count,             if: Proc.new { self.get_param('sign_in_count') || self.get_param('all') }
   attribute :documentos_de_identidad,   if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
 
-  attribute :nombreCompleto,            if: Proc.new { self.get_param('nombreCompleto')  }
   attribute :roles,                     if: Proc.new { self.get_param('roles')  }
   attribute :permisos,                  if: Proc.new { self.get_param('permisos')  }
   attribute :nombre_completo
@@ -32,12 +31,6 @@ class UserSerializer < ActiveModel::Serializer
     object.nombre.capitalize
   end
 
-  def nombreCompleto
-    nombreCompleto = "#{object.nombre.capitalize}"
-    nombreCompleto += " #{object.apellido.capitalize}" unless object.apellido.blank?
-    nombreCompleto
-  end
-
   def apellido
     object.apellido.capitalize
   end
@@ -47,21 +40,21 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def nombre_completo
-		vendedor = object.nombre_completo
-	end
+    object.nombre_completo
+  end
 
   def roles
-		roles = serialize_parser(object.roles, {id: true, descripcion: true, nombre: true})
-		roles
-	end
+    roles = serialize_parser(object.roles, {id: true, descripcion: true, nombre: true})
+    roles
+  end
 
   def permisos
-		object.get_permisos
-	end
+    object.get_permisos
+  end
 
   def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+    return @instance_options[:"#{col}"]
+  end
 end
 
 

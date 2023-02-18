@@ -2,8 +2,10 @@
 
 one:
   user: one
-  recibos_ingreso: one
+  vehiculo: one
+  cabecera_factura: one
 
 two:
   user: two
-  recibos_ingreso: two
+  vehiculo: two
+  cabecera_factura: two

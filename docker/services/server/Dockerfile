@@ -1,6 +1,6 @@
 FROM ruby:3.0.4
 
-RUN apt-get update -qq && apt-get install -y build-essential postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron
+RUN apt-get update -qq && apt-get install -y build-essential apt-utils postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron
 
 RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
@@ -26,5 +26,5 @@ RUN bundle exec wheneverize . &&\
 		chmod +x /usr/src/novac_server/wait-for-it.sh
 
 
-CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3001"]
+CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3000"]
 

@@ -12,22 +12,22 @@ class RecibosIngresosController < ApplicationController
     return Response.new(params, nil, @recibos_ingreso, nil, get_parametros_opcionales).send_response self
   end
 
-  
+
   def getRecibosFiltrados
     arg = params["arg"]
     resultado = RecibosIngreso.filtrarRecibos(arg, set_paginate_options(params))
     resultado.send_response self
   end
-  
-  
+
+
   def crear_actualizar_recibo
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
-    
+
     resultado = RecibosIngreso.create_update_recibo(parametros, true)
 		resultado.send_response self
 	end
-  
+
   # POST /recibos_ingresos
   def create
     crear_actualizar_recibo
@@ -37,7 +37,7 @@ class RecibosIngresosController < ApplicationController
   def update
     crear_actualizar_recibo
   end
-  
+
   def revertirRecibos
     resultado = RecibosIngreso.revertirRecibo(params)
     resultado.send_response self
@@ -53,7 +53,7 @@ class RecibosIngresosController < ApplicationController
   private
 
 
-  def get_parametros_opcionales 
+  def get_parametros_opcionales
     return {
       all:                 params['all'] || false,
       user_id:             params['user_id'] ||false,
@@ -64,10 +64,8 @@ class RecibosIngresosController < ApplicationController
       devuelta:            params['devuelta'] ||false,
       fecha_equivalente:   params['fecha_equivalente'] ||false,
       estado:              params['estado'] ||false,
-      vehiculo_id:         params['vehiculo_id'] ||false,
       incidencias:         params['incidencias'] ||false,
       numero_recibo:       params['numero_recibo'] ||false,
-      chofer:              params['chofer'] ||false,
       cliente:             params['cliente'] ||false,
       user:                params['user'] ||false,
       detalle_recibos:     params['detalle_recibos'] ||false,

@@ -4,16 +4,16 @@ class ApplicationController < ActionController::API
   # protect_from_forgery with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  if ENV["RAILS_ENV"] != "development"
+  # if ENV["RAILS_ENV"] != "development"
     before_action :validateUserIsLogging!
-  end
+  # end
 
   around_action :encarsular_usuario
 
-	def validateUserIsLogging!
-		unless user_signed_in?
-			render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_ssesion" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
-		end
+  def validateUserIsLogging!
+    unless user_signed_in?
+      render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_session" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
+    end
   end
 
   def encarsular_usuario
@@ -27,17 +27,17 @@ class ApplicationController < ActionController::API
 
   def testFunction
 
-		res = Response.new
-		user_id                  = get_current_user[:id]
-		result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
-		# result = Permiso.verificateUserPermiso(user_id, 'articulo')
-		# result = Permiso.verificateUserPermiso(user_id, 'marca')
+    res = Response.new
+    user_id                  = get_current_user[:id]
+    result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
+    # result = Permiso.verificateUserPermiso(user_id, 'articulo')
+    # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
-		res = result
+    res = result
 
     res.send_response self
 
-	end
+  end
 
   def testFunction_
     res = Response.new

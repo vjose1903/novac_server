@@ -1,6 +1,6 @@
 require "test_helper"
 
-class ChoferViajeTest < ActiveSupport::TestCase
+class MovimientoViajeTest < ActiveSupport::TestCase
   # test "the truth" do
   #   assert true
   # end

@@ -6,8 +6,6 @@ class RecibosIngreso < ApplicationRecord
   has_many :detalle_recibos, dependent: :destroy
 
   has_many :incidencias, :as => :origen, dependent: :destroy, class_name: "Incidencia"
-  has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
-  has_many :choferes_viajes, dependent: :destroy
 
   validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
 
@@ -19,7 +17,6 @@ class RecibosIngreso < ApplicationRecord
 			{cliente: :documentos_de_identidad},
 			:tipo_factura,
 			{detalle_recibos: [:recibos_ingreso, :cabecera_factura]},
-			{choferes_viajes: [{user: :documentos_de_identidad}]}
 		]
 		return includes
 	end
@@ -43,7 +40,6 @@ class RecibosIngreso < ApplicationRecord
       recibo.forma_pago            = params["forma_pago"]
       recibo.tipo_factura_id       = params["tipo_factura_id"]
       recibo.estado                = params["estado"]
-      recibo.estado                = params["estado"]
 
       recibo.devuelta              = params["devuelta"]
       recibo.total                 = params["total"]
@@ -54,8 +50,6 @@ class RecibosIngreso < ApplicationRecord
       dependencias = [
         {modelo: DetalleRecibo,  key_object: "detalle_recibos",  padre: recibo},
         {modelo: Incidencia,     key_object: "incidencias",      padre: recibo},
-        {modelo: ChoferViaje,     key_object: "choferes_viajes",  padre: recibo},
-        {modelo: CamionViaje,    key_object: "camiones_viajes",  padre: recibo},
       ]
 
       devoluciones = []
@@ -64,8 +58,6 @@ class RecibosIngreso < ApplicationRecord
         recibo.detalle_recibos   = dependencia_data[:detalles]      if key_object == 'detalle_recibos'
         devoluciones             = dependencia_data[:devoluciones]  if key_object == 'detalle_recibos'
         recibo.incidencias       = dependencia_data                 if key_object == 'incidencias'
-        recibo.camiones_viajes   = dependencia_data                 if key_object == 'camiones_viajes'
-        recibo.choferes_viajes   = dependencia_data                 if key_object == 'choferes_viajes'
       }
 
       if res.status_valid
@@ -204,12 +196,6 @@ class RecibosIngreso < ApplicationRecord
       res_temp    = RecibosIngreso.revertirReciboDetalle(item, self)
       return res_temp unless res_temp.status_valid
     end
-
-    self.camiones_viajes.each do |camion_viaje|
-      res_temp    = camion_viaje.vehiculo.ajustarCantViaje("-")
-      return res_temp unless res_temp.status_valid
-    end
-
 
     return res_valid
   end
