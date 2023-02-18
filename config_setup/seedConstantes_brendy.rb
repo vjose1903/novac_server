@@ -1,4 +1,3 @@
-
 G_usuarios =
 [
   {
@@ -31,6 +30,21 @@ G_usuarios =
     'estado': true,
     'imagen_id': nil,
   },
+	{
+    'nombre': 'Novac',
+    'usuario': 'novac',
+    'uid': 'novac',
+    'apellido': 'system',
+    'sexo': 'i',
+    'telefono': '(000) 000-0000',
+    'email': 'novacbrendy@gmail.com',
+    'fecha_nacimiento': '1998-03-19',
+    'role': 'A',
+    'password': '1234567',
+    'password_confirmation': '1234567',
+    'estado': true,
+    'imagen_id': nil,
+  },
 ]
 
 
@@ -49,16 +63,30 @@ G_clientes = [
 ]
 
 G_documentos_de_identidad = [
-  {
+	{
     'origen_type': 'User',
-    'origen_id': 2,
+    'origen_entity': 'adm01',
     'descripcion': 'cedula',
     'documento': '000-0000000-0',
     'principal': true,
   },
   {
-    'origen_type': 'Cliente',
-    'origen_id': 1,
+		'origen_type': 'User',
+		'origen_entity': 'ADMIN',
+    'descripcion': 'cedula',
+    'documento': '402-2287186-1',
+    'principal': true,
+  },
+	{
+		'origen_type': 'User',
+		'origen_entity': 'novac',
+    'descripcion': 'cedula',
+    'documento': '000-0000000-1',
+    'principal': true,
+  },
+  {
+		'origen_type': 'Cliente',
+		'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
     'principal': true,
@@ -120,4 +148,10 @@ G_PERMISOS = [
 	{ nombre:'roles',                         mostrar_front: true,     descripcion: 'role',                    controlador: 'Roles',                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getRolesFiltrados'}]}
 ]
 
-G_ROLES_CUSTOM = []
+G_ROLES_CUSTOM = [
+	{  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
+]
+
+G_CONFIG_ARTICULOS = [
+	{ porciento_ganancia: 10}
+]

@@ -6,9 +6,22 @@ white=$(tput setaf 7)
 yellow=$(tput setaf 3)
 cyan=$(tput setaf 6)
 
-OPTIONS="waptc:buds"
+OPTIONS="weaptc:buds"
 PRODUCTION='no'
 BACKGROUND='no'
+
+shDockerContainer() {
+  is_prod=$(echo $is_PRODUCTION)
+
+  cliente=$(cat config_setup/actual_cliente.txt)
+	if [ "$is_prod" == "yes" ]; then environment_selected='-prod'; else environment_selected='-dev'; fi
+
+
+  echo "${green} docker-compose exec $cliente$environment_selected sh"
+  echo "${white} "
+
+  docker-compose exec $cliente$environment_selected sh
+}
 
 getActualClient() {
   cliente=$(cat config_setup/actual_cliente.txt)
@@ -27,7 +40,7 @@ setClient() {
   echo "${cyan}setClient >> ${client}"
   echo "${white} "
 
-	if [ "$PRODUCTION" == "yes" ]; then environment_selected='prod'; else environment_selected='dev'; fi
+  if [ "$PRODUCTION" == "yes" ]; then environment_selected='prod'; else environment_selected='dev'; fi
 
   if [ "$client" == "agrodemi" -o "$client" == "brendy" -o "$client" == "vasquez" ]; then
     ruby ./setup.rb $client $environment_selected
@@ -59,10 +72,17 @@ dockerCommand() {
 while getopts $OPTIONS opt; do
   echo " "
 
+  export is_PRODUCTION='no'
+  export is_BACKGROUND='no'
+
   case "${opt}" in
   w)
     echo "la opcion -w"
     docker system prune -f
+  ;;
+  e)
+    echo "la opcion -e"
+    shDockerContainer
   ;;
   a)
     echo "la opcion -a"
@@ -71,6 +91,7 @@ while getopts $OPTIONS opt; do
   p)
     echo "la opcion -p"
     PRODUCTION='yes'
+    export is_PRODUCTION='yes'
     echo "${white} "
     echo "${yellow} -=-=-=- EJECUTANDO EN PRODUCCION -=-=-=-${white}"
     echo "${white} "
@@ -78,6 +99,7 @@ while getopts $OPTIONS opt; do
   t)
     echo "la opcion -t"
     BACKGROUND='yes'
+    export is_BACKGROUND='yes'
     ;;
   c)
     echo "la opcion -c"
