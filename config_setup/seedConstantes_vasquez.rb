@@ -148,17 +148,9 @@ G_PERMISOS = [
 ]
 
 G_ROLES_CUSTOM = [
-<<<<<<< HEAD
-	{  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
-]
-
-G_CONFIG_ARTICULOS = [
-	{ porciento_ganancia: 10}
-=======
   {  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
 ]
 
 G_CONFIG_ARTICULOS = [
   { porciento_ganancia: 10}
->>>>>>> panaderia_brendy
 ]

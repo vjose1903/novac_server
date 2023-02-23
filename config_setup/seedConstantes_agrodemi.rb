@@ -72,13 +72,6 @@ G_documentos_de_identidad = [
   },
   {
     'origen_type': 'User',
-    'origen_id': 3,
-    'descripcion': 'cedula',
-    'documento': '000-0000000-1',
-    'principal': true,
-  },
-  {
-    'origen_type': 'User',
 		'origen_entity': 'ADMIN',
     'descripcion': 'cedula',
     'documento': '047-0099635-0',

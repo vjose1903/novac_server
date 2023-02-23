@@ -565,7 +565,7 @@ class Reporte < ApplicationRecord
         select_ = "cabecera_facturas.id, coalesce(clientes.nombre || ' ' || clientes.apellido,'Cliente contado') as cliente_nombre,
         cabecera_facturas.tipo_factura_id as tipo_factura_id, cabecera_facturas.fecha_equivalente,
         cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
-        cabecera_facturas.total_factura, cabecera_facturas.itbis,
+        cabecera_facturas.total_factura, cabecera_facturas.itbis, cabecera_facturas.descuento,
         coalesce( SUM (CASE WHEN notas.tipo_factura_id = #{TiposNotasId.credito} THEN facturas_aplicadas.total ELSE 0 END), 0) as total_devuelto"
 
 				select_ += ', "cabecera_facturas"."Bruto"'
@@ -579,22 +579,22 @@ class Reporte < ApplicationRecord
         total_devuelto  = 0
         bruto           = 0
         itbis           = 0
-        total_facturado = 0
+        descuento       = 0
 
         ventas = CabeceraFactura
         .select(select_).joins(joins_).where(query).where(where_formas).where(query_is_viaje).group(group_by)
         .order("cabecera_facturas.fecha_equivalente ASC").each do |cf|
-            total_devuelto    += cf['total_devuelto']
-            bruto             += cf['Bruto'] || 0
-            itbis             += cf['itbis'] || 0
-            total_facturado   += cf['total_factura'] || 0
-        end
+            total_devuelto    += cf[:total_devuelto]
+            bruto             += cf[:Bruto] || 0
+            itbis             += cf[:itbis] || 0
+            descuento         += cf[:descuento] || 0
+					end
 
-        total_ventas = (total_facturado + itbis) - total_devuelto
+        total_ventas = ((bruto + itbis) - descuento) - total_devuelto
 
-        sub_titulo = "Cliente: #{ buscar_cliente({cliente_id: params['cliente_id']}.with_indifferent_access , 125, ['nombre'])["nombre"] }" if tipo_reporte == TipoReporteVentas.ventas_cliente
+        sub_titulo   = "Cliente: #{ buscar_cliente({cliente_id: params['cliente_id']}.with_indifferent_access , 125, ['nombre'])["nombre"] }" if tipo_reporte == TipoReporteVentas.ventas_cliente
 
-        ventas = sum_by_day_ventas(ventas) if tipo == 'agrupado'
+        ventas       = sum_by_day_ventas(ventas) if tipo == 'agrupado'
 
         obj = { body: ventas, totalizacion: { bruto: bruto,  itbis: itbis, total: total_ventas, devuelto: total_devuelto } , sub_t: sub_titulo}
 
@@ -609,11 +609,13 @@ class Reporte < ApplicationRecord
 
         {
           fecha: formatearFecha(date.to_s, TipoFecha.sin_hora),
-          ventas_contado: ventas_contado.sum(&:total_factura),
-          ventas_credito: ventas_credito.sum(&:total_factura),
-          bruto_general: group.sum(&:total_factura),
-          devuelto_general: group.sum(&:total_devuelto),
-          total_general: group.sum(&:total_factura) - group.sum(&:total_devuelto)
+          ventas_contado:     ventas_contado.sum(&:total_factura),
+          ventas_credito:     ventas_credito.sum(&:total_factura),
+          descuento_general:  group.sum(&:descuento),
+          itbis_general:      group.sum(&:itbis),
+          bruto_general:      group.sum(&:Bruto),
+          devuelto_general:   group.sum(&:total_devuelto),
+          total_general:      group.sum(&:total_factura) - group.sum(&:total_devuelto)
         }
       end
 
