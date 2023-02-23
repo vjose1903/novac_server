@@ -37,7 +37,7 @@ G_usuarios =
     'apellido': 'system',
     'sexo': 'i',
     'telefono': '(000) 000-0000',
-    'email': 'novacvasquez@gmail.com',
+    'email': 'novacagrodemi@gmail.com',
     'fecha_nacimiento': '1998-03-19',
     'role': 'A',
     'password': '1234567',
@@ -65,14 +65,7 @@ G_clientes = [
 G_documentos_de_identidad = [
 	{
     'origen_type': 'User',
-    'origen_id': 1,
-    'descripcion': 'cedula',
-    'documento': '000-0000000-0',
-    'principal': true,
-  },
-  {
-    'origen_type': 'User',
-    'origen_id': 2,
+		'origen_entity': 'adm01',
     'descripcion': 'cedula',
     'documento': '047-0099635-0',
     'principal': true,
@@ -85,8 +78,22 @@ G_documentos_de_identidad = [
     'principal': true,
   },
   {
+    'origen_type': 'User',
+		'origen_entity': 'ADMIN',
+    'descripcion': 'cedula',
+    'documento': '047-0099635-0',
+    'principal': true,
+  },
+  {
+    'origen_type': 'User',
+		'origen_entity': 'novac',
+    'descripcion': 'cedula',
+    'documento': '000-0000000-1',
+    'principal': true,
+  },
+  {
     'origen_type': 'Cliente',
-    'origen_id': 1,
+		'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
     'principal': true,

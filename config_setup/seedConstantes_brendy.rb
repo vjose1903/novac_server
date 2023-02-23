@@ -1,4 +1,3 @@
-
 G_usuarios =
 [
   {
@@ -38,7 +37,7 @@ G_usuarios =
     'apellido': 'system',
     'sexo': 'i',
     'telefono': '(000) 000-0000',
-    'email': 'novacvasquez@gmail.com',
+    'email': 'novacbrendy@gmail.com',
     'fecha_nacimiento': '1998-03-19',
     'role': 'A',
     'password': '1234567',
@@ -66,28 +65,28 @@ G_clientes = [
 G_documentos_de_identidad = [
 	{
     'origen_type': 'User',
-    'origen_id': 1,
+    'origen_entity': 'adm01',
     'descripcion': 'cedula',
-    'documento': '000-0000000-0',
+    'documento': '000-00000000-0',
     'principal': true,
   },
   {
-    'origen_type': 'User',
-    'origen_id': 2,
+		'origen_type': 'User',
+		'origen_entity': 'ADMIN',
     'descripcion': 'cedula',
     'documento': '402-2287186-1',
     'principal': true,
   },
 	{
-    'origen_type': 'User',
-    'origen_id': 3,
+		'origen_type': 'User',
+		'origen_entity': 'novac',
     'descripcion': 'cedula',
     'documento': '000-0000000-1',
     'principal': true,
   },
   {
-    'origen_type': 'Cliente',
-    'origen_id': 1,
+		'origen_type': 'Cliente',
+		'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
     'principal': true,

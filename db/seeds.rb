@@ -8,13 +8,13 @@
 
 
 G_usuarios.each do |user|
-  puts " "
 
-  if User.find_by_usuario(user[:usuario]).nil?
+  if User.find_by_usuario(user[:usuario]).nil? && User.find_by_email(user[:email]).nil?
     puts "===================================".blue
-    puts "a crear el ususario #{user["usuario"]}"
+    puts "a crear el usuario: #{user[:usuario]}"
     puts "===================================".blue
     usuario_creado = User.create(user)
+
     puts "ERROR- Usuario: ".red + "#{usuario_creado.errors.to_json}" if !usuario_creado.errors.empty?
   end
 end
@@ -28,8 +28,11 @@ G_clientes.each do |client|
 end
 
 G_documentos_de_identidad.each do | doc |
+
+	entidad = doc[:origen_type] == 'User' ? User.find_by_usuario(doc[:origen_entity]) : Cliente.find_by_nombre(doc[:origen_entity])
+
   if DocumentoDeIdentidad.find_by_documento(doc[:documento]).nil?
-    documento = DocumentoDeIdentidad.create(doc)
+    documento = DocumentoDeIdentidad.create({ origen_type: doc[:origen_type], origen_id: entidad.id, descripcion: doc[:descripcion], documento: doc[:documento], principal: doc[:principal] })
     puts " "
     puts "ERROR -  documento_identidad: ".red + "#{documento.errors.to_json}" if !documento.errors.empty?
   end
@@ -245,7 +248,7 @@ G_ROLES_CUSTOM.each do | rol |
 
       permiso_accion_backend = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id}) if permiso_accion_backend.empty?
 
-			permiso_accion_backend = permiso_accion_backend.first if permiso_accion_backend.kind_of?(Array)
+      permiso_accion_backend = permiso_accion_backend.first if permiso_accion_backend.kind_of?(Array)
 
       rol_permiso_accion       = RolPermisoAccion.where({role_id: rol_backend.id , permiso_accion_id: permiso_accion_backend.id})
 
@@ -267,55 +270,56 @@ end
 
 ['ADMIN','novac'].each do | username |
 
-	usuario_admin           = User.find_by_usuario(username)
+  usuario_admin           = User.find_by_usuario(username)
 
-	unless usuario_admin.nil?
-		roles_usuario         = usuario_admin.roles
-		if roles_usuario.empty?
-			puts " "
-			puts "------".cyan * 7
-			puts "AGREGANDO ROLE ADMINISTRADOR AL USUARIO: #{usuario_admin.nombre}"
-			puts "------".cyan * 7
-			usuario_admin.roles = Role.where({key: "admin"})
-			usuario_admin.save!
-			puts " " if !usuario_admin.errors.empty?
-			puts "ERROR- agregando role admin: ".red + "#{usuario_admin.errors.to_json}" if !usuario_admin.errors.empty?
-		end
-	end
+  unless usuario_admin.nil?
+    roles_usuario         = usuario_admin.roles
+    if roles_usuario.empty?
+      puts " "
+      puts "------".cyan * 7
+      puts "AGREGANDO ROLE ADMINISTRADOR AL USUARIO: #{usuario_admin.nombre}"
+      puts "------".cyan * 7
+      usuario_admin.roles = Role.where({key: "admin"})
+			puts 'usuario_admin --> '.cyan + " #{usuario_admin.to_json}"
+      usuario_admin.save!
+      puts " " if !usuario_admin.errors.empty?
+      puts "ERROR- agregando role admin: ".red + "#{usuario_admin.errors.to_json}" if !usuario_admin.errors.empty?
+    end
+  end
 
 end
 
 vendedor_default           = User.find_by_usuario('adm01')
 
 unless vendedor_default.nil?
-	roles_usuario         = vendedor_default.roles
-	if roles_usuario.empty?
-		puts " "
-		puts "------".cyan * 7
-		puts "AGREGANDO ROLE VENDEDOR AL USUARIO TIENDA"
-		puts "------".cyan * 7
-		vendedor_default.roles = Role.where({key: "vendedor"})
-		vendedor_default.save!
-		puts " " if !vendedor_default.errors.empty?
-		puts "ERROR- agregando role admin: ".red + "#{vendedor_default.errors.to_json}" if !vendedor_default.errors.empty?
-	end
+  roles_usuario         = vendedor_default.roles
+  if roles_usuario.empty?
+    puts " "
+    puts "------".cyan * 7
+    puts "AGREGANDO ROLE VENDEDOR AL USUARIO TIENDA"
+    puts "------".cyan * 7
+    vendedor_default.roles = Role.where({key: "vendedor"})
+    vendedor_default.save!
+    puts " " if !vendedor_default.errors.empty?
+    puts "ERROR- agregando role admin: ".red + "#{vendedor_default.errors.to_json}" if !vendedor_default.errors.empty?
+  end
 end
 
 
 G_CONFIG_ARTICULOS.each do |config|
 
-	configuracion_articulo_backend =  ConfigArticulo.find_by_id(1)
+  configuracion_articulo_backend =  ConfigArticulo.find_by_id(1)
 
 
-	if configuracion_articulo_backend.nil?
-		configuracion_articulo_backend = ConfigArticulo.create(config)
-		puts " "
-		puts "------".cyan * 7
-		puts "CREANDO CONFIGURACION ARTICULO"
-		puts "------".cyan * 7
-		puts " "
-		puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_backend.errors.to_json}" if !configuracion_articulo_backend.errors.empty?
-	end
+  if configuracion_articulo_backend.nil?
+    configuracion_articulo_backend = ConfigArticulo.create(config)
+    puts " "
+    puts "------".cyan * 7
+    puts "CREANDO CONFIGURACION ARTICULO"
+    puts "------".cyan * 7
+    puts " "
+    puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_backend.errors.to_json}" if !configuracion_articulo_backend.errors.empty?
+  end
 
 end
 

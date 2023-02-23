@@ -14,7 +14,7 @@ service cron start
 
 whenever --update-crontab
 
-rails server -b 0.0.0.0 --port 3002
+rails server -b 0.0.0.0 --port 3001
 
 
 
