@@ -37,7 +37,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :tipo_factura,                                   if: Proc.new { self.get_param('tipo_factura') || self.get_param('all') }
 
   attribute :detalle_facturas,                               if: Proc.new { self.get_param('detalle_facturas') || self.get_param('all') }
-  attribute :cliente,                                        if: Proc.new { !object.cliente_id.nil? && (self.get_param('cliente') || self.get_param('all')) }
+  attribute :cliente,                                        if: Proc.new { (!object.cliente_id.nil? || !object.NoCliente_nombre.nil? ) && (self.get_param('cliente') || self.get_param('all')) }
   attribute :suplidor,                                       if: Proc.new { !object.suplidor_id.nil? && (self.get_param('suplidor') || self.get_param('all')) }
   attribute :usuario,                                        if: Proc.new { self.get_param('usuario') || self.get_param('all') }
   attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
