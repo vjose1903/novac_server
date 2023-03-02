@@ -55,9 +55,9 @@ class User < ApplicationRecord
 			return User.joins(:roles).where(roles: {key: parametros["filter_value"]})
     elsif parametros["filter_key"] == 'cedula'
 
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: parametros["filter_value"]})
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: parametros["filter_value"]}).where("usuario NOT IN ('novac', 'adm01')")
     elsif parametros["filter_key"] == 'rnc'
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: parametros["filter_value"]})
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: parametros["filter_value"]}).where("usuario NOT IN ('novac', 'adm01')")
     else
       return User.all.where("#{parametros["filter_key"]} = #{parametros["filter_value"]} and estado = true")
     end

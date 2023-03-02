@@ -7,7 +7,7 @@ class UsersController < ApplicationController
       users = User.handleFilter(params)
       return Response.new(params, nil, users, nil, get_parametros_opcionales).send_response self
     else
-      return Response.new(params, nil, User.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
+      return Response.new(params, nil, User.all.where({ estado: true}).where("usuario NOT IN ('novac', 'adm01')").order('id DESC'), nil, get_parametros_opcionales).send_response self
     end
   end
 
