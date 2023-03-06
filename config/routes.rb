@@ -93,6 +93,7 @@ Rails.application.routes.draw do
       get "filtro/:arg"                                => "articulos#getArticulosFiltrados" #
       get "historico/:date/:articulo_id"               => "mantenimiento_articulos#getOneArticuloByDate" #
       get "custom/stock"                               => "articulos#getStock"
+      get "custom/get_actual_price_detalles"           => "articulos#getActualPriceDetalles"
     end
   end
 
