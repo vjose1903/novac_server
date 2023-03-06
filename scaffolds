@@ -165,3 +165,6 @@ rails generate serializer movimiento_viaje
 
 rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
+
+rails g scaffold grupo_cuenta descripcion:string grupo:integer origen:string tipo:string
+rails g scaffold cuenta_contable grupo_cuenta:references descripcion:string cuenta_control:integer codigo:string nivel:integer origen:string tipo:string

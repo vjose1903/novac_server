@@ -36,6 +36,7 @@ es:
     marca: "Marca"
     modelo: "Modelo"
     secuencia_comprobante: "Paquete de comprobantes"
+    grupo_cuenta: "Grupo de cuenta"
 
   errors:
     format: "%{message}"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_06_211616) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -196,6 +196,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
 
+  create_table "cuentas_contables", force: :cascade do |t|
+    t.bigint "grupo_cuenta_id", null: false
+    t.string "descripcion"
+    t.integer "cuenta_control"
+    t.string "codigo"
+    t.integer "nivel"
+    t.string "origen"
+    t.string "tipo"
+    t.boolean "estado"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["grupo_cuenta_id"], name: "index_cuentas_contables_on_grupo_cuenta_id"
+  end
+
   create_table "detalle_conduces", force: :cascade do |t|
     t.bigint "cabecera_conduce_id"
     t.bigint "detalle_factura_id"
@@ -325,6 +339,16 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "medida"
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
+  end
+
+  create_table "grupos_de_cuentas", force: :cascade do |t|
+    t.string "descripcion"
+    t.integer "grupo"
+    t.string "origen"
+    t.string "tipo"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "historico_producciones", force: :cascade do |t|
@@ -476,10 +500,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.string "controlador"
-    t.boolean "mostrar_front"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "controlador"
+    t.boolean "mostrar_front"
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -532,11 +556,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "estado"
     t.string "key"
-    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
@@ -674,6 +697,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   add_foreign_key "costos_fletes_historiales", "costo_fletes"
   add_foreign_key "costos_fletes_historiales", "users"
   add_foreign_key "cuadre_cajas", "users"
+  add_foreign_key "cuentas_contables", "grupos_de_cuentas"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"
