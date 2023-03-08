@@ -37,6 +37,11 @@ es:
     modelo: "Modelo"
     secuencia_comprobante: "Paquete de comprobantes"
     grupo_cuenta: "Grupo de cuenta"
+    cuenta_contable: "Cuenta contable"
+    periodo_fiscal: "Periodo fiscal"
+    detalle_periodo: "Detalle periodo"
+
+
 
   errors:
     format: "%{message}"

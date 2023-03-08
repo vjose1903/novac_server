@@ -174,7 +174,7 @@ rails g scaffold config_articulo porciento_ganancia:float
 ✅ rails g scaffold cuenta_contable grupo_cuenta:references descripcion:string cuenta_control:integer codigo:string nivel:integer origen:string tipo:string
 
 rails g scaffold periodo_fiscal fecha_inicio:date fecha_cierre:date estado:boolean
-rails g scaffold detalle_periodo periodo_fiscal_id:references enero:boolean febrero:boolean marzo:boolean abril:boolean mayo:boolean junio:boolean julio:boolean agosto:boolean septiembre:boolean octubre:boolean noviembre:boolean diciembre:boolean
+rails g scaffold detalle_periodo_fiscal periodo_fiscal_id:references enero:boolean febrero:boolean marzo:boolean abril:boolean mayo:boolean junio:boolean julio:boolean agosto:boolean septiembre:boolean octubre:boolean noviembre:boolean diciembre:boolean
 
 rails g scaffold cabeza_asiento_contable fecha_equivalente:date comentario:string estado:boolean
 rails g model detalle_asiento_contable cabeza_asiento_contable:references cuenta_contable:references tipo:string valor:float

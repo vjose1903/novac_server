@@ -1,10 +1,8 @@
 class Suplidor < ApplicationRecord
 
-  validates :nombre, presence: { :message => "El nombre del suplidor no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Este suplidor ya esta registrado" }
-
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
-
   accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
+
 
   validates :nombre,              presence: { :message => "Nombre del suplidor no puede estar vacio." },      uniqueness: { scope: :estado, case_sensitive: false, :message => "Suplidor ya esta registrado" }, :if => :estado
   validates :direccion,           presence: { :message => "Dirección del suplidor no puede estar vacio." }

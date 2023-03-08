@@ -36,7 +36,6 @@ class GruposDeCuentasController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_grupo_cuenta
-			puts "ANDO AQUIII".red
       respuesta = set_entidad(GrupoCuenta, params)
       @grupo_cuenta = respuesta.get_data
 

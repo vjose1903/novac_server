@@ -39,12 +39,9 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "camion_viaje",                           "camiones_viajes"
   inflect.irregular "chofer_viaje",                           "choferes_viajes"
   inflect.irregular "movimiento_viaje",                       "movimientos_viaje"
+  inflect.irregular "movimiento_viaje",                       "movimientos_viaje"
   inflect.irregular "grupo_cuenta",                           "grupos_de_cuentas"
   inflect.irregular "cuenta_contable",                        "cuentas_contables"
-
-  # inflect.irregular "otro_costo",                             "otros_costos"
-  # inflect.irregular "otro_costo_articulo",                    "otros_costos_articulos"
-  # inflect.irregular "otro_costo_historial",                   "otros_costos_historiales"
-  # inflect.irregular "otro_costo_mantenimiento_articulo",      "otros_costos_mantenimientos_articulos"
-
+  inflect.irregular "periodo_fiscal",                         "periodos_fiscales"
+  inflect.irregular "detalle_periodo_fiscal",                 "detalles_periodos_fiscales"
 end
