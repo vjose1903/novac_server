@@ -204,7 +204,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_06_211616) do
     t.integer "nivel"
     t.string "origen"
     t.string "tipo"
-    t.boolean "estado"
+    t.boolean "is_control"
+    t.boolean "estado", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["grupo_cuenta_id"], name: "index_cuentas_contables_on_grupo_cuenta_id"

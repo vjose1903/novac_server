@@ -8,7 +8,8 @@ class CreateCuentasContables < ActiveRecord::Migration[7.0]
       t.integer :nivel
       t.string :origen
       t.string :tipo
-			t.boolean :estado
+			t.boolean :is_control
+			t.boolean :estado, :default => true
 
       t.timestamps
     end

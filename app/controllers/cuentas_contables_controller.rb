@@ -13,8 +13,19 @@ class CuentasContablesController < ApplicationController
   end
 
 	def crear_actualizar_cuenta_contable
-    resultado = CuentaContable.create_update_cuenta_contable(params, true)
-    resultado.send_response self
+		res          = Response.new
+		grupo_cuenta = GrupoCuenta.find_by_id(params[:grupo_cuenta_id])
+
+		unless grupo_cuenta.nil?
+			params[:grupo_cuenta_id] = grupo_cuenta.id
+			res                      = CuentaContable.create_update_cuenta_contable(params, grupo_cuenta, true)
+		else
+			res.add_msg("Grupo de cuenta no existe.")
+			res.set_status(HTTP_STATUS_CODE[:conflict])
+		end
+
+		res.send_response self
+
   end
 
   # POST /cuentas_contables

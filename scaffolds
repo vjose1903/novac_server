@@ -166,5 +166,21 @@ rails generate serializer movimiento_viaje
 rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
 
-rails g scaffold grupo_cuenta descripcion:string grupo:integer origen:string tipo:string
-rails g scaffold cuenta_contable grupo_cuenta:references descripcion:string cuenta_control:integer codigo:string nivel:integer origen:string tipo:string
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------
+// CONTABILIDAD
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+✅ rails g scaffold grupo_cuenta descripcion:string grupo:integer origen:string tipo:string
+✅ rails g scaffold cuenta_contable grupo_cuenta:references descripcion:string cuenta_control:integer codigo:string nivel:integer origen:string tipo:string
+
+rails g scaffold periodo_fiscal fecha_inicio:date fecha_cierre:date estado:boolean
+rails g scaffold detalle_periodo periodo_fiscal_id:references enero:boolean febrero:boolean marzo:boolean abril:boolean mayo:boolean junio:boolean julio:boolean agosto:boolean septiembre:boolean octubre:boolean noviembre:boolean diciembre:boolean
+
+rails g scaffold cabeza_asiento_contable fecha_equivalente:date comentario:string estado:boolean
+rails g model detalle_asiento_contable cabeza_asiento_contable:references cuenta_contable:references tipo:string valor:float
+
+rails g scaffold divisa nombre:string simbolo:string imagen:string is_principal:boolean estado:boolean
+rails g scaffold tasa_cambio divisa:references valor:float fecha_equivalente:date
+
+rails g scaffold cierre_cuenta periodo_fiscal_id:references cuenta_contable_id:references enero:float enero_debito:float enero_credito:float febrero:float febrero_debito:float febrero_credito:float marzo:float marzo_debito:float marzo_credito:float abril:float abril_debito:float abril_credito:float mayo:float mayo_debito:float mayo_credito:float junio:float junio_debito:float junio_credito:float julio:float julio_debito:float julio_credito:float agosto:float agosto_debito:float agosto_credito:float septiembre:float septiembre_debito:float septiembre_credito:float octubre:float octubre_debito:float octubre_credito:float noviembre:float noviembre_debito:float noviembre_credito:float diciembre:float diciembre_debito:float diciembre_credito:float
+

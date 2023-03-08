@@ -1,26 +1,27 @@
 class GrupoCuenta < ApplicationRecord
 
-  has_many :cuentas_contables, dependent: :destroy
+  has_many :cuentas_contables
 
-  validates :descripcion,              presence: { :message => "Descripcion de la cuenta contable no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Grupo de cuenta ya esta registrado" }, :if => :estado
-  validates :origen,                   presence: { :message => "Origen de la cuenta contable no puede estar vacio." }
+  validates :descripcion,              presence: { :message => "Descripcion del grupo de cuentas contable no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Grupo de cuenta ya esta registrado" }, :if => :estado
+  validates :origen,                   presence: { :message => "Origen del grupo de cuentas contable no puede estar vacio." }
+
+
+  # ============================================================================================================================================
 
   def self.create_update_grupo_cuenta(params, is_save=false)
     res                            = Response.new
     GrupoCuenta.transaction do
 
-    grupo_cuenta                   = GrupoCuenta.where(:id => params["id"]).first_or_create
+      grupo_cuenta                   = GrupoCuenta.where(:id => params[:id]).first_or_create
 
-    grupo_cuenta.descripcion       = params["descripcion"]
-    grupo_cuenta.grupo             = GrupoCuenta.get_next_group
-    grupo_cuenta.origen            = params["origen"]
-    grupo_cuenta.tipo              = params["tipo"]
-    grupo_cuenta.valid?
+      grupo_cuenta.descripcion       = params[:descripcion]       unless params[:descripcion].nil?
+      grupo_cuenta.grupo             = GrupoCuenta.get_next_group if grupo_cuenta.id.nil?
+      grupo_cuenta.origen            = params[:origen]            unless params[:origen].nil?
+      grupo_cuenta.tipo              = params[:tipo]              unless params[:tipo].nil?
+      grupo_cuenta.valid?
 
       if grupo_cuenta.errors.empty?
-				params = create_first_cuenta(params, grupo_cuenta) if grupo_cuenta.id.nil?
-
-				puts "params --> ".red + " #{params.to_json}"
+        params = create_first_cuenta(params, grupo_cuenta) if grupo_cuenta.id.nil?
 
         dependencias = [{modelo: CuentaContable, key_object: "cuentas_contables", padre: grupo_cuenta }]
 
@@ -40,7 +41,6 @@ class GrupoCuenta < ApplicationRecord
         res.add_msgs(grupo_cuenta.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
-
 
       raise ActiveRecord::Rollback if !grupo_cuenta.errors.empty? || !res.status_valid
     end
@@ -62,20 +62,17 @@ class GrupoCuenta < ApplicationRecord
     return next_group
   end
 
-	# ============================================================================================================================================
+  # ============================================================================================================================================
 
-	def self.create_first_cuenta(params, grupo_cuenta)
-		params["cuentas_contables"] = [{
-			"descripcion" =>      grupo_cuenta.descripcion,
-			"cuenta_control" =>   nil,
-			"codigo" =>           grupo_cuenta.grupo,
-			"nivel" =>            1,
-			"origen" =>           grupo_cuenta.origen,
-			"tipo" =>             grupo_cuenta.tipo,
-			"estado" =>           true,
-		}]
+  def self.create_first_cuenta(params, grupo_cuenta)
+    params["cuentas_contables"] = [{
+      "descripcion" => grupo_cuenta.descripcion,
+      "origen"      => grupo_cuenta.origen,
+      "tipo"        => grupo_cuenta.tipo,
+      "is_control"  => true
+      }]
 
-		return params
-	end
+    return params
+  end
 
 end

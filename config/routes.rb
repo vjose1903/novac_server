@@ -24,6 +24,7 @@ Rails.application.routes.draw do
   resources :detalles_facturas_notas
   resources :config_articulos
   resources :grupos_de_cuentas
+  resources :cuentas_contables
 
 
   resources :roles do
