@@ -267,6 +267,20 @@ class Articulo < ApplicationRecord
     contenidos
   end
 
+	# =====================================================================================================================
+
+  def self.get_actual_price_detalles(params, parametros_opcionales)
+		res                = Response.new()
+    ids                = params[:ids].split(",").map(&:to_i)
+
+		articulos          = Articulo.where(id: ids).includes(Articulo.models_includes)
+
+		res.set_data(articulos, {**parametros_opcionales})
+
+		return res
+	end
+
+	# =====================================================================================================================
   def self.calcularCantidades(articulo)
     contenido = articulo.contenido_articulos
 
