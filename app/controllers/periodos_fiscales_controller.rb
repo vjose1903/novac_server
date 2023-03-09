@@ -32,6 +32,11 @@ class PeriodosFiscalesController < ApplicationController
     resultado.send_response self
   end
 
+  def openNewPeriodo
+		resultado = PeriodoFiscal.open_new_periodo()
+    resultado.send_response self
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_periodo_fiscal

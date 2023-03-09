@@ -3,7 +3,7 @@ class CreatePeriodosFiscales < ActiveRecord::Migration[7.0]
     create_table :periodos_fiscales do |t|
       t.date :fecha_inicio
       t.date :fecha_cierre
-      t.boolean :estado
+      t.boolean :estado, :default => true
 
       t.timestamps
     end

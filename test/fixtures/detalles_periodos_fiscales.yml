@@ -1,0 +1,31 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  periodo_fiscal_id: one
+  enero: false
+  febrero: false
+  marzo: false
+  abril: false
+  mayo: false
+  junio: false
+  julio: false
+  agosto: false
+  septiembre: false
+  octubre: false
+  noviembre: false
+  diciembre: false
+
+two:
+  periodo_fiscal_id: two
+  enero: false
+  febrero: false
+  marzo: false
+  abril: false
+  mayo: false
+  junio: false
+  julio: false
+  agosto: false
+  septiembre: false
+  octubre: false
+  noviembre: false
+  diciembre: false

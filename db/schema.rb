@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_06_211616) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_09_130127) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -289,6 +289,25 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_06_211616) do
     t.index ["tipo_factura_id"], name: "index_detalles_facturas_notas_on_tipo_factura_id"
   end
 
+  create_table "detalles_periodos_fiscales", force: :cascade do |t|
+    t.bigint "periodo_fiscal_id", null: false
+    t.boolean "enero"
+    t.boolean "febrero"
+    t.boolean "marzo"
+    t.boolean "abril"
+    t.boolean "mayo"
+    t.boolean "junio"
+    t.boolean "julio"
+    t.boolean "agosto"
+    t.boolean "septiembre"
+    t.boolean "octubre"
+    t.boolean "noviembre"
+    t.boolean "diciembre"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["periodo_fiscal_id"], name: "index_detalles_periodos_fiscales_on_periodo_fiscal_id"
+  end
+
   create_table "detalles_produccion", force: :cascade do |t|
     t.bigint "produccion_id"
     t.bigint "articulo_id"
@@ -496,6 +515,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_06_211616) do
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"
+  end
+
+  create_table "periodos_fiscales", force: :cascade do |t|
+    t.date "fecha_inicio"
+    t.date "fecha_cierre"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "permisos", force: :cascade do |t|
@@ -709,6 +736,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_06_211616) do
   add_foreign_key "detalles_facturas_notas", "articulos"
   add_foreign_key "detalles_facturas_notas", "detalle_facturas"
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"
+  add_foreign_key "detalles_periodos_fiscales", "periodos_fiscales"
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
   add_foreign_key "documentos_de_identidad", "clientes"

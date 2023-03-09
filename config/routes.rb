@@ -155,12 +155,12 @@ Rails.application.routes.draw do
 
   resources :secuencia_comprobantes do
     collection do
-      get "custom/:id/:estado"  => "secuencia_comprobantes#getPaqueteRncByEstado"
-      get "filtro/:arg"         => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
+      get "custom/:id/:estado"           => "secuencia_comprobantes#getPaqueteRncByEstado"
+      get "filtro/:arg"                  => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
     end
   end
 
-  post "ruta/test"              => "application#testFunction"
+  post "ruta/test"                       => "application#testFunction"
 
   resources :permisos do
     collection do
@@ -168,11 +168,19 @@ Rails.application.routes.draw do
     end
   end
 
+	resources :periodos_fiscales do
+		collection do
+			post "custom/open_new_periodo"      => "periodos_fiscales#openNewPeriodo"
+		end
+	end
+
+
+
   mount_devise_token_auth_for "User", at: "auth", controllers: {
-                                        sessions: "devise_token_auth/sessions",
-                                        registrations: "devise_token_auth/registrations",
-                                        token_validations: "devise_token_auth/token_validations",
-                                      }
+		sessions: "devise_token_auth/sessions",
+		registrations: "devise_token_auth/registrations",
+		token_validations: "devise_token_auth/token_validations",
+	}
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end
