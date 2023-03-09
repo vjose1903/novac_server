@@ -1,5 +1,5 @@
 class PeriodoFiscal < ApplicationRecord
-  has_many :detalles_periodos_fiscales, dependent: :destroy
+  has_many :detalles_periodos_fiscales
 
   validates :fecha_inicio, presence: { :message => "Debe de especificar una fecha de inicio para el periodo fiscal." }
   validates :fecha_cierre, presence: { :message => "Debe de especificar una fecha de cierre para el periodo fiscal." }
@@ -19,7 +19,7 @@ class PeriodoFiscal < ApplicationRecord
 
       if periodo_fiscal.errors.empty?
 
-				res = periodo_fiscal.add_detalles(params)
+        res = periodo_fiscal.add_detalles(params)
 
         if res.status_valid && periodo_fiscal.save!
           res.set_data(serialize_parser(periodo_fiscal, {all:true}))
@@ -42,17 +42,18 @@ class PeriodoFiscal < ApplicationRecord
 
   # ============================================================================================================================================
 
-	def add_detalles(params)
+  def add_detalles(params)
 
-		PeriodoFiscal.create_first_detalle_periodo(params, self) if self.id.nil?
+    PeriodoFiscal.create_first_detalle_periodo(params, self) if self.id.nil?
 
-		dependencias = [{modelo: DetallePeriodoFiscal, key_object: "detalles_periodos_fiscales", padre: self }]
+    dependencias = [{modelo: DetallePeriodoFiscal, key_object: "detalles_periodos_fiscales", padre: self }]
 
-		res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
-			self.detalles_periodos_fiscales = dependencia_data if key_object == 'detalles_periodos_fiscales'
-		}
-		return res
-	end
+    res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
+      self.detalles_periodos_fiscales = dependencia_data if key_object == 'detalles_periodos_fiscales'
+    }
+
+    return res
+  end
 
   # ============================================================================================================================================
 
@@ -75,7 +76,7 @@ class PeriodoFiscal < ApplicationRecord
     PeriodoFiscal.transaction do
 
       lastest_periodo_fiscal                = PeriodoFiscal.all.order("id DESC").limit(1)
-			params                                = {}
+      params                                = {}
 
       unless lastest_periodo_fiscal.empty?
         last_periodo_fiscal                 = lastest_periodo_fiscal.first
@@ -85,7 +86,7 @@ class PeriodoFiscal < ApplicationRecord
         new_periodo_fiscal.fecha_inicio     = new_periodo_fiscal.fecha_inicio.advance(years: 1)
         new_periodo_fiscal.fecha_cierre     = new_periodo_fiscal.fecha_cierre.advance(years: 1)
         new_periodo_fiscal.estado           = true
-				res                                 = new_periodo_fiscal.add_detalles(params)
+        res                                 = new_periodo_fiscal.add_detalles(params)
 
         last_periodo_fiscal.estado          = false
 

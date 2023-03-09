@@ -9,7 +9,7 @@ class GrupoCuenta < ApplicationRecord
   # ============================================================================================================================================
 
   def self.create_update_grupo_cuenta(params, is_save=false)
-    res                            = Response.new
+    res                              = Response.new
     GrupoCuenta.transaction do
 
       grupo_cuenta                   = GrupoCuenta.where(:id => params[:id]).first_or_create
@@ -42,7 +42,8 @@ class GrupoCuenta < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !grupo_cuenta.errors.empty? || !res.status_valid
+      # raise ActiveRecord::Rollback if !grupo_cuenta.errors.empty? || !res.status_valid
+      raise ActiveRecord::Rollback
     end
 
     return res
