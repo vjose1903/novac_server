@@ -44,4 +44,5 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "cuenta_contable",                        "cuentas_contables"
   inflect.irregular "periodo_fiscal",                         "periodos_fiscales"
   inflect.irregular "detalle_periodo_fiscal",                 "detalles_periodos_fiscales"
+  inflect.irregular "cierre_cuenta",                          "cierre_cuentas"
 end
