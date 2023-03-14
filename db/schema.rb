@@ -521,6 +521,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_09_130127) do
     t.date "fecha_inicio"
     t.date "fecha_cierre"
     t.boolean "estado", default: true
+    t.boolean "is_open", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

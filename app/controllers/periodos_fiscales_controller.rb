@@ -8,7 +8,7 @@ class PeriodosFiscalesController < ApplicationController
 
   # GET /periodos_fiscales/1
   def show
-    return Response.new(params, nil, @grupo_cuenta, nil, {all: true}).send_response self
+    return Response.new(params, nil, @periodo_fiscal, nil, {all: true}).send_response self
   end
 
   def crear_actualizar_periodo_fiscal
