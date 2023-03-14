@@ -143,7 +143,7 @@ def set_entidad(modelo, params, key="id")
   where = { "#{key}": params[key]}
   entidad = modelo.where(where)
 
-  unless entidad.length == 0
+  unless entidad.empty?
     res.set_data(entidad.first)
   else
     res.set_status(HTTP_STATUS_CODE[:not_found])

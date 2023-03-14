@@ -2,9 +2,10 @@ class CuentasContablesController < ApplicationController
   before_action :set_cuenta_contable, only: [ :show, :update, :destroy ]
 
 
-	# GET /cuentas_contables
+  # GET /cuentas_contables
   def index
-    return Response.new(params, nil, CuentaContable.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    cuentas = CuentaContable.all.where({ estado: true}).order('id ASC')
+    return Response.new(params, nil, CatalogoCuenta::CuentaContable.iterator(cuentas), nil).send_response self
   end
 
   # GET /cuentas_contables/1
@@ -12,19 +13,19 @@ class CuentasContablesController < ApplicationController
     return Response.new(params, nil, @cuenta_contable, nil, {all: true}).send_response self
   end
 
-	def crear_actualizar_cuenta_contable
-		res          = Response.new
-		grupo_cuenta = GrupoCuenta.find_by_id(params[:grupo_cuenta_id])
+  def crear_actualizar_cuenta_contable
+    res          = Response.new
+    grupo_cuenta = GrupoCuenta.find_by_id(params[:grupo_cuenta_id])
 
-		unless grupo_cuenta.nil?
-			params[:grupo_cuenta_id] = grupo_cuenta.id
-			res                      = CuentaContable.create_update_cuenta_contable(params, grupo_cuenta, true)
-		else
-			res.add_msg("Grupo de cuenta no existe.")
-			res.set_status(HTTP_STATUS_CODE[:conflict])
-		end
+    unless grupo_cuenta.nil?
+      params[:grupo_cuenta_id] = grupo_cuenta.id
+      res                      = CuentaContable.create_update_cuenta_contable(params, grupo_cuenta, true)
+    else
+      res.add_msg("Grupo de cuenta no existe.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
 
-		res.send_response self
+    res.send_response self
 
   end
 
@@ -39,7 +40,7 @@ class CuentasContablesController < ApplicationController
   end
 
   # DELETE /cuentas_contables/1
-	def destroy
+  def destroy
     resultado = borrar_entidad(@cuenta_contable)
     resultado.send_response self
   end

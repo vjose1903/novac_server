@@ -22,8 +22,10 @@ RUN bundle exec wheneverize . &&\
     whenever --update-crontab &&\
     touch log/cron.log &&\
     chmod +rw log/cron.log &&\
-		chmod +x /usr/src/novac_server/run_server.sh &&\
-		chmod +x /usr/src/novac_server/wait-for-it.sh
+    chmod +x /usr/src/novac_server/run_server.sh &&\
+    chmod +x /usr/src/novac_server/wait-for-it.sh
+
+# RUN chmod 777 /usr/src/novac_server/tmp/db-agrodemi-data/pg_stat_tmp
 
 
 CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3000"]

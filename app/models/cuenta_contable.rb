@@ -1,6 +1,8 @@
 class CuentaContable < ApplicationRecord
   belongs_to :grupo_cuenta
 
+  attribute :cuentas_contables
+
   validates :descripcion,              presence: { :message => "Descripcion de la cuenta contable no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Cuenta contable ya esta registrada." }, :if => :estado
   validates :is_control,               inclusion: { in: [ true, false ], :message => "Debe de especificar si es control o auxiliar." }
 
@@ -11,7 +13,7 @@ class CuentaContable < ApplicationRecord
       cuenta_control          = CuentaContable.find_by({id: self.cuenta_control, estado: true})
 
       self.errors.add(:base, "El origen de la cuenta no puede ser distinto al de su cuenta control.") if cuenta_control.origen != self.origen
-      self.errors.add(:base, "El tipo de la cuenta no puede ser distinto al de su cuenta control.")   if cuenta_control.tipo != self.tipo
+      self.errors.add(:base, "El tipo de la cuenta no puede ser distinto al de su cuenta control.")   if cuenta_control.tipo   != self.tipo
     end
 
   end
@@ -22,7 +24,6 @@ class CuentaContable < ApplicationRecord
     res                                = Response.new
 
     cuenta_contable                    = CuentaContable.where(:id => params["id"]).first_or_create
-
 
     cuenta_contable.grupo_cuenta_id    = params[:grupo_cuenta_id]
     cuenta_contable.descripcion        = params[:descripcion]
@@ -79,7 +80,7 @@ class CuentaContable < ApplicationRecord
     res              = Response.new
     next_nivel       = nil
 
-		next_nivel       = cuenta_contable.cuenta_control.nil? ? NivelesGrupos.mayor : cuenta_control.nivel + 1
+    next_nivel       = cuenta_contable.cuenta_control.nil? ? NivelesGrupos.mayor : cuenta_control.nivel + 1
 
     unless next_nivel.nil?
       res.set_data(next_nivel)

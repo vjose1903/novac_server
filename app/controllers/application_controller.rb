@@ -28,12 +28,17 @@ class ApplicationController < ActionController::API
   def testFunction
 
     res = Response.new
-    user_id                  = get_current_user[:id]
-    result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
+
+    grupos = GrupoCuenta.all.includes(:cuentas_contables)
+		grupos_parsed = CatalogoCuenta::GrupoCuenta.iterator(grupos)
+		res.set_data(grupos_parsed)
+
+    # user_id                  = get_current_user[:id]
+    # result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
     # result = Permiso.verificateUserPermiso(user_id, 'articulo')
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
-    res = result
+    # res = result
 
     res.send_response self
 

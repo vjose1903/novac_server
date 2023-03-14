@@ -25,6 +25,7 @@ RUN bundle exec wheneverize . &&\
 		chmod +x /usr/src/novac_server/run_server.sh &&\
 		chmod +x /usr/src/novac_server/wait-for-it.sh
 
+# RUN chmod 777 /usr/src/novac_server/tmp/db-agrodemi-data/pg_stat_tmp
 
 CMD ["rails", "server", "-b", "0.0.0.0", "--port", "$$DB_PORT$$"]
 

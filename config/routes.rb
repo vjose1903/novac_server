@@ -160,7 +160,7 @@ Rails.application.routes.draw do
     end
   end
 
-  post "ruta/test"                       => "application#testFunction"
+  get "ruta/test"                       => "application#testFunction"
 
   resources :permisos do
     collection do

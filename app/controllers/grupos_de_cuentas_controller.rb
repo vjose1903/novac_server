@@ -4,12 +4,16 @@ class GruposDeCuentasController < ApplicationController
 
   # GET /grupos_de_cuentas
   def index
-    return Response.new(params, nil, GrupoCuenta.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    grupos = GrupoCuenta.all.where({ estado: true}).order('id DESC').includes(:cuentas_contables)
+    return Response.new(params, nil, CatalogoCuenta::GrupoCuenta.iterator(grupos), nil).send_response self
   end
 
   # GET /grupos_de_cuentas/1
   def show
-    return Response.new(params, nil, @grupo_cuenta, nil, {all: true}).send_response self
+
+		grupo_temp = [@grupo_cuenta]
+		grupo      = CatalogoCuenta::GrupoCuenta.iterator(grupo_temp).first
+    return Response.new(params, nil, grupo, nil).send_response self
   end
 
   def crear_actualizar_grupo_cuenta
@@ -28,7 +32,7 @@ class GruposDeCuentasController < ApplicationController
   end
 
   # DELETE /grupos_de_cuentas/1
-	def destroy
+  def destroy
     resultado = borrar_entidad(@grupo_cuenta)
     resultado.send_response self
   end

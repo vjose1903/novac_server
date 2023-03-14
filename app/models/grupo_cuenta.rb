@@ -8,6 +8,13 @@ class GrupoCuenta < ApplicationRecord
 
   # ============================================================================================================================================
 
+	def self.models_includes
+    includes = [:cuentas_contables]
+    return includes
+  end
+
+  # ============================================================================================================================================
+
   def self.create_update_grupo_cuenta(params, is_save=false)
     res                              = Response.new
     GrupoCuenta.transaction do

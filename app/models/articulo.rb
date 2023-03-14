@@ -185,10 +185,6 @@ class Articulo < ApplicationRecord
     }
 
     if articulos.length > 0
-      # articulos.sort_by! { |k|
-      # 	k["id"]
-      # }
-
 
       articulos = params['paginado'].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
       res.set_data(articulos, {all: true, historicos: historicos}, Articulo.models_includes)
