@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_09_130127) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_15_181838) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -124,6 +124,52 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_09_130127) do
     t.index ["user_id"], name: "index_choferes_viajes_on_user_id"
   end
 
+  create_table "cierre_cuentas", force: :cascade do |t|
+    t.bigint "periodo_fiscal_id", null: false
+    t.bigint "cuenta_contable_id", null: false
+    t.float "enero", default: 0.0
+    t.float "enero_debito", default: 0.0
+    t.float "enero_credito", default: 0.0
+    t.float "febrero", default: 0.0
+    t.float "febrero_debito", default: 0.0
+    t.float "febrero_credito", default: 0.0
+    t.float "marzo", default: 0.0
+    t.float "marzo_debito", default: 0.0
+    t.float "marzo_credito", default: 0.0
+    t.float "abril", default: 0.0
+    t.float "abril_debito", default: 0.0
+    t.float "abril_credito", default: 0.0
+    t.float "mayo", default: 0.0
+    t.float "mayo_debito", default: 0.0
+    t.float "mayo_credito", default: 0.0
+    t.float "junio", default: 0.0
+    t.float "junio_debito", default: 0.0
+    t.float "junio_credito", default: 0.0
+    t.float "julio", default: 0.0
+    t.float "julio_debito", default: 0.0
+    t.float "julio_credito", default: 0.0
+    t.float "agosto", default: 0.0
+    t.float "agosto_debito", default: 0.0
+    t.float "agosto_credito", default: 0.0
+    t.float "septiembre", default: 0.0
+    t.float "septiembre_debito", default: 0.0
+    t.float "septiembre_credito", default: 0.0
+    t.float "octubre", default: 0.0
+    t.float "octubre_debito", default: 0.0
+    t.float "octubre_credito", default: 0.0
+    t.float "noviembre", default: 0.0
+    t.float "noviembre_debito", default: 0.0
+    t.float "noviembre_credito", default: 0.0
+    t.float "diciembre", default: 0.0
+    t.float "diciembre_debito", default: 0.0
+    t.float "diciembre_credito", default: 0.0
+    t.float "total_anual", default: 0.0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuenta_contable_id"], name: "index_cierre_cuentas_on_cuenta_contable_id"
+    t.index ["periodo_fiscal_id"], name: "index_cierre_cuentas_on_periodo_fiscal_id"
+  end
+
   create_table "clientes", force: :cascade do |t|
     t.bigint "imagen_id"
     t.string "nombre"
@@ -145,6 +191,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_09_130127) do
     t.float "porciento_ganancia"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "configuraciones_entidades_cuentas", force: :cascade do |t|
+    t.string "descripcion"
+    t.bigint "cuenta_contable_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuenta_contable_id"], name: "index_configuraciones_entidades_cuentas_on_cuenta_contable_id"
   end
 
   create_table "contenido_articulos", force: :cascade do |t|
@@ -720,7 +774,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_09_130127) do
   add_foreign_key "camiones_viajes", "vehiculos"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
+  add_foreign_key "cierre_cuentas", "cuentas_contables"
+  add_foreign_key "cierre_cuentas", "periodos_fiscales"
   add_foreign_key "clientes", "imagenes"
+  add_foreign_key "configuraciones_entidades_cuentas", "cuentas_contables"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"

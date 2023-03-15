@@ -21,30 +21,39 @@ class CuentaContable < ApplicationRecord
   # ============================================================================================================================================
 
   def self.create_update_cuenta_contable(params, grupo_cuenta, is_save=false)
-    res                                = Response.new
+    res                                  = Response.new
 
-    cuenta_contable                    = CuentaContable.where(:id => params["id"]).first_or_create
+    grupo_cuenta                         = GrupoCuenta.find_by_id(params[:grupo_cuenta_id]) if grupo_cuenta.nil?
 
-    cuenta_contable.grupo_cuenta_id    = params[:grupo_cuenta_id]
-    cuenta_contable.descripcion        = params[:descripcion]
-    cuenta_contable.cuenta_control     = params[:cuenta_control]
-    cuenta_contable.origen             = params[:origen]
-    cuenta_contable.tipo               = params[:tipo]
-    cuenta_contable.is_control         = params[:is_control]
+    unless grupo_cuenta.nil?
 
-    result_procesos                    = cuenta_contable.procesos_cuentas(grupo_cuenta)
+      cuenta_contable                    = CuentaContable.where(:id => params["id"]).first_or_create
 
-    cuenta_contable.valid?
+      cuenta_contable.grupo_cuenta_id    = params[:grupo_cuenta_id]
+      cuenta_contable.descripcion        = params[:descripcion]
+      cuenta_contable.cuenta_control     = params[:cuenta_control]
+      cuenta_contable.origen             = params[:origen]
+      cuenta_contable.tipo               = params[:tipo]
+      cuenta_contable.is_control         = params[:is_control]
 
-    cuenta_contable.otras_validaciones(params, grupo_cuenta)
+      result_procesos                    = cuenta_contable.procesos_cuentas(grupo_cuenta)
 
-    cuenta_contable.errors.delete(:grupo_cuenta) if !is_save
+      cuenta_contable.valid?
 
-    if result_procesos.status_valid && cuenta_contable.errors.empty? && (!is_save || (is_save && cuenta_contable.save!))
-      res.set_data(cuenta_contable)
+      cuenta_contable.otras_validaciones(params, grupo_cuenta)
+
+      cuenta_contable.errors.delete(:grupo_cuenta) if !is_save
+
+      if result_procesos.status_valid && cuenta_contable.errors.empty? && (!is_save || (is_save && cuenta_contable.save!))
+        res.set_data(cuenta_contable)
+      else
+        res.add_msgs(result_procesos.get_msgs)
+        res.add_msgs(cuenta_contable.errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
     else
-      res.add_msgs(result_procesos.get_msgs)
-      res.add_msgs(cuenta_contable.errors.to_a)
+      res.add_msg("Grupo de cuenta no existe.")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

@@ -29,9 +29,9 @@ class Articulo < ApplicationRecord
 
     end
 
-		if self.medida == 'Caja' && (!params['contenido_articulos'].present? || params['contenido_articulos'].length == 0)
-			self.errors.add(:base, "Los articulos comprados en caja debem de tener la cantidad especificada.")
-		end
+    if self.medida == 'Caja' && (!params['contenido_articulos'].present? || params['contenido_articulos'].length == 0)
+      self.errors.add(:base, "Los articulos comprados en caja debem de tener la cantidad especificada.")
+    end
 
   end
 
@@ -240,7 +240,7 @@ class Articulo < ApplicationRecord
       end
     end
 
-		articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
+    articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
     contenidos[articulo["medida"]]         = contenido.length == 0 ? 1 : contenido.first["cantidad"]
     contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
 
@@ -263,20 +263,20 @@ class Articulo < ApplicationRecord
     contenidos
   end
 
-	# =====================================================================================================================
+  # =====================================================================================================================
 
   def self.get_actual_price_detalles(params, parametros_opcionales)
-		res                = Response.new()
+    res                = Response.new()
     ids                = params[:ids].split(",").map(&:to_i)
 
-		articulos          = Articulo.where(id: ids).includes(Articulo.models_includes)
+    articulos          = Articulo.where(id: ids).includes(Articulo.models_includes)
 
-		res.set_data(articulos, {**parametros_opcionales})
+    res.set_data(articulos, {**parametros_opcionales})
 
-		return res
-	end
+    return res
+  end
 
-	# =====================================================================================================================
+  # =====================================================================================================================
   def self.calcularCantidades(articulo)
     contenido = articulo.contenido_articulos
 
@@ -284,7 +284,7 @@ class Articulo < ApplicationRecord
 
     cantidades = {}
 
-		articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
+    articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
     cantidades[articulo["medida"]]         = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
     cantidades[contenido.first["medida"]]  = existencia if contenido.length > 0
 

@@ -45,4 +45,13 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "periodo_fiscal",                         "periodos_fiscales"
   inflect.irregular "detalle_periodo_fiscal",                 "detalles_periodos_fiscales"
   inflect.irregular "cierre_cuenta",                          "cierre_cuentas"
+  inflect.irregular "configuracion_entidad_cuenta",           "configuraciones_entidades_cuentas"
+  inflect.irregular "divisa",                                 "divisas"
+  inflect.irregular "tasa_cambio",                            "tasas_de_cambio"
+  inflect.irregular "tipo_cuenta_bancaria",                   "tipos_cuentas_bancarias"
+  inflect.irregular "banco",                                  "bancos"
+  inflect.irregular "cuenta_bancaria",                        "cuentas_bancarias"
+  inflect.irregular "cabeza_asiento_contable",                "cabezas_asientos_contables"
+  inflect.irregular "detalle_asiento_contable",               "detalles_asientos_contables"
+
 end

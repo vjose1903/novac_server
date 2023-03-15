@@ -1,0 +1,84 @@
+CTA	      ID	DESCRIP					                 ORIGEN	ACEPTA_MOV	REAL_NOMINAL
+1          1	ACTIVOS                                 	D	    N        	R
+11         1	EFECTIVO CAJA Y BANCO                   	D	    N        	R
+11101      1	CAJA                                    	D	    N        	R
+11102      1	BANCO                                   	D	    N        	R
+1110201    1	BANCO MONEDA NACIONAL                   	D	    N        	R
+11103      1	BANCO MONEDA EXTRANJERA                 	D	    N        	R
+11104      1	TRANSFERENCIAS NOMINA                   	D	    N        	R
+12         1	CUENTAS X COBRAR                        	D	    N        	R
+12101      1	CUENTAS X COBRAR CLIENTES               	D	    N        	R
+12103      1	CTA X COBRAR CIAS RELACIONADAS          	D	    N        	R
+13         1	OTRAS CUENTAS X COBRAR                  	D	    N        	R
+13101      1	ANTICIPOS Y AVANCES                     	D	    N        	R
+13102      1	CXC RECLAMACIONES                       	D	    N        	R
+13103      1	OTRAS CUENTAS X COBRAR                  	D	    N        	R
+14         1	INVENTARIOS                             	D	    N        	R
+14101      1	INVENTARIO ROLLOS DE PAPEL              	D	    N        	R
+15         1	PROPIEDAD PLANTA Y EQUIPO               	D	    N        	R
+15101      1	EQUIPOS DE OFICINA                      	D	    N        	R
+15102      1	EQUIPO DE COMPUTACION Y COMUNIC         	D	    N        	R
+15103      1	EQUIPOS DE TRANSPORTE                   	D	    N        	R
+15104      1	EQUIPOS DE ELECTRICIDAD                 	D	    N        	R
+15105      1	ESTUDIO Y EQUIPOS DE SORTEO             	D	    N        	R
+15106      1	DEPRECIACION ACUMULADA                  	C	    N        	R
+15107      1	MEJORA EN PROPIEDAD ARRENDADA           	D	    N        	R
+16         1	ACTIVOS DIFERIDOS                       	D	    N        	R
+16101      1	GASTOS PAGADOS X ANTICIPADOS            	D	    N        	R
+16102      1	OTROS ACTIVOS                           	D	    N        	R
+2          2	PASIVOS                                 	C	    N        	R
+22         2	CUENTAS POR PAGAR                       	C	    N        	R
+22101      2	CUENTAS POR PAGAR PROVEEDORES           	C	    N        	R
+22102      2	CUENTAS X PAGAR PROVEEDORES EXT         	C	    N        	R
+22103      2	AVANCES                                 	C	    N        	R
+23         2	OTRAS CUENTAS X PAGAR                   	C	    N        	R
+23101      2	OTRAS CUENTAS X PAGAR                   	C	    N        	R
+23102      2	CUENTAS X PAGAR EMPLEADOS               	C	    N        	R
+24         2	OTROS PASIVOS CORRIENTES                	C	    N        	R
+24101      2	IMPUESTOS Y GRAVAMENES                  	C	    N        	R
+24102      2	RETENCIONES X PAGAR                     	C	    N        	R
+24103      2	RETENCIONES A EMPLEADOS                 	C	    N        	R
+241030     2	RETENC COOP, AFP, SFS                   	C	    N        	R
+27         2	ACUMULACIONES X PAGAR                   	C	    N        	R
+27101      2	PROVISIONES                             	C	    N        	R
+3          3	CAPITAL SOCIAL                          	C	    N        	R
+31         3	CAPITAL SUSCRITO Y PAGADO               	C	    N        	R
+31101      3	CAPITAL SUSCRITO Y PAGADO               	C	    N        	R
+32         3	UTILIDADES ACUMULADAS                   	C	    N        	R
+32101      3	RESULTADO DEL  EJERCICIO                	C	    N        	R
+4          4	4-INGRESOS                              	C	    N        	N
+41         4	INGRESOS OPERACIONALES                  	C	    N        	N
+5          5	5-COSTO DE VENTAS                       	D	    N        	N
+51         5	COSTOS OPERACIONALES                    	D	    N        	N
+51101      5	COSTO EN  VENTAS                        	D	    N        	N
+6          6	GASTOS OPERACIONALES                    	D	    N        	N
+61         6	GASTOS  ADMINISTRATIVOS                 	D	    N        	N
+61101      6	GASTOS DE PERSONAL ADM.                 	D	    N        	N
+61102      6	HONORARIOS                              	D	    N        	N
+61103      6	ALQUILERES                              	D	    N        	N
+61104      6	SERVICIOS                               	D	    N        	N
+61105      6	MANTENIMIENTO Y REPARACIONES            	D	    N        	N
+61106      6	GASTOS LEGALES                          	D	    N        	N
+61107      6	GASTOS DE VEHICULOS                     	D	    N        	N
+61108      6	GASTO DEPRECIACION ACUMULADA            	D	    N        	N
+61109      6	AMORTIZACIONES                          	D	    N        	N
+61200      6	DIVERSOS ADMTVOS                        	D	    N        	N
+62         6	GASTOS DE VENTA                         	D	    N        	N
+62101      6	GASTOS  PERSONAL  DE VENTAS             	D	    N        	N
+62103      6	GASTOS LEGALES                          	D	    N        	N
+62104      6	GASTOS DE VEHICULOS                     	D	    N        	N
+62105      6	COMUNICAICON Y REDES PUNTO DE V         	D	    N        	N
+62106      6	PUBLICIDAD, PROPAGANDA Y PROMOC         	D	    N        	N
+62108      6	ADECUACIONES E INSTALACIONES            	D	    N        	N
+62109      6	GASTOS DE VIAJES                        	D	    N        	N
+62201      6	AMORTIZACION                            	D	    N        	N
+62202      6	GASTOS DEPRECIACION ACUMULADA           	D	    N        	N
+62203      6	MATERIAL GASTABLE P.V                   	D	    N        	N
+62910      6	DIVERSOS VENTAS                         	D	    N        	N
+63         6	GASTO  SORTEO                           	D	    N        	N
+63101      6	GASTOS PERSONAL SORTEO                  	D	    N        	N
+63102      6	HONORARIOS                              	D	    N        	N
+63103      6	ARRENDAMIENTOS                          	D	    N        	N
+63105      6	MANTENIMIENTO Y REPARACIONES            	D	    N        	N
+63106      6	GASTO DEPRECIACION ACUMULADA            	D	    N        	N
+63200      6	DIVERSOS SORTEOS                        	D	    N        	N

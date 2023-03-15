@@ -25,6 +25,7 @@ Rails.application.routes.draw do
   resources :config_articulos
   resources :grupos_de_cuentas
   resources :cuentas_contables
+  resources :configuraciones_entidades_cuentas
 
 
   resources :roles do
