@@ -37,7 +37,7 @@ class GrupoCuenta < ApplicationRecord
         }
 
         if res.status_valid && grupo_cuenta.save!
-          res.set_data(serialize_parser(grupo_cuenta, {all:true}))
+          res.set_data(serialize_parser(grupo_cuenta, {all: true}))
 
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Grupo de cuenta #{action} correctamente.")
@@ -49,8 +49,7 @@ class GrupoCuenta < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      # raise ActiveRecord::Rollback if !grupo_cuenta.errors.empty? || !res.status_valid
-      raise ActiveRecord::Rollback
+      raise ActiveRecord::Rollback if !grupo_cuenta.errors.empty? || !res.status_valid
     end
 
     return res
@@ -64,7 +63,7 @@ class GrupoCuenta < ApplicationRecord
     last_group = GrupoCuenta.all.order("id DESC").limit(1)
 
     unless last_group.empty?
-      next_group = last_group.first.grupo
+      next_group = last_group.first.grupo + 1
     end
 
     return next_group

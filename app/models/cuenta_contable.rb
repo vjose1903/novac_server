@@ -3,7 +3,7 @@ class CuentaContable < ApplicationRecord
 
   attribute :cuentas_contables
 
-  validates :descripcion,              presence: { :message => "Descripcion de la cuenta contable no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Cuenta contable ya esta registrada." }, :if => :estado
+  validates :descripcion,              presence: { :message => "Descripcion de la cuenta contable no puede estar vacio." },         uniqueness: { scope: [:estado, :nivel, :cuenta_control], case_sensitive: false, :message => "Cuenta contable ya esta registrada." }, :if => :estado
   validates :is_control,               inclusion: { in: [ true, false ], :message => "Debe de especificar si es control o auxiliar." }
 
 

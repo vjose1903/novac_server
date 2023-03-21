@@ -4,7 +4,7 @@ class GruposDeCuentasController < ApplicationController
 
   # GET /grupos_de_cuentas
   def index
-    grupos = GrupoCuenta.all.where({ estado: true}).order('id DESC').includes(:cuentas_contables)
+    grupos = GrupoCuenta.all.where({ estado: true}).order('id ASC').includes(:cuentas_contables)
     return Response.new(params, nil, CatalogoCuenta::GrupoCuenta.iterator(grupos), nil).send_response self
   end
 

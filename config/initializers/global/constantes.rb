@@ -5,7 +5,6 @@ ENCRIPT_SECRET   = "1234567890ABCDEF"
 HTTP_STATUS_CODE = Rack::Utils::SYMBOL_TO_STATUS_CODE
 
 
-
 DIAS             = ["Lunes", "Martes", "Miercoles", "Jueves",  "Viernes", "Sabado", "Domingo"]
 
 
@@ -400,104 +399,106 @@ module TiposFacturasDescripcion
 end
 
 
-
 G_CATALOGO_DEFAULT = [
   # 1
   {descripcion: "ACTIVOS",                origen: "D", tipo: "R", cuentas_contables: [
-    { descripcion: "EFECTIVO CAJA Y BANCO",                      is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "CAJA",                                       is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "BANCO",                                      is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "BANCO MONEDA NACIONAL",                      is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "BANCO MONEDA EXTRANJERA",                    is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "TRANSFERENCIAS NOMINA",                      is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "CUENTAS X COBRAR",                           is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "CUENTAS X COBRAR CLIENTES",                  is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "CUENTAS X COBRAR CIAS RELACIONADAS",         is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "OTRAS CUENTAS X COBRAR",                     is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "ANTICIPOS Y AVANCES",                        is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "CXC RECLAMACIONES",                          is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "INVENTARIOS",                                is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "PROPIEDAD PLANTA Y EQUIPO",                  is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "EQUIPOS DE OFICINA",                         is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "EQUIPO DE COMPUTACION Y COMUNIC",            is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "EQUIPOS DE TRANSPORTE",                      is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "EQUIPOS DE ELECTRICIDAD",                    is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "DEPRECIACION ACUMULADA",                     is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "MEJORA EN PROPIEDAD ARRENDADA",              is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "ACTIVOS DIFERIDOS",                          is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "GASTOS PAGADOS X ANTICIPADOS",               is_control: true, origen: "D", tipo: "R" },
-    { descripcion: "OTROS ACTIVOS",                              is_control: true, origen: "D", tipo: "R" },
+    { descripcion: "EFECTIVO CAJA Y BANCO",                        is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+        { descripcion: "EFECTIVO EN CAJA",                                    is_control: true, origen: "D", tipo: "R" },
+        { descripcion: "EFECTIVO EN BANCO MONEDA NACIONAL",                   is_control: true, origen: "D", tipo: "R" },
+        { descripcion: "EFECTIVO EN BANCO MONEDA EXTRANJERA",                 is_control: true, origen: "D", tipo: "R" },
+        { descripcion: "TRANSFERENCIAS NOMINA",                               is_control: true, origen: "D", tipo: "R" },
+      ]
+    },
+    { descripcion: "CUENTAS POR COBRAR",                           is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+        { descripcion: "CUENTAS POR COBRAR CLIENTES",                         is_control: true, origen: "D", tipo: "R" },
+        { descripcion: "CUENTAS POR COBRAR EMPLEADOS",                        is_control: true, origen: "D", tipo: "R" },
+      ]
+    },
+    { descripcion: "OTRAS CUENTAS POR COBRAR",                     is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+    { descripcion: "INVENTARIOS",                                  is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+    { descripcion: "PROPIEDAD PLANTA Y EQUIPO",                    is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+        { descripcion: "EQUIPOS DE OFICINA",                                  is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+        { descripcion: "EQUIPO DE COMPUTACION Y COMUNICACION",                is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+        { descripcion: "EQUIPOS DE TRANSPORTE",                               is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+        { descripcion: "EQUIPOS DE ELECTRICIDAD",                             is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+        { descripcion: "DEPRECIACION ACUMULADA",                              is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      ]
+    },
+    { descripcion: "ACTIVOS DIFERIDOS",                            is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+        { descripcion: "GASTOS PAGADOS POR ANTICIPADO",                       is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+        { descripcion: "OTROS ACTIVOS",                                       is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+      ]
+    },
   ]},
 
   # 2
   {descripcion: "PASIVOS",                origen: "C", tipo: "R", cuentas_contables: [
-    { descripcion: "CUENTAS POR PAGAR",                          is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "CUENTAS POR PAGAR PROVEEDORES",              is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "CUENTAS X PAGAR PROVEEDORES EXTRANJEROS",    is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "AVANCES",                                    is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "OTRAS CUENTAS X PAGAR",                      is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "CUENTAS X PAGAR EMPLEADOS",                  is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "OTROS PASIVOS CORRIENTES",                   is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "IMPUESTOS Y GRAVAMENES",                     is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "RETENCIONES X PAGAR",                        is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "RETENCIONES A EMPLEADOS",                    is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "RETENC COOP, AFP, SFS",                      is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "ACUMULACIONES X PAGAR",                      is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "PROVISIONES",                                is_control: true, origen: "C", tipo: "R" },
+    { descripcion: "CUENTAS POR PAGAR",                            is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+        { descripcion: "CUENTAS POR PAGAR PROVEEDORES NACIONALES",            is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+        { descripcion: "CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS",           is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+        { descripcion: "AVANCES",                                             is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      ]
+    },
+    { descripcion: "OTRAS CUENTAS POR PAGAR",                      is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+        { descripcion: "OTRAS CUENTAS POR PAGAR",                             is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+        { descripcion: "CUENTAS POR PAGAR EMPLEADOS",                         is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      ]
+    },
+    { descripcion: "OTROS PASIVOS CORRIENTES",                     is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+        { descripcion: "IMPUESTOS Y GRAVAMENES",                              is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+        { descripcion: "RETENCIONES POR PAGAR",                               is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+        { descripcion: "RETENCIONES A EMPLEADOS",                             is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      ]
+    },
+    { descripcion: "ACUMULACIONES POR PAGAR",                      is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+        { descripcion: "PROVISIONES",                                         is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      ]
+    },
   ]},
 
   # 3
   {descripcion: "CAPITAL SOCIAL",         origen: "C", tipo: "R", cuentas_contables: [
-    { descripcion: "CAPITAL SUSCRITO Y PAGADO",                  is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "CAPITAL SUSCRITO Y PAGADO",                  is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "UTILIDADES ACUMULADAS",                      is_control: true, origen: "C", tipo: "R" },
-    { descripcion: "RESULTADO DEL  EJERCICIO",                   is_control: true, origen: "C", tipo: "R" },
+    { descripcion: "CAPITAL SUSCRITO Y PAGADO",                    is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    { descripcion: "GANANCIA Y/O PERDIDA",                         is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    { descripcion: "GANANCIA ACUMULADA",                           is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
   ]},
 
   # 4
-  {descripcion: "INGRESOS",               origen: "C", tipo: "N", cuentas_contables: [
-    { descripcion: "INGRESOS OPERACIONALES",                     is_control: true, origen: "C", tipo: "N" },
-  ]},
+  {descripcion: "INGRESOS",               origen: "C", tipo: "N", cuentas_contables: [] },
 
   # 5
-  {descripcion: "COSTO DE VENTAS",        origen: "D", tipo: "N", cuentas_contables: [
-    { descripcion: "COSTOS OPERACIONALES",                       is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "COSTO EN  VENTAS",                           is_control: true, origen: "D", tipo: "N" },
-  ]},
+  {descripcion: "COSTOS",        origen: "D", tipo: "N", cuentas_contables: [] },
 
   # 6
-  {descripcion: "GASTOS OPERACIONALES",   origen: "D", tipo: "N", cuentas_contables: [
-    { descripcion: "GASTOS  ADMINISTRATIVOS",                    is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS DE PERSONAL ADM",                     is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "HONORARIOS",                                 is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "ALQUILERES",                                 is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "SERVICIOS",                                  is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "MANTENIMIENTO Y REPARACIONES",               is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS LEGALES",                             is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS DE VEHICULOS",                        is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTO DEPRECIACION ACUMULADA",               is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "AMORTIZACIONES",                             is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "DIVERSOS ADMTVOS",                           is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS DE VENTA",                            is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS  PERSONAL  DE VENTAS",                is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS LEGALES",                             is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS DE VEHICULOS",                        is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "COMUNICAICON Y REDES PUNTO DE V",            is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "PUBLICIDAD, PROPAGANDA Y PROMOC",            is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "ADECUACIONES E INSTALACIONES",               is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS DE VIAJES",                           is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "AMORTIZACION",                               is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS DEPRECIACION ACUMULADA",              is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "MATERIAL GASTABLE P.V",                      is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "DIVERSOS VENTAS",                            is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTO  SORTEO",                              is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTOS PERSONAL SORTEO",                     is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "HONORARIOS",                                 is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "ARRENDAMIENTOS",                             is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "MANTENIMIENTO Y REPARACIONES",               is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "GASTO DEPRECIACION ACUMULADA",               is_control: true, origen: "D", tipo: "N" },
-    { descripcion: "DIVERSOS SORTEOS",                           is_control: true, origen: "D", tipo: "N" },
-
+  {descripcion: "GASTOS",   origen: "D", tipo: "N", cuentas_contables: [
+    { descripcion: "GASTOS ADMINISTRATIVOS",                       is_control: true, origen: "D", tipo: "N", cuentas_contables: [
+        { descripcion: "GASTOS DE PERSONAL ADMINISTRATIVO",                   is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "HONORARIOS",                                          is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "ALQUILERES",                                          is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "SERVICIOS",                                           is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "MANTENIMIENTO Y REPARACIONES",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "GASTOS LEGALES",                                      is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "GASTOS DE VEHICULOS",                                 is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "GASTO DEPRECIACION ACUMULADA",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "AMORTIZACIONES",                                      is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "DIVERSOS ADMINISTRATIVO",                             is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      ]
+    },
+    { descripcion: "GASTOS DE VENTA",                              is_control: true, origen: "D", tipo: "N", cuentas_contables: [
+        { descripcion: "GASTOS PERSONAL DE VENTAS",                           is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "GASTOS LEGALES",                                      is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "GASTOS DE VEHICULOS",                                 is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "COMUNICACION Y REDES PUNTO DE VENTA",                 is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "PUBLICIDAD, PROPAGANDA Y PROMOCIONES",                is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "ADECUACIONES E INSTALACIONES",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "GASTOS DE VIAJES",                                    is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "AMORTIZACION",                                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "GASTOS DEPRECIACION ACUMULADA",                       is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "MATERIAL GASTABLE PARA VENTA",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+        { descripcion: "DIVERSOS VENTAS",                                     is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      ]
+    },
+    { descripcion: "GASTOS FINANCIEROS",                           is_control: true, origen: "D", tipo: "N", cuentas_contables: [] }
   ]},
 ]
 

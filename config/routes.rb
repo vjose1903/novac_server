@@ -28,6 +28,7 @@ Rails.application.routes.draw do
   resources :configuraciones_entidades_cuentas
 
 
+
   resources :roles do
     collection do
       get "filtro/:arg"        => "roles#getRolesFiltrados"
@@ -156,22 +157,28 @@ Rails.application.routes.draw do
 
   resources :secuencia_comprobantes do
     collection do
-      get "custom/:id/:estado"           => "secuencia_comprobantes#getPaqueteRncByEstado"
-      get "filtro/:arg"                  => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
+      get "custom/:id/:estado"            => "secuencia_comprobantes#getPaqueteRncByEstado"
+      get "filtro/:arg"                   => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
     end
   end
 
-  get "ruta/test"                       => "application#testFunction"
+  get "ruta/test"                         => "application#testFunction"
 
   resources :permisos do
     collection do
-      get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
+      get "custom/parse_permisos_front"   => "permisos#parsePermisosFront"
     end
   end
 
 	resources :periodos_fiscales do
 		collection do
 			post "custom/open_new_periodo"      => "periodos_fiscales#openNewPeriodo"
+		end
+	end
+
+	resources :catalogo_de_cuentas do
+		collection do
+			post "create_default"               => "catalogo_de_cuentas#createCatalogoDeCuentasDefault"
 		end
 	end
 
