@@ -23,7 +23,6 @@ class Imagen < ApplicationRecord
 
       imagen.valid?
 
-
       if imagen.errors.empty? && (!is_save || (is_save && imagen.save!))
 
         Imagen.removeFileInThisServer(imagen_original) unless params[:id].nil?
