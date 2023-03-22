@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_15_181838) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_22_135783) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -375,6 +375,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_15_181838) do
     t.index ["produccion_id"], name: "index_detalles_produccion_on_produccion_id"
   end
 
+  create_table "divisas", force: :cascade do |t|
+    t.string "nombre"
+    t.string "simbolo"
+    t.boolean "is_principal"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "documentos_de_identidad", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "cliente_id"
@@ -440,9 +449,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_15_181838) do
   create_table "imagenes", force: :cascade do |t|
     t.string "file_name"
     t.string "base_64"
-    t.string "path"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "origen_type"
+    t.bigint "origen_id"
+    t.string "file_hash"
+    t.index ["origen_type", "origen_id"], name: "index_imagenes_on_origen"
   end
 
   create_table "incidencias", force: :cascade do |t|

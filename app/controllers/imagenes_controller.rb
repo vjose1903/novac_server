@@ -1,55 +1,28 @@
 class ImagenesController < ApplicationController
-  before_action :set_imagen, only: [:show, :update, :destroy]
+  before_action :set_imagen, only: [:show, :destroy]
 
   # GET /imagenes
   def index
-    @imagenes = Imagen.all
-
+    return Response.new(params, nil, Imagen.all.order('id ASC'), nil, {all: true}).send_response self
     render json: @imagenes
   end
 
   # GET /imagenes/1
   def show
-    render json: @imagen
-  end
-
-  # POST /imagenes
-  def create
-    att = imagen_params
-
-    att["path"] = Imagen.saveFileInThisServer(att[:file_name], att[:base_64])
-    @imagen = Imagen.new(att)
-
-    if @imagen.save
-      render json: @imagen, status: :created, location: @imagen
-    else
-      render json: @imagen.errors, status: :unprocessable_entity
-    end
-  end
-
-  # PATCH/PUT /imagenes/1
-  def update
-    if @imagen.update(imagen_params)
-      render json: @imagen
-    else
-      render json: @imagen.errors, status: :unprocessable_entity
-    end
+		return Response.new(params, nil, @imagen, nil, {all: true}).send_response self
   end
 
   # DELETE /imagenes/1
   def destroy
-    @imagen.destroy
+    resultado = borrar_entidad(@imagen)
+    resultado.send_response self
   end
 
   private
-
-  # Use callbacks to share common setup or constraints between actions.
   def set_imagen
-    @imagen = Imagen.find(params[:id])
-  end
+		respuesta = set_entidad(Imagen, params)
+    @imagen   = respuesta.get_data
 
-  # Only allow a trusted parameter "white list" through.
-  def imagen_params
-    params.require(:imagen).permit(:file_name, :base_64, :path)
+    return respuesta.send_response self if @imagen.nil?
   end
 end

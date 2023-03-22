@@ -48,11 +48,9 @@ class ClientesController < ApplicationController
   end
 
   private
-
-  # Use callbacks to share common setup or constraints between actions.
   def set_cliente
     respuesta = set_entidad(Cliente, params)
-    @cliente = respuesta.get_data
+    @cliente  = respuesta.get_data
 
     return respuesta.send_response self if @cliente.nil?
   end

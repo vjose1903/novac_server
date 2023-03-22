@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :divisas
 
   resources :costos_fletes_historiales
   resources :provincias
@@ -25,7 +24,7 @@ Rails.application.routes.draw do
   resources :grupos_de_cuentas
   resources :cuentas_contables
   resources :configuraciones_entidades_cuentas
-
+  resources :divisas
 
 
   resources :roles do

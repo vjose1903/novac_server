@@ -3,9 +3,8 @@ class CreateDivisas < ActiveRecord::Migration[7.0]
     create_table :divisas do |t|
       t.string :nombre
       t.string :simbolo
-      t.string :imagen
       t.boolean :is_principal
-      t.boolean :estado
+      t.boolean :estado,   :default => true
 
       t.timestamps
     end

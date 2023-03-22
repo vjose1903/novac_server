@@ -59,7 +59,7 @@ gem 'rack-cors'
 gem 'colorize'
 gem 'zlib'
 gem "rolify"
-
+gem 'mime-types'
 
 # source 'https://rubygems.org'
 # git_source(:github) { |repo| "https://github.com/#{repo}.git" }

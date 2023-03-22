@@ -227,6 +227,9 @@ def modificar_secuencia_mantenimiento
   nil
 end
 
+def probar_imagenes
+
+end
 
 def make_producto_terminado_calcular_saco
   articulos_arreglados = []

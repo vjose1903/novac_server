@@ -3,7 +3,7 @@ class DivisasController < ApplicationController
 
   # GET /divisas
   def index
-    return Response.new(params, nil, Divisa.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, nil, Divisa.all.where({ estado: true}).order('id DESC').includes(Divisa.models_includes), nil, {all: true}).send_response self
   end
 
 	# GET /divisas/1
@@ -12,7 +12,7 @@ class DivisasController < ApplicationController
 	end
 
   def crear_actualizar_divisa
-    resultado = Divisa.create_update_cliente(params, true)
+    resultado = Divisa.create_update_divisa(params, true)
     resultado.send_response self
   end
 

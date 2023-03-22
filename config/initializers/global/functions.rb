@@ -4,18 +4,18 @@ require 'openssl'
 
 class Response
   def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
-    @paginate_class = Paginator.new(params)
+    @paginate_class          = Paginator.new(params)
 
-    @res = {status:status_, data: data,  msg: msg_}
-    set_data(data, parametros_opcionales) if data && parametros_opcionales
+    @res                     = {status:status_, data: data,  msg: msg_}
+    set_data(data, parametros_opcionales) unless data.nil?
   end
 
   def set_status(status)
-    @res[:status] = status
+    @res[:status]            = status
   end
 
   def status_valid
-    @res[:status] == HTTP_STATUS_CODE[:ok]
+    @res[:status]            == HTTP_STATUS_CODE[:ok]
   end
 
   def set_data(data, parametros_opcionales=nil, models_includes=nil)
