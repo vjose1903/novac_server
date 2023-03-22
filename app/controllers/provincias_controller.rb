@@ -1,5 +1,5 @@
 class ProvinciasController < ApplicationController
-  before_action :set_provincia, only: [:show, :update, :destroy]
+  before_action :set_provincia, only: [:show, :destroy]
 
   # GET /provincias
   def index

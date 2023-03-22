@@ -1,5 +1,5 @@
 class CabeceraConducesController < ApplicationController
-  before_action :set_cabecera_conduce, only: [:show, :update, :destroy, :revertirConduce]
+  before_action :set_cabecera_conduce, only: [:show, :destroy, :revertirConduce]
 
   # GET /cabecera_conduces
   def index

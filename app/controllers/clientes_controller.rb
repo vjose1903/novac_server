@@ -47,7 +47,6 @@ class ClientesController < ApplicationController
     resultado.send_response self
   end
 
-
   private
 
   # Use callbacks to share common setup or constraints between actions.

@@ -1,5 +1,5 @@
 class MunicipiosController < ApplicationController
-	before_action :set_municipio, only: [:show, :update, :destroy]
+	before_action :set_municipio, only: [:show, :destroy]
 	# GET /municipio
 	def index
 		return Response.new(params, nil, Municipio.all, nil).send_response self

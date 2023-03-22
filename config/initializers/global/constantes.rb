@@ -502,93 +502,13 @@ G_CATALOGO_DEFAULT = [
   ]},
 ]
 
-# CTA	       DESCRIP	                              ORIGEN   IS_CONTROL     TIPO
-
-# 1          ACTIVOS                                   D        	T          R
-# 11         EFECTIVO CAJA Y BANCO                     D        	T          R
-# 11101      CAJA                                      D        	T          R
-# 11102      BANCO                                     D        	T          R
-# 1110201    BANCO MONEDA NACIONAL                     D        	T          R
-# 11103      BANCO MONEDA EXTRANJERA                   D        	T          R
-# 11104      TRANSFERENCIAS NOMINA                     D        	T          R
-# 12         CUENTAS X COBRAR                          D        	T          R
-# 12101      CUENTAS X COBRAR CLIENTES                 D        	T          R
-# 12103      CTA X COBRAR CIAS RELACIONADAS            D        	T          R
-# 13         OTRAS CUENTAS X COBRAR                    D        	T          R
-# 13101      ANTICIPOS Y AVANCES                       D        	T          R
-# 13102      CXC RECLAMACIONES                         D        	T          R
-# 13103      OTRAS CUENTAS X COBRAR                    D        	T          R
-# 14         INVENTARIOS                               D        	T          R
-# 14101      INVENTARIO ROLLOS DE PAPEL                D        	T          R
-# 15         PROPIEDAD PLANTA Y EQUIPO                 D        	T          R
-# 15101      EQUIPOS DE OFICINA                        D        	T          R
-# 15102      EQUIPO DE COMPUTACION Y COMUNIC           D        	T          R
-# 15103      EQUIPOS DE TRANSPORTE                     D        	T          R
-# 15104      EQUIPOS DE ELECTRICIDAD                   D        	T          R
-# 15105      ESTUDIO Y EQUIPOS DE SORTEO               D        	T          R
-# 15106      DEPRECIACION ACUMULADA                    C        	T          R
-# 15107      MEJORA EN PROPIEDAD ARRENDADA             D        	T          R
-# 16         ACTIVOS DIFERIDOS                         D        	T          R
-# 16101      GASTOS PAGADOS X ANTICIPADOS              D        	T          R
-# 16102      OTROS ACTIVOS                             D        	T          R
-
-# 2          PASIVOS                                   C        	T          R
-# 22         CUENTAS POR PAGAR                         C        	T          R
-# 22101      CUENTAS POR PAGAR PROVEEDORES             C        	T          R
-# 22102      CUENTAS X PAGAR PROVEEDORES EXT           C        	T          R
-# 22103      AVANCES                                   C        	T          R
-# 23         OTRAS CUENTAS X PAGAR                     C        	T          R
-# 23101      OTRAS CUENTAS X PAGAR                     C        	T          R
-# 23102      CUENTAS X PAGAR EMPLEADOS                 C        	T          R
-# 24         OTROS PASIVOS CORRIENTES                  C        	T          R
-# 24101      IMPUESTOS Y GRAVAMENES                    C        	T          R
-# 24102      RETENCIONES X PAGAR                       C        	T          R
-# 24103      RETENCIONES A EMPLEADOS                   C        	T          R
-# 241030     RETENC COOP, AFP, SFS                     C        	T          R
-# 27         ACUMULACIONES X PAGAR                     C        	T          R
-# 27101      PROVISIONES                               C        	T          R
-
-# 3          CAPITAL SOCIAL                            C        	T          R
-# 31         CAPITAL SUSCRITO Y PAGADO                 C        	T          R
-# 31101      CAPITAL SUSCRITO Y PAGADO                 C        	T          R
-# 32         UTILIDADES ACUMULADAS                     C        	T          R
-# 32101      RESULTADO DEL  EJERCICIO                  C        	T          R
-
-# 4          INGRESOS                                  C        	T          N
-# 41         INGRESOS OPERACIONALES                    C        	T          N
-
-# 5          COSTO DE VENTAS                           D        	T          N
-# 51         COSTOS OPERACIONALES                      D        	T          N
-# 51101      COSTO EN  VENTAS                          D        	T          N
-
-# 6          GASTOS OPERACIONALES                      D        	T          N
-# 61         GASTOS  ADMINISTRATIVOS                   D        	T          N
-# 61101      GASTOS DE PERSONAL ADM.                   D        	T          N
-# 61102      HONORARIOS                                D        	T          N
-# 61103      ALQUILERES                                D        	T          N
-# 61104      SERVICIOS                                 D        	T          N
-# 61105      MANTENIMIENTO Y REPARACIONES              D        	T          N
-# 61106      GASTOS LEGALES                            D        	T          N
-# 61107      GASTOS DE VEHICULOS                       D        	T          N
-# 61108      GASTO DEPRECIACION ACUMULADA              D        	T          N
-# 61109      AMORTIZACIONES                            D        	T          N
-# 61200      DIVERSOS ADMTVOS                          D        	T          N
-# 62         GASTOS DE VENTA                           D        	T          N
-# 62101      GASTOS  PERSONAL  DE VENTAS               D        	T          N
-# 62103      GASTOS LEGALES                            D        	T          N
-# 62104      GASTOS DE VEHICULOS                       D        	T          N
-# 62105      COMUNICAICON Y REDES PUNTO DE V           D        	T          N
-# 62106      PUBLICIDAD, PROPAGANDA Y PROMOC           D        	T          N
-# 62108      ADECUACIONES E INSTALACIONES              D        	T          N
-# 62109      GASTOS DE VIAJES                          D        	T          N
-# 62201      AMORTIZACION                              D        	T          N
-# 62202      GASTOS DEPRECIACION ACUMULADA             D        	T          N
-# 62203      MATERIAL GASTABLE P.V                     D        	T          N
-# 62910      DIVERSOS VENTAS                           D        	T          N
-# 63         GASTO  SORTEO                             D        	T          N
-# 63101      GASTOS PERSONAL SORTEO                    D        	T          N
-# 63102      HONORARIOS                                D        	T          N
-# 63103      ARRENDAMIENTOS                            D        	T          N
-# 63105      MANTENIMIENTO Y REPARACIONES              D        	T          N
-# 63106      GASTO DEPRECIACION ACUMULADA              D        	T          N
-# 63200      DIVERSOS SORTEOS                          D        	T          N
+G_CONFIG_ENTIDAD_CUENTA = [
+  { descripcion: 'CXC clientes',                 entidad:'cliente',     cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
+  { descripcion: 'CXP suplidores nacionales',    entidad:'suplidor',    cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES NACIONALES' },
+  { descripcion: 'CXP suplidores extranjeros',   entidad:'suplidor',    cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS' },
+  { descripcion: 'CXC empleados',                entidad:'user',        cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
+  { descripcion: 'CXP empleados',                entidad:'user',        cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
+  { descripcion: 'Retenciones empleados',        entidad:'user',        cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
+  { descripcion: 'Efectivo banco nacional',      entidad:'banco',       cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
+  { descripcion: 'Efectivo banco extranjero',    entidad:'banco',       cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
+]

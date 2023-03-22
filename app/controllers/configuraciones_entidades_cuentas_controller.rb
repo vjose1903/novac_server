@@ -13,7 +13,7 @@ class ConfiguracionesEntidadesCuentasController < ApplicationController
 
 
   def actualizar_configuracion_entidad_cuenta
-    resultado = ConfiguracionEntidadCuenta.update_configuracion_entidad_cuenta(params, @configuracion_entidad_cuenta,true)
+    resultado = ConfiguracionEntidadCuenta.create_update_configuracion_entidad_cuenta(params, @configuracion_entidad_cuenta, true)
     resultado.send_response self
   end
 

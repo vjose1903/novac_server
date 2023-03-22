@@ -1,7 +1,7 @@
 include ActionView::Helpers::NumberHelper
 
 class CabeceraFacturasController < ApplicationController
-  before_action :set_cabecera_factura, only: [:show, :update, :destroy]
+  before_action :set_cabecera_factura, only: [:show, :destroy]
   # GET /cabecera_facturas
   def index
     return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self

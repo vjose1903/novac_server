@@ -1,5 +1,5 @@
 class PeriodosFiscalesController < ApplicationController
-  before_action :set_periodo_fiscal, only: [ :show, :update, :destroy ]
+  before_action :set_periodo_fiscal, only: [ :show, :destroy ]
 
   # GET /periodos_fiscales
   def index

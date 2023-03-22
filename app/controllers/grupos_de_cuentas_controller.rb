@@ -1,5 +1,5 @@
 class GruposDeCuentasController < ApplicationController
-  before_action :set_grupo_cuenta, only: [:show, :update, :destroy ]
+  before_action :set_grupo_cuenta, only: [:show, :destroy ]
 
 
   # GET /grupos_de_cuentas

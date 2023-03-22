@@ -1,5 +1,5 @@
 class CierreCuentasController < ApplicationController
-  before_action :set_cierre_cuenta, only: %i[ show update destroy ]
+  before_action :set_cierre_cuenta, only:[ :show, :destroy ]
 
   # GET /cierre_cuentas
   def index

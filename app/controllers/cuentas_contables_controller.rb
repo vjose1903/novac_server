@@ -1,5 +1,5 @@
 class CuentasContablesController < ApplicationController
-  before_action :set_cuenta_contable, only: [ :show, :update, :destroy ]
+  before_action :set_cuenta_contable, only: [ :show, :destroy ]
 
 
   # GET /cuentas_contables

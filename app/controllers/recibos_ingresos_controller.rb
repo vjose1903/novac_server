@@ -1,5 +1,5 @@
 class RecibosIngresosController < ApplicationController
-  before_action :set_recibos_ingreso, only: [:show, :update, :destroy]
+  before_action :set_recibos_ingreso, only: [:show, :destroy]
 
 
   # GET /recibos_ingresos

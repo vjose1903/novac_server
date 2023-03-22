@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :divisas
 
   resources :costos_fletes_historiales
   resources :provincias
@@ -14,14 +15,12 @@ Rails.application.routes.draw do
   resources :mantenimiento_formulas
   resources :formulas_productos_terminados
   resources :mantenimiento_articulos
-  resources :detalle_facturas
   resources :tipo_facturas
   resources :imagenes
   resources :contenido_articulos
   resources :tipo_articulos
   resources :secuencia_facturas
   resources :acciones
-  resources :detalles_facturas_notas
   resources :config_articulos
   resources :grupos_de_cuentas
   resources :cuentas_contables

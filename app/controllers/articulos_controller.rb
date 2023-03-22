@@ -1,5 +1,5 @@
 class ArticulosController < ApplicationController
-  before_action :set_articulo, only: [:show, :update, :destroy, :checkIfExcede]
+  before_action :set_articulo, only: [:show, :destroy, :checkIfExcede]
 
   # GET /articulos
   def index

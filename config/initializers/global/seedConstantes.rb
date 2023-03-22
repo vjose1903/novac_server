@@ -159,14 +159,3 @@ G_ROLES_CUSTOM = [
 G_CONFIG_ARTICULOS = [
   { porciento_ganancia: 15}
 ]
-
-G_CONFIG_ENTIDAD_CUENTA = [
-  { descripcion: 'CXP suplidores nacionales',       cuenta_contable_id: nil },
-  { descripcion: 'CXP suplidores extranjeros',      cuenta_contable_id: nil },
-  { descripcion: 'CXC clientes',                    cuenta_contable_id: nil },
-  { descripcion: 'CXC empleados',                   cuenta_contable_id: nil },
-  { descripcion: 'CXP empleados',                   cuenta_contable_id: nil },
-  { descripcion: 'Cuentas bancarias nacionales',    cuenta_contable_id: nil },
-  { descripcion: 'Cuentas bancarias extranjeras',   cuenta_contable_id: nil },
-  { descripcion: 'Retenciones empleados',           cuenta_contable_id: nil },
-]

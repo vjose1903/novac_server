@@ -11,26 +11,30 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
 
   # =========================================================================================================================================================
 
-  def self.update_configuracion_entidad_cuenta(params, configuracion_entidad_cuenta, is_save=false)
+  def self.create_update_configuracion_entidad_cuenta(params, configuracion_entidad_cuenta, is_save=false)
     res = Response.new
     ConfiguracionEntidadCuenta.transaction do
 
-      configuracion_entidad_cuenta.cuenta_contable_id     = params[:cuenta_contable_id]
-      configuracion_entidad_cuenta.valid?
+			configuracion_entidad_cuenta                        = ConfiguracionEntidadCuenta.where(:id => params[:cuenta_contable_id]).first_or_create if configuracion_entidad_cuenta.nil?
 
-      configuracion_entidad_cuenta.otras_validaciones(params)
+			configuracion_entidad_cuenta.cuenta_contable_id     = params[:cuenta_contable_id]
+			configuracion_entidad_cuenta.entidad                = params[:entidad]
+			configuracion_entidad_cuenta.descripcion            = params[:descripcion]
+			configuracion_entidad_cuenta.valid?
 
-      if configuracion_entidad_cuenta.errors.empty? && configuracion_entidad_cuenta.save!
-        res.set_data(serialize_parser(configuracion_entidad_cuenta, {all: true}))
-        res.add_msg("Configuración entidad cuenta actualizada correctamente.")
-      end
+			configuracion_entidad_cuenta.otras_validaciones(params)
 
-      unless configuracion_entidad_cuenta.errors.empty?
-        res.add_msgs(configuracion_entidad_cuenta.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
+			if configuracion_entidad_cuenta.errors.empty? && configuracion_entidad_cuenta.save!
+				res.set_data(serialize_parser(configuracion_entidad_cuenta, {all: true}))
+				res.add_msg("Configuración entidad cuenta actualizada correctamente.")
+			end
 
-      raise ActiveRecord::Rollback if !configuracion_entidad_cuenta.errors.empty? || !res.status_valid
+			unless configuracion_entidad_cuenta.errors.empty?
+				res.add_msgs(configuracion_entidad_cuenta.errors.to_a)
+				res.set_status(HTTP_STATUS_CODE[:conflict])
+			end
+
+				raise ActiveRecord::Rollback if !configuracion_entidad_cuenta.errors.empty? || !res.status_valid
     end
 
     return res

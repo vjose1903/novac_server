@@ -1,0 +1,2 @@
+class Divisa < ApplicationRecord
+end

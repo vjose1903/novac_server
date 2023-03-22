@@ -1,11 +1,11 @@
 class ProduccionesController < ApplicationController
-  before_action :set_produccion, only: [:show, :update, :destroy]
+  before_action :set_produccion, only: [:show, :destroy]
 
   # GET /producciones
   def index
     return Response.new(params, nil, Produccion.all, nil, {all: true}).send_response self
   end
-  
+
   # GET /producciones/1
   def show
     return Response.new(params, nil, @produccion, nil, {all: true}).send_response self
@@ -48,7 +48,7 @@ class ProduccionesController < ApplicationController
   def set_produccion
     respuesta   = set_entidad(Produccion, params)
     @produccion = respuesta.get_data
-      
+
     return respuesta.send_response self if @produccion.nil?
   end
 end
