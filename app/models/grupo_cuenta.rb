@@ -49,7 +49,7 @@ class GrupoCuenta < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !grupo_cuenta.errors.empty? || !res.status_valid
+      transaction_rollback if !grupo_cuenta.errors.empty? || !res.status_valid
     end
 
     return res

@@ -14,6 +14,7 @@ class Divisa < ApplicationRecord
 
   def self.create_update_divisa(params, is_save=false )
     res                           = Response.new
+    result_tasa                   = Response.new()
     Divisa.transaction do
 
       divisa                      = Divisa.where(:id => params[:id]).first_or_create
@@ -31,8 +32,9 @@ class Divisa < ApplicationRecord
           divisa.imagenes         = dependencia_data if key_object == 'imagenes'
         }
 
-
         if res.status_valid && divisa.errors.empty? && (!is_save || (is_save && divisa.save!))
+          result_tasa             = TasaCambio.create_year_tasa_cambio(divisa) if params[:id].nil?
+
           res.set_data(serialize_parser(divisa, {all: true}))
 
           action = params[:id] ? 'actualizada' : 'creada'
@@ -40,17 +42,18 @@ class Divisa < ApplicationRecord
         end
       end
 
-      unless divisa.errors.empty?
+      if !divisa.errors.empty? || !res.status_valid
+        res.add_msgs(res.get_msgs.to_a)
         res.add_msgs(divisa.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !divisa.errors.empty? || !res.status_valid
+      transaction_rollback if !divisa.errors.empty? || !res.status_valid
+
     end
 
     return res
   end
-
 
   # =========================================================================================================================================================
   def delete_divisa

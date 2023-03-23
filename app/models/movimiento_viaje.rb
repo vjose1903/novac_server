@@ -28,7 +28,7 @@ class MovimientoViaje < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !movimiento_viaje.errors.empty? || !res.status_valid
+      transaction_rollback if !movimiento_viaje.errors.empty? || !res.status_valid
     end
 
     return res

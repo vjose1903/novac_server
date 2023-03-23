@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_22_135783) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_23_134152) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -701,6 +701,16 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_22_135783) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
+  create_table "tasas_de_cambio", force: :cascade do |t|
+    t.bigint "divisa_id", null: false
+    t.date "fecha_equivalente"
+    t.float "valor", default: 0.0
+    t.integer "secuencia", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["divisa_id"], name: "index_tasas_de_cambio_on_divisa_id"
+  end
+
   create_table "tipo_articulos", force: :cascade do |t|
     t.text "descripcion"
     t.datetime "created_at", precision: nil, null: false
@@ -841,6 +851,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_22_135783) do
   add_foreign_key "roles_permisos_acciones", "roles"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
+  add_foreign_key "tasas_de_cambio", "divisas"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

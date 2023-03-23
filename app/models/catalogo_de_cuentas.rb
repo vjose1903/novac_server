@@ -37,7 +37,7 @@ class CatalogoDeCuentas < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless res.status_valid
+      transaction_rollback unless res.status_valid
     end
 
     return res

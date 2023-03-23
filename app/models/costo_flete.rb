@@ -33,7 +33,7 @@ class CostoFlete < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !costo_flete.errors.empty? || !res.status_valid
+      transaction_rollback if !costo_flete.errors.empty? || !res.status_valid
     end
 
     return res

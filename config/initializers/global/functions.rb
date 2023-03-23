@@ -37,6 +37,10 @@ class Response
     @res[:data]
   end
 
+  def clear_msgs(msg)
+    @res[:msg] = []
+  end
+
   def add_msg(msg)
     @res[:msg].push(msg) if msg.length > 0
   end
@@ -294,6 +298,10 @@ def updateSecuencias(tipo_secuencia_id)
 
     return res
   end
+# ---------------------------------------------------------------------------------------------------------
+def transaction_rollback
+	raise ActiveRecord::Rollback
+end
 # ---------------------------------------------------------------------------------------------------------
 
 def crear_actualizar_dependencias(dependencias, parametros, save)

@@ -44,7 +44,7 @@ class DetalleRecibo < ApplicationRecord
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
     return res
-    raise ActiveRecord::Rollback if !detalle_recibo.errors.empty? || !res.status_valid
+    transaction_rollback if !detalle_recibo.errors.empty? || !res.status_valid
   end
 
   #  --------------------------------------------------------------------------------------------------------------------------------

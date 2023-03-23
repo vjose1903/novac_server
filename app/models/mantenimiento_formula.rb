@@ -21,7 +21,7 @@ class MantenimientoFormula < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback if historico.errors.empty? || !res.status_valid
+			transaction_rollback if historico.errors.empty? || !res.status_valid
     end
 
 		return res

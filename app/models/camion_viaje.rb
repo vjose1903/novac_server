@@ -26,7 +26,7 @@ class CamionViaje < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !camion_viaje.errors.empty? || !res.status_valid
+      transaction_rollback if !camion_viaje.errors.empty? || !res.status_valid
     end
 
     return res

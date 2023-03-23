@@ -168,7 +168,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless res.status_valid
+      transaction_rollback unless res.status_valid
     end
 
     return res
@@ -578,7 +578,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !factura_original.errors.empty? || !res.status_valid
+      transaction_rollback if !factura_original.errors.empty? || !res.status_valid
     end
 
     return res
@@ -611,7 +611,7 @@ class CabeceraFactura < ApplicationRecord
 				res.set_status(HTTP_STATUS_CODE[:conflict])
 			end
 
-			raise ActiveRecord::Rollback if !factura.errors.empty? || !res.status_valid
+			transaction_rollback if !factura.errors.empty? || !res.status_valid
 		end
 
     return res
@@ -634,7 +634,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !factura_a_pagar.errors.empty? || !res.status_valid
+      transaction_rollback if !factura_a_pagar.errors.empty? || !res.status_valid
     end
 
     return res

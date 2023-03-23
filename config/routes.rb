@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios
@@ -94,8 +93,11 @@ Rails.application.routes.draw do
       get "check_excede/:id"                           => "articulos#checkIfExcede" #
       get "filtro/:arg"                                => "articulos#getArticulosFiltrados" #
       get "historico/:date/:articulo_id"               => "mantenimiento_articulos#getOneArticuloByDate" #
-      get "custom/stock"                               => "articulos#getStock"
-      get "custom/get_actual_price_detalles"           => "articulos#getActualPriceDetalles"
+
+      scope "custom" do
+        get "stock"                               => "articulos#getStock"
+        get "get_actual_price_detalles"           => "articulos#getActualPriceDetalles"
+      end
     end
   end
 
@@ -122,13 +124,18 @@ Rails.application.routes.draw do
   resources :clientes do
     collection do
       get "filtro/:arg"                                => "clientes#getClientesFiltrados"
-      get "custom/get_balances/:id"                    => "clientes#getBalances"
+
+      scope "custom" do
+        get "get_balances/:id"                    => "clientes#getBalances"
+      end
     end
   end
 
   resources :facturas_aplicadas do
     collection do
-      get "custom/get_cantidad_devuelto/:ids"          => "facturas_aplicadas#getCantidadDevuelto"
+      scope "custom" do
+        get "get_cantidad_devuelto/:ids"          => "facturas_aplicadas#getCantidadDevuelto"
+      end
     end
   end
 
@@ -147,16 +154,22 @@ Rails.application.routes.draw do
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
-      patch "custom/update/:id"                                   => "cabecera_facturas#update"
-      get "custom/:ruta_complemento"                              => "cabecera_facturas#custom_route"
       patch ":id/update/movimientos_viaje"                        => "cabecera_facturas#updateMovimientosViaje"
+
+      scope "custom" do
+        patch "update/:id"                                   => "cabecera_facturas#update"
+        get ":ruta_complemento"                              => "cabecera_facturas#custom_route"
+      end
     end
   end
 
   resources :secuencia_comprobantes do
     collection do
-      get "custom/:id/:estado"            => "secuencia_comprobantes#getPaqueteRncByEstado"
       get "filtro/:arg"                   => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
+
+      scope "custom" do
+        get ":id/:estado"            => "secuencia_comprobantes#getPaqueteRncByEstado"
+      end
     end
   end
 
@@ -164,29 +177,41 @@ Rails.application.routes.draw do
 
   resources :permisos do
     collection do
-      get "custom/parse_permisos_front"   => "permisos#parsePermisosFront"
+      scope "custom" do
+        get "parse_permisos_front"   => "permisos#parsePermisosFront"
+      end
     end
   end
 
-	resources :periodos_fiscales do
-		collection do
-			post "custom/open_new_periodo"      => "periodos_fiscales#openNewPeriodo"
-		end
-	end
+  resources :periodos_fiscales do
+    collection do
+      scope "custom" do
+        post "open_new_periodo"      => "periodos_fiscales#openNewPeriodo"
+      end
+    end
+  end
 
-	resources :catalogo_de_cuentas do
-		collection do
-			post "create_default"               => "catalogo_de_cuentas#createCatalogoDeCuentasDefault"
-		end
-	end
+  resources :catalogo_de_cuentas do
+    collection do
+      post "create_default"               => "catalogo_de_cuentas#createCatalogoDeCuentasDefault"
+    end
+  end
+
+  resources :tasas_de_cambio do
+    collection do
+      scope "custom" do
+        get "get_history_changes"               => "tasas_de_cambio#getHistoryChanges"
+      end
+    end
+  end
 
 
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {
-		sessions: "devise_token_auth/sessions",
-		registrations: "devise_token_auth/registrations",
-		token_validations: "devise_token_auth/token_validations",
-	}
+    sessions: "devise_token_auth/sessions",
+    registrations: "devise_token_auth/registrations",
+    token_validations: "devise_token_auth/token_validations",
+  }
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end

@@ -55,7 +55,7 @@ class SecuenciaComprobante < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !ncf.errors.empty? || !res.status_valid
+      transaction_rollback if !ncf.errors.empty? || !res.status_valid
     end
 
     return res

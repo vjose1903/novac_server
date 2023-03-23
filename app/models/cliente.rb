@@ -75,7 +75,7 @@ class Cliente < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !cliente.errors.empty? || !res.status_valid
+      transaction_rollback if !cliente.errors.empty? || !res.status_valid
     end
 
     return res

@@ -49,7 +49,7 @@ class CuadreCaja < ApplicationRecord
           res.add_msgs(cuadre.errors.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
 
-          raise ActiveRecord::Rollback
+          transaction_rollback
         end
       end
 

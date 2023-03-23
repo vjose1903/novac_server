@@ -34,7 +34,7 @@ class PeriodoFiscal < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !periodo_fiscal.errors.empty? || !res.status_valid
+      transaction_rollback if !periodo_fiscal.errors.empty? || !res.status_valid
     end
 
     return res
@@ -99,7 +99,7 @@ class PeriodoFiscal < ApplicationRecord
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 
-        raise ActiveRecord::Rollback if (!new_periodo_fiscal.errors.empty? || !last_periodo_fiscal.errors.empty?) || !res.status_valid
+        transaction_rollback if (!new_periodo_fiscal.errors.empty? || !last_periodo_fiscal.errors.empty?) || !res.status_valid
 
       else
         res.add_msg("Para abrir un nuevo periodo fiscal primero debe de registrar el primer periodo")

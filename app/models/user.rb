@@ -111,7 +111,7 @@ class User < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !user.errors.empty? || !res.status_valid
+      transaction_rollback if !user.errors.empty? || !res.status_valid
     end
 
     return res

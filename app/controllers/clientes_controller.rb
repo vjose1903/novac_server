@@ -6,10 +6,10 @@ class ClientesController < ApplicationController
     return Response.new(params, nil, Cliente.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
   end
 
-	# GET /clientes/1
-	def show
-		return Response.new(params, nil, @cliente, nil, {all: true}).send_response self
-	end
+  # GET /clientes/1
+  def show
+    return Response.new(params, nil, @cliente, nil, {all: true}).send_response self
+  end
 
   def getClientesFiltrados
     arg       = params[:arg]
@@ -19,17 +19,17 @@ class ClientesController < ApplicationController
 
 
   def crear_actualizar_cliente
-		parametros = params
-		parametros["id"] = params["id"] if params["id"]
+    parametros = params
+    parametros["id"] = params["id"] if params["id"]
 
     resultado = Cliente.create_update_cliente(parametros, true)
-		resultado.send_response self
-	end
+    resultado.send_response self
+  end
 
   def getBalances
-		resultado = @cliente.get_balances_and_facturas(params, set_paginate_options(params))
-		resultado.send_response self
-	end
+    resultado = @cliente.get_balances_and_facturas(params, set_paginate_options(params))
+    resultado.send_response self
+  end
 
   # POST /clientes
   def create

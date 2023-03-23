@@ -133,11 +133,11 @@ class CuentaContable < ApplicationRecord
   # ============================================================================================================================================
 
   def self.validar_e_inicializar(items, grupo_cuenta, save)
-    res_valid = Response.new
-    array_valid=[]
+    res_valid   = Response.new
+    array_valid = []
 
     items.each do |item|
-      res_temp = self.create_update_cuenta_contable(item, grupo_cuenta, !item[:id].nil?)
+      res_temp  = self.create_update_cuenta_contable(item, grupo_cuenta, !item[:id].nil?)
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)

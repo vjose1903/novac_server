@@ -34,7 +34,7 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
 				res.set_status(HTTP_STATUS_CODE[:conflict])
 			end
 
-				raise ActiveRecord::Rollback if !configuracion_entidad_cuenta.errors.empty? || !res.status_valid
+				transaction_rollback if !configuracion_entidad_cuenta.errors.empty? || !res.status_valid
     end
 
     return res

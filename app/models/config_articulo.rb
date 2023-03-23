@@ -26,7 +26,7 @@ class ConfigArticulo < ApplicationRecord
         end
       end
 
-      raise ActiveRecord::Rollback if !configuracion_articulo.errors.empty? || !res.status_valid
+      transaction_rollback if !configuracion_articulo.errors.empty? || !res.status_valid
 
     end
 
