@@ -53,6 +53,22 @@ class Divisa < ApplicationRecord
 
 
   # =========================================================================================================================================================
+  def delete_divisa
+
+    imagenes  = self.imagenes.map { | imagen | { file_hash: imagen.file_hash }.with_indifferent_access }
+
+    resultado = borrar_entidad(self)
+
+    if resultado.status_valid && self.imagenes.empty?
+      imagenes.each do | imagen |
+        Imagen.removeFileInThisServer(imagen)
+      end
+    end
+
+    return resultado
+
+  end
+  # =========================================================================================================================================================
 
 end
 1

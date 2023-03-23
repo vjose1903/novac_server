@@ -37,25 +37,39 @@ class Imagen < ApplicationRecord
 
     # ============================================================================================================================================
 
+    def self.validar_e_inicializar(items, padre, save)
+      res_valid = Response.new
+      array_valid=[]
+
+      items.each do |item|
+        res_temp = self.create_update_imagen(item, padre, !item[:id].nil?)
+
+        if res_temp.status_valid
+          array_valid.push(res_temp.get_data)
+        else
+          return res_temp
+        end
+      end
+
+      res_valid.set_data array_valid
+      return res_valid
+    end
+
+    # ============================================================================================================================================
+
     def self.removeFileInThisServer(imagen_original)
 
       existing_image = Imagen.where({file_hash: imagen_original[:file_hash]})
 
       if existing_image.empty?
-
-        Dir.glob(Pathname.new(IMAGES_PATH).join('*.{jpg,jpeg,png,gif}')).each do | file_path |
-          # Calcular el hash del archivo existente
-          existing_image_data = File.read(file_path)
-          existing_image_hash = Digest::SHA256.hexdigest(existing_image_data)
-
-          # Comparar los hashes
-          if existing_image_hash == imagen_original[:file_hash]
-            FileUtils.remove_file(file_path)
-          end
-        end
+        file_path    = Imagen.getFilePathInThisServ(imagen_original[:file_hash])
+        FileUtils.remove_file(file_path)
       end
 
     end
+
+
+
     # ============================================================================================================================================
 
     def self.saveFileInThisServer(params)
@@ -78,8 +92,9 @@ class Imagen < ApplicationRecord
 
       # Comprobar si la imagen ya existe en el servidor
       existing_image = Imagen.find_by_file_hash(new_image_hash)
+			file_path      = Imagen.getFilePathInThisServ(new_image_hash)
 
-      if existing_image.nil?
+      if existing_image.nil? || file_path.nil?
         File.open(File.join(IMAGES_PATH, "#{file_name}.#{extension}"), 'wb') { | file | file.write image_data }
         return { file_name: "#{file_name}.#{extension}", file_hash: new_image_hash }.with_indifferent_access
       else
@@ -89,22 +104,18 @@ class Imagen < ApplicationRecord
     end
 
     # ============================================================================================================================================
+    def self.getFilePathInThisServ(file_hash)
+      _file_path = nil
+      Dir.glob(Pathname.new(IMAGES_PATH).join('*.{jpg,jpeg,png,gif}')).each do | file_path |
+        # Calcular el hash del archivo existente
+        existing_image_data = File.read(file_path)
+        existing_image_hash = Digest::SHA256.hexdigest(existing_image_data)
 
-    def self.validar_e_inicializar(items, padre, save)
-      res_valid = Response.new
-      array_valid=[]
-
-      items.each do |item|
-        res_temp = self.create_update_imagen(item, padre, !item[:id].nil?)
-
-        if res_temp.status_valid
-          array_valid.push(res_temp.get_data)
-        else
-          return res_temp
-        end
+          _file_path = file_path if existing_image_hash == file_hash
       end
-
-      res_valid.set_data array_valid
-      return res_valid
+      return _file_path
     end
+    # ============================================================================================================================================
+
+
 end

@@ -28,7 +28,7 @@ class DivisasController < ApplicationController
 
   # DELETE /divisas/1
   def destroy
-    resultado = borrar_entidad(@divisa)
+		resultado = @divisa.delete_divisa
     resultado.send_response self
   end
 
