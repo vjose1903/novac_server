@@ -3,11 +3,14 @@ require "zlib"
 require 'openssl'
 
 class Response
-  def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
-    @paginate_class          = Paginator.new(params)
 
-    @res                     = {status:status_, data: data,  msg: msg_}
+  def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
+
+    @paginate_class          = Paginator.new(params)
+    @res                     = {status: status_, data: data,  msg: msg_}
+
     set_data(data, parametros_opcionales) unless data.nil?
+
   end
 
   def set_status(status)
@@ -63,27 +66,27 @@ end
 
 class Paginator
   def initialize(params)
-    @paginate_options  = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
-    @data_paginated    ={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
+    @paginate_options  = { page: nil, per_page:  nil, paginado:  false }.with_indifferent_access
+    @data_paginated    = { data: nil, total_registros: nil, total_paginas: nil }.with_indifferent_access
+
     set_pagination_options(params)
   end
 
   def set_pagination_options(params)
-    @paginate_options["page"]     = params['page']       if params && !params['page'].nil?
-    @paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
-    @paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
+    @paginate_options[:page]     = params[:page]       if params && !params[:page].nil?
+    @paginate_options[:per_page] = params[:per_page]   if params && !params[:per_page].nil?
+    @paginate_options[:paginado] = params[:paginado]   if params && !params[:paginado].nil?
   end
 
 
   def paginate_data(data, models_includes=nil)
-    @data_paginated["data"] = data
-    @data_paginated         = paginate(data, models_includes) if @paginate_options["paginado"]
+    @data_paginated[:data]  = data
+    @data_paginated         = paginate(data, models_includes) if @paginate_options[:paginado]
   end
 
   def paginate(items, models_includes=nil)
-    page      = @paginate_options["page"].to_i
-    per_page  = @paginate_options["per_page"].to_i
-
+    page      = @paginate_options[:page].to_i
+    per_page  = @paginate_options[:per_page].to_i
 
     inicio    = (page - 1).abs * per_page
 
@@ -91,15 +94,15 @@ class Paginator
 
     total_pag = (items.length.to_f / per_page.to_f).ceil
 
-    return { "data" => models_includes.nil? ? itemsPaginated : itemsPaginated.to_activerecord_relation.includes(models_includes) , "total_registros" => items.length, "total_paginas" => total_pag }
+    return { data: models_includes.nil? ? itemsPaginated : itemsPaginated.to_activerecord_relation.includes(models_includes) , total_registros: items.length, total_paginas: total_pag }
   end
 
   def is_paginated
-    @paginate_options['paginado']
+    @paginate_options[:paginado]
   end
 
   def set_page(page)
-    @paginate_options['page'] = page
+    @paginate_options[:page] = page
   end
 
 
@@ -108,31 +111,30 @@ class Paginator
   end
 
   def get_data
-    @data_paginated["data"]
+    @data_paginated[:data]
   end
 
   def get_total_registros()
-    @data_paginated["total_registros"]
+    @data_paginated[:total_registros]
   end
 
   def get_total_paginas()
-    @data_paginated["total_paginas"]
+    @data_paginated[:total_paginas]
   end
 
   def get_page
-    @paginate_options['page']
+    @paginate_options[:page]
   end
 
   def get_per_page
-    puts " @paginate_options ==> " + " #{@paginate_options.to_json}"
-    @paginate_options['per_page']
+    @paginate_options[:per_page]
   end
 
 end
 
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
-  pde = {"page" => params['page']|| 0, "per_page" => params['per_page'] || 0, "paginado" => params['paginado'].to_boolean || false}
+  pde = { page: params[:page] || 0, per_page: params[:per_page] || 0, paginado: params[:paginado].to_boolean || false }.with_indifferent_access
   return pde
 end
 # ---------------------------------------------------------------------------------------------------------
@@ -142,10 +144,10 @@ def serialize_parser(modelo, params={})
 end
 # ---------------------------------------------------------------------------------------------------------
 
-def set_entidad(modelo, params, key="id")
-  res = Response.new
-  where = { "#{key}": params[key]}
-  entidad = modelo.where(where)
+def set_entidad(modelo, params, key='id')
+  res      = Response.new
+  where    = { "#{key}": params[key]}
+  entidad  = modelo.where(where)
 
   unless entidad.empty?
     res.set_data(entidad.first)
@@ -175,7 +177,9 @@ def traducir(key, others=nil)
 
   return texto_traducido.join(" ")
 end
+
 # ---------------------------------------------------------------------------------------------------------
+
 def borrar_entidad(obj)
   res = Response.new
 
@@ -204,6 +208,7 @@ def encrypt(str)
   encrypted = cipher.update(str) + cipher.final
   encrypted.unpack('H*')[0].upcase
 end
+
 # ---------------------------------------------------------------------------------------------------------
 
 def decrypt(str)
@@ -215,24 +220,6 @@ def decrypt(str)
 
   cipher.update(decrypted) + cipher.final
 end
-
-
-# def encrypt(str)
-# 	cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').encrypt
-# 	cipher.key = Digest::SHA1.hexdigest ENCRIPT_SECRET
-# 	s = cipher.update(self) + cipher.final
-
-# 	s.unpack('H*')[0].upcase
-# end
-# # ---------------------------------------------------------------------------------------------------------
-
-# def decrypt(str)
-# 	cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
-# 	cipher.key = Digest::SHA1.hexdigest key
-# 	s = [self].pack("H*").unpack("C*").pack("c*")
-
-# 	cipher.update(s) + cipher.final
-# end
 
 # ---------------------------------------------------------------------------------------------------------
 
@@ -283,7 +270,9 @@ def dobleDesEncriptar(data_to_compress)
   data_uncompressed          = desencriptarZlib(data_doble_compressed)
   return data_uncompressed
 end
+
 # ---------------------------------------------------------------------------------------------------------
+
 def updateSecuencias(tipo_secuencia_id)
     res                         = Response.new
 
@@ -292,16 +281,19 @@ def updateSecuencias(tipo_secuencia_id)
     secuenciaBackend.secuencia  = actual + 1
 
     unless secuenciaBackend.save!
-      res.add_msg("Error actualizando la secuencia.")
+      res.add_msg('Error actualizando la secuencia.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
     return res
   end
+
 # ---------------------------------------------------------------------------------------------------------
+
 def transaction_rollback
 	raise ActiveRecord::Rollback
 end
+
 # ---------------------------------------------------------------------------------------------------------
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
@@ -330,12 +322,12 @@ class Array
   end
 
   def get_order
-    return "" if self.empty? || self[0]["id"].nil?
+    return "" if self.empty? || self.first[:id].nil?
 
-    is_ascending = self.each_cons(2).all?{|left, right| left["id"] <= right["id"]}
-    is_desending = self.each_cons(2).all?{|left, right| left["id"] >= right["id"]}
+    is_ascending = self.each_cons(2).all?{|left, right| left[:id] <= right[:id]}
+    is_desending = self.each_cons(2).all?{|left, right| left[:id] >= right[:id]}
 
-    return is_ascending ? "ASC" : is_desending ? "DESC" : ""
+    return is_ascending ? 'ASC' : is_desending ? 'DESC' : ''
 
   end
 
@@ -353,6 +345,11 @@ class Array
 end
 
 # ---------------------------------------------------------------------------------------------------------
+def get_config_cuenta_entidad(entidad)
+	return ConfiguracionEntidadCuenta.where({entidad: entidad})
+end
+# ---------------------------------------------------------------------------------------------------------
+
 def get_current_user
   return Thread.current[:current_user]
 end

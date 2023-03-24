@@ -28,7 +28,7 @@ class TipoCuentasBancariasController < ApplicationController
 
   # DELETE /tipo_cuentas_bancarias/1
   def destroy
-		resultado = borrar_entidad(@tipo_cuenta_bancaria)
+    resultado = borrar_entidad(@tipo_cuenta_bancaria)
     resultado.send_response self
   end
 

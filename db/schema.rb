@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_24_125611) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_24_133235) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -48,6 +48,19 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_24_125611) do
     t.index ["estado", "nombre"], name: "index_articulos_on_estado_and_nombre", unique: true, where: "(estado = true)"
     t.index ["imagen_id"], name: "index_articulos_on_imagen_id"
     t.index ["tipo_articulo_id"], name: "index_articulos_on_tipo_articulo_id"
+  end
+
+  create_table "bancos", force: :cascade do |t|
+    t.string "nombre", null: false
+    t.string "rnc", null: false
+    t.string "comentario"
+    t.string "telefono"
+    t.string "direccion"
+    t.string "ejecutivo_cuenta"
+    t.string "telefono_ejecutivo_cuenta"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "cabecera_conduces", force: :cascade do |t|

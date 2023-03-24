@@ -3,7 +3,7 @@ class TipoCuentaBancaria < ApplicationRecord
   def self.create_update_tipo_cuenta(params, is_save=false)
     res                            = Response.new
 
-    Suplidor.transaction do
+    TipoCuentaBancaria.transaction do
 
       tipo_cuenta                  = TipoCuentaBancaria.where(:id => params[:id]).first_or_create
 

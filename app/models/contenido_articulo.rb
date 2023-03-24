@@ -11,15 +11,15 @@ class ContenidoArticulo < ApplicationRecord
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
     res = Response.new
 
-		contenido                   = ContenidoArticulo.where(:id => params["id"]).first_or_create
+    contenido                   = ContenidoArticulo.where(:id => params["id"]).first_or_create
 
-    contenido.referencia        = params["referencia"] || nil
-    contenido.costo             = params["costo"]
-    contenido.precio            = params["precio"]
-    contenido.cantidad          = params["cantidad"]
-    contenido.medida            = params["medida"]
-    contenido.condicion         = params["condicion"]
-    contenido.calcular_itbis    = params["calcular_itbis"]
+    contenido.referencia        = params[:referencia] || nil
+    contenido.costo             = params[:costo]
+    contenido.precio            = params[:precio]
+    contenido.cantidad          = params[:cantidad]
+    contenido.medida            = params[:medida]
+    contenido.condicion         = params[:condicion]
+    contenido.calcular_itbis    = params[:calcular_itbis]
 
     contenido.valid?
 

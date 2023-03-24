@@ -505,12 +505,12 @@ G_CATALOGO_DEFAULT = [
 ]
 
 G_CONFIG_ENTIDAD_CUENTA = [
-  { descripcion: 'CXC clientes',                 entidad:'cliente',     cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
-  { descripcion: 'CXP suplidores nacionales',    entidad:'suplidor',    cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES NACIONALES' },
-  { descripcion: 'CXP suplidores extranjeros',   entidad:'suplidor',    cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS' },
-  { descripcion: 'CXC empleados',                entidad:'user',        cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
-  { descripcion: 'CXP empleados',                entidad:'user',        cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
-  { descripcion: 'Retenciones empleados',        entidad:'user',        cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
-  { descripcion: 'Efectivo banco nacional',      entidad:'banco',       cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
-  { descripcion: 'Efectivo banco extranjero',    entidad:'banco',       cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
+  { descripcion: 'CXC clientes',                 entidad:'cliente',            cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
+  { descripcion: 'CXP suplidores nacionales',    entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES NACIONALES' },
+  { descripcion: 'CXP suplidores extranjeros',   entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS' },
+  { descripcion: 'CXC empleados',                entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
+  { descripcion: 'CXP empleados',                entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
+  { descripcion: 'Retenciones empleados',        entidad:'user',               cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
+  { descripcion: 'Efectivo banco nacional',      entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
+  { descripcion: 'Efectivo banco extranjero',    entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
 ]

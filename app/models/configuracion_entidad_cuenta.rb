@@ -42,5 +42,15 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
 
 
   # =========================================================================================================================================================
+	def self.molde_cuenta(cuenta_control, descripcion)
+		return {
+			grupo_cuenta_id: cuenta_control.grupo_cuenta_id,
+			descripcion: descripcion,
+			cuenta_control: cuenta_control.id,
+			is_control: false,
+			origen: cuenta_control.origen,
+			tipo: cuenta_control.tipo
+		}.with_indifferent_access
+	end
 
 end
