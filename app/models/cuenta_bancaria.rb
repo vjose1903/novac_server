@@ -3,18 +3,16 @@ class CuentaBancaria < ApplicationRecord
   belongs_to :tipo_cuenta_bancaria
   belongs_to :divisa
   belongs_to :cuenta_contable
-	belongs_to :cuenta_contable_prima, class_name: 'CuentaContable', optional: true
-
-
+  belongs_to :cuenta_contable_prima, class_name: 'CuentaContable', optional: true
 
   # ============================================================================================================================================
 
-  def self.create_update_cuenta_bancaria(params, padre, is_save=false)
+  def self.create_update_cuenta_bancaria(params, banco, is_save=false)
     res                                       = Response.new
 
-    padre                                     = Banco.find_by_id(params[:banco_id]) if padre.nil?
+    banco                                     = Banco.find_by_id(params[:banco_id]) if banco.nil?
 
-    unless padre.nil?
+    unless banco.nil?
 
       cuenta_bancaria                         = CuentaBancaria.where(:id => params[:id]).first_or_create
 
@@ -26,11 +24,9 @@ class CuentaBancaria < ApplicationRecord
       cuenta_bancaria.comentario              = params[:comentario]
       cuenta_bancaria.descripcion             = params[:descripcion]
 
-
-      result_procesos                         = cuenta_bancaria.procesos_cuenta(padre)
+      result_procesos                         = cuenta_bancaria.procesos_cuenta(banco)
 
       cuenta_bancaria.valid?
-      cuenta_bancaria.otras_validaciones(params, padre)
 
       cuenta_bancaria.errors.delete(:banco) if !is_save
 
@@ -52,48 +48,39 @@ class CuentaBancaria < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def procesos_cuenta(padre)
+  def procesos_cuenta(banco)
     res = Response.new
 
     is_cuenta_nacional                = self.divisa.is_principal
 
     configuraciones_cuentas_contables = get_config_cuenta_entidad("cuenta_bancaria")
 
-    cuentas_contables                 = []
-
     configuraciones_cuentas_contables.each do | config |
-      descripcion_cuenta     = "Banco: #{padre.nombre} - CTA: #{self.numero_cuenta}"
+      is_prima               = !is_cuenta_nacional && config.descripcion.downcase == 'efectivo banco nacional'
 
-      descripcion_cuenta    += " PRIMA" if !is_cuenta_nacional && config.descripcion.downcase == 'efectivo banco nacional'
+      descripcion_cuenta     = "Banco: #{banco.nombre} - CTA: #{self.numero_cuenta}"
+      descripcion_cuenta    += " PRIMA" if is_prima
 
       cuenta_contable        = ConfiguracionEntidadCuenta.molde_cuenta(config.cuenta_contable, descripcion_cuenta)
 
       if (is_cuenta_nacional && config.descripcion.downcase == 'efectivo banco nacional') || (!is_cuenta_nacional)
-        cuentas_contables.push(cuenta_contable)
+
+        temp_cuenta_contable              = CuentaContable.create_update_cuenta_contable(cuenta_contable, nil, true)
+        if temp_cuenta_contable.status_valid
+          cuenta_contable                 = temp_cuenta_contable.get_data.as_json
+
+          self.cuenta_contable_id         = cuenta_contable.id if !is_prima
+          self.cuenta_contable_prima_id   = cuenta_contable.id if is_prima
+
+        else
+          res.add_msgs(temp_cuenta_contable.get_msgs)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
       end
     end
 
-    # Efectivo banco nacional
-    # Efectivo banco extranjero
-
-
-
-
-    if result_next_codigo.status_valid && result_next_nivel.status_valid
-
-      self.is_nacional              = is_cuenta_nacional
-      self.cuenta_contable          = is_cuenta_nacional
-      self.cuenta_contable_prima    = is_cuenta_nacional
-
-      self.codigo         = result_next_codigo.get_data
-      self.nivel          = result_next_nivel.get_data
-
-    else
-      res.add_msgs(result_next_codigo.get_msgs)
-      res.add_msgs(result_next_nivel.get_msgs)
-
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
+    self.is_nacional              = is_cuenta_nacional
 
     return res
   end

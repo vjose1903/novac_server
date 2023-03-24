@@ -20,14 +20,25 @@ class Banco < ApplicationRecord
       banco.telefono_ejecutivo_cuenta   = params[:telefono_ejecutivo_cuenta]
       banco.valid?
 
-      if banco.errors.empty? && (!is_save || ( is_save && banco.save! ))
 
-        res.set_data(serialize_parser(banco, { all: true }))
+			if banco.errors.empty?
 
-        action = params[:id] ? 'actualizado' : 'creado'
-        res.add_msg("Banco #{action} correctamente.")
-      else
-        res.add_msgs(banco.errors.to_a)
+        dependencias = [{modelo: CuentaBancaria, key_object: "cuentas_bancarias", padre: banco }]
+
+        res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+          grupo_cuenta.cuentas_bancarias = dependencia_data if key_object == 'cuentas_bancarias'
+        }
+
+        if res.status_valid && (!is_save || ( is_save && banco.save! ))
+					res.set_data(serialize_parser(banco, { all: true }))
+
+					action = params[:id] ? 'actualizado' : 'creado'
+					res.add_msg("Banco #{action} correctamente.")
+        end
+      end
+
+      unless grupo_cuenta.errors.empty?
+        res.add_msgs(grupo_cuenta.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
