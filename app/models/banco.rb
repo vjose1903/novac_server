@@ -2,13 +2,12 @@ class Banco < ApplicationRecord
 
   has_many :cuentas_bancarias
 
-  validates :nombre,  :presence, uniqueness: { scope: [:estado], case_sensitive: false, :message => "Banco ya esta registrado." }, :if => :estado
-  validates :rnc,     :presence, uniqueness: { scope: [:estado], case_sensitive: false, :message => "RNC ya esta registrado, en otro banco." }, :if => :estado
+  validates :nombre,  presence: true, uniqueness: { scope: [:estado], case_sensitive: false, :message => "Banco ya está registrado." },              :if => :estado
+  validates :rnc,     presence: true, uniqueness: { scope: [:estado], case_sensitive: false, :message => "RNC ya está registrado, en otro banco." }, :if => :estado
 
   def self.create_update_banco(params, is_save=false)
     res                                 = Response.new
     Banco.transaction do
-
       banco                             = Banco.where(:id => params[:id]).first_or_create
 
       banco.nombre                      = params[:nombre]
@@ -20,13 +19,12 @@ class Banco < ApplicationRecord
       banco.telefono_ejecutivo_cuenta   = params[:telefono_ejecutivo_cuenta]
       banco.valid?
 
-
 			if banco.errors.empty?
 
         dependencias = [{modelo: CuentaBancaria, key_object: "cuentas_bancarias", padre: banco }]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
-          grupo_cuenta.cuentas_bancarias = dependencia_data if key_object == 'cuentas_bancarias'
+          banco.cuentas_bancarias = dependencia_data if key_object == 'cuentas_bancarias'
         }
 
         if res.status_valid && (!is_save || ( is_save && banco.save! ))
@@ -37,8 +35,8 @@ class Banco < ApplicationRecord
         end
       end
 
-      unless grupo_cuenta.errors.empty?
-        res.add_msgs(grupo_cuenta.errors.to_a)
+      unless banco.errors.empty?
+        res.add_msgs(banco.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
