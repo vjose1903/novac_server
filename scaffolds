@@ -184,10 +184,10 @@ rails g scaffold config_articulo porciento_ganancia:float
 ✅ rails g scaffold configuracion_entidad_cuenta descripcion:string cuenta_contable:references
 
 ✅ rails g scaffold divisa nombre:string simbolo:string imagen:string is_principal:boolean estado:boolean
-rails g scaffold tasa_cambio divisa:references valor:float fecha_equivalente:date
+✅ rails g scaffold tasa_cambio divisa:references valor:float fecha_equivalente:date
 
 rails g scaffold tipo_cuenta_bancaria descripcion:string estado:boolean
-rails g scaffold banco nombre:string rnc:string comentario:string telefono:string direccion:string ejecutivo_cuenta:string estado:boolean
+rails g scaffold banco nombre:string rnc:string comentario:string telefono:string direccion:string ejecutivo_cuenta:string telefono_ejecutivo_cuenta:string estado:boolean
 rails g scaffold cuenta_bancaria banco:references divisa:references cuenta_contable:references tipo_cuenta_bancaria:references numero_cuenta:string comentario:string descripcion:string fecha_apertura:date is_nacional:boolean estado:boolean
 
 rails g scaffold cabeza_asiento_contable fecha_equivalente:date comentario:string estado:boolean

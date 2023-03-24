@@ -24,6 +24,7 @@ Rails.application.routes.draw do
   resources :cuentas_contables
   resources :configuraciones_entidades_cuentas
   resources :divisas
+  resources :tipo_cuentas_bancarias
 
 
   resources :roles do

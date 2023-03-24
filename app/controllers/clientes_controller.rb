@@ -19,10 +19,7 @@ class ClientesController < ApplicationController
 
 
   def crear_actualizar_cliente
-    parametros = params
-    parametros["id"] = params["id"] if params["id"]
-
-    resultado = Cliente.create_update_cliente(parametros, true)
+    resultado = Cliente.create_update_cliente(params, true)
     resultado.send_response self
   end
 
