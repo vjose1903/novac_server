@@ -13,38 +13,38 @@ class SecuenciaComprobante < ApplicationRecord
 
   # =========================================================================================================================================================
 
-  def self.create_update_ncf(params , is_save=false)
+  def self.create_update_ncf(params, is_save=false)
 
     res                        = Response.new
     res_valid                  = Response.new
     SecuenciaComprobante.transaction do
 
-      ncf                      = SecuenciaComprobante.where(:id => params["id"]).first_or_create
+      ncf                      = SecuenciaComprobante.where(:id => params[:id]).first_or_create
 
-      if ncf.estado && params["desde"] != ncf.desde
+      if ncf.estado && params[:desde] != ncf.desde
         res.add_msg("Este paquete ya esta en uso no puede cambiar el inicio del paquete.")
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      ncf.tipo_factura_id      = params["tipo_factura_id"]
-      ncf.secuencia            = params["secuencia"]
-      ncf.referencia           = params["referencia"]
-      ncf.desde                = params["desde"]
-      ncf.hasta                = params["hasta"]
-      ncf.fecha_compra         = params["fecha_compra"]
-      ncf.fecha_valida         = params["fecha_valida"]
-      ncf.estado               = params["estado"]
-      ncf.usado                = params["usado"]
+      ncf.tipo_factura_id      = params[:tipo_factura_id]
+      ncf.secuencia            = params[:secuencia]
+      ncf.referencia           = params[:referencia]
+      ncf.desde                = params[:desde]
+      ncf.hasta                = params[:hasta]
+      ncf.fecha_compra         = params[:fecha_compra]
+      ncf.fecha_valida         = params[:fecha_valida]
+      ncf.estado               = params[:estado]
+      ncf.usado                = params[:usado]
 
       ncf.valid?
 
       if ncf.errors.empty? && res.status_valid
-        res_valid = SecuenciaComprobante.validar_rango(ncf, params["action"])
+        res_valid = ncf.validar_rango(params[:action])
 
         if res_valid.status_valid && ncf.save!
           res.set_data(serialize_parser(ncf, {all: true}))
 
-          action = params["id"] ? 'actualizado' : 'creado'
+          action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Paquete de comprobantes #{action} correctamente.")
         end
       end
@@ -216,19 +216,19 @@ class SecuenciaComprobante < ApplicationRecord
   end
 
   # ============================================================================================================================================================
-  def self.validar_rango(paquete_ingresando, tipo)
+  def validar_rango(tipo)
     res              = Response.new
-    id               = paquete_ingresando["id"]
-    tipo_factura_id  = paquete_ingresando["tipo_factura_id"]
 
-    query = "hasta between #{paquete_ingresando["desde"]} AND #{paquete_ingresando["hasta"]}"
-    query += id.nil? ? "" : "id != #{id}"
+    tipo_factura_id  = self.tipo_factura_id
+
+    query = "hasta between #{self.desde} AND #{self.hasta}"
+    query += self.id.nil? ? '' : "AND id != #{self.id}"
 
     anothers_comprobantes = SecuenciaComprobante.where({tipo_factura_id: tipo_factura_id}).where(query).order('id ASC')
 
     anothers_comprobantes.each do | paquete |
 
-      comparations = {:create => paquete_ingresando["desde"] <= paquete.hasta, :update => (paquete_ingresando["desde"] <= paquete.hasta && paquete_ingresando["hasta"] >= paquete.desde) || (paquete_ingresando["desde"] >= paquete.desde && paquete_ingresando["desde"] <= paquete.hasta) }.with_indifferent_access
+      comparations = {create: (self.desde <= paquete.hasta), update: (self.desde <= paquete.hasta && self.hasta >= paquete.desde) || (self.desde >= paquete.desde && self.desde <= paquete.hasta) }.with_indifferent_access
 
       if comparations[tipo]
         res.add_msg("Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete.id)}.")
