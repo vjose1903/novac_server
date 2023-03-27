@@ -24,7 +24,7 @@ class CuadreCaja < ApplicationRecord
         total_venta_contado:  ventas_contado_total_facturado_,
         total_recibo_ingreso: recibos_ingresos_,
         total_anterior:       0,
-        fecha_equivalente:    DateTime.now -  (Date.today - Date.parse(params["fecha"])).to_i.day,
+        fecha_equivalente:    DateTime.now -  (Date.today - Date.parse(params[:fecha])).to_i.day,
         numero_reporte:       CuadreCaja.find_numero_reporte,
       }
 

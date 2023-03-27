@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+
   resources :cuentas_bancarias
   resources :bancos
   resources :costos_fletes_historiales
@@ -171,7 +172,7 @@ Rails.application.routes.draw do
       get "filtro/:arg"                   => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
 
       scope "custom" do
-        get ":id/:estado"            => "secuencia_comprobantes#getPaqueteRncByEstado"
+        get ":id/:estado"                 => "secuencia_comprobantes#getPaqueteRncByEstado"
       end
     end
   end
@@ -181,7 +182,7 @@ Rails.application.routes.draw do
   resources :permisos do
     collection do
       scope "custom" do
-        get "parse_permisos_front"   => "permisos#parsePermisosFront"
+        get "parse_permisos_front"        => "permisos#parsePermisosFront"
       end
     end
   end
@@ -189,7 +190,7 @@ Rails.application.routes.draw do
   resources :periodos_fiscales do
     collection do
       scope "custom" do
-        post "open_new_periodo"      => "periodos_fiscales#openNewPeriodo"
+        post "open_new_periodo"           => "periodos_fiscales#openNewPeriodo"
       end
     end
   end
@@ -203,10 +204,17 @@ Rails.application.routes.draw do
   resources :tasas_de_cambio do
     collection do
       scope "custom" do
-        get "get_history_changes"               => "tasas_de_cambio#getHistoryChanges"
+        get "get_history_changes"         => "tasas_de_cambio#getHistoryChanges"
       end
     end
   end
+
+	resources :cabezas_asientos_contables do
+    collection do
+    end
+  end
+
+
 
 
 

@@ -1,7 +1,7 @@
 
 PROJECT_PATH     = File.join Rails.root, "/"
 PUBLIC_PATH      = File.join Rails.root, "public"
-IMAGES_PATH         = File.join Rails.root, "public/img"
+IMAGES_PATH      = File.join Rails.root, "public/img"
 
 ENCRIPT_SECRET   = "1234567890ABCDEF"
 HTTP_STATUS_CODE = Rack::Utils::SYMBOL_TO_STATUS_CODE
@@ -11,10 +11,10 @@ DIAS             = ["Lunes", "Martes", "Miercoles", "Jueves",  "Viernes", "Sabad
 
 
 module Identificador
-  CLIENTE_ID = "1"
-  USER_ID = "2"
-  TOTAL_FACTURA = "3"
-  FECHA_EQUIVALENTE = "4"
+  CLIENTE_ID         = "1"
+  USER_ID            = "2"
+  TOTAL_FACTURA      = "3"
+  FECHA_EQUIVALENTE  = "4"
   CANTIDAD_ARTICULOS = "5"
 
   def self.cliente_id

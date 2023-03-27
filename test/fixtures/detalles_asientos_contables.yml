@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cabeza_asiento_contable: one
+  cuenta_contable_auxiliar: one
+  cuenta_contable_control: one
+  valor_debito: 1.5
+  valor_credito: 1.5
+
+two:
+  cabeza_asiento_contable: two
+  cuenta_contable_auxiliar: two
+  cuenta_contable_control: two
+  valor_debito: 1.5
+  valor_credito: 1.5

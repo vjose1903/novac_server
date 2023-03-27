@@ -1,6 +1,6 @@
 class PeriodoFiscal < ApplicationRecord
-	belongs_to :usuario_cerrador,     dependent: :destroy, class_name: 'User', optional: true
-  has_many :detalles_periodos_fiscales
+  belongs_to :usuario_cerrador,     dependent: :destroy, class_name: 'User', optional: true
+  has_one    :detalle_periodo_fiscal
 
 
   validates :fecha_inicio, presence: { :message => "Debe de especificar una fecha de inicio para el periodo fiscal." }
@@ -8,11 +8,18 @@ class PeriodoFiscal < ApplicationRecord
 
   # ============================================================================================================================================
 
+  def self.models_includes
+    includes = [:detalle_periodo_fiscal, :usuario_cerrador]
+    return includes
+  end
+
+  # ============================================================================================================================================
+
   def self.create_update_periodo_fiscal(params, is_save=false)
     res                                = Response.new
     PeriodoFiscal.transaction do
 
-      periodo_fiscal                   = PeriodoFiscal.where(:id => params["id"]).first_or_create
+      periodo_fiscal                   = PeriodoFiscal.where(:id => params[:id]).first_or_create
 
       periodo_fiscal.fecha_inicio      = params[:fecha_inicio]
       periodo_fiscal.fecha_cierre      = params[:fecha_cierre]
@@ -21,10 +28,10 @@ class PeriodoFiscal < ApplicationRecord
 
       if periodo_fiscal.errors.empty?
 
-        res = periodo_fiscal.add_detalles(params)
+        res = periodo_fiscal.add_detalle(params) if params[:id].nil?
 
         if res.status_valid && periodo_fiscal.save!
-          res.set_data(serialize_parser(periodo_fiscal, {all:true}))
+          res.set_data(periodo_fiscal)
 
           action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Periodo Fiscal #{action} correctamente.")
@@ -44,31 +51,19 @@ class PeriodoFiscal < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def add_detalles(params)
-
-    PeriodoFiscal.create_first_detalle_periodo(params, self) if self.id.nil?
-
-    dependencias = [{modelo: DetallePeriodoFiscal, key_object: "detalles_periodos_fiscales", padre: self }]
-
-    res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
-      self.detalles_periodos_fiscales = dependencia_data if key_object == 'detalles_periodos_fiscales'
-    }
-
-    return res
-  end
-
-  # ============================================================================================================================================
-
-  def self.create_first_detalle_periodo(params, periodo_fiscal)
-
+  def add_detalle(params)
     detalle                                                     = {}
 
     Mes.labels.keys.each do | month_number |
       current_month_number                                      = month_number.to_s.gsub("_", "").strip
-      detalle[:"#{Mes::Label.byNumber(current_month_number)}"]  = current_month_number.to_i == periodo_fiscal.fecha_inicio.month
+      detalle[:"#{Mes::Label.byNumber(current_month_number)}"]  = current_month_number.to_i == self.fecha_inicio.month
     end
 
-    params["detalles_periodos_fiscales"]                        = [ detalle ]
+    resultado = DetallePeriodoFiscal.create_update_detalle(detalle, self, false)
+
+    self.detalle_periodo_fiscal = resultado.get_data
+
+    return resultado
   end
 
   # ============================================================================================================================================
@@ -88,7 +83,7 @@ class PeriodoFiscal < ApplicationRecord
         new_periodo_fiscal.fecha_inicio     = new_periodo_fiscal.fecha_inicio.advance(years: 1)
         new_periodo_fiscal.fecha_cierre     = new_periodo_fiscal.fecha_cierre.advance(years: 1)
         new_periodo_fiscal.estado           = true
-        res                                 = new_periodo_fiscal.add_detalles(params)
+        res                                 = new_periodo_fiscal.add_detalle(params)
 
         last_periodo_fiscal.estado          = false
 
@@ -110,6 +105,23 @@ class PeriodoFiscal < ApplicationRecord
     end
 
     return res
+  end
+
+  # ============================================================================================================================================
+
+  def self.get_open_period
+    return PeriodoFiscal.find_by({ estado: true })
+  end
+
+  # ============================================================================================================================================
+
+  def self.is_open_month(fecha)
+    fecha_equivalente         = Date.parse(fecha)
+    current_periodo_fiscal    = PeriodoFiscal.get_open_period
+
+    is_open = ( fecha_equivalente.year == current_periodo_fiscal.fecha_inicio.year ) && current_periodo_fiscal.detalle_periodo_fiscal[:"#{Mes::Label.byNumber(fecha_equivalente.month)}"]
+
+    return is_open
   end
 
 end

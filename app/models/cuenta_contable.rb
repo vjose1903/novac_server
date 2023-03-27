@@ -27,7 +27,7 @@ class CuentaContable < ApplicationRecord
 
     unless grupo_cuenta.nil?
 
-      cuenta_contable                    = CuentaContable.where(:id => params["id"]).first_or_create
+      cuenta_contable                    = CuentaContable.where(:id => params[:id]).first_or_create
 
       cuenta_contable.grupo_cuenta_id    = params[:grupo_cuenta_id]
       cuenta_contable.descripcion        = params[:descripcion]

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_27_131940) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_27_205421) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -116,6 +116,22 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_27_131940) do
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_cabecera_facturas_on_user_id"
+  end
+
+  create_table "cabezas_asientos_contables", force: :cascade do |t|
+    t.bigint "usuario_creador_id", null: false
+    t.bigint "usuario_anulador_id"
+    t.bigint "periodo_fiscal_id", null: false
+    t.string "comentario"
+    t.string "tipo"
+    t.date "fecha_equivalente"
+    t.date "fecha_anulacion"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["periodo_fiscal_id"], name: "index_cabezas_asientos_contables_on_periodo_fiscal_id"
+    t.index ["usuario_anulador_id"], name: "index_cabezas_asientos_contables_on_usuario_anulador_id"
+    t.index ["usuario_creador_id"], name: "index_cabezas_asientos_contables_on_usuario_creador_id"
   end
 
   create_table "camiones_viajes", force: :cascade do |t|
@@ -352,6 +368,19 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_27_131940) do
     t.datetime "updated_at", precision: nil, null: false
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
+  end
+
+  create_table "detalles_asientos_contables", force: :cascade do |t|
+    t.bigint "cabeza_asiento_contable_id", null: false
+    t.bigint "cuenta_contable_auxiliar_id", null: false
+    t.bigint "cuenta_contable_control_id", null: false
+    t.float "valor_debito"
+    t.float "valor_credito"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cabeza_asiento_contable_id"], name: "idx_det_as_cont_cabeza_asi_cont"
+    t.index ["cuenta_contable_auxiliar_id"], name: "idx_det_as_cont_cuenta_cont_aux"
+    t.index ["cuenta_contable_control_id"], name: "idx_det_as_cont_cuenta_cont_cont"
   end
 
   create_table "detalles_facturas_notas", force: :cascade do |t|
@@ -842,6 +871,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_27_131940) do
   add_foreign_key "cabecera_facturas", "suplidores"
   add_foreign_key "cabecera_facturas", "tipo_facturas"
   add_foreign_key "cabecera_facturas", "users"
+  add_foreign_key "cabezas_asientos_contables", "periodos_fiscales"
+  add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_anulador_id"
+  add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_creador_id"
   add_foreign_key "camiones_viajes", "vehiculos"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
@@ -867,6 +899,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_27_131940) do
   add_foreign_key "detalle_facturas", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "recibos_ingresos"
+  add_foreign_key "detalles_asientos_contables", "cabezas_asientos_contables"
+  add_foreign_key "detalles_asientos_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
+  add_foreign_key "detalles_asientos_contables", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "detalles_facturas_notas", "articulos"
   add_foreign_key "detalles_facturas_notas", "detalle_facturas"
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"

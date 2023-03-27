@@ -6,13 +6,12 @@ class CreateCuentasBancarias < ActiveRecord::Migration[7.0]
       t.references :divisa,                    null: false,  foreign_key: true
       t.references :cuenta_contable,           null: false,  foreign_key: true
       t.references :cuenta_contable_prima,     null: true,   foreign_key: { to_table: :cuentas_contables }
-
-      t.date :fecha_apertura
-      t.string :numero_cuenta
-      t.string :comentario
-      t.string :descripcion
-      t.boolean :is_nacional
-      t.boolean :estado,      :default =>  true
+      t.date       :fecha_apertura
+      t.string     :numero_cuenta
+      t.string     :comentario
+      t.string     :descripcion
+      t.boolean    :is_nacional
+      t.boolean    :estado,      :default =>  true
 
       t.timestamps
     end

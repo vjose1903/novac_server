@@ -6,10 +6,10 @@ class DivisasController < ApplicationController
     return Response.new(params, nil, Divisa.all.where({ estado: true}).order('id ASC').includes(Divisa.models_includes), nil, {all: true}).send_response self
   end
 
-	# GET /divisas/1
-	def show
-		return Response.new(params, nil, @divisa, nil, {all: true}).send_response self
-	end
+  # GET /divisas/1
+  def show
+    return Response.new(params, nil, @divisa, nil, {all: true}).send_response self
+  end
 
   def crear_actualizar_divisa
     resultado = Divisa.create_update_divisa(params, true)
@@ -28,15 +28,15 @@ class DivisasController < ApplicationController
 
   # DELETE /divisas/1
   def destroy
-		resultado = @divisa.delete_divisa
+    resultado = @divisa.delete_divisa
     resultado.send_response self
   end
 
   private
     def set_divisa
-			respuesta = set_entidad(Divisa, params)
-			@divisa = respuesta.get_data
+      respuesta = set_entidad(Divisa, params)
+      @divisa = respuesta.get_data
 
-			return respuesta.send_response self if @divisa.nil?
-		end
+      return respuesta.send_response self if @divisa.nil?
+    end
 end

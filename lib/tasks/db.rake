@@ -7,40 +7,43 @@ namespace :db do
     puts "|==============================|"
     puts " "
 
-    rails_env         = ENV.fetch("RAILS_ENV") { "development" }
-    tulu              = ENV.fetch("TULU")
-    timestamp         = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
-    archive_path      = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
+    rails_env              = ENV.fetch("RAILS_ENV") { "development" }
 
-    ENV['PGPASSWORD'] = tulu
+    if rails_env != "development"
+      tulu                 = ENV.fetch("TULU")
+      timestamp            = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
+      archive_path         = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
 
-    # pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-dev --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
-    pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-prod --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+      ENV['PGPASSWORD'] = tulu
 
-    `cd #{Rails.root}/public && #{pg_dump}`
+      # pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-dev --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+      pg_dump              = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-prod --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
 
-    require 'google/apis/drive_v2'
-    ENV['GOOGLE_APPLICATION_CREDENTIALS'] = "#{Rails.root}/config/google_api_credentials.json"
-    drive                = Google::Apis::DriveV2::DriveService.new
-    drive.authorization  = Google::Auth.get_application_default([Google::Apis::DriveV2::AUTH_DRIVE_FILE])
+      `cd #{Rails.root}/public && #{pg_dump}`
 
-    metadata             = {title: File.basename(archive_path, '.sql')}
-    file                 = drive.insert_file(metadata, upload_source: archive_path, content_type: 'application/sql')
+      require 'google/apis/drive_v2'
+      ENV['GOOGLE_APPLICATION_CREDENTIALS'] = "#{Rails.root}/config/google_api_credentials.json"
+      drive                = Google::Apis::DriveV2::DriveService.new
+      drive.authorization  = Google::Auth.get_application_default([Google::Apis::DriveV2::AUTH_DRIVE_FILE])
 
-    EMAILS               = ['novacagrodemi@gmail.com']
-    EMAILS.each do |email|
-      perm_id   = drive.get_permission_id_for_email(email)
-      perm      = Google::Apis::DriveV2::Permission.new(role: 'writer', id: perm_id.id, type: 'user')
-      drive.insert_permission(file.id, perm, send_notification_emails: false)
+      metadata             = {title: File.basename(archive_path, '.sql')}
+      file                 = drive.insert_file(metadata, upload_source: archive_path, content_type: 'application/sql')
+
+      EMAILS               = ['novacagrodemi@gmail.com']
+      EMAILS.each do |email|
+        perm_id   = drive.get_permission_id_for_email(email)
+        perm      = Google::Apis::DriveV2::Permission.new(role: 'writer', id: perm_id.id, type: 'user')
+        drive.insert_permission(file.id, perm, send_notification_emails: false)
+      end
+
+      FileUtils.remove_file(archive_path)
+
+      puts " "
+      puts "|==============================|"
+      puts "|         BACKUP CREADO        |"
+      puts "|==============================|"
+      puts " "
     end
-
-    FileUtils.remove_file(archive_path)
-
-    puts " "
-    puts "|==============================|"
-    puts "|         BACKUP CREADO        |"
-    puts "|==============================|"
-    puts " "
   end
 
 end

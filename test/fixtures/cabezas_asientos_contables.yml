@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  usuario_creador: one
+  usuario_anulador: one
+  periodo_fiscal: one
+  comentario: MyString
+  tipo: MyString
+  fecha_equivalente: 2023-03-27
+  fecha_anulacion: 2023-03-27
+  estado: false
+
+two:
+  usuario_creador: two
+  usuario_anulador: two
+  periodo_fiscal: two
+  comentario: MyString
+  tipo: MyString
+  fecha_equivalente: 2023-03-27
+  fecha_anulacion: 2023-03-27
+  estado: false

@@ -29,8 +29,8 @@ class Articulo < ApplicationRecord
 
     end
 
-    if self.medida == 'Caja' && (!params['contenido_articulos'].present? || params['contenido_articulos'].length == 0)
-      self.errors.add(:base, "Los articulos comprados en caja debem de tener la cantidad especificada.")
+    if self.medida == 'Caja' && (!params[:contenido_articulos].present? || params[:contenido_articulos].length == 0)
+      self.errors.add(:base, "Los articulos comprados en caja deben de tener la cantidad especificada.")
     end
 
   end
