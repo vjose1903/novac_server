@@ -11,10 +11,10 @@ class CatalogoDeCuentas < ApplicationRecord
           temp_grupo_cuenta             = GrupoCuenta.create_update_grupo_cuenta(grupo.with_indifferent_access, true)
 
           if temp_grupo_cuenta.status_valid
-            grupo_cuenta                = temp_grupo_cuenta.get_data.as_json
+            grupo_cuenta                = temp_grupo_cuenta.get_data.as_json.with_indifferent_access
             grupo_cuenta_db             = GrupoCuenta.find_by_id(grupo_cuenta[:id])
 
-            primera_cuenta_contable     = grupo_cuenta[:cuentas_contables].as_json.first
+            primera_cuenta_contable     = grupo_cuenta[:cuentas_contables].as_json.first.with_indifferent_access
             primera_cuenta_contable_db  = CuentaContable.find_by_id(primera_cuenta_contable[:id])
 
             resultado                   = CatalogoDeCuentas.create_cuentas_default(grupo[:cuentas_contables], grupo_cuenta_db, primera_cuenta_contable_db)
@@ -54,8 +54,8 @@ class CatalogoDeCuentas < ApplicationRecord
       temp_cuenta_contable         = CuentaContable.create_update_cuenta_contable(next_cuenta_contable, grupo_cuenta, true)
 
       if temp_cuenta_contable.status_valid
-        cuenta_contable            = temp_cuenta_contable.get_data.as_json
-        cuenta_contable_db         = CuentaContable.find_by_id(cuenta_contable["id"])
+        cuenta_contable            = temp_cuenta_contable.get_data.as_json.with_indifferent_access
+        cuenta_contable_db         = CuentaContable.find_by_id(cuenta_contable[:id])
 
         next_config_entidad_cuenta = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:cuenta_contable_descripcion] == cuenta_contable_db.descripcion }
 

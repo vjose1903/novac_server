@@ -181,10 +181,11 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def borrar_entidad(obj)
-  res = Response.new
-
+  res  = Response.new
+	data = { deleted: false, disabled: false }.with_indifferent_access
   begin
     obj.destroy
+		data[:deleted] = true
   rescue => exception
     obj.estado = false
     unless obj.save!
@@ -192,7 +193,9 @@ def borrar_entidad(obj)
       res.add_msg("Error borrando #{obj.model_name.element}.")
       return res
     end
+		data[:disabled] = true
   end
+	res.set_data(data)
   res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
   return res
 end

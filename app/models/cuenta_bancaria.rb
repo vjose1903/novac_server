@@ -2,40 +2,51 @@ class CuentaBancaria < ApplicationRecord
   belongs_to :banco
   belongs_to :tipo_cuenta_bancaria
   belongs_to :divisa
-  belongs_to :cuenta_contable
-  belongs_to :cuenta_contable_prima, class_name: 'CuentaContable', optional: true
+  belongs_to :cuenta_contable,           dependent: :destroy
+  belongs_to :cuenta_contable_prima,     dependent: :destroy, class_name: 'CuentaContable', optional: true
+
+  validates :banco,                  presence: { :message => "Debe de seleccionar el banco al cual agregar la cuenta." }
+  validates :tipo_cuenta_bancaria,   presence: { :message => "Debe de seleccionar el tipo de cuenta de la cuenta." }
+  validates :divisa,                 presence: { :message => "Debe de seleccionar la divisa de la cuenta." }
+  validates :descripcion,            presence: { :message => "Descripcion de la cuenta no puede estar vacio." }
+  validates :numero_cuenta,          presence: { :message => "Número de la cuenta no puede estar vacio." },         uniqueness: { scope: [:estado, :banco_id], case_sensitive: false, :message => "Número de cuenta esta registrado en otra cuenta." }, :if => :estado
 
   # ============================================================================================================================================
 
   def self.create_update_cuenta_bancaria(params, banco, is_save=false)
-    res                                       = Response.new
+    res                                            = Response.new
 
-    banco                                     = Banco.find_by_id(params[:banco_id]) if banco.nil?
+    banco                                          = Banco.find_by_id(params[:banco_id]) if banco.nil?
 
     unless banco.nil?
+      CuentaBancaria.transaction do
 
-      cuenta_bancaria                         = CuentaBancaria.where(:id => params[:id]).first_or_create
+        cuenta_bancaria                            = CuentaBancaria.where(:id => params[:id]).first_or_create
+        cuenta_bancaria_original                   = cuenta_bancaria.attributes.with_indifferent_access unless params[:id].nil?
 
-      cuenta_bancaria.banco                   = params[:banco_id]
-      cuenta_bancaria.tipo_cuenta_bancaria    = params[:tipo_cuenta_bancaria_id]
-      cuenta_bancaria.divisa                  = params[:divisa_id]
-      cuenta_bancaria.fecha_apertura          = params[:fecha_apertura]
-      cuenta_bancaria.numero_cuenta           = params[:numero_cuenta]
-      cuenta_bancaria.comentario              = params[:comentario]
-      cuenta_bancaria.descripcion             = params[:descripcion]
+        cuenta_bancaria.banco_id                   = params[:banco_id]
+        cuenta_bancaria.tipo_cuenta_bancaria_id    = params[:tipo_cuenta_bancaria_id]
+        cuenta_bancaria.divisa_id                  = params[:divisa_id]
+        cuenta_bancaria.fecha_apertura             = params[:fecha_apertura]
+        cuenta_bancaria.numero_cuenta              = params[:numero_cuenta]
+        cuenta_bancaria.comentario                 = params[:comentario]
+        cuenta_bancaria.descripcion                = params[:descripcion]
 
-      result_procesos                         = cuenta_bancaria.procesos_cuenta(banco)
+        result_procesos                            = cuenta_bancaria.procesos_crear_cuenta(banco)  if params[:id].nil?
+        result_procesos                            = cuenta_bancaria.procesos_update_cuenta(cuenta_bancaria_original, params) unless params[:id].nil?
 
-      cuenta_bancaria.valid?
+        cuenta_bancaria.valid?
 
-      cuenta_bancaria.errors.delete(:banco) if !is_save
+        cuenta_bancaria.errors.delete(:banco) if !is_save
 
-      if result_procesos.status_valid && cuenta_bancaria.errors.empty? && (!is_save || (is_save && cuenta_bancaria.save!))
-        res.set_data(cuenta_bancaria)
-      else
-        res.add_msgs(result_procesos.get_msgs)
-        res.add_msgs(cuenta_bancaria.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        if result_procesos.status_valid && cuenta_bancaria.errors.empty? && (!is_save || (is_save && cuenta_bancaria.save!))
+          res.set_data(cuenta_bancaria)
+        else
+          res.add_msgs(result_procesos.get_msgs)
+          res.add_msgs(cuenta_bancaria.errors.to_a)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
       end
 
     else
@@ -48,8 +59,9 @@ class CuentaBancaria < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def procesos_cuenta(banco)
+  def procesos_crear_cuenta(banco)
     res = Response.new
+
 
     is_cuenta_nacional                = self.divisa.is_principal
 
@@ -67,10 +79,9 @@ class CuentaBancaria < ApplicationRecord
 
         temp_cuenta_contable              = CuentaContable.create_update_cuenta_contable(cuenta_contable, nil, true)
         if temp_cuenta_contable.status_valid
-          cuenta_contable                 = temp_cuenta_contable.get_data.as_json
-
-          self.cuenta_contable_id         = cuenta_contable.id if !is_prima
-          self.cuenta_contable_prima_id   = cuenta_contable.id if is_prima
+          cuenta_contable                 = temp_cuenta_contable.get_data.as_json.with_indifferent_access
+          self.cuenta_contable_id         = cuenta_contable[:id] if !is_prima
+          self.cuenta_contable_prima_id   = cuenta_contable[:id] if is_prima
 
         else
           res.add_msgs(temp_cuenta_contable.get_msgs)
@@ -80,11 +91,29 @@ class CuentaBancaria < ApplicationRecord
       end
     end
 
-    self.is_nacional              = is_cuenta_nacional
+    self.is_nacional = is_cuenta_nacional
 
     return res
   end
 
+  # ============================================================================================================================================
+  def procesos_update_cuenta(cuenta_bancaria_original, params)
+    res = Response.new
+
+    cuenta_contable_bool       = !self.cuenta_contable_id.nil?        && cuenta_bancaria_original[:numero_cuenta] != params[:numero_cuenta]
+    cuenta_contable_prima_bool = !self.cuenta_contable_prima_id.nil?  && cuenta_bancaria_original[:numero_cuenta] != params[:numero_cuenta]
+
+    self.cuenta_contable.descripcion.gsub!(cuenta_bancaria_original[:numero_cuenta], params[:numero_cuenta])       if cuenta_contable_bool
+    self.cuenta_contable_prima.descripcion.gsub!(cuenta_bancaria_original[:numero_cuenta], params[:numero_cuenta]) if cuenta_contable_prima_bool
+
+    unless (cuenta_contable_bool && self.cuenta_contable.save!) || (cuenta_contable_prima_bool && self.cuenta_contable_prima.save!)
+      res.add_msgs(self.cuenta_contable.errors.to_a)
+      res.add_msgs(self.cuenta_contable_prima.errors.to_a) if !self.cuenta_contable_prima_id.nil?
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
   # ============================================================================================================================================
 
   def self.validar_e_inicializar(items, padre, save)

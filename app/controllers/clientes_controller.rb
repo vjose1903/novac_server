@@ -3,13 +3,14 @@ class ClientesController < ApplicationController
 
   # GET /clientes
   def index
-    return Response.new(params, nil, Cliente.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, nil, Cliente.all.where({ estado: true}).order('id DESC'), nil, { all: true }).send_response self
   end
 
   # GET /clientes/1
   def show
-    return Response.new(params, nil, @cliente, nil, {all: true}).send_response self
+    return Response.new(params, nil, @cliente, nil, { all: true }).send_response self
   end
+
 
   def getClientesFiltrados
     arg       = params[:arg]

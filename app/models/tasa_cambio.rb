@@ -5,17 +5,18 @@ class TasaCambio < ApplicationRecord
   # ============================================================================================================================================
 
   def self.create_tasa_cambio(params, divisa, is_save)
-    res = Response.new
+    res      = Response.new
 
     TasaCambio.transaction do
       divisa = Divisa.find_by_id( params[:divisa_id] ) if divisa.nil?
 
       unless divisa.nil?
-        tasa_cambio                      = TasaCambio.where(:id => params[:id]).first_or_create
+        tasa_cambio                    = TasaCambio.where(:id => params[:id]).first_or_create
 
-        tasa_cambio.valor                = params[:valor]                unless params[:valor].nil?
-        tasa_cambio.divisa_id            = params[:divisa_id]            unless params[:divisa_id].nil?
-        tasa_cambio.fecha_equivalente    = params[:fecha_equivalente]    unless params[:fecha_equivalente].nil?
+        tasa_cambio.valor              = params[:valor]              unless params[:valor].nil?
+        tasa_cambio.divisa_id          = params[:divisa_id]          unless params[:divisa_id].nil?
+        tasa_cambio.fecha_equivalente  = params[:fecha_equivalente]  unless params[:fecha_equivalente].nil?
+        tasa_cambio.user_id            = get_current_user[:id]
 
         tasa_cambio.valid?
 
@@ -48,7 +49,7 @@ class TasaCambio < ApplicationRecord
     res             = Response.new
 
     if Date.parse(params[:fecha_equivalente]).beginning_of_day > Date.today.beginning_of_day
-      res.add_msg("No puede modificar la tasa de cambio de una divisa, en un día posterior al día actual.")
+      res.add_msg('No puede modificar la tasa de cambio de una divisa, en un día posterior al día actual.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
       return res
     end
@@ -71,13 +72,14 @@ class TasaCambio < ApplicationRecord
 
 
       tasas.each do | tasa |
-        tasa.valor          = params[:valor]
-        tasa.secuencia      = (tasa.secuencia + 1) if is_today_change || is_the_first_change
+        tasa.valor             = params[:valor]
+        tasa.last_user_update  = get_current_user[:id]
+        tasa.secuencia         = (tasa.secuencia + 1) if is_today_change || is_the_first_change
         tasa.save!
       end
 
 
-      res.add_msg("Tasa de Cambio modificada correctamente.")
+      res.add_msg('Tasa de Cambio modificada correctamente.')
     end
     return res
   end
@@ -116,8 +118,8 @@ class TasaCambio < ApplicationRecord
     desde           = Date.parse(params[:desde])
     hasta           = Date.parse(params[:hasta])
 
-    ids             = TasaCambio.select("MIN(id) as id").where("divisa_id = #{params[:divisa_id]} AND valor > 0 AND (fecha_equivalente between '#{desde}' AND '#{hasta}')").group("secuencia").to_a
-    tasas_de_cambio = TasaCambio.where({id: ids}).order("secuencia ASC")
+    ids             = TasaCambio.select('MIN(id) as id').where("divisa_id = #{params[:divisa_id]} AND valor > 0 AND (fecha_equivalente between '#{desde}' AND '#{hasta}')").group('secuencia').to_a
+    tasas_de_cambio = TasaCambio.where({id: ids}).order('secuencia ASC')
 
     res.set_data(serialize_parser(tasas_de_cambio, {all: true}))
 

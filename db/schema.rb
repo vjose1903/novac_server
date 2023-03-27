@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_24_154159) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_27_131940) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -298,16 +298,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_24_154159) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["grupo_cuenta_id"], name: "index_cuentas_contables_on_grupo_cuenta_id"
-  end
-
-  create_table "cuentas_contables_cuentas_bancarias", force: :cascade do |t|
-    t.bigint "cuenta_bancaria_id", null: false
-    t.bigint "cuenta_contable_id", null: false
-    t.boolean "is_prima"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cuenta_bancaria_id"], name: "index_cuentas_contables_cuentas_bancarias_on_cuenta_bancaria_id"
-    t.index ["cuenta_contable_id"], name: "index_cuentas_contables_cuentas_bancarias_on_cuenta_contable_id"
   end
 
   create_table "detalle_conduces", force: :cascade do |t|
@@ -635,6 +625,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_24_154159) do
     t.boolean "is_open", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "fecha_cerrado"
+    t.bigint "usuario_cerrador_id"
+    t.index ["usuario_cerrador_id"], name: "index_periodos_fiscales_on_usuario_cerrador_id"
   end
 
   create_table "permisos", force: :cascade do |t|
@@ -747,12 +740,16 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_24_154159) do
 
   create_table "tasas_de_cambio", force: :cascade do |t|
     t.bigint "divisa_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "last_user_update_id"
     t.date "fecha_equivalente"
     t.float "valor", default: 0.0
     t.integer "secuencia", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["divisa_id"], name: "index_tasas_de_cambio_on_divisa_id"
+    t.index ["last_user_update_id"], name: "index_tasas_de_cambio_on_last_user_update_id"
+    t.index ["user_id"], name: "index_tasas_de_cambio_on_user_id"
   end
 
   create_table "tipo_articulos", force: :cascade do |t|
@@ -863,8 +860,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_24_154159) do
   add_foreign_key "cuentas_bancarias", "divisas"
   add_foreign_key "cuentas_bancarias", "tipo_cuentas_bancarias"
   add_foreign_key "cuentas_contables", "grupos_de_cuentas"
-  add_foreign_key "cuentas_contables_cuentas_bancarias", "cuentas_bancarias"
-  add_foreign_key "cuentas_contables_cuentas_bancarias", "cuentas_contables"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"
@@ -898,6 +893,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_24_154159) do
   add_foreign_key "notas", "clientes"
   add_foreign_key "notas", "tipo_facturas"
   add_foreign_key "notas", "users"
+  add_foreign_key "periodos_fiscales", "users", column: "usuario_cerrador_id"
   add_foreign_key "permisos_acciones", "acciones"
   add_foreign_key "permisos_acciones", "permisos"
   add_foreign_key "producciones", "users"
@@ -910,6 +906,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_24_154159) do
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
   add_foreign_key "tasas_de_cambio", "divisas"
+  add_foreign_key "tasas_de_cambio", "users"
+  add_foreign_key "tasas_de_cambio", "users", column: "last_user_update_id"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

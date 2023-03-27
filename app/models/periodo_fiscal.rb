@@ -1,5 +1,7 @@
 class PeriodoFiscal < ApplicationRecord
+	belongs_to :usuario_cerrador,     dependent: :destroy, class_name: 'User', optional: true
   has_many :detalles_periodos_fiscales
+
 
   validates :fecha_inicio, presence: { :message => "Debe de especificar una fecha de inicio para el periodo fiscal." }
   validates :fecha_cierre, presence: { :message => "Debe de especificar una fecha de cierre para el periodo fiscal." }
@@ -24,7 +26,7 @@ class PeriodoFiscal < ApplicationRecord
         if res.status_valid && periodo_fiscal.save!
           res.set_data(serialize_parser(periodo_fiscal, {all:true}))
 
-          action = params["id"] ? 'actualizado' : 'creado'
+          action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Periodo Fiscal #{action} correctamente.")
         end
       end

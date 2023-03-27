@@ -125,11 +125,11 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
         pagos.map do |detalle_recibo|
 
           recibo           = detalle_recibo.recibos_ingreso
+          detalle_recibo   = detalle_recibo.as_json.with_indifferent_access
 
-          detalle_recibo   = detalle_recibo.as_json
-          detalle_recibo["numero_recibo"]     = recibo["numero_recibo"]
-          detalle_recibo["recibo_creado_por"] = recibo.user.nombre_completo
-          detalle_recibo["fecha_equivalente"] = recibo["fecha_equivalente"]
+          detalle_recibo[:numero_recibo]     = recibo["numero_recibo"]
+          detalle_recibo[:recibo_creado_por] = recibo.user.nombre_completo
+          detalle_recibo[:fecha_equivalente] = recibo["fecha_equivalente"]
 
           pago_parseo.push( detalle_recibo )
         end

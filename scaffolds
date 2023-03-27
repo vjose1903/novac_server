@@ -96,6 +96,7 @@ rails generate serializer detalle_factura
 rails generate serializer imagen
 
 rails g migration AddCamposToImagen
+rails g migration AddCamposToPeriodoFiscal
 
 rails g scaffold configuracion nombre_empresa:string rnc_empresa:string direccion_empresa:string telefono_empresa:string logo_empresa:string color_app:string url_servidor:string url_servidor_respaldo:string puerto_servidor:integer url_servidor_descargas:string
 
@@ -183,7 +184,7 @@ rails g scaffold config_articulo porciento_ganancia:float
 
 ✅ rails g scaffold configuracion_entidad_cuenta descripcion:string cuenta_contable:references
 
-✅ rails g scaffold divisa nombre:string simbolo:string imagen:string is_principal:boolean estado:boolean
+✅ rails g scaffold divisa nombre:string simbolo:string imagen:references is_principal:boolean estado:boolean
 ✅ rails g scaffold tasa_cambio divisa:references valor:float fecha_equivalente:date
 
 ✅ rails g scaffold tipo_cuenta_bancaria descripcion:string estado:boolean

@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  resources :cuentas_contables_cuentas_bancarias
   resources :cuentas_bancarias
   resources :bancos
   resources :costos_fletes_historiales
