@@ -54,5 +54,8 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "cuenta_contable_cuenta_bancaria",        "cuentas_contables_cuentas_bancarias"
   inflect.irregular "cabeza_asiento_contable",                "cabezas_asientos_contables"
   inflect.irregular "detalle_asiento_contable",               "detalles_asientos_contables"
+  inflect.irregular "deposito",                               "depositos"
+  inflect.irregular "transferencia",                          "transferencias"
+
 
 end

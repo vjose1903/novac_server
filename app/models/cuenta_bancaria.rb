@@ -13,6 +13,13 @@ class CuentaBancaria < ApplicationRecord
 
   # ============================================================================================================================================
 
+  def self.models_includes
+    includes = [ :tipo_cuenta_bancaria, :divisa, :cuenta_contable, :cuenta_contable_prima ]
+    return includes
+  end
+
+  # ============================================================================================================================================
+
   def self.create_update_cuenta_bancaria(params, banco, is_save=false)
     res                                            = Response.new
 

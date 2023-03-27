@@ -13,10 +13,13 @@ class TasaCambio < ApplicationRecord
       unless divisa.nil?
         tasa_cambio                    = TasaCambio.where(:id => params[:id]).first_or_create
 
+
         tasa_cambio.valor              = params[:valor]              unless params[:valor].nil?
         tasa_cambio.divisa_id          = params[:divisa_id]          unless params[:divisa_id].nil?
         tasa_cambio.fecha_equivalente  = params[:fecha_equivalente]  unless params[:fecha_equivalente].nil?
         tasa_cambio.user_id            = get_current_user[:id]
+
+        tasa_cambio.valor              = 1 if tasa_cambio.divisa.is_principal
 
         tasa_cambio.valid?
 

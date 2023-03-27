@@ -44,6 +44,11 @@ es:
     divisa: "Divisa"
     tipo_cuenta_bancaria: "Tipo de cuenta bancaria"
     banco: "Banco"
+    cuenta_bancaria: "Cuenta bancaria"
+    cabeza_asiento_contable: "Asiento contable"
+    detalle_asiento_contable: "Detalle del asiento contable"
+    deposito: "Deposito"
+    transferencia: "Transferencia"
 
 
 

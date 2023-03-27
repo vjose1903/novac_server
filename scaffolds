@@ -188,10 +188,11 @@ rails g scaffold config_articulo porciento_ganancia:float
 ✅ rails g scaffold tasa_cambio divisa:references valor:float fecha_equivalente:date
 
 ✅ rails g scaffold tipo_cuenta_bancaria descripcion:string estado:boolean
-rails g scaffold banco nombre:string rnc:string comentario:string telefono:string direccion:string ejecutivo_cuenta:string telefono_ejecutivo_cuenta:string estado:boolean
-rails g scaffold cuenta_bancaria banco:references tipo_cuenta_bancaria:references divisa:references cuenta_contable:references numero_cuenta:string comentario:string descripcion:string fecha_apertura:date is_nacional:boolean estado:boolean
-rails g scaffold cuenta_contable_cuenta_bancaria cuenta_bancaria:references cuenta_contable:references is_prima:boolean
+✅ rails g scaffold banco nombre:string rnc:string comentario:string telefono:string direccion:string ejecutivo_cuenta:string telefono_ejecutivo_cuenta:string estado:boolean
+✅ rails g scaffold cuenta_bancaria banco:references tipo_cuenta_bancaria:references divisa:references cuenta_contable:references numero_cuenta:string comentario:string descripcion:string fecha_apertura:date is_nacional:boolean estado:boolean
 
 rails g scaffold cabeza_asiento_contable fecha_equivalente:date comentario:string estado:boolean
 rails g model detalle_asiento_contable cabeza_asiento_contable:references cuenta_contable:references tipo:string valor:float
 
+rails g scaffold deposito cuenta_bancaria:references user:references user_anulador:references tasa:float monto:float monto_local:float comentario:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean
+rails g scaffold transferencia cuenta_bancaria_origen:references cuenta_bancaria_destino:references user:references user_anulador:references tipo:string tasa:float monto:float monto_local:float comentario:string nombre_banco_tercero:string cuenta_bancaria_tercero:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean

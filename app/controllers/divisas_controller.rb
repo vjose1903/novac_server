@@ -3,7 +3,7 @@ class DivisasController < ApplicationController
 
   # GET /divisas
   def index
-    return Response.new(params, nil, Divisa.all.where({ estado: true}).order('id DESC').includes(Divisa.models_includes), nil, {all: true}).send_response self
+    return Response.new(params, nil, Divisa.all.where({ estado: true}).order('id ASC').includes(Divisa.models_includes), nil, {all: true}).send_response self
   end
 
 	# GET /divisas/1
