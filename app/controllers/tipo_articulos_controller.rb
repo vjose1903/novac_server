@@ -29,7 +29,7 @@ class TipoArticulosController < ApplicationController
 
   private
   def set_tipo_articulo
-    respuesta = set_entidad(TipoArticulo, params)
+    respuesta       = set_entidad(TipoArticulo, params)
     @tipo_articulo  = respuesta.get_data
 
     return respuesta.send_response self if @tipo_articulo.nil?
