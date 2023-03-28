@@ -9,16 +9,16 @@ class CuentaBancariaSerializer < ActiveModel::Serializer
   attribute :cuenta_contable,               if: Proc.new {  self.get_param('cuenta_contable')         || self.get_param('all') }
   attribute :cuenta_contable_prima,         if: Proc.new { (self.get_param('cuenta_contable_prima')   || self.get_param('all')) && !object.cuenta_contable_prima.nil? }
 
-	def cuenta_contable
-		serialize_parser(object.cuenta_contable, {id: true, descripcion: true, codigo: true})
-	end
+  def cuenta_contable
+    serialize_parser(object.cuenta_contable, {id: true, descripcion: true, codigo: true})
+  end
 
-	def cuenta_contable_prima
-		serialize_parser(object.cuenta_contable_prima, {id: true, descripcion: true, codigo: true})
-	end
+  def cuenta_contable_prima
+    serialize_parser(object.cuenta_contable_prima, {id: true, descripcion: true, codigo: true})
+  end
 
 
-	def get_param(col)
+  def get_param(col)
     return @instance_options[:"#{col}"]
   end
 end

@@ -11,7 +11,7 @@ class Articulo < ApplicationRecord
   # has_many :imagen
   accepts_nested_attributes_for :contenido_articulos
 
-  validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Articulo ya esta registrado" }, :if => :estado
+  validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Articulo ya está registrado" }, :if => :estado
   validates :costo_principal,     presence: { :message => "El costo del articulo no puede estar vacio." }
   validates :precio_principal,    presence: { :message => "El precio del articulo no puede estar vacio." },  numericality: { greater_than: 0, :message => "El precio del articulo debe de ser mayor a 0." }
 

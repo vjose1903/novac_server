@@ -2,7 +2,7 @@ class GrupoCuenta < ApplicationRecord
 
   has_many :cuentas_contables
 
-  validates :descripcion,              presence: { :message => "Descripcion del grupo de cuentas contable no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Grupo de cuenta ya esta registrado" }, :if => :estado
+  validates :descripcion,              presence: { :message => "Descripcion del grupo de cuentas contable no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Grupo de cuenta ya está registrado" }, :if => :estado
   validates :origen,                   presence: { :message => "Origen del grupo de cuentas contable no puede estar vacio." }
 
 

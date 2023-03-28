@@ -1,6 +1,7 @@
 class ConfiguracionEntidadCuentaSerializer < ActiveModel::Serializer
   attribute :id,                                          if: Proc.new { self.get_param('id')                 || self.get_param('all') }
   attribute :descripcion,                                 if: Proc.new { self.get_param('descripcion')        || self.get_param('all') }
+  attribute :entidad,                                     if: Proc.new { self.get_param('entidad')            || self.get_param('all') }
   attribute :cuenta_contable,                             if: Proc.new { self.get_param('cuenta_contable')    || self.get_param('all') }
 
 	def cuenta_contable

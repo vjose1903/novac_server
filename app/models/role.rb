@@ -7,7 +7,7 @@ class Role < ApplicationRecord
 
   scopify
 
-  validates :nombre,      presence: { :message => "Debe de especificar un nombre para el rol." },       uniqueness: { scope: [:estado, :descripcion], case_sensitive: false, :message => "Este rol ya esta creado."}, :if => :estado
+  validates :nombre,      presence: { :message => "Debe de especificar un nombre para el rol." },       uniqueness: { scope: [:estado, :descripcion], case_sensitive: false, :message => "Este rol ya está creado."}, :if => :estado
   validates :descripcion, presence: { :message => "Debe de especificar una descripcion para el rol." }
 
 

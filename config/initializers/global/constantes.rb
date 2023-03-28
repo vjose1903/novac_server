@@ -513,4 +513,5 @@ G_CONFIG_ENTIDAD_CUENTA = [
   { descripcion: 'Retenciones empleados',        entidad:'user',               cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
   { descripcion: 'Efectivo banco nacional',      entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
   { descripcion: 'Efectivo banco extranjero',    entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
+  { descripcion: 'Inventario',                   entidad:'inventario',         cuenta_contable_descripcion: 'INVENTARIOS' },
 ]

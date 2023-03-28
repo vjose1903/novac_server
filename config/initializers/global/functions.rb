@@ -348,10 +348,6 @@ class Array
 end
 
 # ---------------------------------------------------------------------------------------------------------
-def get_config_cuenta_entidad(entidad)
-	return ConfiguracionEntidadCuenta.where({entidad: entidad})
-end
-# ---------------------------------------------------------------------------------------------------------
 
 def get_current_user
   return Thread.current[:current_user]

@@ -43,7 +43,7 @@ class SecuenciaComprobantesController < ApplicationController
     if @secuencia_comprobante.estado
       res.add_msg('Este paquete de comprobantes esta activo, no se puede eliminar.')
     elsif @secuencia_comprobante.usado
-      res.add_msg('Este paquete de comprobantes ya esta usado, no se puede eliminar.')
+      res.add_msg('Este paquete de comprobantes ya está usado, no se puede eliminar.')
     else
       res = borrar_entidad(@secuencia_comprobante)
     end

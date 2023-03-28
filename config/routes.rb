@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :sub_tipo_articulos
 
   resources :cuentas_bancarias
   resources :bancos

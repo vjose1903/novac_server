@@ -5,7 +5,7 @@ class Cliente < ApplicationRecord
 
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
 
-  validates :nombre,              presence: { :message => "Nombre del cliente no puede estar vacio." },         uniqueness: { scope: [:estado, :apellido], case_sensitive: false, :message => "Cliente ya esta registrado" }, :if => :estado
+  validates :nombre,              presence: { :message => "Nombre del cliente no puede estar vacio." },         uniqueness: { scope: [:estado, :apellido], case_sensitive: false, :message => "Cliente ya está registrado" }, :if => :estado
   validates :apellido,            presence: { :message => "Apellido del cliente no puede estar vacio." }
   validates :telefono,            presence: { :message => "Telefono del cliente no puede estar vacio." }
   validates :sexo,                presence: { :message => "Sexo del cliente no puede estar vacio." }

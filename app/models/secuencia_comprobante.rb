@@ -22,7 +22,7 @@ class SecuenciaComprobante < ApplicationRecord
       ncf                      = SecuenciaComprobante.where(:id => params[:id]).first_or_create
 
       if ncf.estado && params[:desde] != ncf.desde
-        res.add_msg("Este paquete ya esta en uso no puede cambiar el inicio del paquete.")
+        res.add_msg("Este paquete ya está en uso no puede cambiar el inicio del paquete.")
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 

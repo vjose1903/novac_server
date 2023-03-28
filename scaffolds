@@ -95,6 +95,7 @@ rails generate serializer cabecera_factura
 rails generate serializer detalle_factura
 rails generate serializer imagen
 rails generate serializer detalle_asiento_contable
+rails generate serializer tipo_articulo
 
 rails g migration AddCamposToImagen
 rails g migration AddCamposToPeriodoFiscal
@@ -158,6 +159,7 @@ rails g migration addEstadoToCabeceraConduces
 rails g migration addCamposToDetallesFacturasNotas
 rails g migration addMoreCamposToDetallesFacturasNotas
 rails g migration addCamposToFacturasAplicadas
+rails g migration addCamposToTipoArticulos
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 
@@ -171,6 +173,7 @@ rails generate serializer movimiento_viaje
 rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
 
+rails g scaffold sub_tipo_articulo tipo_articulo:references cuenta_contable:references descripcion:string
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 // CONTABILIDAD
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------

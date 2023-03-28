@@ -93,11 +93,11 @@ def agregar_movimientos_viajes
     end
 
 
-		movimiento_backend   = MovimientoViaje.where({user_id: movimiento[:user_id], vehiculo_id: movimiento[:vehiculo_id], cabecera_factura_id: movimiento[:cabecera_factura_id]})
+    movimiento_backend   = MovimientoViaje.where({user_id: movimiento[:user_id], vehiculo_id: movimiento[:vehiculo_id], cabecera_factura_id: movimiento[:cabecera_factura_id]})
 
-		if movimiento_backend.empty?
-			movimiento_viaje   = MovimientoViaje.create(movimiento)
-		end
+    if movimiento_backend.empty?
+      movimiento_viaje   = MovimientoViaje.create(movimiento)
+    end
   end
 
 
@@ -227,7 +227,12 @@ def modificar_secuencia_mantenimiento
   nil
 end
 
-def probar_imagenes
+def crear_cuentas_tipo_articulos
+
+  TipoArticulo.all.each do | tipo_articulo |
+    tipo_articulo.descripcion = "#{tipo_articulo.descripcion}"
+    resultado = TipoArticulo.create_update_tipo_articulo(tipo_articulo.attributes.with_indifferent_access, true)
+  end
 
 end
 
@@ -255,11 +260,8 @@ def make_producto_terminado_calcular_saco
 
   return nil
 end
-# detalles a arreglar:
-# 21472 -> Saco de 100 libras
-# 16662 -> Quintal
-# 47352 -> Quintal
-# 793   -> Libra
+
+
 def recalcular_cantidad_en_undidades
   # query_principal = "cabecera_facturas.tipo = 'venta' AND articulo_id not in (102, 213, 165, 69, 214, 108, 214)"
   query_principal = "cabecera_facturas.tipo = 'venta'"

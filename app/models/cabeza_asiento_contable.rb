@@ -17,7 +17,7 @@ class CabezaAsientoContable < ApplicationRecord
         is_open_month   = PeriodoFiscal.is_open_month(params[:fecha_equivalente])
 
         unless is_open_month
-          action = params[:id] ? 'actualizar' : 'realizar'
+					action = params[:id] ? 'actualizar' : 'realizar'
           res.add_msg("El mes: #{Mes::Label.byNumber(fecha_equivalente.month)}, está cerrado, para #{action} esta entrada de diario debe de abrirlo.")
         end
 

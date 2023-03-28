@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_27_205421) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_28_133019) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -757,6 +757,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_27_205421) do
     t.index ["tipo_factura_id"], name: "index_secuencia_facturas_on_tipo_factura_id"
   end
 
+  create_table "sub_tipo_articulos", force: :cascade do |t|
+    t.bigint "tipo_articulo_id", null: false
+    t.bigint "cuenta_contable_control_id", null: false
+    t.bigint "cuenta_contable_auxiliar_id", null: false
+    t.string "descripcion"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuenta_contable_auxiliar_id"], name: "index_sub_tipo_articulos_on_cuenta_contable_auxiliar_id"
+    t.index ["cuenta_contable_control_id"], name: "index_sub_tipo_articulos_on_cuenta_contable_control_id"
+    t.index ["tipo_articulo_id"], name: "index_sub_tipo_articulos_on_tipo_articulo_id"
+  end
+
   create_table "suplidores", force: :cascade do |t|
     t.string "nombre"
     t.string "telefono"
@@ -787,6 +799,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_27_205421) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "tipo"
     t.string "codigo"
+    t.bigint "cuenta_contable_control_id"
+    t.bigint "cuenta_contable_auxiliar_id"
+    t.index ["cuenta_contable_auxiliar_id"], name: "index_tipo_articulos_on_cuenta_contable_auxiliar_id"
+    t.index ["cuenta_contable_control_id"], name: "index_tipo_articulos_on_cuenta_contable_control_id"
   end
 
   create_table "tipo_cuentas_bancarias", force: :cascade do |t|
@@ -940,9 +956,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_27_205421) do
   add_foreign_key "roles_permisos_acciones", "roles"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
+  add_foreign_key "sub_tipo_articulos", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
+  add_foreign_key "sub_tipo_articulos", "cuentas_contables", column: "cuenta_contable_control_id"
+  add_foreign_key "sub_tipo_articulos", "tipo_articulos"
   add_foreign_key "tasas_de_cambio", "divisas"
   add_foreign_key "tasas_de_cambio", "users"
   add_foreign_key "tasas_de_cambio", "users", column: "last_user_update_id"
+  add_foreign_key "tipo_articulos", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
+  add_foreign_key "tipo_articulos", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

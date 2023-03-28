@@ -29,7 +29,7 @@ end
 
 G_documentos_de_identidad.each do | doc |
 
-	entidad = doc[:origen_type] == 'User' ? User.find_by_usuario(doc[:origen_entity]) : Cliente.find_by_nombre(doc[:origen_entity])
+  entidad = doc[:origen_type] == 'User' ? User.find_by_usuario(doc[:origen_entity]) : Cliente.find_by_nombre(doc[:origen_entity])
 
   if DocumentoDeIdentidad.find_by_documento(doc[:documento]).nil?
     documento = DocumentoDeIdentidad.create({ origen_type: doc[:origen_type], origen_id: entidad.id, descripcion: doc[:descripcion], documento: doc[:documento], principal: doc[:principal] })
@@ -280,7 +280,7 @@ end
       puts "AGREGANDO ROLE ADMINISTRADOR AL USUARIO: #{usuario_admin.nombre}"
       puts "------".cyan * 7
       usuario_admin.roles = Role.where({key: "admin"})
-			puts 'usuario_admin --> '.cyan + " #{usuario_admin.to_json}"
+      puts 'usuario_admin --> '.cyan + " #{usuario_admin.to_json}"
       usuario_admin.save!
       puts " " if !usuario_admin.errors.empty?
       puts "ERROR- agregando role admin: ".red + "#{usuario_admin.errors.to_json}" if !usuario_admin.errors.empty?
@@ -306,7 +306,7 @@ unless vendedor_default.nil?
 end
 
 
-G_CONFIG_ARTICULOS.each do |config|
+G_CONFIG_ARTICULOS.each do | config |
 
   configuracion_articulo_backend =  ConfigArticulo.find_by_id(1)
 
@@ -323,6 +323,33 @@ G_CONFIG_ARTICULOS.each do |config|
 
 end
 
+G_CONFIG_ENTIDAD_CUENTA.each do | config |
+  configuracion_entidad_backend     = ConfiguracionEntidadCuenta.find_by_descripcion(config[:descripcion])
+
+
+  if configuracion_entidad_backend.nil?
+    cuenta_contable_db              = CuentaContable.find_by_descripcion(config[:cuenta_contable_descripcion])
+    if cuenta_contable_db.nil?
+      puts " "
+      puts "------".red * 7
+      puts "NO EXISTE LA CUENTA CONTABLE DE: #{config[:cuenta_contable_descripcion]}"
+      puts "------".red * 7
+      puts " "
+    else
+
+      config_molde                  = { cuenta_contable_id: cuenta_contable_db.id, **config }.with_indifferent_access
+
+      resultado                     = ConfiguracionEntidadCuenta.create_update_configuracion_entidad_cuenta(config_molde, nil, true)
+      configuracion_entidad_backend = resultado.get_data
+      puts " "
+      puts "------".cyan * 8
+      puts "CREANDO CONFIGURACION ENTIDAD CUENTA"
+      puts "------".cyan * 8
+      puts " "
+      puts "ERROR- ConfiguracionEntidadCuenta: ".red + "#{resultado.get_msgs.to_json}" if !resultado.status_valid
+    end
+  end
+end
 
 # G_OTROS_COSTOS.each do | otro_costo |
 # 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])

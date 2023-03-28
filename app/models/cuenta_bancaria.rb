@@ -72,7 +72,7 @@ class CuentaBancaria < ApplicationRecord
 
     is_cuenta_nacional                = self.divisa.is_principal
 
-    configuraciones_cuentas_contables = get_config_cuenta_entidad("cuenta_bancaria")
+    configuraciones_cuentas_contables = ConfiguracionEntidadCuenta.where({ entidad: "cuenta_bancaria" })
 
     configuraciones_cuentas_contables.each do | config |
       is_prima               = !is_cuenta_nacional && config.descripcion.downcase == 'efectivo banco nacional'

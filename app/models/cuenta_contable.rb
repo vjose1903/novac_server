@@ -3,7 +3,7 @@ class CuentaContable < ApplicationRecord
 
   attribute :cuentas_contables
 
-  validates :descripcion,              presence: { :message => "Descripcion de la cuenta contable no puede estar vacio." },         uniqueness: { scope: [:estado, :nivel, :cuenta_control], case_sensitive: false, :message => "Cuenta contable ya esta registrada." }, :if => :estado
+  validates :descripcion,              presence: { :message => "Descripcion de la cuenta contable no puede estar vacio." },         uniqueness: { scope: [:estado, :nivel, :cuenta_control], case_sensitive: false, :message => "Cuenta contable ya está registrada." }, :if => :estado
   validates :is_control,               inclusion: { in: [ true, false ], :message => "Debe de especificar si es control o auxiliar." }
 
 
@@ -28,6 +28,8 @@ class CuentaContable < ApplicationRecord
     unless grupo_cuenta.nil?
 
       cuenta_contable                    = CuentaContable.where(:id => params[:id]).first_or_create
+
+      params[:descripcion]               = params[:descripcion].upcase if params[:is_control]
 
       cuenta_contable.grupo_cuenta_id    = params[:grupo_cuenta_id]
       cuenta_contable.descripcion        = params[:descripcion]

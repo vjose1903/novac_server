@@ -6,7 +6,7 @@ class DocumentoDeIdentidad < ApplicationRecord
 
   belongs_to :origen, polymorphic: true
 
-  validates :documento, uniqueness: { :allow_blank => true, scope: :origen_type, case_sensitive: false, :message => "Documento de identidad ya esta registrado" }, :if => :documento
+  validates :documento, uniqueness: { :allow_blank => true, scope: :origen_type, case_sensitive: false, :message => "Documento de identidad ya está registrado" }, :if => :documento
 
 
   def self.crear_actualizar_documento(params, padre, is_save=false)

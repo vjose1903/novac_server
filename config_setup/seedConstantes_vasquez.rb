@@ -96,8 +96,8 @@ G_documentos_de_identidad = [
 
 G_tipos_articulo = [
   { 'descripcion': 'Materiales de Oficina', 'tipo': 'venta_normal', 'codigo': 'materiales_de_oficina' },
-  { 'descripcion': 'Servicios legales', 'tipo': 'servicio', 'codigo': 'servicios_legales' },
-  { 'descripcion': 'Servicios contables', 'tipo': 'servicio', 'codigo': 'servicios_contables' },
+  { 'descripcion': 'Servicios legales',     'tipo': 'servicio',     'codigo': 'servicios_legales' },
+  { 'descripcion': 'Servicios contables',   'tipo': 'servicio',     'codigo': 'servicios_contables' },
 ]
 
 
