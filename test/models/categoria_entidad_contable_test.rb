@@ -1,6 +1,6 @@
 require "test_helper"
 
-class FamiliaEntidadContableTest < ActiveSupport::TestCase
+class CategoriaEntidadContableTest < ActiveSupport::TestCase
   # test "the truth" do
   #   assert true
   # end

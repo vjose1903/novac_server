@@ -1,7 +1,8 @@
 class ConfiguracionEntidadCuenta < ApplicationRecord
   belongs_to :cuenta_contable
 
-
+  validates :key,              presence: true
+  validates :entidad,          presence: true
 
   def otras_validaciones(params)
     if self.cuenta_contable_id.nil?
@@ -20,6 +21,7 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
 
       configuracion_entidad_cuenta.cuenta_contable_id     = params[:cuenta_contable_id]
       configuracion_entidad_cuenta.entidad                = params[:entidad]
+      configuracion_entidad_cuenta.key                    = params[:key]
       configuracion_entidad_cuenta.descripcion            = params[:descripcion]
       configuracion_entidad_cuenta.valid?
 
@@ -45,8 +47,6 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.molde_cuenta(cuenta_control, descripcion, is_control=false)
-		puts "cuenta_control --> ".green + " #{cuenta_control}"
-		puts "cuenta_control --> ".yellow + " #{cuenta_control.to_json}"
     return {
       grupo_cuenta_id: cuenta_control.grupo_cuenta_id,
       descripcion: descripcion,

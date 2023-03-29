@@ -4,7 +4,7 @@ class CuentasContablesController < ApplicationController
 
   # GET /cuentas_contables
   def index
-    cuentas = CuentaContable.all.where({ estado: true}).order('id ASC')
+    cuentas = CuentaContable.all.where({ estado: true}).order('codigo ASC')
     return Response.new(params, nil, CatalogoCuenta::CuentaContable.iterator(cuentas), nil).send_response self
   end
 

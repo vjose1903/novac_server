@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_28_133019) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -144,6 +144,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_28_133019) do
     t.index ["vehiculo_id"], name: "index_camiones_viajes_on_vehiculo_id"
   end
 
+  create_table "categorias_entidades_contables", force: :cascade do |t|
+    t.bigint "cuenta_contable_control_id", null: false
+    t.bigint "cuenta_contable_auxiliar_id", null: false
+    t.bigint "configuracion_entidad_cuenta_id", null: false
+    t.string "descripcion"
+    t.string "key"
+    t.string "entidad"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["configuracion_entidad_cuenta_id"], name: "idx_cat_ent_cont_cuenta_cont_config_ent"
+    t.index ["cuenta_contable_auxiliar_id"], name: "idx_cat_ent_cont_cuenta_cont_aux"
+    t.index ["cuenta_contable_control_id"], name: "idx_cat_ent_cont_cuenta_cont_cont"
+  end
+
   create_table "choferes_viajes", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "recibos_ingreso_id", null: false
@@ -228,6 +242,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_28_133019) do
     t.bigint "cuenta_contable_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "key"
     t.index ["cuenta_contable_id"], name: "index_configuraciones_entidades_cuentas_on_cuenta_contable_id"
   end
 
@@ -891,6 +906,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_28_133019) do
   add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_anulador_id"
   add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_creador_id"
   add_foreign_key "camiones_viajes", "vehiculos"
+  add_foreign_key "categorias_entidades_contables", "configuraciones_entidades_cuentas"
+  add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
+  add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
   add_foreign_key "cierre_cuentas", "cuentas_contables"

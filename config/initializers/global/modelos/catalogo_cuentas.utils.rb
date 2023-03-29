@@ -7,7 +7,7 @@ module CatalogoCuenta
 
       grupos.each do | grupo |
         grupo_temp                      = grupo.attributes
-        cuentas_contables               = CuentaContable.iterator(grupo.cuentas_contables)
+        cuentas_contables               = CuentaContable.iterator(grupo.cuentas_contables.order('codigo ASC'))
 
         grupo_temp['origen']            = OrigenGrupo.get_label(grupo_temp['origen'])
         grupo_temp['tipo']              = TipoGrupo.get_label(grupo_temp['tipo'])
@@ -35,10 +35,10 @@ module CatalogoCuenta
         unless padre.nil?
           padre.cuentas_contables     = [] if padre.cuentas_contables.nil?
 
-          padre.cuentas_contables.push(serialize_parser(cuenta, {all: true}))
+          padre.cuentas_contables.push(serialize_parser(cuenta, { all: true }))
         else
 
-          cuentas_parsed.push(serialize_parser(cuenta, {all: true}))
+          cuentas_parsed.push(serialize_parser(cuenta, { all: true }))
         end
 
       end
@@ -47,10 +47,10 @@ module CatalogoCuenta
     end
 
 
-		# =======================================================================================================================================
+    # =======================================================================================================================================
 
     def self.obtener_padre(cuentas, current_cuenta)
-      padre     = cuentas.filter { | item | current_cuenta.cuenta_control == item.id }
+      padre = cuentas.filter { | item | current_cuenta.cuenta_control == item.id }
       return  !padre.empty? ? padre.first : nil
     end
 

@@ -6,6 +6,7 @@ class CuentaContableSerializer < ActiveModel::Serializer
   attribute :codigo,                 if: Proc.new { self.get_param('codigo')                  || self.get_param('all') }
   attribute :nivel,                  if: Proc.new { self.get_param('nivel')                   || self.get_param('all') }
   attribute :origen,                 if: Proc.new { self.get_param('origen')                  || self.get_param('all') }
+  attribute :is_control,             if: Proc.new { self.get_param('is_control')              || self.get_param('all') }
   attribute :estado,                 if: Proc.new { self.get_param('estado')                  || self.get_param('all') }
   attribute :tipo,                   if: Proc.new { self.get_param('tipo')                    || self.get_param('all') }
 

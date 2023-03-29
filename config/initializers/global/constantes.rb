@@ -505,13 +505,13 @@ G_CATALOGO_DEFAULT = [
 ]
 
 G_CONFIG_ENTIDAD_CUENTA = [
-  { descripcion: 'CXC clientes',                 entidad:'cliente',            cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
-  { descripcion: 'CXP suplidores nacionales',    entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES NACIONALES' },
-  { descripcion: 'CXP suplidores extranjeros',   entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS' },
-  { descripcion: 'CXC empleados',                entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
-  { descripcion: 'CXP empleados',                entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
-  { descripcion: 'Retenciones empleados',        entidad:'user',               cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
-  { descripcion: 'Efectivo banco nacional',      entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
-  { descripcion: 'Efectivo banco extranjero',    entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
-  { descripcion: 'Inventario',                   entidad:'inventario',         cuenta_contable_descripcion: 'INVENTARIOS' },
+  { descripcion: 'CXC clientes',               key:'cobrar',       entidad:'cliente',            cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
+  { descripcion: 'CXP suplidores nacionales',  key:'pagar',        entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES NACIONALES' },
+  { descripcion: 'CXP suplidores extranjeros', key:'pagar',        entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS' },
+  { descripcion: 'CXC empleados',              key:'cobrar',       entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
+  { descripcion: 'CXP empleados',              key:'pagar',        entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
+  { descripcion: 'Retenciones empleados',      key:'retencion',    entidad:'user',               cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
+  { descripcion: 'Efectivo banco nacional',    key:'nacional',     entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
+  { descripcion: 'Efectivo banco extranjero',  key:'extranjero',   entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
+  { descripcion: 'Inventario',                 key:'inventario',   entidad:'inventario',         cuenta_contable_descripcion: 'INVENTARIOS' },
 ]

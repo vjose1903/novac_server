@@ -47,46 +47,31 @@ class SubTipoArticulo < ApplicationRecord
 
     descripcion_cuenta                          = self.descripcion
     if self.cuenta_contable_control_id.nil?
-      res                                       = SubTipoArticulo.createCuenta(tipo_articulo.cuenta_contable_control, descripcion_cuenta, true)
+      res                                       = CatEntidadContable.createCuenta(tipo_articulo.cuenta_contable_control, descripcion_cuenta, true)
       cuenta_contable_control                   = res.get_data()
-      self.cuenta_contable_control_id           = cuenta_contable_control[:id]
+
+      self.cuenta_contable_control_id           = cuenta_contable_control[:id]     if res.status_valid
+
     else
       self.cuenta_contable_control.descripcion  = descripcion_cuenta.upcase
       self.cuenta_contable_control.save!
     end
 
-    descripcion_cuenta                          = "OTROS: #{self.descripcion}"
-    if self.cuenta_contable_auxiliar_id.nil?
-      res                                       = SubTipoArticulo.createCuenta(self.cuenta_contable_control, descripcion_cuenta, false)
-      cuenta_contable_auxiliar                  = res.get_data()
-      self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
-    else
-      self.cuenta_contable_auxiliar.descripcion = descripcion_cuenta
-      self.cuenta_contable_auxiliar.save!
+    if res.status_valid
+      descripcion_cuenta                          = "Común: #{self.descripcion}"
+      if self.cuenta_contable_auxiliar_id.nil?
+        res                                       = CatEntidadContable.createCuenta(self.cuenta_contable_control, descripcion_cuenta, false)
+        cuenta_contable_auxiliar                  = res.get_data()
+        self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
+      else
+        self.cuenta_contable_auxiliar.descripcion = descripcion_cuenta
+        self.cuenta_contable_auxiliar.save!
+      end
     end
 
 
     return res
   end
-
-# ============================================================================================================================================
-
-def self.createCuenta(cuenta_control, descripcion, is_control)
-  res = Response.new
-  cuenta_contable              = ConfiguracionEntidadCuenta.molde_cuenta(cuenta_control, descripcion, is_control)
-
-  temp_cuenta_contable         = CuentaContable.create_update_cuenta_contable(cuenta_contable, nil, true)
-
-  if temp_cuenta_contable.status_valid
-    cuenta_contable            = temp_cuenta_contable.get_data.as_json.with_indifferent_access
-    res.set_data(cuenta_contable)
-  else
-    res.add_msgs(temp_cuenta_contable.get_msgs)
-    res.set_status(HTTP_STATUS_CODE[:conflict])
-  end
-
-  return res
-end
 
 # ============================================================================================================================================
 end

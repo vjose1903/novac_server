@@ -10,7 +10,7 @@ class GruposDeCuentasController < ApplicationController
 
   # GET /grupos_de_cuentas/1
   def show
-		grupo_temp = [@grupo_cuenta]
+		grupo_temp = [ @grupo_cuenta ]
 		grupo      = CatalogoCuenta::GrupoCuenta.iterator(grupo_temp).first
     return Response.new(params, nil, grupo, nil).send_response self
   end
