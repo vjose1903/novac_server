@@ -1,15 +1,19 @@
 module CatEntidadContable
 
   TIPO = {
-    cliente:   "cliente",
-    suplidor:  "suplidor",
-    user:      "user"
+    cliente:            "cliente",
+    suplidor:           "suplidor",
+    user:               "user",
+    tipo_articulo:      "tipo_articulo",
+    sub_tipo_articulo:  "sub_tipo_articulo"
   }.with_indifferent_access
 
   TIPOS = {
-    cliente:   "clientes",
-    suplidor:  "suplidores",
-    user:      "usuarios"
+    cliente:            "clientes",
+    suplidor:           "suplidores",
+    user:               "usuarios",
+    tipo_articulo:      "tipo_articulos",
+    sub_tipo_articulo:  "sub_tipo_articulos"
   }.with_indifferent_access
 
   def self.tipo
@@ -26,6 +30,14 @@ module CatEntidadContable
 
   def self.suplidor
     return TIPO[:suplidor]
+  end
+
+  def self.tipo_articulo
+    return TIPO[:tipo_articulo]
+  end
+
+  def self.sub_tipo_articulo
+    return TIPO[:sub_tipo_articulo]
   end
 
   def self.user

@@ -13,7 +13,14 @@ class EntidadCuentaContable < ApplicationRecord
     tipo_articulo:               TipoArticulo,
     sub_tipo_articulo:           SubTipoArticulo,
     categoria_entidad_contable:  CategoriaEntidadContable
-  }
+  }.with_indifferent_access
+
+
+  def otras_validaciones(params)
+    # self.errors.add(:base, "El costo del articulo debe de ser mayor a 0.") if self.tipo_agrupacion_contable == TipoAgrupacionContable.sin_cuenta
+  end
+
+  # ============================================================================================================================================
 
   def self.crear_actualizar_entidad_cuenta_contable(params, padre, is_save=false)
     res                             = Response.new
@@ -27,12 +34,14 @@ class EntidadCuentaContable < ApplicationRecord
 
     entidad_cuenta.configuracion_entidad_cuenta_id    = params[:configuracion_entidad_cuenta_id]
     entidad_cuenta.tipo_agrupacion_contable           = params[:tipo_agrupacion_contable]
+    entidad_cuenta.is_comun                           = params[:is_comun]
     entidad_cuenta.key                                = entidad_cuenta.configuracion_entidad_cuenta.key
     entidad_cuenta.origen_categoria                   = categoria_entidad_contable
     entidad_cuenta.origen_entidad                     = padre
-    result_procesos                                   = entidad_cuenta.procesos_crear_cuenta if params[:tipo_agrupacion_contable] != TipoAgrupacionContable.sin_cuenta
+    result_procesos                                   = entidad_cuenta.procesos_crear_cuenta(params) if params[:tipo_agrupacion_contable] != TipoAgrupacionContable.sin_cuenta
 
     entidad_cuenta.valid?
+    entidad_cuenta.otras_validaciones(params)
 
     if entidad_cuenta.errors.empty? && (!is_save || (is_save && entidad_cuenta.save!))
       res.set_data(entidad_cuenta)
@@ -46,40 +55,25 @@ class EntidadCuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def procesos_crear_cuenta
-    res = Response.new
+  def procesos_crear_cuenta(params)
+    res                    = Response.new
 
-    # TODO: seguir aqui
-    configuracion                               = self.configuracion_entidad_cuenta
+    cuenta_control         = self.tipo_agrupacion_contable == TipoAgrupacionContable.individual ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control
 
-
-    TipoAgrupacionContable.tipo !=
-
-    self.tipo_agrupacion_contable
-
-
-    descripcion_cuenta                          = "Categoria: #{self.descripcion}"
-    if self.cuenta_contable_control_id.nil?
-      res                                       = CatEntidadContable.createCuenta(configuracion.cuenta_contable, descripcion_cuenta, true)
-      cuenta_contable_control                   = res.get_data()
-
-      self.cuenta_contable           = cuenta_contable_control[:id] if res.status_valid
-
-    else
-      self.cuenta_contable_control.descripcion  = descripcion_cuenta.upcase
-      self.cuenta_contable_control.save!
+    if self.is_comun
+      self.cuenta_contable = self.origen_categoria.cuenta_contable_auxiliar_id
+      return res
     end
 
-    if res.status_valid
-      descripcion_cuenta                        = "Común: #{self.descripcion}"
-      if self.cuenta_contable_auxiliar_id.nil?
-        res                                     = CatEntidadContable.createCuenta(self.cuenta_contable_control, descripcion_cuenta, false)
-        cuenta_contable_auxiliar                = res.get_data()
-        self.cuenta_contable_auxiliar_id        = cuenta_contable_auxiliar[:id]
-      else
-        self.cuenta_contable_auxiliar.descripcion = descripcion_cuenta
-        self.cuenta_contable_auxiliar.save!
-      end
+    descripcion_cuenta                   = params[:tipo_categoria] != @modelo[:categoria_entidad_contable] ? self.origen_entidad.nombre : self.origen_entidad.nombre_completo
+
+    if self.cuenta_contable_id.nil?
+      res                                = CatEntidadContable.createCuenta(cuenta_control, descripcion_cuenta, false)
+      cuenta_contable_control            = res.get_data()
+      self.cuenta_contable_id            = cuenta_contable_control[:id] if res.status_valid
+    else
+      self.cuenta_contable.descripcion   = descripcion_cuenta.upcase
+      self.cuenta_contable.save!
     end
 
     return res

@@ -22,10 +22,10 @@ class Articulo < ApplicationRecord
 
     if tipo_articulo.tipo == TipoArticuloType.venta_normal
 
-      self.errors.add(:base, "Medida articulo no puede estar vacio.") if self.medida == nil
+      self.errors.add(:base, "Medida articulo no puede estar vacio.")                   if self.medida == nil
       self.errors.add(:base, "Debe de especificar en que medida se vende el articulo.") if self.vendido_en == nil
-      self.errors.add(:base, "Debe de especificar una medida de alerta en venta.") if self.medida_alerta == nil
-      self.errors.add(:base, "El costo del articulo debe de ser mayor a 0.") if self.costo_principal == 0
+      self.errors.add(:base, "Debe de especificar una medida de alerta en venta.")      if self.medida_alerta == nil
+      self.errors.add(:base, "El costo del articulo debe de ser mayor a 0.")            if self.costo_principal == 0
 
     end
 
