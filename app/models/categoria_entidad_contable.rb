@@ -22,7 +22,7 @@ class CategoriaEntidadContable < ApplicationRecord
         res.set_data(cat_entidad_cont)
 
         action = params[:id] ? 'actualizada' : 'creada'
-        res.add_msg("Categoria de #{CatEntidadContable.get_tipo_plural(cat_entidad_cont.entidad)} #{action} correctamente.")
+        res.add_msg("Categoria de #{CatEntidadContable.tipos(cat_entidad_cont.entidad)} #{action} correctamente.")
 
       else
         res.add_msgs(result_procesos.get_msgs)

@@ -1,0 +1,29 @@
+class EntidadCuentaContableSerializer < ActiveModel::Serializer
+
+
+  attribute :id,                            if: Proc.new { self.get_param('id')                         || self.get_param('all') }
+  attribute :key,                           if: Proc.new { self.get_param('key')                        || self.get_param('all') }
+  attribute :tipo_agrupacion_contable,      if: Proc.new { self.get_param('tipo_agrupacion_contable')   || self.get_param('all') }
+
+  attribute :cuenta_contable,               if: Proc.new { self.get_param('cuenta_contable')            || self.get_param('all') }
+  attribute :origen_categoria,              if: Proc.new { self.get_param('origen_categoria')           || self.get_param('all') }
+  attribute :origen_entidad,                if: Proc.new { self.get_param('origen_entidad')}
+
+
+
+  def cuenta_contable
+    serialize_parser(object.cuenta_contable, { id: true, descripcion: true, codigo: true })
+  end
+
+  def origen_categoria
+    serialize_parser(object.origen_categoria, { id: true, descripcion: true })
+  end
+
+  def origen_entidad
+    serialize_parser(object.origen_entidad, { all: true })
+  end
+
+  def get_param(col)
+    return @instance_options[:"#{col}"]
+  end
+end

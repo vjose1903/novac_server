@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :entidad_cuentas_contables
   resources :categorias_entidades_contables
   resources :sub_tipo_articulos
 

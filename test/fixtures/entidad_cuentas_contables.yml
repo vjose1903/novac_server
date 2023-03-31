@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  origen_entidad: one
+  origen_entidad_type: Origen entidad
+  cuenta_contable: one
+  key: MyString
+  tipo_agrupacion_contable: MyString
+  origen_categoria: one
+  origen_categoria_type: Origen categoria
+
+two:
+  origen_entidad: two
+  origen_entidad_type: Origen entidad
+  cuenta_contable: two
+  key: MyString
+  tipo_agrupacion_contable: MyString
+  origen_categoria: two
+  origen_categoria_type: Origen categoria

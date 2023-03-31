@@ -12,11 +12,11 @@ class DocumentoDeIdentidad < ApplicationRecord
   def self.crear_actualizar_documento(params, padre, is_save=false)
     res = Response.new
 
-    documento                = DocumentoDeIdentidad.where(:id => params["id"]).first_or_create
+    documento                = DocumentoDeIdentidad.where(:id => params[:id]).first_or_create
 
-    documento.descripcion    = params["descripcion"]
-    documento.documento      = params["documento"]
-    documento.principal      = params["principal"]
+    documento.descripcion    = params[:descripcion]
+    documento.documento      = params[:documento]
+    documento.principal      = params[:principal]
     documento.origen         = padre
 
     documento.valid?
@@ -36,16 +36,19 @@ class DocumentoDeIdentidad < ApplicationRecord
     array_valid=[]
 
     items.each do |item|
-      unless item["documento"].blank?
-          res_temp = self.crear_actualizar_documento(item, padre, save)
-          if res_temp.status_valid
-            array_valid.push(res_temp.get_data)
-          else
-            return res_temp
-          end
-          res_valid.set_data array_valid
+    unless item[:documento].blank?
+        res_temp = self.crear_actualizar_documento(item, padre, save)
+
+        if res_temp.status_valid
+          array_valid.push(res_temp.get_data)
+        else
+          return res_temp
         end
+
       end
+    end
+
+    res_valid.set_data array_valid
     return res_valid
   end
 
