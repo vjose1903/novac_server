@@ -13,7 +13,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
   {
     'nombre': 'Administrador',
@@ -28,7 +27,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
 	{
     'nombre': 'Novac',
@@ -43,14 +41,12 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
 ]
 
 
 G_clientes = [
   {
-    'imagen_id': nil,
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',

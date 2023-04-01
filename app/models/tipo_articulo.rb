@@ -2,6 +2,8 @@ class TipoArticulo < ApplicationRecord
   belongs_to :cuenta_contable_control,   class_name: 'CuentaContable', optional: true
   belongs_to :cuenta_contable_auxiliar,  class_name: 'CuentaContable', optional: true
 
+	has_many   :entidad_cuentas_contables, :as => :origen_categoria, dependent: :destroy, class_name: 'EntidadCuentaContable'
+
   validates :descripcion,                presence: { :message => "Descripción de la categoria no puede estar vacia." },         uniqueness: { case_sensitive: false, :message => "Categoria ya está registrada." }
 
   def self.create_update_tipo_articulo(params, is_save=false)

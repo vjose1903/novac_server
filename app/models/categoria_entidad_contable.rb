@@ -3,6 +3,8 @@ class CategoriaEntidadContable < ApplicationRecord
   belongs_to :cuenta_contable_auxiliar,     class_name: 'CuentaContable', optional: true
   belongs_to :configuracion_entidad_cuenta
 
+	has_many   :entidad_cuentas_contables, :as => :origen_categoria, dependent: :destroy, class_name: 'EntidadCuentaContable'
+
   validates :descripcion,                presence: { :message => "Descripción de la categoria no puede estar vacia." },         uniqueness: { scope:[ :configuracion_entidad_cuenta_id ], case_sensitive: false, :message => "Categoria ya está registrada." }
 
   def self.create_update_categoria_entidad_contable(params, is_save=false)

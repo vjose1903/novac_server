@@ -1,7 +1,7 @@
 class Divisa < ApplicationRecord
-  has_many :imagenes, :as => :origen, dependent: :destroy, class_name: "Imagen"
+  has_many :imagenes, :as => :origen, dependent: :destroy, class_name: 'Imagen'
 
-  validates :nombre, presence: { :message => "Debe de especificar el nombre de la divisa." }, uniqueness: { scope: [:estado], case_sensitive: false, :message => "Divisa ya está registrada" }, :if => :estado
+  validates :nombre, presence: { :message => 'Debe de especificar el nombre de la divisa.' }, uniqueness: { scope: [:estado], case_sensitive: false, :message => 'Divisa ya está registrada' }, :if => :estado
 
   # =========================================================================================================================================================
 
@@ -26,7 +26,7 @@ class Divisa < ApplicationRecord
       divisa.valid?
 
       if divisa.errors.empty?
-        dependencias              = [{ modelo: Imagen, key_object: "imagenes", padre: divisa }]
+        dependencias              = [{ modelo: Imagen, key_object: 'imagenes', padre: divisa }]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
           divisa.imagenes         = dependencia_data if key_object == 'imagenes'

@@ -60,7 +60,6 @@ class ArticulosController < ApplicationController
   def get_parametros_opcionales
     return {
       all:                            params['all'] || false,
-      imagen_id:                      params['imagen_id'] || false,
       tipo_articulo_id:               params['tipo_articulo_id'] || false,
       nombre:                         params['nombre'] || false,
       costo_principal:                params['costo_principal'] || false,

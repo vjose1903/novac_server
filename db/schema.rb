@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_01_131150) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -45,8 +45,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "is_materia_prima"
     t.boolean "calcular_saco"
+    t.bigint "sub_tipo_articulo_id"
     t.index ["estado", "nombre"], name: "index_articulos_on_estado_and_nombre", unique: true, where: "(estado = true)"
     t.index ["imagen_id"], name: "index_articulos_on_imagen_id"
+    t.index ["sub_tipo_articulo_id"], name: "index_articulos_on_sub_tipo_articulo_id"
     t.index ["tipo_articulo_id"], name: "index_articulos_on_tipo_articulo_id"
   end
 
@@ -227,6 +229,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
     t.float "balance"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "categoria_entidad_contable_id"
+    t.index ["categoria_entidad_contable_id"], name: "index_clientes_on_categoria_entidad_contable_id"
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
   end
 
@@ -477,6 +481,24 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
+  end
+
+  create_table "entidad_cuentas_contables", force: :cascade do |t|
+    t.string "origen_entidad_type", null: false
+    t.bigint "origen_entidad_id", null: false
+    t.string "key"
+    t.string "tipo_agrupacion_contable"
+    t.bigint "cuenta_contable_id"
+    t.string "origen_categoria_type"
+    t.bigint "origen_categoria_id"
+    t.bigint "configuracion_entidad_cuenta_id", null: false
+    t.boolean "is_comun", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["configuracion_entidad_cuenta_id"], name: "idx_ent_cuenta_cont_config_ent"
+    t.index ["cuenta_contable_id"], name: "index_entidad_cuentas_contables_on_cuenta_contable_id"
+    t.index ["origen_categoria_type", "origen_categoria_id"], name: "index_entidad_cuentas_contables_on_origen_categoria"
+    t.index ["origen_entidad_type", "origen_entidad_id"], name: "index_entidad_cuentas_contables_on_origen_entidad"
   end
 
   create_table "facturas_aplicadas", force: :cascade do |t|
@@ -792,6 +814,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
     t.boolean "estado"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "categoria_entidad_contable_id"
+    t.index ["categoria_entidad_contable_id"], name: "index_suplidores_on_categoria_entidad_contable_id"
   end
 
   create_table "tasas_de_cambio", force: :cascade do |t|
@@ -864,6 +888,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
     t.json "tokens"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "categoria_entidad_contable_id"
+    t.index ["categoria_entidad_contable_id"], name: "index_users_on_categoria_entidad_contable_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["imagen_id"], name: "index_users_on_imagen_id"
@@ -945,6 +971,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_192411) do
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
+  add_foreign_key "entidad_cuentas_contables", "configuraciones_entidades_cuentas"
+  add_foreign_key "entidad_cuentas_contables", "cuentas_contables"
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"

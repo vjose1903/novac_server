@@ -115,71 +115,70 @@ class MantenimientoArticulo < ApplicationRecord
     formulaArticulo = articulo.formulas_productos_terminados
 
     articuloHistorico = {}
-    articuloHistorico["id"]                     = articulo["id"]
-    articuloHistorico["tipo_articulo_id"]       = historico["ant_tipoArticuloId"]
-    articuloHistorico["nombre"]                 = historico["ant_nombre"]
-    articuloHistorico["costo_principal"]        = historico["ant_costoP"]
-    articuloHistorico["precio_principal"]       = historico["ant_precioP"]
-    articuloHistorico["medida"]                 = historico["ant_medida"]
-    articuloHistorico["is_detallable"]          = historico["ant_isDetallable"]
-    articuloHistorico["aviso_existencia"]       = historico["ant_alertaExistencia"]
-    articuloHistorico["medida_alerta"]          = historico["ant_medidaAlerta"]
-    articuloHistorico["calcular_itbis"]         = historico["ant_calcularItbis"]
-    articuloHistorico["is_combo"]               = historico["ant_isCombo"]
-    articuloHistorico["otros_costos"]           = historico["ant_otrosCostos"]
-    articuloHistorico["is_materia_prima"]       = historico["is_materia_prima"]
-    articuloHistorico["vendido_en"]             = historico["vendido_en"]
-    articuloHistorico["existencia"]             = articulo["existencia"]
-    articuloHistorico["codigo"]                 = articulo["codigo"]
-    articuloHistorico["fecha_ingreso"]          = articulo["fecha_ingreso"]
-    articuloHistorico["imagen_id"]              = articulo["imagen_id"]
-    articuloHistorico["calcular_saco"]          = articulo["calcular_saco"]
+    articuloHistorico['id']                     = articulo['id']
+    articuloHistorico['tipo_articulo_id']       = historico['ant_tipoArticuloId']
+    articuloHistorico['nombre']                 = historico['ant_nombre']
+    articuloHistorico['costo_principal']        = historico['ant_costoP']
+    articuloHistorico['precio_principal']       = historico['ant_precioP']
+    articuloHistorico['medida']                 = historico['ant_medida']
+    articuloHistorico['is_detallable']          = historico['ant_isDetallable']
+    articuloHistorico['aviso_existencia']       = historico['ant_alertaExistencia']
+    articuloHistorico['medida_alerta']          = historico['ant_medidaAlerta']
+    articuloHistorico['calcular_itbis']         = historico['ant_calcularItbis']
+    articuloHistorico['is_combo']               = historico['ant_isCombo']
+    articuloHistorico['otros_costos']           = historico['ant_otrosCostos']
+    articuloHistorico['is_materia_prima']       = historico['is_materia_prima']
+    articuloHistorico['vendido_en']             = historico['vendido_en']
+    articuloHistorico['existencia']             = articulo['existencia']
+    articuloHistorico['codigo']                 = articulo['codigo']
+    articuloHistorico['fecha_ingreso']          = articulo['fecha_ingreso']
+    articuloHistorico['calcular_saco']          = articulo['calcular_saco']
 
     contents = []
 
-    if historico["ant_medidaHijo"] || historico["ant_medidaPadre"]
+    if historico['ant_medidaHijo'] || historico['ant_medidaPadre']
       contenidoArticulo.each do |contenido|
         conte = {}
-        if contenido["referencia"]
-          conte["costo"]          = historico["ant_costoHijo"]
-          conte["precio"]         = historico["ant_precioHijo"]
-          conte["cantidad"]       = historico["ant_cantidadHijo"]
-          conte["medida"]         = historico["ant_medidaHijo"]
-          conte["id"]             = contenido["id"]
-          conte["referencia"]     = contenido["ant_referenciaHijo"]
-          conte["condicion"]      = contenido["condicion"]
-          conte["articulo_id"]    = contenido["articulo_id"]
+        if contenido['referencia']
+          conte['costo']          = historico['ant_costoHijo']
+          conte['precio']         = historico['ant_precioHijo']
+          conte['cantidad']       = historico['ant_cantidadHijo']
+          conte['medida']         = historico['ant_medidaHijo']
+          conte['id']             = contenido['id']
+          conte['referencia']     = contenido['ant_referenciaHijo']
+          conte['condicion']      = contenido['condicion']
+          conte['articulo_id']    = contenido['articulo_id']
         else
-          conte["costo"]          = historico["ant_costoPadre"]
-          conte["precio"]         = historico["ant_precioPadre"]
-          conte["cantidad"]       = historico["ant_cantidadPadre"]
-          conte["medida"]         = historico["ant_medidaPadre"]
-          conte["articulo_id"]    = contenido["articulo_id"]
-          conte["id"]             = contenido["id"]
-          conte["referencia"]     = contenido["ant_referenciaPadre"]
-          conte["condicion"]      = contenido["condicion"]
+          conte['costo']          = historico['ant_costoPadre']
+          conte['precio']         = historico['ant_precioPadre']
+          conte['cantidad']       = historico['ant_cantidadPadre']
+          conte['medida']         = historico['ant_medidaPadre']
+          conte['articulo_id']    = contenido['articulo_id']
+          conte['id']             = contenido['id']
+          conte['referencia']     = contenido['ant_referenciaPadre']
+          conte['condicion']      = contenido['condicion']
         end
         contents.push(ContenidoArticulo.new(conte))
       end
     end
 
-    articuloHistorico["contenido_articulos"] = contents
+    articuloHistorico['contenido_articulos'] = contents
 
-    if historico["ant_isCombo"]
+    if historico['ant_isCombo']
       fomulaS = []
 
-      formulas = MantenimientoFormula.where({secuencia: historico["secuencia"]})
+      formulas = MantenimientoFormula.where({secuencia: historico['secuencia']})
       formulaArticulo
 
       formulas.to_a.each do |f|
 
         obj_formula = f.slice(:articulo_id, :articulo_combo, :cantidad, :costo, :precio, :medida)
-        obj_formula["id"]               = f["formula_id"]
+        obj_formula['id']               = f['formula_id']
 
         fomulaS.push(FormulasProductosTerminado.new(obj_formula))
       end
 
-      articuloHistorico["formulas_productos_terminados"] = fomulaS
+      articuloHistorico['formulas_productos_terminados'] = fomulaS
     end
 
     return articuloHistorico

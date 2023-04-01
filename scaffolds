@@ -162,6 +162,7 @@ rails g migration addCamposToFacturasAplicadas
 rails g migration addCamposToTipoArticulos
 rails g migration addCamposToArticulos
 rails g migration addCamposToConfiguracionEntidadCuenta
+rails g migration addCamposToEntidades
 
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas

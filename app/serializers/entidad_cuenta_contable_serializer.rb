@@ -1,6 +1,4 @@
 class EntidadCuentaContableSerializer < ActiveModel::Serializer
-
-
   attribute :id,                            if: Proc.new { self.get_param('id')                         || self.get_param('all') }
   attribute :key,                           if: Proc.new { self.get_param('key')                        || self.get_param('all') }
   attribute :tipo_agrupacion_contable,      if: Proc.new { self.get_param('tipo_agrupacion_contable')   || self.get_param('all') }

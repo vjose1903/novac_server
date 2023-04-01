@@ -3,26 +3,25 @@
 class User < ApplicationRecord
   rolify
   extend Devise::Models
-  belongs_to :imagen, optional: true
-  accepts_nested_attributes_for :imagen
 
-  has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
-  accepts_nested_attributes_for :documentos_de_identidad
+  belongs_to  :categoria_entidad_contable
 
-  has_many :users_roles, dependent: :destroy
-  has_and_belongs_to_many :roles, join_table: :users_roles
+  has_many    :entidad_cuentas_contables, :as => :origen_categoria, dependent: :destroy, class_name: 'EntidadCuentaContable'
+  has_many    :documentos_de_identidad,   :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
 
-  has_many :roles_permisos_acciones, through: :roles
+  has_many    :users_roles, dependent: :destroy
+  has_and_belongs_to_many       :roles, join_table: :users_roles
+  has_many    :roles_permisos_acciones, through: :roles
 
-  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
+  devise   :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
 
-  validates :usuario,             presence: { :message => "Usuario no puede estar vacio." },                  uniqueness: { case_sensitive: false, :message => "El nombre de usuario ya está registrado" }
-  validates :telefono,            presence: { :message => "Telefono no puede estar vacio." }
-  validates :email,               presence: { :message => "Email no puede estar vacio." },                    uniqueness: { case_sensitive: false, :message => "El email introducido ya está registrado" }
-  validates :nombre,              presence: { :message => "Nombre del empleado no puede estar vacio." },      uniqueness: { scope: :estado, case_sensitive: false, :message => "Empleado ya está registrado" }, :if => :estado
-  validates :apellido,            presence: { :message => "Apellido del empleado no puede estar vacio." }
-  validates :sexo,                presence: { :message => "Sexo del empleado no puede estar vacio." }
-  validates :fecha_nacimiento,    presence: { :message => "Fecha de nacimiento del empleado no puede estar vacia." }
+  validates :usuario,             presence: { :message => 'Usuario no puede estar vacio.' },                  uniqueness: { case_sensitive: false, :message => 'El nombre de usuario ya está registrado' }
+  validates :telefono,            presence: { :message => 'Telefono no puede estar vacio.' }
+  validates :email,               presence: { :message => 'Email no puede estar vacio.' },                    uniqueness: { case_sensitive: false, :message => 'El email introducido ya está registrado' }
+  validates :nombre,              presence: { :message => 'Nombre del empleado no puede estar vacio.' },      uniqueness: { scope: :estado, case_sensitive: false, :message => 'Empleado ya está registrado' }, :if => :estado
+  validates :apellido,            presence: { :message => 'Apellido del empleado no puede estar vacio.' }
+  validates :sexo,                presence: { :message => 'Sexo del empleado no puede estar vacio.' }
+  validates :fecha_nacimiento,    presence: { :message => 'Fecha de nacimiento del empleado no puede estar vacia.' }
 
   before_validation :otras_validaciones
   include DeviseTokenAuth::Concerns::User
@@ -30,43 +29,48 @@ class User < ApplicationRecord
   def otras_validaciones
   end
 
+  # =====================================================================================================================
+
   def self.models_includes
-    includes = [:documentos_de_identidad, {roles_permisos_acciones: [:role, :permiso_accion]}]
+    includes = [
+      :documentos_de_identidad,
+      { roles_permisos_acciones: [:role, :permiso_accion] }
+      :entidad_cuentas_contables,
+    ]
     return includes
   end
+
+  # =====================================================================================================================
 
   def nombre_completo
     nombre    = self.nombre.capitalize
     nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
-    nombre    = nombre.gsub("  ", " ").strip
+    nombre    = nombre.gsub('  ', ' ').strip
     nombre
   end
+  # =====================================================================================================================
 
-  def self.get_vendedor_by_id(id)
-    return my_query("SELECT * FROM users WHERE estado = #{true} AND role = 'V' AND id = #{id}")
-  end
-
-  # ============================================================================================
+  # --------------------------------------------------------------------------------------------
   # HANDLE FILTER
-  # ============================================================================================
+  # --------------------------------------------------------------------------------------------
   def self.handleFilter(parametros)
 
-    if parametros["filter_key"] == 'role'
-			return User.joins(:roles).where(roles: {key: parametros["filter_value"]})
-    elsif parametros["filter_key"] == 'cedula'
+    if parametros[:filter_key] == 'role'
+      return User.joins(:roles).where(roles: {key: parametros[:filter_value]})
+    elsif parametros[:filter_key] == 'cedula'
 
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: parametros["filter_value"]}).where("usuario NOT IN ('novac', 'adm01')")
-    elsif parametros["filter_key"] == 'rnc'
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: parametros["filter_value"]}).where("usuario NOT IN ('novac', 'adm01')")
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: parametros[:filter_value]}).where("usuario NOT IN ('novac', 'adm01')")
+    elsif parametros[:filter_key] == 'rnc'
+      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: parametros[:filter_value]}).where("usuario NOT IN ('novac', 'adm01')")
     else
-      return User.all.where("#{parametros["filter_key"]} = #{parametros["filter_value"]} and estado = true")
+      return User.all.where("#{parametros[:filter_key]} = #{parametros[:filter_value]} and estado = true")
     end
 
   end
   # =====================================================================================================================
 
   def checkRoles(params)
-      self.errors.add(:base, "Debe de especificar almenos un role al empleado.") if !params[:ids_roles].present? || params[:ids_roles].length == 0
+      self.errors.add(:base, 'Debe de especificar almenos un role al empleado.') if !params[:ids_roles].present? || params[:ids_roles].length == 0
   end
 
   # =====================================================================================================================
@@ -74,28 +78,33 @@ class User < ApplicationRecord
   def self.crear_actualizar_user(params , is_save=false)
     res                           = Response.new
     User.transaction do
-      user                        = User.where(:id => params["id"]).first_or_create
+      user                        = User.where(:id => params[:id]).first_or_create
 
-      user.nombre                 = params["nombre"]
-      user.apellido               = params["apellido"]
-      user.usuario                = params["usuario"]
-      user.sexo                   = params["sexo"]
-      user.telefono               = params["telefono"]
-      user.email                  = params["email"]
-      user.fecha_nacimiento       = Date.parse params["fecha_nacimiento"]
-      user.password               = params["password"] if params["password"]
-      user.password_confirmation  = params["password"] if params["password"]
-      user.estado                 = true
-      user.roles                  = Role.where(id: params["ids_roles"])
+      user.nombre                          = params[:nombre]
+      user.apellido                        = params[:apellido]
+      user.usuario                         = params[:usuario]
+      user.sexo                            = params[:sexo]
+      user.telefono                        = params[:telefono]
+      user.email                           = params[:email]
+      user.fecha_nacimiento                = Date.parse(params[:fecha_nacimiento])
+      user.password                        = params[:password] if params[:password]
+      user.password_confirmation           = params[:password] if params[:password]
+      user.categoria_entidad_contable_id   = params[:categoria_entidad_contable_id]
+      user.estado                          = true
+      user.roles                           = Role.where(id: params[:ids_roles])
 
       user.valid?
       user.checkRoles(params)
 
       if user.errors.empty?
-        dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: user}]
+        dependencias = [
+          { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: user },
+          { modelo: EntidadCuentaContable, key_object: 'cuentas_contables', padre: user }
+        ]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
-          user.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
+          user.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
+          user.entidad_cuentas_contables  = dependencia_data if key_object == 'cuentas_contables'
         }
 
         if res.status_valid && user.save!
@@ -131,7 +140,7 @@ class User < ApplicationRecord
     else
       res.set_data([])
       cantidad_registros = User.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? 'No existen empleados registrados.' : 'No existe empleado con las especificaciones introducidas.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -141,11 +150,11 @@ class User < ApplicationRecord
     # =========================================================================================================================================================
     def get_permisos
 
-      joins_ = "INNER JOIN permisos_acciones on permisos_acciones.id = roles_permisos_acciones.permiso_accion_id"
-      joins_ += " INNER JOIN acciones on acciones.id = permisos_acciones.accion_id"
-      joins_ += " INNER JOIN permisos on permisos.id = permisos_acciones.permiso_id"
+      joins_ = 'INNER JOIN permisos_acciones on permisos_acciones.id = roles_permisos_acciones.permiso_accion_id'
+      joins_ += ' INNER JOIN acciones on acciones.id = permisos_acciones.accion_id'
+      joins_ += ' INNER JOIN permisos on permisos.id = permisos_acciones.permiso_id'
 
-      roles_permisos_acciones                    = self.roles_permisos_acciones.joins(joins_).select("roles_permisos_acciones.permiso_accion_id, CONCAT(permisos.descripcion, '_', acciones.descripcion) as permiso").group("roles_permisos_acciones.permiso_accion_id, permisos.descripcion, acciones.descripcion")
+      roles_permisos_acciones                    = self.roles_permisos_acciones.joins(joins_).select("roles_permisos_acciones.permiso_accion_id, CONCAT(permisos.descripcion, '_', acciones.descripcion) as permiso").group('roles_permisos_acciones.permiso_accion_id, permisos.descripcion, acciones.descripcion')
 
       roles_permisos_acciones
     end
@@ -153,27 +162,4 @@ class User < ApplicationRecord
     def  verificateHasPermiso(permiso_descripcion)
       return Permiso.verificateUserPermiso(self.id, permiso_descripcion)
     end
-    # =========================================================================================================================================================
-
-    def self.mudar_info(param)
-      res = {"correcto" => true}
-      DocumentoDeIdentidad.all.each do |documento|
-
-        if !documento.user.nil?
-          documento.origen = documento.user
-
-        elsif !documento.suplidor.nil?
-          documento.origen = documento.suplidor
-
-        elsif !documento.cliente.nil?
-          documento.origen = documento.cliente
-
-        end
-
-        documento.save!
-
-      end
-      return res
-    end
-
 end
