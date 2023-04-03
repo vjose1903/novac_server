@@ -55,7 +55,7 @@ class UsersController < ApplicationController
       email: params['email'] || false,
       fecha_nacimiento: params['fecha_nacimiento'] || false,
       role: params['role'] || false,
-      imagen: params['imagen'] || false,
+      imagenes: params['imagenes'] || false,
       documentos_de_identidad: params['documentos_de_identidad'] || false,
     }
   end

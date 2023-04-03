@@ -3,9 +3,14 @@ class CategoriaEntidadContableSerializer < ActiveModel::Serializer
   attribute :descripcion,                                 if: Proc.new { self.get_param('descripcion')                || self.get_param('all') }
   attribute :entidad,                                     if: Proc.new { self.get_param('entidad')                    || self.get_param('all') }
   attribute :key,                                         if: Proc.new { self.get_param('key')                        || self.get_param('all') }
+  attribute :is_prima,                                    if: Proc.new { self.get_param('is_prima')                   || self.get_param('all') }
 
   attribute :cuenta_contable_control,                     if: Proc.new { self.get_param('cuenta_contable_control')    || self.get_param('all') }
   attribute :cuenta_contable_auxiliar,                    if: Proc.new { self.get_param('cuenta_contable_auxiliar')   || self.get_param('all') }
+
+  def is_prima
+    object.configuracion_entidad_cuenta.is_prima
+  end
 
   def cuenta_contable_control
     serialize_parser(object.cuenta_contable_control, {id: true, descripcion: true, codigo: true})

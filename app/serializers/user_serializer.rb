@@ -10,16 +10,16 @@ class UserSerializer < ActiveModel::Serializer
   attribute :email,                         if: Proc.new { self.get_param('email') || self.get_param('all') }
   attribute :fecha_nacimiento,              if: Proc.new { self.get_param('fecha_nacimiento') || self.get_param('all') }
   attribute :role,                          if: Proc.new { self.get_param('role') || self.get_param('all') }
-  attribute :imagen,                        if: Proc.new { self.get_param('imagen') || self.get_param('all') }
   attribute :sign_in_count,                 if: Proc.new { self.get_param('sign_in_count') || self.get_param('all') }
-
-  attribute :roles,                         if: Proc.new { self.get_param('roles')  }
-  attribute :permisos,                      if: Proc.new { self.get_param('permisos')  }
   attribute :nombre_completo
 
   attribute :documentos_de_identidad,       if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
   attribute :cuentas_contables,             if: Proc.new { self.get_param('cuentas_contables')  || self.get_param('all') }
   attribute :categoria_entidad_contable,    if: Proc.new { self.get_param('categoria_entidad_contable') || self.get_param('all') }
+  attribute :imagenes,                      if: Proc.new { self.get_param('imagenes') || self.get_param('all') }
+
+  attribute :roles,                         if: Proc.new { self.get_param('roles')  }
+  attribute :permisos,                      if: Proc.new { self.get_param('permisos')  }
 
   # def fotoPerfil
   #   nil
@@ -45,6 +45,18 @@ class UserSerializer < ActiveModel::Serializer
     object.nombre_completo
   end
 
+  def cuentas_contables
+    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true })
+  end
+
+  def categoria_entidad_contable
+    serialize_parser(object.categoria_entidad_contable, { id: true, descripcion: true })
+  end
+
+  def imagenes
+    serialize_parser(object.imagenes, { id: true, file_name: true })
+  end
+
   def roles
     roles = serialize_parser(object.roles, {id: true, descripcion: true, nombre: true})
     roles
@@ -52,14 +64,6 @@ class UserSerializer < ActiveModel::Serializer
 
   def permisos
     object.get_permisos
-  end
-
-  def cuentas_contables
-    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true })
-  end
-
-  def categoria_entidad_contable
-    serialize_parser(object.categoria_entidad_contable, { id: true, descripcion: true })
   end
 
   def get_param(col)

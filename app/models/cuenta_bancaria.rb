@@ -69,20 +69,19 @@ class CuentaBancaria < ApplicationRecord
   def procesos_crear_cuenta(banco)
     res = Response.new
 
-
     is_cuenta_nacional                = self.divisa.is_principal
 
-    configuraciones_cuentas_contables = ConfiguracionEntidadCuenta.where({ entidad: "cuenta_bancaria" })
+    configuraciones_cuentas_contables = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.cuenta_bancaria })
 
     configuraciones_cuentas_contables.each do | config |
-      is_prima               = !is_cuenta_nacional && config.descripcion.downcase == 'efectivo banco nacional'
+      is_prima               = !is_cuenta_nacional && config.is_nacional
 
       descripcion_cuenta     = "Banco: #{banco.nombre} - CTA: #{self.numero_cuenta}"
       descripcion_cuenta    += " PRIMA" if is_prima
 
       cuenta_contable        = ConfiguracionEntidadCuenta.molde_cuenta(config.cuenta_contable, descripcion_cuenta)
 
-      if (is_cuenta_nacional && config.descripcion.downcase == 'efectivo banco nacional') || (!is_cuenta_nacional)
+      if (is_cuenta_nacional && config.is_nacional) || (!is_cuenta_nacional)
 
         temp_cuenta_contable              = CuentaContable.create_update_cuenta_contable(cuenta_contable, nil, true)
         if temp_cuenta_contable.status_valid

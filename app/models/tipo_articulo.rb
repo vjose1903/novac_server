@@ -39,11 +39,11 @@ class TipoArticulo < ApplicationRecord
   def procesos_crear_cuenta
     res = Response.new
 
+    configs_articulo                           = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
     # --------------------------------------------------------------------------------------------------------------
     # INVENTARIO
     # --------------------------------------------------------------------------------------------------------------
-
-    config_inventario                           = ConfiguracionEntidadCuenta.find_by_entidad( "inventario" )
+		config_inventario = configs_articulo.find { | config | config[:key] == ConfigEntidadCuentaCont::Articulo.inventario }
 
     descripcion_cuenta                          = "Inventario: #{self.descripcion}"
     if self.cuenta_contable_control_id.nil?

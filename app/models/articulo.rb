@@ -6,7 +6,7 @@ class Articulo < ApplicationRecord
   has_many  :formulas_productos_terminados
 
   has_many  :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
-  has_many  :imagenes,                   :as => :origen,         dependent: :destroy, class_name: 'Imagen'
+  has_many  :imagenes,                   :as => :origen_img,     dependent: :destroy, class_name: 'Imagen'
 
   attribute :contenido_articulos
   attribute :formulas_productos_terminados

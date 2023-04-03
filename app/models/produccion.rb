@@ -33,7 +33,7 @@ class Produccion < ApplicationRecord
           res.add_msg("Produccion creada correctamente.")
 
         else
-          res.add_msgs(res.get_msgs)
+          res.add_msgs(res.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 

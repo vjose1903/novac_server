@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_01_131150) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -229,8 +229,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_01_131150) do
     t.float "balance"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.bigint "categoria_entidad_contable_id"
-    t.index ["categoria_entidad_contable_id"], name: "index_clientes_on_categoria_entidad_contable_id"
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
   end
 
@@ -247,6 +245,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_01_131150) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "key"
+    t.boolean "is_nacional"
     t.index ["cuenta_contable_id"], name: "index_configuraciones_entidades_cuentas_on_cuenta_contable_id"
   end
 
@@ -551,10 +550,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_01_131150) do
     t.string "base_64"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.string "origen_type"
-    t.bigint "origen_id"
+    t.string "origen_img_type"
+    t.bigint "origen_img_id"
     t.string "file_hash"
-    t.index ["origen_type", "origen_id"], name: "index_imagenes_on_origen"
+    t.index ["origen_img_type", "origen_img_id"], name: "index_imagenes_on_origen"
   end
 
   create_table "incidencias", force: :cascade do |t|
@@ -814,8 +813,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_01_131150) do
     t.boolean "estado"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.bigint "categoria_entidad_contable_id"
-    t.index ["categoria_entidad_contable_id"], name: "index_suplidores_on_categoria_entidad_contable_id"
+    t.boolean "is_nacional"
+    t.bigint "divisa_id"
+    t.index ["divisa_id"], name: "index_suplidores_on_divisa_id"
   end
 
   create_table "tasas_de_cambio", force: :cascade do |t|
@@ -888,8 +888,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_01_131150) do
     t.json "tokens"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.bigint "categoria_entidad_contable_id"
-    t.index ["categoria_entidad_contable_id"], name: "index_users_on_categoria_entidad_contable_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["imagen_id"], name: "index_users_on_imagen_id"

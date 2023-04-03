@@ -1,5 +1,4 @@
 class Cliente < ApplicationRecord
-  belongs_to  :categoria_entidad_contable, optional: true
   has_many    :documentos_de_identidad,    :as => :origen,         dependent: :destroy, class_name: 'DocumentoDeIdentidad'
   has_many    :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
 
@@ -48,7 +47,6 @@ class Cliente < ApplicationRecord
       cliente.maximo_credito                  = params[:maximo_credito]
       cliente.vendedor_id                     = params[:vendedor_id]
       cliente.balance                         = params[:balance] ? params[:balance] : 0
-      cliente.categoria_entidad_contable_id   = params[:categoria_entidad_contable_id]
       cliente.estado                          = true
 
       cliente.valid?

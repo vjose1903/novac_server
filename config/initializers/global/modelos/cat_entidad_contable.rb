@@ -1,19 +1,40 @@
+module CatContable
+
+  MODELO = {
+    tipo_articulo:               'tipo_articulo',
+    sub_tipo_articulo:           'sub_tipo_articulo',
+    categoria_entidad_contable:  'categoria_entidad_contable'
+  }.with_indifferent_access
+
+  def self.tipo_articulo
+    return MODELO[:tipo_articulo]
+  end
+
+  def self.sub_tipo_articulo
+    return MODELO[:sub_tipo_articulo]
+  end
+
+  def self.categoria_entidad_contable
+    return MODELO[:categoria_entidad_contable]
+  end
+end
+
 module CatEntidadContable
 
   TIPO = {
-    cliente:            "cliente",
-    suplidor:           "suplidor",
-    user:               "user",
-    tipo_articulo:      "tipo_articulo",
-    sub_tipo_articulo:  "sub_tipo_articulo"
+    cliente:            'cliente',
+    suplidor:           'suplidor',
+    user:               'user',
+    tipo_articulo:      'tipo_articulo',
+    sub_tipo_articulo:  'sub_tipo_articulo'
   }.with_indifferent_access
 
   TIPOS = {
-    cliente:            "clientes",
-    suplidor:           "suplidores",
-    user:               "usuarios",
-    tipo_articulo:      "tipo_articulos",
-    sub_tipo_articulo:  "sub_tipo_articulos"
+    cliente:            'clientes',
+    suplidor:           'suplidores',
+    user:               'usuarios',
+    tipo_articulo:      'tipo_articulos',
+    sub_tipo_articulo:  'sub_tipo_articulos'
   }.with_indifferent_access
 
   def self.tipo
@@ -95,4 +116,4 @@ module TipoAgrupacionContable
   end
 end
 
-TIPOS_DE_AGRIPACIONES_VALIDOS = [ TipoAgrupacionContable.sin_cuenta, TipoAgrupacionContable.categoria, TipoAgrupacionContable.sub_categoria, TipoAgrupacionContable.individual ]
+TIPOS_DE_AGRUPACIONES_VALIDOS = [ TipoAgrupacionContable.sin_cuenta, TipoAgrupacionContable.categoria, TipoAgrupacionContable.sub_categoria, TipoAgrupacionContable.individual ]

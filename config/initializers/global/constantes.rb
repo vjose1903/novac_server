@@ -436,8 +436,8 @@ G_CATALOGO_DEFAULT = [
   # 2
   {descripcion: "PASIVOS",                origen: "C", tipo: "R", cuentas_contables: [
     { descripcion: "CUENTAS POR PAGAR",                            is_control: true, origen: "C", tipo: "R", cuentas_contables: [
-        { descripcion: "CUENTAS POR PAGAR PROVEEDORES NACIONALES",            is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
-        { descripcion: "CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS",           is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+        { descripcion: "CUENTAS POR PAGAR PROVEEDORES MONEDA NACIONAL",       is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+        { descripcion: "CUENTAS POR PAGAR PROVEEDORES MONEDA EXTRANJERA",     is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
         { descripcion: "AVANCES",                                             is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
       ]
     },
@@ -505,13 +505,13 @@ G_CATALOGO_DEFAULT = [
 ]
 
 G_CONFIG_ENTIDAD_CUENTA = [
-  { descripcion: 'CXC clientes',               key:'cobrar',       entidad:'cliente',            cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
-  { descripcion: 'CXP suplidores nacionales',  key:'pagar',        entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES NACIONALES' },
-  { descripcion: 'CXP suplidores extranjeros', key:'pagar',        entidad:'suplidor',           cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES EXTRANJEROS' },
-  { descripcion: 'CXC empleados',              key:'cobrar',       entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
-  { descripcion: 'CXP empleados',              key:'pagar',        entidad:'user',               cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
-  { descripcion: 'Retenciones empleados',      key:'retencion',    entidad:'user',               cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
-  { descripcion: 'Efectivo banco nacional',    key:'nacional',     entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
-  { descripcion: 'Efectivo banco extranjero',  key:'extranjero',   entidad:'cuenta_bancaria',    cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
-  { descripcion: 'Inventario',                 key:'inventario',   entidad:'inventario',         cuenta_contable_descripcion: 'INVENTARIOS' },
+  { descripcion: 'CXC clientes',                      key: 'cobrar',         entidad: 'cliente',          is_nacional: true,  cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
+  { descripcion: 'CXP suplidores moneda nacional',    key: 'pagar',          entidad: 'suplidor',         is_nacional: true,  cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES MONEDA NACIONAL' },
+  { descripcion: 'CXP suplidores moneda extranjera',  key: 'pagar',          entidad: 'suplidor',         is_nacional: false, cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES MONEDA EXTRANJERA' },
+  { descripcion: 'CXC empleados',                     key: 'cobrar',         entidad: 'user',             is_nacional: true,  cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
+  { descripcion: 'CXP empleados',                     key: 'pagar',          entidad: 'user',             is_nacional: true,  cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
+  { descripcion: 'Retenciones empleados',             key: 'retencion',      entidad: 'user',             is_nacional: true,  cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
+  { descripcion: 'Efectivo banco moneda nacional',    key: 'efectivo_banco', entidad: 'cuenta_bancaria',  is_nacional: true,  cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
+  { descripcion: 'Efectivo banco moneda extranjera',  key: 'efectivo_banco', entidad: 'cuenta_bancaria',  is_nacional: false, cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
+  { descripcion: 'Inventario',                        key: 'inventario',     entidad: 'articulo',         is_nacional: true,  cuenta_contable_descripcion: 'INVENTARIOS' },
 ]

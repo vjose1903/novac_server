@@ -150,6 +150,7 @@ rails g migration AddIsDevueltoToDetalleFactura
 rails g migration AddIsDefectuosoToDetalleFactura
 
 
+rails g migration changeColumnOrigenToImagen
 rails g migration change_secuencua_to_be_string_in_tables
 rails g migration add_formula_id_to_mantenimiento_formula
 rails g migration addMedidaToMantenimientoFormula
@@ -163,6 +164,8 @@ rails g migration addCamposToTipoArticulos
 rails g migration addCamposToArticulos
 rails g migration addCamposToConfiguracionEntidadCuenta
 rails g migration addCamposToEntidades
+rails g migration addCamposToSuplidor
+rails g migration addMoreCamposToConfiguracionEntidadCuenta
 
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas

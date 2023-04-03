@@ -22,6 +22,7 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
       configuracion_entidad_cuenta.cuenta_contable_id     = params[:cuenta_contable_id]
       configuracion_entidad_cuenta.entidad                = params[:entidad]
       configuracion_entidad_cuenta.key                    = params[:key]
+      configuracion_entidad_cuenta.is_nacional            = params[:is_nacional]
       configuracion_entidad_cuenta.descripcion            = params[:descripcion]
       configuracion_entidad_cuenta.valid?
 

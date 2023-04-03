@@ -4,9 +4,8 @@ class User < ApplicationRecord
   rolify
   extend Devise::Models
 
-  belongs_to  :categoria_entidad_contable
-
-  has_many    :entidad_cuentas_contables, :as => :origen_categoria, dependent: :destroy, class_name: 'EntidadCuentaContable'
+	has_many    :imagenes,                  :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
+  has_many    :entidad_cuentas_contables, :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
   has_many    :documentos_de_identidad,   :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
 
   has_many    :users_roles, dependent: :destroy
@@ -34,8 +33,8 @@ class User < ApplicationRecord
   def self.models_includes
     includes = [
       :documentos_de_identidad,
-      { roles_permisos_acciones: [:role, :permiso_accion] }
       :entidad_cuentas_contables,
+      { roles_permisos_acciones: [:role, :permiso_accion] }
     ]
     return includes
   end
@@ -89,7 +88,6 @@ class User < ApplicationRecord
       user.fecha_nacimiento                = Date.parse(params[:fecha_nacimiento])
       user.password                        = params[:password] if params[:password]
       user.password_confirmation           = params[:password] if params[:password]
-      user.categoria_entidad_contable_id   = params[:categoria_entidad_contable_id]
       user.estado                          = true
       user.roles                           = Role.where(id: params[:ids_roles])
 

@@ -19,7 +19,7 @@ class Imagen < ApplicationRecord
       imagen.file_name          = imagen_info[:file_name]
       imagen.base_64            = params[:base_64]
       imagen.file_hash          = imagen_info[:file_hash]
-      imagen.origen             = padre
+      imagen.origen_img         = padre
 
       imagen.valid?
 
