@@ -2,6 +2,7 @@ class EntidadCuentaContableSerializer < ActiveModel::Serializer
   attribute :id,                            if: Proc.new { self.get_param('id')                         || self.get_param('all') }
   attribute :key,                           if: Proc.new { self.get_param('key')                        || self.get_param('all') }
   attribute :tipo_agrupacion_contable,      if: Proc.new { self.get_param('tipo_agrupacion_contable')   || self.get_param('all') }
+  attribute :is_comun,                      if: Proc.new { self.get_param('is_comun')                   || self.get_param('all') }
 
   attribute :cuenta_contable,               if: Proc.new { self.get_param('cuenta_contable')            || self.get_param('all') }
   attribute :origen_categoria,              if: Proc.new { self.get_param('origen_categoria')           || self.get_param('all') }

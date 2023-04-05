@@ -42,15 +42,15 @@ class CabeceraConduce < ApplicationRecord
 
       if res.status_valid && conduce.errors.empty? && (!is_save || (is_save && conduce.save!))
 
-        res                        = updateSecuencias(15)
+        result                     = updateSecuencias(15)
 
-        if res.status_valid
-          res.set_data(serialize_parser(conduce, {all: true}))
-          action = params["id"] ? 'actualizado' : 'creado'
+        if result.status_valid
+          res.set_data(serialize_parser(conduce, { all: true }))
+          action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Conduce #{action} correctamente.")
 
         else
-          res.add_msgs(res.get_msgs)
+          res.add_msgs(result.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 

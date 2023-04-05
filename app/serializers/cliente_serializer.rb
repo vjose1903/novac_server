@@ -15,7 +15,6 @@ class ClienteSerializer < ActiveModel::Serializer
 
   attribute :documentos_de_identidad,            if: Proc.new { self.get_param('documentos_de_identidad')    || self.get_param('all') }
   attribute :cuentas_contables,          if: Proc.new { self.get_param('cuentas_contables')  || self.get_param('all') }
-  attribute :categoria_entidad_contable,         if: Proc.new { self.get_param('categoria_entidad_contable') || self.get_param('all') }
 
   def vendedor
     vendedor = User.find_by_id(object.vendedor_id)
@@ -32,10 +31,6 @@ class ClienteSerializer < ActiveModel::Serializer
 
   def cuentas_contables
     serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true })
-  end
-
-  def categoria_entidad_contable
-    serialize_parser(object.categoria_entidad_contable, { id: true, descripcion: true })
   end
 
   def get_param(col)

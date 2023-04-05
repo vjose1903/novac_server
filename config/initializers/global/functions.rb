@@ -300,17 +300,22 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
-  dependencias.each do |dependencia|
+  dependencias.each do | dependencia |
 
     if !parametros[dependencia[:key_object]].nil? && parametros[dependencia[:key_object]].kind_of?(Array)
+
       res_dependencia = dependencia[:modelo].validar_e_inicializar(parametros[dependencia[:key_object]], dependencia[:padre], save)
+
       if res_dependencia.status_valid
         yield dependencia[:key_object], res_dependencia.get_data if block_given?
       else
         return res_dependencia
       end
+
     end
+
   end
+
   return Response.new
 end
 

@@ -1,4 +1,6 @@
 class CategoriaEntidadContable < ApplicationRecord
+	self.table_name = "categorias_entidades_contables"
+
   belongs_to :cuenta_contable_control,      class_name: 'CuentaContable', optional: false
   belongs_to :cuenta_contable_auxiliar,     class_name: 'CuentaContable', optional: true
   belongs_to :configuracion_entidad_cuenta

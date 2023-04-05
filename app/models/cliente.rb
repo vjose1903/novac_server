@@ -11,17 +11,24 @@ class Cliente < ApplicationRecord
   validates :vendedor_id,         presence: { :message => 'Debe de seleccionar un vendedor para el cliente.' }
   validates :direccion,           presence: { :message => 'Direccion del cliente no puede estar vacio.' }
 
+  def otras_validaciones(params)
+    self.errors.add(:base, "No se puede registrar un cliente sin especificar sus atributos contables.") if !params[:cuentas_contables].present? || params[:cuentas_contables].nil?
+  end
+
+  # =========================================================================================================================================================
+
   def init
     self.balance = 0 unless self.balance
   end
 
-
-
+  # =========================================================================================================================================================
 
   def self.models_includes
     includes = [:documentos_de_identidad, :entidad_cuentas_contables]
     return includes
   end
+
+  # =========================================================================================================================================================
 
   def nombre_completo
     nombre    = self.nombre.capitalize
@@ -51,21 +58,25 @@ class Cliente < ApplicationRecord
 
       cliente.valid?
 
+      cliente.otras_validaciones(params)
+
+      cliente.procesos_crear_cuenta(params) if cliente.errors.empty?
+
       if cliente.errors.empty?
         dependencias = [
-          { modelo:DocumentoDeIdentidad,   key_object: 'documentos_de_identidad',   padre: cliente },
-          { modelo: EntidadCuentaContable, key_object: 'cuentas_contables', padre: cliente }
+          { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',     padre: cliente },
+          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables',   padre: cliente }
         ]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           cliente.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
-          cliente.entidad_cuentas_contables  = dependencia_data if key_object == 'cuentas_contables'
+          cliente.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
         }
 
         if res.status_valid && cliente.save!
           res.set_data(serialize_parser(cliente, {all: true}))
 
-          action = params["id"] ? 'actualizado' : 'creado'
+          action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Cliente #{action} correctamente.")
         end
       end
@@ -81,6 +92,22 @@ class Cliente < ApplicationRecord
     return res
   end
 
+  # ============================================================================================================================================
+
+  def procesos_crear_cuenta(params)
+    cuentas = []
+
+    params[:cuentas_contables].each do | config_cuenta |
+
+      descripcion_cuenta = self.nombre_completo
+      descripcion_cuenta = "#{descripcion_cuenta} PRIMA" if is_prima
+      cuentas.push( { tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: descripcion_cuenta, **config_cuenta.as_json }.with_indifferent_access )
+
+    end
+
+    params[:entidad_cuentas_contables] = cuentas
+
+  end
 
   # =========================================================================================================================================================
 

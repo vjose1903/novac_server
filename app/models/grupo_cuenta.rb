@@ -8,7 +8,7 @@ class GrupoCuenta < ApplicationRecord
 
   # ============================================================================================================================================
 
-	def self.models_includes
+  def self.models_includes
     includes = [:cuentas_contables]
     return includes
   end
@@ -72,12 +72,14 @@ class GrupoCuenta < ApplicationRecord
   # ============================================================================================================================================
 
   def self.create_first_cuenta(params, grupo_cuenta)
-    params["cuentas_contables"] = [{
-      "descripcion" => grupo_cuenta.descripcion,
-      "origen"      => grupo_cuenta.origen,
-      "tipo"        => grupo_cuenta.tipo,
-      "is_control"  => true
-      }]
+    params[:cuentas_contables] = [
+      {
+        descripcion:  grupo_cuenta.descripcion,
+        origen:       grupo_cuenta.origen,
+        tipo:         grupo_cuenta.tipo,
+        is_control:   true
+      }.with_indifferent_access
+    ]
 
     return params
   end

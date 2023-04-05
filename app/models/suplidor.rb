@@ -8,6 +8,7 @@ class Suplidor < ApplicationRecord
   validates :direccion,  presence: { :message => 'Dirección del suplidor no puede estar vacio.' }
 
   def otras_validaciones(params)
+    self.errors.add(:base, "No se puede registrar un suplidor sin especificar sus atributos contables.") if !params[:cuentas_contables].present? || params[:cuentas_contables].nil?
   end
 
   # =========================================================================================================================================================
@@ -42,21 +43,23 @@ class Suplidor < ApplicationRecord
 
       suplidor.otras_validaciones(params)
 
-      res = suplidor.procesos_crear_cuenta(params) if suplidor.errors.empty?
+      suplidor.procesos_crear_cuenta(params) if suplidor.errors.empty?
 
-      if res.status_valid && suplidor.errors.empty?
+
+      if suplidor.errors.empty?
         dependencias = [
           {modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: suplidor },
-          {modelo: EntidadCuentaContable, key_object: 'cuentas_contables', padre: suplidor }
+          {modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }
         ]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
+        res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+          suplidor.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
           suplidor.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
-          suplidor.entidad_cuentas_contables  = dependencia_data if key_object == 'cuentas_contables'
         }
 
+
         if res.status_valid && suplidor.save!
-          res.set_data(serialize_parser(suplidor,{all:true}))
+          res.set_data( serialize_parser( suplidor, { all: true } ))
 
           action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Suplidor #{action} correctamente.")
@@ -64,7 +67,6 @@ class Suplidor < ApplicationRecord
       end
 
       if !suplidor.errors.empty? || !res.status_valid
-        res.add_msgs(res.get_msgs.to_a)
         res.add_msgs(suplidor.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
@@ -79,52 +81,19 @@ class Suplidor < ApplicationRecord
   # ============================================================================================================================================
 
   def procesos_crear_cuenta(params)
-    res                    = Response.new
+    cuentas = []
+    usa_moneda_nacional  = self.divisa.is_principal
 
-    usa_moneda_nacional    = self.divisa.is_principal
-    cuentas                = []
+    params[:cuentas_contables].each do | config_cuenta |
+      configuracion      = ConfiguracionEntidadCuenta.find_by_id(config_cuenta[:configuracion_entidad_cuenta_id])
+      is_prima           = !usa_moneda_nacional && configuracion.is_nacional
 
-
-    # tipo_categoria
-    # tipo_categoria_id
-    # tipo_agrupacion_contable
-    # is_comun
-    # configuracion_entidad_cuenta_id
-
-    configuraciones_cuentas_contables = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.suplidor })
-
-    configuraciones_cuentas_contables.each do | config |
-
-			next_cuenta = { tipo_categoria: CatContable.categoria_entidad_contable }.with_indifferent_access
-
-      is_prima               = !usa_moneda_nacional && !config.is_prima
-
-      descripcion_cuenta     = "Banco: #{banco.nombre} - CTA: #{self.numero_cuenta}"
-      descripcion_cuenta    += " PRIMA" if is_prima
-
-      cuenta_contable        = ConfiguracionEntidadCuenta.molde_cuenta(config.cuenta_contable, descripcion_cuenta)
-
-      if (is_cuenta_nacional && !config.is_prima) || (!is_cuenta_nacional)
-
-        temp_cuenta_contable              = CuentaContable.create_update_cuenta_contable(cuenta_contable, nil, true)
-        if temp_cuenta_contable.status_valid
-          cuenta_contable                 = temp_cuenta_contable.get_data.as_json.with_indifferent_access
-          self.cuenta_contable_id         = cuenta_contable[:id] if !is_prima
-          self.cuenta_contable_prima_id   = cuenta_contable[:id] if is_prima
-
-        else
-          res.add_msgs(temp_cuenta_contable.get_msgs)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
-        end
-
-      end
+      descripcion_cuenta = self.nombre_completo
+      descripcion_cuenta = "#{descripcion_cuenta} PRIMA" if is_prima
+      cuentas.push( { tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: descripcion_cuenta, **config_cuenta.as_json }.with_indifferent_access )
     end
+    params[:entidad_cuentas_contables] = cuentas
 
-    self.is_nacional = is_cuenta_nacional
-
-    params[:cuentas_contables] = cuentas
-
-    return res
   end
 
   # ============================================================================================================================================

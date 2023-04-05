@@ -69,9 +69,9 @@ class RecibosIngreso < ApplicationRecord
 
         if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
-          res_valid                = updateSecuencias(17)
+          result                = updateSecuencias(17)
 
-          if res_valid.status_valid
+          if result.status_valid
             data = {"recibo": serialize_parser(recibo, {all: true}) }
             data = { **data, "devoluciones": devoluciones } unless devoluciones.blank?
 
@@ -80,7 +80,7 @@ class RecibosIngreso < ApplicationRecord
             res.add_msg("Recibo #{action} correctamente.")
 
           else
-            res.add_msgs(res_valid.get_msgs)
+            res.add_msgs(result.get_msgs)
             res.set_status(HTTP_STATUS_CODE[:conflict])
           end
 

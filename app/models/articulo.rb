@@ -4,6 +4,7 @@ class Articulo < ApplicationRecord
 
   has_many  :contenido_articulos,           dependent: :destroy
   has_many  :formulas_productos_terminados
+  has_many  :mantenimiento_articulos
 
   has_many  :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
   has_many  :imagenes,                   :as => :origen_img,     dependent: :destroy, class_name: 'Imagen'
@@ -38,7 +39,7 @@ class Articulo < ApplicationRecord
   end
 
   def self.models_includes
-    includes = [:tipo_articulo, {contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}, :entidad_cuentas_contables]
+    includes = [:tipo_articulo, {contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}, :entidad_cuentas_contables, :mantenimiento_articulos]
     return includes
   end
 
@@ -75,8 +76,6 @@ class Articulo < ApplicationRecord
 
       articulo.valid?
       articulo.otras_validaciones(params)
-
-      # imagen_attributes
 
       dependencias = [
         { modelo: ContenidoArticulo,          key_object: 'contenido_articulos',           padre: articulo },

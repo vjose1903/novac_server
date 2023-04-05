@@ -26,14 +26,14 @@ class Produccion < ApplicationRecord
 
       if res.status_valid && produccion.errors.empty? && (!is_save || (is_save && produccion.save!))
 
-        res                               = updateSecuencias(16)
+        result                               = updateSecuencias(16)
 
-        if res.status_valid
-          res.set_data(serialize_parser(produccion, {all: true}))
+        if result.status_valid
+          res.set_data( serialize_parser( produccion, { all: true } ))
           res.add_msg("Produccion creada correctamente.")
 
         else
-          res.add_msgs(res.get_msgs.to_a)
+          res.add_msgs(result.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 

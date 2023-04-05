@@ -9,7 +9,7 @@ class DocumentoDeIdentidadSerializer < ActiveModel::Serializer
 	end
 
   def persona
-    serialize_parser(object.origen, {all:true, documentos_de_identidad: true})
+    serialize_parser(object.origen, {all: true, documentos_de_identidad: true})
 	end
 
   def get_param(col)

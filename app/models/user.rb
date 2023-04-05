@@ -22,7 +22,6 @@ class User < ApplicationRecord
   validates :sexo,                presence: { :message => 'Sexo del empleado no puede estar vacio.' }
   validates :fecha_nacimiento,    presence: { :message => 'Fecha de nacimiento del empleado no puede estar vacia.' }
 
-  before_validation :otras_validaciones
   include DeviseTokenAuth::Concerns::User
 
   def otras_validaciones
