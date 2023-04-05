@@ -60,7 +60,8 @@ class Cliente < ApplicationRecord
 
       cliente.otras_validaciones(params)
 
-      cliente.procesos_crear_cuenta(params) if cliente.errors.empty?
+      cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: cliente.nombre_completo }.with_indifferent_access
+      EntCuentaContable.procesos_crear_cuenta(params, cuentas_config ) if cliente.errors.empty?
 
       if cliente.errors.empty?
         dependencias = [

@@ -45,7 +45,7 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def cuentas_contables
-    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true })
+    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, origen_categoria: true })
   end
 
   def imagenes

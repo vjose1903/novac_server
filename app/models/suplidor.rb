@@ -43,8 +43,8 @@ class Suplidor < ApplicationRecord
 
       suplidor.otras_validaciones(params)
 
-      suplidor.procesos_crear_cuenta(params) if suplidor.errors.empty?
-
+      cuentas_config = { view_prima: true, usa_moneda_nacional: suplidor.divisa.is_principal, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: suplidor.nombre_completo }.with_indifferent_access
+      EntCuentaContable.procesos_crear_cuenta(params, cuentas_config ) if suplidor.errors.empty?
 
       if suplidor.errors.empty?
         dependencias = [
@@ -76,24 +76,6 @@ class Suplidor < ApplicationRecord
     end
 
     return res
-  end
-
-  # ============================================================================================================================================
-
-  def procesos_crear_cuenta(params)
-    cuentas = []
-    usa_moneda_nacional  = self.divisa.is_principal
-
-    params[:cuentas_contables].each do | config_cuenta |
-      configuracion      = ConfiguracionEntidadCuenta.find_by_id(config_cuenta[:configuracion_entidad_cuenta_id])
-      is_prima           = !usa_moneda_nacional && configuracion.is_nacional
-
-      descripcion_cuenta = self.nombre_completo
-      descripcion_cuenta = "#{descripcion_cuenta} PRIMA" if is_prima
-      cuentas.push( { tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: descripcion_cuenta, **config_cuenta.as_json }.with_indifferent_access )
-    end
-    params[:entidad_cuentas_contables] = cuentas
-
   end
 
   # ============================================================================================================================================
