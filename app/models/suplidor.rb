@@ -8,7 +8,13 @@ class Suplidor < ApplicationRecord
   validates :direccion,  presence: { :message => 'Dirección del suplidor no puede estar vacio.' }
 
   def otras_validaciones(params)
-    self.errors.add(:base, "No se puede registrar un suplidor sin especificar sus atributos contables.") if !params[:cuentas_contables].present? || params[:cuentas_contables].nil?
+    suplidor_configs     = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
+    usa_moneda_nacional  = self.divisa.is_principal
+    cantidad_cuentas     = !usa_moneda_nacional ? suplidor_configs.length : ( suplidor_configs.length - 1 )
+
+    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( suplidor_configs.length < params[:cuentas_contables].length )
+      self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+    end
   end
 
   # =========================================================================================================================================================
@@ -21,7 +27,10 @@ class Suplidor < ApplicationRecord
   # ============================================================================================================================================
 
   def self.models_includes
-    includes = [ :documentos_de_identidad, :entidad_cuentas_contables ]
+    includes = [
+        :documentos_de_identidad,
+        { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
+      ]
     return includes
   end
 

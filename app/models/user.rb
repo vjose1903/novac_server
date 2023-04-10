@@ -4,7 +4,7 @@ class User < ApplicationRecord
   rolify
   extend Devise::Models
 
-	has_many    :imagenes,                  :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
+  has_many    :imagenes,                  :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
   has_many    :entidad_cuentas_contables, :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
   has_many    :documentos_de_identidad,   :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
 
@@ -24,7 +24,14 @@ class User < ApplicationRecord
 
   include DeviseTokenAuth::Concerns::User
 
-  def otras_validaciones
+  def otras_validaciones(params)
+    user_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.user)
+
+    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( user_configs.length < params[:cuentas_contables].length )
+      self.errors.add(:base, 'Debe de especificar todas los atributos para cuentas contables.')
+    end
+
+    self.errors.add(:base, 'Debe de especificar almenos un role al empleado.')                          if !params[:ids_roles].present?         || params[:ids_roles].nil?
   end
 
   # =====================================================================================================================
@@ -32,7 +39,7 @@ class User < ApplicationRecord
   def self.models_includes
     includes = [
       :documentos_de_identidad,
-      :entidad_cuentas_contables,
+      { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
       { roles_permisos_acciones: [:role, :permiso_accion] }
     ]
     return includes
@@ -65,11 +72,6 @@ class User < ApplicationRecord
     end
 
   end
-  # =====================================================================================================================
-
-  def checkRoles(params)
-      self.errors.add(:base, 'Debe de especificar almenos un role al empleado.') if !params[:ids_roles].present? || params[:ids_roles].length == 0
-  end
 
   # =====================================================================================================================
 
@@ -91,17 +93,21 @@ class User < ApplicationRecord
       user.roles                           = Role.where(id: params[:ids_roles])
 
       user.valid?
-      user.checkRoles(params)
+
+      user.otras_validaciones(params)
+
+      cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
+      EntCuentaContable.procesos_crear_cuenta(params, cuentas_config ) if user.errors.empty?
 
       if user.errors.empty?
         dependencias = [
           { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: user },
-          { modelo: EntidadCuentaContable, key_object: 'cuentas_contables', padre: user }
+          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }
         ]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           user.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
-          user.entidad_cuentas_contables  = dependencia_data if key_object == 'cuentas_contables'
+          user.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
         }
 
         if res.status_valid && user.save!
@@ -117,7 +123,8 @@ class User < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      transaction_rollback if !user.errors.empty? || !res.status_valid
+      # transaction_rollback if !user.errors.empty? || !res.status_valid
+      transaction_rollback
     end
 
     return res

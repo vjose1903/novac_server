@@ -41,7 +41,6 @@ class CuentaContable < ApplicationRecord
       result_procesos                    = cuenta_contable.procesos_cuentas(grupo_cuenta)
 
       cuenta_contable.valid?
-
       cuenta_contable.otras_validaciones(params, grupo_cuenta)
 
       cuenta_contable.errors.delete(:grupo_cuenta) if !is_save

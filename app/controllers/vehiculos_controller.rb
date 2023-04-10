@@ -3,7 +3,6 @@ class VehiculosController < ApplicationController
 
   # GET /vehiculos
   def index
-    puts "get_parametros_opcionales ===> ".red + " #{get_parametros_opcionales}"
     return Response.new(params, nil, Vehiculo.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
   end
 

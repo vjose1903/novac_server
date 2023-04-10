@@ -84,6 +84,23 @@ module ConfigEntidadCuentaCont
       return KEYS[:INVENTARIO]
     end
   end
+
+#  --------------------------------------------------------------------------------
+
+  module Keys
+
+		LABELS = {
+			COBRAR:         'cuentas por cobrar',
+			PAGAR:          'cuentas por pagar',
+			RETENCION:      'retencion',
+			EFECTIVO_BANCO: 'efectivo en banco',
+			INVENTARIO:     'inventario'
+		}.with_indifferent_access
+
+    def self.get_label(key)
+      return LABELS[:"#{key}"]
+    end
+  end
 #  --------------------------------------------------------------------------------
 end
 

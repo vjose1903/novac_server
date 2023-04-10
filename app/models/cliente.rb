@@ -12,7 +12,11 @@ class Cliente < ApplicationRecord
   validates :direccion,           presence: { :message => 'Direccion del cliente no puede estar vacio.' }
 
   def otras_validaciones(params)
-    self.errors.add(:base, "No se puede registrar un cliente sin especificar sus atributos contables.") if !params[:cuentas_contables].present? || params[:cuentas_contables].nil?
+    cliente_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
+
+    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( cliente_configs.length < params[:cuentas_contables].length )
+      self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+    end
   end
 
   # =========================================================================================================================================================
@@ -24,7 +28,10 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.models_includes
-    includes = [:documentos_de_identidad, :entidad_cuentas_contables]
+    includes = [
+      :documentos_de_identidad,
+      { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
+    ]
     return includes
   end
 
@@ -91,23 +98,6 @@ class Cliente < ApplicationRecord
     end
 
     return res
-  end
-
-  # ============================================================================================================================================
-
-  def procesos_crear_cuenta(params)
-    cuentas = []
-
-    params[:cuentas_contables].each do | config_cuenta |
-
-      descripcion_cuenta = self.nombre_completo
-      descripcion_cuenta = "#{descripcion_cuenta} PRIMA" if is_prima
-      cuentas.push( { tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: descripcion_cuenta, **config_cuenta.as_json }.with_indifferent_access )
-
-    end
-
-    params[:entidad_cuentas_contables] = cuentas
-
   end
 
   # =========================================================================================================================================================
