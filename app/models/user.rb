@@ -123,8 +123,8 @@ class User < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      # transaction_rollback if !user.errors.empty? || !res.status_valid
-      transaction_rollback
+      transaction_rollback if !user.errors.empty? || !res.status_valid
+
     end
 
     return res
@@ -140,7 +140,6 @@ class User < ApplicationRecord
 
     if users.length > 0
       res.set_data(users, {all: true, roles: true}, User.models_includes)
-      # res.set_data(users, {all: true, roles: true})
     else
       res.set_data([])
       cantidad_registros = User.where({estado: true}).count

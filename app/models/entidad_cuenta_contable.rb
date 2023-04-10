@@ -59,10 +59,12 @@ class EntidadCuentaContable < ApplicationRecord
     end
 
     entidad_cuenta                  = EntidadCuentaContable.where(:id => params[:id]).first_or_create
+		has_cuenta_contable             = entidad_cuenta.has_cuenta_contable
+
 		# TODO: poner una entidad_cuenta_original para poder validar correctamente los procesos_crear_cuenta
 
 
-    if !entidad_cuenta.has_cuenta_contable
+    if !has_cuenta_contable
       entidad_cuenta.configuracion_entidad_cuenta_id    = params[:configuracion_entidad_cuenta_id]
       entidad_cuenta.tipo_agrupacion_contable           = params[:tipo_agrupacion_contable]
       entidad_cuenta.is_comun                           = params[:is_comun]
@@ -75,7 +77,7 @@ class EntidadCuentaContable < ApplicationRecord
 
     is_valid                                            = entidad_cuenta.otras_validaciones(params)
 
-    result_procesos                                     = entidad_cuenta.procesos_crear_cuenta(params) if !is_valid[:has_error] && params[:tipo_agrupacion_contable] != TipoAgrupacionContable.sin_cuenta
+    result_procesos                                     = entidad_cuenta.procesos_crear_cuenta(has_cuenta_contable, params) if !is_valid[:has_error] && params[:tipo_agrupacion_contable] != TipoAgrupacionContable.sin_cuenta
 
     if !is_valid[:has_error] && result_procesos.status_valid && entidad_cuenta.errors.empty? && (!is_save || (is_save && entidad_cuenta.save!))
       res.set_data(entidad_cuenta)
@@ -90,35 +92,23 @@ class EntidadCuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def procesos_crear_cuenta(params)
+  def procesos_crear_cuenta(has_cuenta_contable, params)
     res                       = Response.new
-    puts " "
-    puts " "
-    puts "------------------------------------------------------ ANDO AQUIIIII ------------------------------------------------------".yellow
-    puts "------------------------------------------------------ #{self.is_comun} ------------------------------------------------------".green
 
     if self.is_comun
       self.cuenta_contable_id = self.origen_categoria.cuenta_contable_auxiliar_id
       return res
     end
 
-		puts "self.has_cuenta_contable ".magenta + "#{self.has_cuenta_contable}"
-    if !self.has_cuenta_contable
+    if !has_cuenta_contable
       cuenta_control                     = ( self.tipo_agrupacion_contable == TipoAgrupacionContable.individual && self.origen_categoria.nil? ) ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control
-      puts " "
-      puts " "
-      puts "cuenta_control ".red  + " #{cuenta_control.to_json}"
       res                                = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta], false)
       cuenta_contable_control            = res.get_data()
-      puts " "
-      puts "cuenta_contable_control ".yellow  + " #{cuenta_contable_control.to_json}"
       self.cuenta_contable_id            = cuenta_contable_control[:id] if res.status_valid
     else
       self.cuenta_contable.descripcion   = params[:descripcion_cuenta]
       self.cuenta_contable.save!
     end
-		puts " "
-		puts " "
 
     return res
   end
