@@ -8,7 +8,6 @@ class User < ApplicationRecord
   has_many    :entidad_cuentas_contables, :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
   has_many    :documentos_de_identidad,   :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
 
-  has_many    :users_roles, dependent: :destroy
   has_and_belongs_to_many       :roles, join_table: :users_roles
   has_many    :roles_permisos_acciones, through: :roles
 

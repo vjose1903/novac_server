@@ -1,8 +1,6 @@
 class TipoArticulo < ApplicationRecord
-  belongs_to :cuenta_contable_control,   class_name: 'CuentaContable', optional: true
-  belongs_to :cuenta_contable_auxiliar,  class_name: 'CuentaContable', optional: true
-
-	has_many   :entidad_cuentas_contables, :as => :origen_categoria, dependent: :destroy, class_name: 'EntidadCuentaContable'
+  has_many   :entidad_cuentas_contables,       :as => :origen_categoria, class_name: 'EntidadCuentaContable'
+  has_many   :tipo_articulo_cuentas_contables, :as => :origen_tipo,      class_name: 'TipoArticuloCuentaContable'
 
   validates :descripcion,                presence: { :message => "Descripción de la categoria no puede estar vacia." },         uniqueness: { case_sensitive: false, :message => "Categoria ya está registrada." }
 
@@ -16,18 +14,35 @@ class TipoArticulo < ApplicationRecord
 
       tipo_articulo.descripcion        = params[:descripcion]
       tipo_articulo.tipo               = params[:tipo]
-      tipo_articulo.codigo             = tipo_articulo.descripcion.downcase.gsub(" ", "_").strip
-      result_procesos                  = tipo_articulo.procesos_crear_cuenta
+      tipo_articulo.codigo             = tipo_articulo.descripcion.downcase.gsub(" ", "_").strip if params[:id].nil? || !params[:id].present?
+      result_procesos                  = tipo_articulo.procesos_parsear_cuentas(params)
 
       tipo_articulo.valid?
 
-      if result_procesos.status_valid && tipo_articulo.errors.empty? && (!is_save || (is_save && tipo_articulo.save!))
-        res.set_data(tipo_articulo)
-      else
-        res.add_msgs(result_procesos.get_msgs)
+      if tipo_articulo.errors.empty? && result_procesos.status_valid
+
+        dependencias = [ { modelo: TipoArticuloCuentaContable,  key_object: 'tipo_articulo_cuentas_contables',   padre: tipo_articulo } ]
+
+        res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+          tipo_articulo.tipo_articulo_cuentas_contables  = dependencia_data if key_object == 'tipo_articulo_cuentas_contables'
+        }
+
+        if res.status_valid && tipo_articulo.errors.empty? && (!is_save || (is_save && tipo_articulo.save!))
+          res.set_data(tipo_articulo)
+        end
+
+      end
+
+      if !tipo_articulo.errors.empty? || !result_procesos.status_valid
+        res.add_msgs(result_procesos.get_msgs.to_a)
         res.add_msgs(tipo_articulo.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
+
+      puts "tipo_articulo.errors --> ".yellow + " #{tipo_articulo.errors.to_json}"
+      puts "res.get_msgs         --> ".yellow + " #{res.get_msgs.to_json}"
+
+      transaction_rollback if !tipo_articulo.errors.empty? || !res.status_valid
     end
 
     return res
@@ -36,36 +51,32 @@ class TipoArticulo < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def procesos_crear_cuenta
+  def procesos_parsear_cuentas(params)
     res = Response.new
 
-    configs_articulo                           = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
-    # --------------------------------------------------------------------------------------------------------------
-    # INVENTARIO
-    # --------------------------------------------------------------------------------------------------------------
-		config_inventario = configs_articulo.find { | config | config[:key] == ConfigEntidadCuentaCont::Articulo.inventario }
+    cuentas                     = []
+    inicio_descripcion          = { inventario: 'Inventario', ventas: 'Ventas', descuento_ventas: 'Descuento sobre ventas', compras: 'Compras', descuento_compras: 'Descuento sobre compras' }.with_indifferent_access
+    configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
 
-    descripcion_cuenta                          = "Inventario: #{self.descripcion}"
-    if self.cuenta_contable_control_id.nil?
-      res                                       = CatEntidadContable.createCuenta(config_inventario.cuenta_contable, descripcion_cuenta, true)
-      cuenta_contable_control                   = res.get_data()
-      self.cuenta_contable_control_id           = cuenta_contable_control[:id] if res.status_valid
-    else
-      self.cuenta_contable_control.descripcion  = descripcion_cuenta.upcase
-      self.cuenta_contable_control.save!
+    configs_articulo.each do | config_articulo |
+
+      config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
+
+      descripcion_cuenta        = "#{inicio_descripcion[:"#{config_articulo.key}"]}: #{self.descripcion}"
+      descripcion_cuenta_comun  = "#{inicio_descripcion[:"#{config_articulo.key}"]} común: #{self.descripcion}"
+
+      cuentas.push({
+        key: config_articulo.key,
+        descripcion_cuenta: descripcion_cuenta,
+        descripcion_cuenta_comun: descripcion_cuenta_comun,
+        cuenta_contable: config_articulo.cuenta_contable,
+        configuracion_entidad_cuenta_id: config_articulo.id,
+        is_control: config_muck[:is_control],
+        has_comun: config_articulo.has_comun
+      }.with_indifferent_access)
     end
 
-    if res.status_valid
-      descripcion_cuenta                          = "Inventario común: #{self.descripcion}"
-      if self.cuenta_contable_auxiliar_id.nil?
-        res                                       = CatEntidadContable.createCuenta(self.cuenta_contable_control, descripcion_cuenta, false)
-        cuenta_contable_auxiliar                  = res.get_data()
-        self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
-      else
-        self.cuenta_contable_auxiliar.descripcion = descripcion_cuenta
-        self.cuenta_contable_auxiliar.save!
-      end
-    end
+    params[:tipo_articulo_cuentas_contables] = cuentas
 
     return res
   end

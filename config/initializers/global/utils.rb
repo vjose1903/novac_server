@@ -231,6 +231,16 @@ def crear_cuentas_tipo_articulos
 
   TipoArticulo.all.each do | tipo_articulo |
     tipo_articulo.descripcion = "#{tipo_articulo.descripcion}"
+		puts " "
+		puts " "
+		puts " "
+		puts " "
+		puts " ------ ".red * 8
+		puts "ACTUALIZANDO #{tipo_articulo.descripcion.upcase}"
+		puts " ------ ".red * 8
+		puts " "
+		puts " "
+		puts " "
     resultado = TipoArticulo.create_update_tipo_articulo(tipo_articulo.attributes.with_indifferent_access, true)
   end
 

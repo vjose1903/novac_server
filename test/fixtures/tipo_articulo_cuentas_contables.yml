@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  origen_tipo: one
+  origen_tipo_type: Origen tipo
+  key: MyString
+  cuenta_contable_control: one
+  cuenta_contable_auxiliar: one
+
+two:
+  origen_tipo: two
+  origen_tipo_type: Origen tipo
+  key: MyString
+  cuenta_contable_control: two
+  cuenta_contable_auxiliar: two

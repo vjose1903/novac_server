@@ -1,9 +1,7 @@
 class SubTipoArticulo < ApplicationRecord
   belongs_to :tipo_articulo
-  belongs_to :cuenta_contable_control,   class_name: 'CuentaContable', optional: true
-  belongs_to :cuenta_contable_auxiliar,  class_name: 'CuentaContable', optional: true
-
-	has_many   :entidad_cuentas_contables, :as => :origen_categoria, dependent: :destroy, class_name: 'EntidadCuentaContable'
+  has_many   :entidad_cuentas_contables,       :as => :origen_categoria, class_name: 'EntidadCuentaContable'
+  has_many   :tipo_articulo_cuentas_contables, :as => :origen_tipo,      class_name: 'TipoArticuloCuentaContable'
 
   validates :descripcion,                presence: { :message => "Descripción de la sub categoria no puede estar vacia." },         uniqueness: { scope: [ :tipo_articulo_id ], case_sensitive: false, :message => "Sub categoria ya está registrada." }
 
@@ -17,20 +15,36 @@ class SubTipoArticulo < ApplicationRecord
       SubTipoArticulo.transaction do
 
         sub_tipo_articulo                    = SubTipoArticulo.where(:id => params[:id]).first_or_create
+
         sub_tipo_articulo.descripcion        = params[:descripcion]
         sub_tipo_articulo.tipo_articulo_id   = params[:tipo_articulo_id]
 
-        result_procesos                      = sub_tipo_articulo.procesos_crear_cuenta(tipo_articulo)
+        result_procesos                      = sub_tipo_articulo.procesos_parsear_cuentas(params, tipo_articulo)
 
         sub_tipo_articulo.valid?
 
-        if (result_procesos.nil? || result_procesos.status_valid) && sub_tipo_articulo.errors.empty? && sub_tipo_articulo.save!
-          res.set_data(sub_tipo_articulo)
-        else
-          res.add_msgs(result_procesos.get_msgs)
+        if sub_tipo_articulo.errors.empty? && result_procesos.status_valid
+
+          dependencias = [ { modelo: TipoArticuloCuentaContable,  key_object: 'tipo_articulo_cuentas_contables',   padre: sub_tipo_articulo } ]
+
+          res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+            sub_tipo_articulo.tipo_articulo_cuentas_contables  = dependencia_data if key_object == 'tipo_articulo_cuentas_contables'
+          }
+
+          if res.status_valid && sub_tipo_articulo.errors.empty? && sub_tipo_articulo.save!
+            res.set_data(sub_tipo_articulo)
+          end
+
+        end
+
+        if !sub_tipo_articulo.errors.empty? || !result_procesos.status_valid
+          res.add_msgs(result_procesos.get_msgs.to_a)
           res.add_msgs(sub_tipo_articulo.errors.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
+
+        transaction_rollback if !sub_tipo_articulo.errors.empty? || !res.status_valid
+
       end
     else
       res.add_msg("Tipo de articulo, no existe.")
@@ -44,33 +58,36 @@ class SubTipoArticulo < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def procesos_crear_cuenta(tipo_articulo)
+  def procesos_parsear_cuentas(params, tipo_articulo)
     res = Response.new
 
-    descripcion_cuenta                          = self.descripcion
-    if self.cuenta_contable_control_id.nil?
-      res                                       = CatEntidadContable.createCuenta(tipo_articulo.cuenta_contable_control, descripcion_cuenta, true)
-      cuenta_contable_control                   = res.get_data()
+    cuentas                     = []
+    inicio_descripcion          = { inventario: 'Inventario', ventas: 'Ventas', descuento_ventas: 'Descuento sobre ventas', compras: 'Compras', descuento_compras: 'Descuento sobre compras' }.with_indifferent_access
+    configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
 
-      self.cuenta_contable_control_id           = cuenta_contable_control[:id]     if res.status_valid
+    configs_articulo.each do | config_articulo |
 
-    else
-      self.cuenta_contable_control.descripcion  = descripcion_cuenta.upcase
-      self.cuenta_contable_control.save!
-    end
+      if G_SUB_TIPO_CONFIG_VALID.my_includes_str( config_articulo.key )
+        config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
 
-    if res.status_valid
-      descripcion_cuenta                          = "Común: #{self.descripcion}"
-      if self.cuenta_contable_auxiliar_id.nil?
-        res                                       = CatEntidadContable.createCuenta(self.cuenta_contable_control, descripcion_cuenta, false)
-        cuenta_contable_auxiliar                  = res.get_data()
-        self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
-      else
-        self.cuenta_contable_auxiliar.descripcion = descripcion_cuenta
-        self.cuenta_contable_auxiliar.save!
+        descripcion_cuenta        = "#{inicio_descripcion[:"#{config_articulo.key}"]}: #{self.descripcion}"
+        descripcion_cuenta_comun  = "#{inicio_descripcion[:"#{config_articulo.key}"]} común: #{self.descripcion}"
+
+        cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
+
+        cuentas.push({
+          key: config_articulo.key,
+          descripcion_cuenta: descripcion_cuenta,
+          descripcion_cuenta_comun: descripcion_cuenta_comun,
+          cuenta_contable: cuenta_contable,
+          configuracion_entidad_cuenta_id: nil,
+          is_control: config_muck[:is_control],
+          has_comun: true
+        }.with_indifferent_access)
       end
     end
 
+    params[:tipo_articulo_cuentas_contables] = cuentas
 
     return res
   end

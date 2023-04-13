@@ -1,11 +1,15 @@
 module ConfigEntidadCuentaCont
   # keys en configuraciones
   KEYS = {
-    COBRAR:         'cobrar',
-    PAGAR:          'pagar',
-    RETENCION:      'retencion',
-    EFECTIVO_BANCO: 'efectivo_banco',
-    INVENTARIO:     'inventario'
+    COBRAR:             'cobrar',
+    PAGAR:              'pagar',
+    RETENCION:          'retencion',
+    EFECTIVO_BANCO:     'efectivo_banco',
+    INVENTARIO:         'inventario',
+    VENTAS:             'ventas',
+    DESCUENTO_VENTAS:   'descuento_ventas',
+    COMPRAS:            'compras',
+    DESCUENTO_COMPRAS:  'descuento_compras'
   }.with_indifferent_access
 
   # tipos de entidades
@@ -83,6 +87,22 @@ module ConfigEntidadCuentaCont
     def self.inventario
       return KEYS[:INVENTARIO]
     end
+
+    def self.ventas
+      return KEYS[:VENTAS]
+    end
+
+    def self.descuento_ventas
+      return KEYS[:DESCUENTO_VENTAS]
+    end
+
+    def self.compras
+      return KEYS[:COMPRAS]
+    end
+
+    def self.descuento_compras
+      return KEYS[:DESCUENTO_COMPRAS]
+    end
   end
 
 #  --------------------------------------------------------------------------------
@@ -90,11 +110,15 @@ module ConfigEntidadCuentaCont
   module Keys
 
 		LABELS = {
-			COBRAR:         'cuentas por cobrar',
-			PAGAR:          'cuentas por pagar',
-			RETENCION:      'retencion',
-			EFECTIVO_BANCO: 'efectivo en banco',
-			INVENTARIO:     'inventario'
+			COBRAR:             'cuentas por cobrar',
+			PAGAR:              'cuentas por pagar',
+			RETENCION:          'retencion',
+			EFECTIVO_BANCO:     'efectivo en banco',
+			INVENTARIO:         'inventario',
+			VENTAS:             'ventas',
+			DESCUENTO_VENTAS:   'descuento sobre ventas',
+			COMPRAS:            'compras',
+			DESCUENTO_COMPRAS:  'descuento sobre compras',
 		}.with_indifferent_access
 
     def self.get_label(key)

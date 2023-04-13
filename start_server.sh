@@ -6,7 +6,7 @@ white=$(tput setaf 7)
 yellow=$(tput setaf 3)
 cyan=$(tput setaf 6)
 
-OPTIONS="weaptc:buds"
+OPTIONS="wreaptc:buds"
 PRODUCTION='no'
 BACKGROUND='no'
 
@@ -79,6 +79,10 @@ while getopts $OPTIONS opt; do
   w)
     echo "la opcion -w"
     docker system prune -f
+  ;;
+  r)
+    echo "la opcion -r"
+    dockerCommand restart
   ;;
   e)
     echo "la opcion -e"

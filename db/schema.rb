@@ -148,7 +148,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
 
   create_table "categorias_entidades_contables", force: :cascade do |t|
     t.bigint "cuenta_contable_control_id", null: false
-    t.bigint "cuenta_contable_auxiliar_id", null: false
+    t.bigint "cuenta_contable_auxiliar_id"
     t.bigint "configuracion_entidad_cuenta_id", null: false
     t.string "descripcion"
     t.string "key"
@@ -246,6 +246,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
     t.datetime "updated_at", null: false
     t.string "key"
     t.boolean "is_nacional"
+    t.boolean "has_comun"
     t.index ["cuenta_contable_id"], name: "index_configuraciones_entidades_cuentas_on_cuenta_contable_id"
   end
 
@@ -795,13 +796,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
 
   create_table "sub_tipo_articulos", force: :cascade do |t|
     t.bigint "tipo_articulo_id", null: false
-    t.bigint "cuenta_contable_control_id", null: false
-    t.bigint "cuenta_contable_auxiliar_id", null: false
     t.string "descripcion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["cuenta_contable_auxiliar_id"], name: "index_sub_tipo_articulos_on_cuenta_contable_auxiliar_id"
-    t.index ["cuenta_contable_control_id"], name: "index_sub_tipo_articulos_on_cuenta_contable_control_id"
     t.index ["tipo_articulo_id"], name: "index_sub_tipo_articulos_on_tipo_articulo_id"
   end
 
@@ -832,16 +829,27 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
     t.index ["user_id"], name: "index_tasas_de_cambio_on_user_id"
   end
 
+  create_table "tipo_articulo_cuentas_contables", force: :cascade do |t|
+    t.string "origen_tipo_type", null: false
+    t.bigint "origen_tipo_id", null: false
+    t.bigint "configuracion_entidad_cuenta_id"
+    t.bigint "cuenta_contable_control_id", null: false
+    t.bigint "cuenta_contable_auxiliar_id"
+    t.string "key"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["configuracion_entidad_cuenta_id"], name: "idx_tipo_art_config_ent_cuenta"
+    t.index ["cuenta_contable_auxiliar_id"], name: "idx_tipo_art_cuenta_cont_aux"
+    t.index ["cuenta_contable_control_id"], name: "idx_tipo_art_cuenta_cont_cont"
+    t.index ["origen_tipo_type", "origen_tipo_id"], name: "index_tipo_articulo_cuentas_contables_on_origen_tipo"
+  end
+
   create_table "tipo_articulos", force: :cascade do |t|
     t.text "descripcion"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "tipo"
     t.string "codigo"
-    t.bigint "cuenta_contable_control_id"
-    t.bigint "cuenta_contable_auxiliar_id"
-    t.index ["cuenta_contable_auxiliar_id"], name: "index_tipo_articulos_on_cuenta_contable_auxiliar_id"
-    t.index ["cuenta_contable_control_id"], name: "index_tipo_articulos_on_cuenta_contable_control_id"
   end
 
   create_table "tipo_cuentas_bancarias", force: :cascade do |t|
@@ -1000,14 +1008,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
   add_foreign_key "roles_permisos_acciones", "roles"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
-  add_foreign_key "sub_tipo_articulos", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
-  add_foreign_key "sub_tipo_articulos", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "sub_tipo_articulos", "tipo_articulos"
   add_foreign_key "tasas_de_cambio", "divisas"
   add_foreign_key "tasas_de_cambio", "users"
   add_foreign_key "tasas_de_cambio", "users", column: "last_user_update_id"
-  add_foreign_key "tipo_articulos", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
-  add_foreign_key "tipo_articulos", "cuentas_contables", column: "cuenta_contable_control_id"
+  add_foreign_key "tipo_articulo_cuentas_contables", "configuraciones_entidades_cuentas"
+  add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
+  add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

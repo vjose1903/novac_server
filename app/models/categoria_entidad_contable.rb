@@ -83,7 +83,7 @@ class CategoriaEntidadContable < ApplicationRecord
     end
 
 
-    if res.status_valid
+    if res.status_valid && configuracion.has_comun
       descripcion_cuenta                            = "Común: #{self.descripcion}"
       cuenta_contable_db                            = CuentaContable.find_by("lower(descripcion) like lower('#{descripcion_cuenta}') AND cuenta_control=#{self.cuenta_contable_control.id}")
 

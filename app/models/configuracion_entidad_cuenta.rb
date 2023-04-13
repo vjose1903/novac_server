@@ -19,11 +19,12 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
 
       configuracion_entidad_cuenta                        = ConfiguracionEntidadCuenta.where(:id => params[:cuenta_contable_id]).first_or_create if configuracion_entidad_cuenta.nil?
 
-      configuracion_entidad_cuenta.cuenta_contable_id     = params[:cuenta_contable_id]
+      configuracion_entidad_cuenta.descripcion            = params[:descripcion]
       configuracion_entidad_cuenta.entidad                = params[:entidad]
+      configuracion_entidad_cuenta.cuenta_contable_id     = params[:cuenta_contable_id]
       configuracion_entidad_cuenta.key                    = params[:key]
       configuracion_entidad_cuenta.is_nacional            = params[:is_nacional]
-      configuracion_entidad_cuenta.descripcion            = params[:descripcion]
+      configuracion_entidad_cuenta.has_comun              = params[:has_comun]
       configuracion_entidad_cuenta.valid?
 
       configuracion_entidad_cuenta.otras_validaciones(params)

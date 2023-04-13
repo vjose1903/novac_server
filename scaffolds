@@ -112,6 +112,7 @@ rails generate serializer role
 rails generate serializer permiso
 rails generate serializer accion
 rails generate serializer permiso_accion
+rails generate serializer tipo_articulo_cuenta_contable
 
 rails g scaffold nota cliente:references user:references tipo_factura:references total:float identificador:string numero_documento:integer numero_comprobante:string fecha_equivalente:datetime estado:boolean
 rails g scaffold factura_aplicada nota:references cabeza_factura:references total:float
@@ -181,6 +182,8 @@ rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
 
 rails g scaffold sub_tipo_articulo tipo_articulo:references cuenta_contable:references descripcion:string
+
+rails g model tipo_articulo_cuenta_contable origen_tipo:references{polymorphic} key:string cuenta_contable_control:references cuenta_contable_auxiliar:references
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 // CONTABILIDAD
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
