@@ -44,7 +44,7 @@ class ReportesController < ApplicationController
       body   = Reporte.get_recibos(params)
       titulo = 'Reporte de Recibos de ingreso'
 
-			tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
+      tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
 
     elsif tipo_reporte == 'ventas_productos'
       # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
@@ -78,7 +78,8 @@ class ReportesController < ApplicationController
       sub_t: body[:sub_t]
     }
 
-    respuesta = Reporte.estructura_reporte(titulo, tipo_reporte, body[:body], body[:totalizacion], mostrar_sub_titulo, tipo_tabla)
+    estructura_reporte = { titulo: titulo, tipo_reporte: tipo_reporte, content: body[:body], totalizacion: body[:totalizacion], sub_titulo: mostrar_sub_titulo, tipo_tabla: tipo_tabla,  }.with_indifferent_access
+    respuesta          = Reporte.estructura_reporte(estructura_reporte)
     my_print_log("------------ TERMINO ------------".red)
 
     render json: respuesta, status: :ok

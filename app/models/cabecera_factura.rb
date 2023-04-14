@@ -321,14 +321,14 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   def self.calculateNextDay
-    tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime("%a")
+    tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime('%a')
 
-    next_date = ""
+    next_date = ''
 
-    if tomorrow.downcase === "sun"
-      next_date = (DateTime.now.beginning_of_day + 2.days).strftime("%Y-%m-%d")
+    if tomorrow.downcase === 'sun'
+      next_date = (DateTime.now.beginning_of_day + 2.days).strftime('%Y-%m-%d')
     else
-      next_date = (DateTime.now.beginning_of_day + 1.days).strftime("%Y-%m-%d")
+      next_date = (DateTime.now.beginning_of_day + 1.days).strftime('%Y-%m-%d')
     end
 
     return DateTime.parse("#{next_date}T12:00:00").in_time_zone
@@ -338,7 +338,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_group_facturas_by_id(params)
     res                = Response.new()
 
-    ids                = params[:ids].split(",").map(&:to_i)
+    ids                = params[:ids].split(',').map(&:to_i)
     facturas           = CabeceraFactura.where(id: ids).includes(CabeceraFactura.models_includes)
 
     res.set_data(facturas, {all: true})
@@ -357,10 +357,10 @@ class CabeceraFactura < ApplicationRecord
     campoNum           = params[:campo]
     valor_des          = params[:valor].present? ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
     tipo_factura_id    = params[:tipo_factura_id]
-    is_adelantada      = params[:is_adelantada] != "0" ? params[:is_adelantada].to_boolean : false
-    tipo               = params[:tipo] ? params[:tipo] : "venta"
-    pagada             = params[:pagada] != "0" ? params[:pagada].to_boolean : "0"
-    estado             = params[:estado] != "0" ? params[:estado].to_boolean : "0"
+    is_adelantada      = params[:is_adelantada] != '0' ? params[:is_adelantada].to_boolean : false
+    tipo               = params[:tipo] ? params[:tipo] : 'venta'
+    pagada             = params[:pagada] != '0' ? params[:pagada].to_boolean : '0'
+    estado             = params[:estado] != '0' ? params[:estado].to_boolean : '0'
 
 
     campo              = FacturasParams.get_campo_by_param(campoNum)
@@ -372,17 +372,17 @@ class CabeceraFactura < ApplicationRecord
 
     where_ = "cabecera_facturas.tipo = '#{tipo}' "
     where_ += "AND cabecera_facturas.is_adelantada = #{is_adelantada} "                                               if is_adelantada
-    where_ += "AND (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) "  if is_adelantada
+    where_ += 'AND (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) '  if is_adelantada
     where_ += "AND cabecera_facturas.#{campo} = #{valor_where} "                                                      unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
     where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"                                            unless tipo_factura_id == "0"
     where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params[:pagada].present? && pagada != "0"
     where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params[:estado].present? && estado != "0"
 
-    joins_ = "inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id "
-    joins_ += "inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id " if is_adelantada
-    joins_ += "inner join articulos on detalle_facturas.articulo_id = articulos.id"                         if is_adelantada
+    joins_ = 'inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id '
+    joins_ += 'inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id ' if is_adelantada
+    joins_ += 'inner join articulos on detalle_facturas.articulo_id = articulos.id'                         if is_adelantada
 
-    facturas = CabeceraFactura.joins(joins_).where(where_).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").limit(limit_)
+    facturas = CabeceraFactura.joins(joins_).where(where_).order('cabecera_facturas.id DESC').group('cabecera_facturas.id').limit(limit_)
 
     if facturas.length > 0
       res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
@@ -402,20 +402,20 @@ class CabeceraFactura < ApplicationRecord
   def self.get_viajes_by_completar(params, paginate_options)
     res                  = Response.new(paginate_options)
 
-    palabra_a_buscar     = params["palabra_a_buscar"]
+    palabra_a_buscar     = params['palabra_a_buscar']
     where                = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' AND '#{DateTime.now.end_of_day}') )"
-    joins_               = "inner join clientes on clientes.id = cabecera_facturas.cliente_id"
+    joins_               = 'inner join clientes on clientes.id = cabecera_facturas.cliente_id'
 
     cabeceras    = CabeceraFactura
     .joins(joins_)
     .where("#{where} AND lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{palabra_a_buscar}%') ")
-    .order("cabecera_facturas.id DESC").group("cabecera_facturas.id")
+    .order('cabecera_facturas.id DESC').group('cabecera_facturas.id')
 
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true, movimientos_viaje: true}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen facturas registradas." : "No existen facturas con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? 'No existen facturas registradas.' : 'No existen facturas con las especificaciones introducidas')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -428,16 +428,16 @@ class CabeceraFactura < ApplicationRecord
 
     where                        = "cliente_id=#{params["cliente_id"]} AND pagada=#{params["pagada"]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
 
-    cabeceras                    = CabeceraFactura.where(where).order("cabecera_facturas.id DESC").group("cabecera_facturas.id").to_a
+    cabeceras                    = CabeceraFactura.where(where).order('cabecera_facturas.id DESC').group('cabecera_facturas.id').to_a
 
-    cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params["cliente_id"], is_viaje: true, condicion: "Contado", estado: true }).where.not(balance: 0).to_a
+    cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params['cliente_id'], is_viaje: true, condicion: 'Contado', estado: true }).where.not(balance: 0).to_a
 
     cabeceras.concat cabe_viajes_contado_deviendo
 
     if cabeceras.length > 0
       res.set_data(cabeceras, {all: true}, CabeceraFactura.models_includes)
     else
-      res.add_msg("El cliente buscado no tiene facturas pendientes.")
+      res.add_msg('El cliente buscado no tiene facturas pendientes.')
       res.set_status(HTTP_STATUS_CODE[:not_found])
     end
 
@@ -489,12 +489,12 @@ class CabeceraFactura < ApplicationRecord
         # ver si la factura tiene algun pago.
         res_pagos        = factura.verificateFacturaHasPagos
         has_pagos        = res_pagos.get_data
-        msg_             = "La factura no puede ser editada, por que ya ha recibido pagos anteriormente." if has_pagos && !factura.is_contado
+        msg_             = 'La factura no puede ser editada, por que ya ha recibido pagos anteriormente.' if has_pagos && !factura.is_contado
 
         # ver si la factura tiene alguna nota de credito.
         res_notas        = factura.verificateFacturaHasNotas
         has_hotas        = res_notas.get_data
-        msg_             = "La factura no puede ser editada, por que ha sido modificada por una nota." if has_hotas
+        msg_             = 'La factura no puede ser editada, por que ha sido modificada por una nota.' if has_hotas
 
         if has_hotas || (has_pagos && !factura.is_contado)
           res.add_msg(msg_)
@@ -507,8 +507,8 @@ class CabeceraFactura < ApplicationRecord
         res_verificate   = factura.verificateCanUpdateViaje
         verificacion     = res_verificate.get_data
 
-        msg_             = "La factura no puede ser editada, por que no es del dia de hoy."                           if !verificacion[:is_viaje] && !verificacion[:can_update]
-        msg_             = "La factura no puede ser editada, por que el viaje ya ha recibido un pago anteriormente."  if verificacion[:is_viaje] && !verificacion[:can_update]
+        msg_             = 'La factura no puede ser editada, por que no es del dia de hoy.'                           if !verificacion[:is_viaje] && !verificacion[:can_update]
+        msg_             = 'La factura no puede ser editada, por que el viaje ya ha recibido un pago anteriormente.'  if verificacion[:is_viaje] && !verificacion[:can_update]
 
         res.set_status(HTTP_STATUS_CODE[:conflict]) if !verificacion[:can_update]
       end
@@ -516,7 +516,7 @@ class CabeceraFactura < ApplicationRecord
       res.set_data({canUpdate: true}) unless msg_.nil?
       res.add_msg(msg_) unless msg_.nil?
     else
-      res.add_msg("No se encuentra la factura a editar, contactar a Victor José Vásquez.")
+      res.add_msg('No se encuentra la factura a editar, contactar a Victor José Vásquez.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -527,17 +527,17 @@ class CabeceraFactura < ApplicationRecord
   def self.updateFactura(params)
     res                    = Response.new
     CabeceraFactura.transaction do
-      res_validado         = verificate_can_update_factura(params["id"])
+      res_validado         = verificate_can_update_factura(params[:id])
 
       if res_validado.status_valid
 
         factura_de         = params['FACTURA_DE']
         factura_nueva      = params
 
-        factura_original   = CabeceraFactura.find_by_id(params["id"])
+        factura_original   = CabeceraFactura.find_by_id(params[:id])
 
-        if factura_original.condicion == "Crédito"
-          calculo_para_balancear_cliente  = factura_nueva["total_factura"] - factura_original.total_factura
+        if factura_original.condicion == 'Crédito'
+          calculo_para_balancear_cliente  = factura_nueva['total_factura'] - factura_original.total_factura
           resultCliente                   = Cliente.calculate_balance_cliente(factura_original.cliente_id, calculo_para_balancear_cliente, "+")
 
           unless resultCliente.status_valid
@@ -560,9 +560,9 @@ class CabeceraFactura < ApplicationRecord
           factura_original.forma_pago      = factura_nueva['forma_pago']
 
           if factura_original.save!
-            factura_editada                = CabeceraFactura.find_by_id(params["id"])
+            factura_editada                = CabeceraFactura.find_by_id(params[:id])
             res.set_data(factura_editada, {all: true})
-            res.add_msg("Factura editada correctamente.")
+            res.add_msg('Factura editada correctamente.')
           else
             res.add_msgs(factura_original.errors.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -597,7 +597,7 @@ class CabeceraFactura < ApplicationRecord
 				movimiento.destroy
 			end
 
-			dependencias                 = [ {modelo: MovimientoViaje,    key_object: "movimientos_viaje",  padre: factura} ]
+			dependencias                 = [ {modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: factura} ]
 			puts "params ==> ".red  + " #{params}"
 			res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
 
@@ -605,7 +605,7 @@ class CabeceraFactura < ApplicationRecord
 			}
 
 			if factura.save!
-				res.add_msg("Pedido actualizado correctamente.")
+				res.add_msg('Pedido actualizado correctamente.')
 			else
 				res.add_msgs(factura.errors.to_a)
 				res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -622,8 +622,8 @@ class CabeceraFactura < ApplicationRecord
     res               = Response.new
     CabeceraFactura.transaction do
       factura_a_pagar   = CabeceraFactura.find_by_id(factura_id)
-      newBalance                          = factura_a_pagar["balance"] - recibo["deposito"]
-      is_pago_total                       = is_pago_total ? is_pago_total : newBalance < 1 || recibo["deposito"] == factura_a_pagar["balance"]
+      newBalance                          = factura_a_pagar['balance'] - recibo['deposito']
+      is_pago_total                       = is_pago_total ? is_pago_total : newBalance < 1 || recibo['deposito'] == factura_a_pagar['balance']
 
       factura_a_pagar.balance             = newBalance >= 1 ? newBalance : 0
       factura_a_pagar.pagada              = true           if is_pago_total
@@ -646,17 +646,14 @@ class CabeceraFactura < ApplicationRecord
     res                 = Response.new
     res_valid           = Response.new
 
-    ids                 = params[:ids].split(",").map(&:to_i)
+    ids                 = params[:ids].split(',').map(&:to_i)
     documentos          = CabeceraFactura.where(id: ids).includes(CabeceraFactura.models_includes)
     obj_deleted         = { success: [], error: [] }.with_indifferent_access
 
     documentos.each do | documento |
       success_deleted   = true
-      puts "documento.tipo                  ".green + " #{documento.tipo}"
-      puts "TiposFacturasDescripcion.compra ".red + " #{TiposFacturasDescripcion.compra}"
 
       if documento.tipo != TiposFacturasDescripcion.cotizacion && documento.tipo != TiposFacturasDescripcion.compra.downcase && documento.condicion == "Crédito" || documento.is_viaje
-        puts "--------- ENTREEE ---------".yellow
         res_valid       = Cliente.calculate_balance_cliente(documento.cliente_id, documento.total_factura, "-")
       end
 
@@ -740,7 +737,7 @@ class CabeceraFactura < ApplicationRecord
     res                 = Response.new
     factura             = CabeceraFactura.find_by_id(factura_aplicada[:cabecera_factura_id])
     dias_de_creada      = (DateTime.now - Date.parse(factura.fecha_equivalente.to_s)).to_i
-    operador            = nota.tipo_nota == TiposNotas.credito ? "-" : "+"
+    operador            = nota.tipo_nota == TiposNotas.credito ? '-' : '+'
 
 
     total_en_favor_factura     = factura.total_factura
@@ -757,7 +754,7 @@ class CabeceraFactura < ApplicationRecord
 
     unless factura.save!
       res.add_msgs(factura.errors.to_a)
-      res.add_msg("Error agregando nota la factura")
+      res.add_msg('Error agregando nota a la factura')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
