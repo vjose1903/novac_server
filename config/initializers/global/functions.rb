@@ -144,10 +144,15 @@ def serialize_parser(modelo, params={})
 end
 # ---------------------------------------------------------------------------------------------------------
 
-def set_entidad(modelo, params, key='id')
+def set_entidad(modelo, params, models_includes= nil, key='id')
   res      = Response.new
   where    = { "#{key}": params[key]}
-  entidad  = modelo.where(where)
+
+  if models_includes.nil?
+    entidad  = modelo.where(where)
+  else
+    entidad  = modelo.where(where).includes(models_includes)
+  end
 
   unless entidad.empty?
     res.set_data(entidad.first)
@@ -182,10 +187,10 @@ end
 
 def borrar_entidad(obj)
   res  = Response.new
-	data = { deleted: false, disabled: false }.with_indifferent_access
+  data = { deleted: false, disabled: false }.with_indifferent_access
   begin
     obj.destroy
-		data[:deleted] = true
+    data[:deleted] = true
   rescue => exception
     obj.estado = false
     unless obj.save!
@@ -193,9 +198,9 @@ def borrar_entidad(obj)
       res.add_msg("Error borrando #{obj.model_name.element}.")
       return res
     end
-		data[:disabled] = true
+    data[:disabled] = true
   end
-	res.set_data(data)
+  res.set_data(data)
   res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
   return res
 end
@@ -294,7 +299,7 @@ def updateSecuencias(tipo_secuencia_id)
 # ---------------------------------------------------------------------------------------------------------
 
 def transaction_rollback
-	raise ActiveRecord::Rollback
+  raise ActiveRecord::Rollback
 end
 
 # ---------------------------------------------------------------------------------------------------------

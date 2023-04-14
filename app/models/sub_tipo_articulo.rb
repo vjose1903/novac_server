@@ -61,33 +61,57 @@ class SubTipoArticulo < ApplicationRecord
   def procesos_parsear_cuentas(params, tipo_articulo)
     res = Response.new
 
-    cuentas                     = []
-    inicio_descripcion          = { inventario: 'Inventario', ventas: 'Ventas', descuento_ventas: 'Descuento sobre ventas', compras: 'Compras', descuento_compras: 'Descuento sobre compras' }.with_indifferent_access
-    configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
+		inicio_descripcion          = { inventario: 'Inventario', ventas: 'Ventas', descuento_ventas: 'Descuento sobre ventas', compras: 'Compras', descuento_compras: 'Descuento sobre compras' }.with_indifferent_access
 
-    configs_articulo.each do | config_articulo |
+		if params[:id].nil? || !params[:id].present? || self.tipo_articulo_cuentas_contables.empty?
+			cuentas                     = []
+			configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
 
-      if G_SUB_TIPO_CONFIG_VALID.my_includes_str( config_articulo.key )
-        config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
+			configs_articulo.each do | config_articulo |
 
-        descripcion_cuenta        = "#{inicio_descripcion[:"#{config_articulo.key}"]}: #{self.descripcion}"
-        descripcion_cuenta_comun  = "#{inicio_descripcion[:"#{config_articulo.key}"]} común: #{self.descripcion}"
+				if G_SUB_TIPO_CONFIG_VALID.my_includes_str( config_articulo.key )
+					config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
 
-        cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
+					descripcion_cuenta        = "#{inicio_descripcion[:"#{config_articulo.key}"]}: #{self.descripcion}"
+					descripcion_cuenta_comun  = "#{inicio_descripcion[:"#{config_articulo.key}"]} común: #{self.descripcion}"
+
+					cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
+
+					cuentas.push({
+						key:                              config_articulo.key,
+						entidad:                          config_articulo.entidad,
+						descripcion_cuenta:               descripcion_cuenta,
+						descripcion_cuenta_comun:         descripcion_cuenta_comun,
+						cuenta_contable:                  cuenta_contable,
+						configuracion_entidad_cuenta_id:  nil,
+						is_control:                       config_muck[:is_control],
+						has_comun:                        config_muck[:has_comun]
+					}.with_indifferent_access)
+				end
+			end
+
+
+			params[:tipo_articulo_cuentas_contables] = cuentas
+		else
+
+			cuentas = []
+
+      self.tipo_articulo_cuentas_contables.each do | cuenta |
+
+        config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == cuenta.key && config[:entidad] == cuenta.entidad }.with_indifferent_access
 
         cuentas.push({
-          key: config_articulo.key,
-          descripcion_cuenta: descripcion_cuenta,
-          descripcion_cuenta_comun: descripcion_cuenta_comun,
-          cuenta_contable: cuenta_contable,
-          configuracion_entidad_cuenta_id: nil,
-          is_control: config_muck[:is_control],
-          has_comun: true
-        }.with_indifferent_access)
+          id:                       cuenta.id,
+          descripcion_cuenta:       "#{inicio_descripcion[:"#{cuenta.key}"]}: #{self.descripcion}",
+          descripcion_cuenta_comun: "#{inicio_descripcion[:"#{cuenta.key}"]} común: #{self.descripcion}",
+          has_comun:                config_muck[:has_comun],
+          is_control:               config_muck[:is_control]
+        })
       end
-    end
 
-    params[:tipo_articulo_cuentas_contables] = cuentas
+			params[:tipo_articulo_cuentas_contables] = cuentas
+		end
+
 
     return res
   end

@@ -4,7 +4,7 @@ class TipoArticulosController < ApplicationController
 
   # GET /tipo_articulos
   def index
-    return Response.new(params, nil, TipoArticulo.all, nil, { all: true }).send_response self
+    return Response.new(params, nil, TipoArticulo.all.includes(TipoArticulo.models_includes), nil, { all: true }).send_response self
   end
 
   # GET /tipo_articulos/1
@@ -29,7 +29,7 @@ class TipoArticulosController < ApplicationController
 
   private
   def set_tipo_articulo
-    respuesta       = set_entidad(TipoArticulo, params)
+    respuesta       = set_entidad(TipoArticulo, params, TipoArticulo.models_includes)
     @tipo_articulo  = respuesta.get_data
 
     return respuesta.send_response self if @tipo_articulo.nil?

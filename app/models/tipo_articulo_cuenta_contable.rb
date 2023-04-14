@@ -4,7 +4,7 @@ class TipoArticuloCuentaContable < ApplicationRecord
   belongs_to :configuracion_entidad_cuenta, optional: true
   belongs_to :origen_tipo, polymorphic: true
 
-  belongs_to :cuenta_contable_control,   class_name: 'CuentaContable', optional: false
+  belongs_to :cuenta_contable_control,   class_name: 'CuentaContable', optional: true
   belongs_to :cuenta_contable_auxiliar,  class_name: 'CuentaContable', optional: true
 
   validates :key,              presence: true,       uniqueness: { scope: [:origen_tipo_type, :origen_tipo_id], case_sensitive: false, :message => "Cuenta contable ya está registrada." }
@@ -16,33 +16,20 @@ class TipoArticuloCuentaContable < ApplicationRecord
 
     tipo_articulo_cuenta                                  = TipoArticuloCuentaContable.where(:id => params[:id]).first_or_create
 
-		puts " "
-		puts "params --> ".red + " #{params.to_json}"
-		puts "padre  --> ".green + " #{padre.to_json}"
-		puts "tipo_articulo_cuenta  --> ".cyan + " #{tipo_articulo_cuenta.to_json}"
-
-    tipo_articulo_cuenta.key                              = params[:key]
-    tipo_articulo_cuenta.configuracion_entidad_cuenta_id  = params[:configuracion_entidad_cuenta_id]
+    tipo_articulo_cuenta.key                              = params[:key]                             if params[:key].present?     || !params[:key].nil?
+    tipo_articulo_cuenta.entidad                          = params[:entidad]                         if params[:entidad].present? || !params[:entidad].nil?
+    tipo_articulo_cuenta.configuracion_entidad_cuenta_id  = params[:configuracion_entidad_cuenta_id] if params[:configuracion_entidad_cuenta_id].present? || !params[:configuracion_entidad_cuenta_id].nil?
     tipo_articulo_cuenta.origen_tipo                      = padre
-
 
     result_procesos                                       = tipo_articulo_cuenta.procesos_cuentas(params)
 
-
     tipo_articulo_cuenta.valid?
 
-		puts "is_save  --> ".yellow + " #{is_save}"
-		puts "tipo_articulo_cuenta  --> ".blue + " #{tipo_articulo_cuenta.to_json}"
-		puts "tipo_articulo_cuenta.errors  --> ".red + " #{tipo_articulo_cuenta.errors.to_a}"
-		puts " "
-
-    # tipo_articulo_cuenta.errors.delete(:origen_tipo) if !is_save
+    tipo_articulo_cuenta.errors.delete(:origen_tipo) if !is_save
 
     if result_procesos.status_valid && tipo_articulo_cuenta.errors.empty? && (!is_save || (is_save && tipo_articulo_cuenta.save!))
-			puts "================================================ ENTRO AQUIII ================================================".green
       res.set_data(tipo_articulo_cuenta)
     else
-			puts "================================================ ENTRO AQUIII ================================================".red
       res.add_msgs(result_procesos.get_msgs)
       res.add_msgs(tipo_articulo_cuenta.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -56,23 +43,32 @@ class TipoArticuloCuentaContable < ApplicationRecord
   def procesos_cuentas(params)
     res = Response.new
 
-    if self.cuenta_contable_control_id.nil?
-      res                                         = CatEntidadContable.createCuenta(params[:cuenta_contable], params[:descripcion_cuenta], params[:is_control])
-      cuenta_contable_control                     = res.get_data()
-      self.cuenta_contable_control_id             = cuenta_contable_control[:id] if res.status_valid
-    else
-      self.cuenta_contable_control.descripcion    = descripcion_cuenta.upcase
-      self.cuenta_contable_control.save!
+    if params[:is_control]
+      if self.cuenta_contable_control_id.nil?
+        res                                         = CatEntidadContable.createCuenta(params[:cuenta_contable], params[:descripcion_cuenta], true)
+        cuenta_contable_control                     = res.get_data()
+        self.cuenta_contable_control_id             = cuenta_contable_control[:id] if res.status_valid
+      else
+        self.cuenta_contable_control.descripcion    = params[:descripcion_cuenta].upcase
+        self.cuenta_contable_control.save!
+      end
     end
 
-    if res.status_valid && params[:has_comun]
+    if params[:has_comun] || !params[:is_control]
 
       if self.cuenta_contable_auxiliar_id.nil?
-        res                                       = CatEntidadContable.createCuenta(self.cuenta_contable_control, params[:descripcion_cuenta_comun], false)
-        cuenta_contable_auxiliar                  = res.get_data()
-        self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
+        cuenta_control = !self.cuenta_contable_control.nil? ? self.cuenta_contable_control : self.configuracion_entidad_cuenta.cuenta_contable
+
+        unless cuenta_control.nil?
+          res                                       = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta_comun], false)
+          cuenta_contable_auxiliar                  = res.get_data()
+          self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
+        else
+          res.add_msgs("Problemas al encontrar la cuenta control para la cuenta auxiliar de: #{params[:descripcion_cuenta_comun]}")
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
       else
-        self.cuenta_contable_auxiliar.descripcion = descripcion_cuenta
+        self.cuenta_contable_auxiliar.descripcion = params[:descripcion_cuenta_comun]
         self.cuenta_contable_auxiliar.save!
       end
     end

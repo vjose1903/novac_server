@@ -833,9 +833,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
     t.string "origen_tipo_type", null: false
     t.bigint "origen_tipo_id", null: false
     t.bigint "configuracion_entidad_cuenta_id"
-    t.bigint "cuenta_contable_control_id", null: false
+    t.bigint "cuenta_contable_control_id"
     t.bigint "cuenta_contable_auxiliar_id"
     t.string "key"
+    t.string "entidad"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["configuracion_entidad_cuenta_id"], name: "idx_tipo_art_config_ent_cuenta"
