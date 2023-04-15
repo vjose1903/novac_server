@@ -68,7 +68,7 @@ class Cliente < ApplicationRecord
       cliente.otras_validaciones(params)
 
       cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: cliente.nombre_completo }.with_indifferent_access
-      EntCuentaContable.procesos_crear_cuenta(params, cuentas_config ) if cliente.errors.empty?
+      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if cliente.errors.empty?
 
       if cliente.errors.empty?
         dependencias = [
@@ -109,9 +109,11 @@ class Cliente < ApplicationRecord
     .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
     .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")
     .order('clientes.id ASC')
+		.includes(Cliente.models_includes)
+
 
     if clientes.length > 0
-      res.set_data(clientes, {all: true}, Cliente.models_includes)
+      res.set_data(clientes, { all: true }, Cliente.models_includes)
     else
       res.set_data([])
       cantidad_registros = Cliente.where({estado: true}).count

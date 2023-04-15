@@ -810,7 +810,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
     t.boolean "estado"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.boolean "is_nacional"
     t.bigint "divisa_id"
     t.index ["divisa_id"], name: "index_suplidores_on_divisa_id"
   end

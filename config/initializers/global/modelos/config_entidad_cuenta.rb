@@ -109,22 +109,29 @@ module ConfigEntidadCuentaCont
 
   module Keys
 
-		LABELS = {
-			COBRAR:             'cuentas por cobrar',
-			PAGAR:              'cuentas por pagar',
-			RETENCION:          'retencion',
-			EFECTIVO_BANCO:     'efectivo en banco',
-			INVENTARIO:         'inventario',
-			VENTAS:             'ventas',
-			DESCUENTO_VENTAS:   'descuento sobre ventas',
-			COMPRAS:            'compras',
-			DESCUENTO_COMPRAS:  'descuento sobre compras',
+		LABELS_ = {
+			cobrar:             'Cuentas por cobrar',
+			pagar:              'Cuentas por pagar',
+			retencion:          'Retención',
+			efectivo_banco:     'Efectivo en banco',
+			inventario:         'Inventario',
+			ventas:             'Ventas',
+			descuento_ventas:   'Descuento sobre ventas',
+			compras:            'Compras',
+			descuento_compras:  'Descuento sobre compras',
 		}.with_indifferent_access
 
+
     def self.get_label(key)
-      return LABELS[:"#{key}"]
+      key = key.upcase if key != key.upcase
+      return LABELS_[:"#{key}"]
     end
+
+		def self.label()
+			return LABELS_
+		end
   end
+
 #  --------------------------------------------------------------------------------
 end
 

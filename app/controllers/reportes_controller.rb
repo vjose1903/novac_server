@@ -80,7 +80,6 @@ class ReportesController < ApplicationController
 
     estructura_reporte = { titulo: titulo, tipo_reporte: tipo_reporte, content: body[:body], totalizacion: body[:totalizacion], sub_titulo: mostrar_sub_titulo, tipo_tabla: tipo_tabla,  }.with_indifferent_access
     respuesta          = Reporte.estructura_reporte(estructura_reporte)
-    my_print_log("------------ TERMINO ------------".red)
 
     render json: respuesta, status: :ok
   end

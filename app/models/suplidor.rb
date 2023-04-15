@@ -53,7 +53,7 @@ class Suplidor < ApplicationRecord
       suplidor.otras_validaciones(params)
 
       cuentas_config = { view_prima: true, usa_moneda_nacional: suplidor.divisa.is_principal, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: suplidor.nombre_completo }.with_indifferent_access
-      EntCuentaContable.procesos_crear_cuenta(params, cuentas_config ) if suplidor.errors.empty?
+      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if suplidor.errors.empty?
 
       if suplidor.errors.empty?
         dependencias = [

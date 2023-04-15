@@ -63,7 +63,7 @@ class CategoriaEntidadContable < ApplicationRecord
 
     configuracion                                   = self.configuracion_entidad_cuenta
 
-    descripcion_cuenta                              = "Categoria: #{self.descripcion}"
+    descripcion_cuenta                              = "#{ConfigEntidadCuentaCont::Keys.label[:"#{configuracion.key}"]} categoria: #{self.descripcion}"
     cuenta_contable_db                              = CuentaContable.find_by("lower(descripcion) like lower('#{descripcion_cuenta}') AND cuenta_control=#{configuracion.cuenta_contable_id}")
 
     if cuenta_contable_db.nil?
@@ -84,7 +84,7 @@ class CategoriaEntidadContable < ApplicationRecord
 
 
     if res.status_valid && configuracion.has_comun
-      descripcion_cuenta                            = "Común: #{self.descripcion}"
+      descripcion_cuenta                            = "#{ConfigEntidadCuentaCont::Keys.label[:"#{configuracion.key}"]} común: #{self.descripcion}"
       cuenta_contable_db                            = CuentaContable.find_by("lower(descripcion) like lower('#{descripcion_cuenta}') AND cuenta_control=#{self.cuenta_contable_control.id}")
 
       if cuenta_contable_db.nil?

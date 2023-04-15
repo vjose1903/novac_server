@@ -96,7 +96,7 @@ class User < ApplicationRecord
       user.otras_validaciones(params)
 
       cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
-      EntCuentaContable.procesos_crear_cuenta(params, cuentas_config ) if user.errors.empty?
+      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if user.errors.empty?
 
       if user.errors.empty?
         dependencias = [

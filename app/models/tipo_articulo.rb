@@ -62,8 +62,6 @@ class TipoArticulo < ApplicationRecord
   def procesos_parsear_cuentas(params)
     res = Response.new
 
-    inicio_descripcion          = { inventario: 'Inventario', ventas: 'Ventas', descuento_ventas: 'Descuento sobre ventas', compras: 'Compras', descuento_compras: 'Descuento sobre compras' }.with_indifferent_access
-
     if params[:id].nil? || !params[:id].present? || self.tipo_articulo_cuentas_contables.empty?
 
       cuentas                     = []
@@ -73,8 +71,8 @@ class TipoArticulo < ApplicationRecord
 
         config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
 
-        descripcion_cuenta        = "#{inicio_descripcion[:"#{config_articulo.key}"]}: #{self.descripcion}"
-        descripcion_cuenta_comun  = "#{inicio_descripcion[:"#{config_articulo.key}"]} común: #{self.descripcion}"
+        descripcion_cuenta        = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
+        descripcion_cuenta_comun  = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
 
         cuentas.push({
           key:                               config_articulo.key,
@@ -98,8 +96,8 @@ class TipoArticulo < ApplicationRecord
 
         cuentas.push({
           id:                       cuenta.id,
-          descripcion_cuenta:       "#{inicio_descripcion[:"#{cuenta.key}"]}: #{self.descripcion}",
-          descripcion_cuenta_comun: "#{inicio_descripcion[:"#{cuenta.key}"]} común: #{self.descripcion}",
+          descripcion_cuenta:       "#{ConfigEntidadCuentaCont::Keys.label[:"#{cuenta.key}"]}: #{self.descripcion}",
+          descripcion_cuenta_comun: "#{ConfigEntidadCuentaCont::Keys.label[:"#{cuenta.key}"]} común: #{self.descripcion}",
           has_comun:                cuenta.configuracion_entidad_cuenta.has_comun,
           is_control:               config_muck[:is_control]
         })

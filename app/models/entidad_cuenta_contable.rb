@@ -23,20 +23,20 @@ class EntidadCuentaContable < ApplicationRecord
   end
   # ============================================================================================================================================
 
-  def otras_validaciones(params)
+  def otras_validaciones(params, has_cuenta_contable)
     resultado = { has_error: false }.with_indifferent_access
 
     if self.is_comun
-      if ( params[:tipo_categoria].nil? || params[:tipo_categoria_id].nil? )
+      if ( params[:tipo_categoria].nil? || params[:tipo_categoria_id].nil? ) && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
         configuacion          = self.configuracion_entidad_cuenta
 
-        self.errors.add(:base, "Debe de seleccionar la categoria del #{self.origen_entidad_type}, para poder agregarlo a una cuenta común de #{ConfigEntidadCuentaCont::Keys.get_label(configuacion.key.upcase)}.")
+        self.errors.add(:base, "Debe de seleccionar la categoria del #{self.origen_entidad_type}, para poder agregarlo a una cuenta común de #{ConfigEntidadCuentaCont::Keys.get_label(configuacion.key)}.")
         resultado[:has_error] = true
       end
     end
 
     unless params[:id].nil?
-      if self.has_cuenta_contable
+      if has_cuenta_contable
         if self.tipo_agrupacion_contable != params[:tipo_agrupacion_contable] || self.is_comun != params[:is_comun] || self.configuracion_entidad_cuenta_id.to_s != params[:configuracion_entidad_cuenta_id].to_s || self.origen_categoria_id.to_s !=  params[:tipo_categoria_id].to_s
           self.errors.add(:base, "No se le pueden cambiar las caracteristicas a una cuenta contable una vez creada.")
           resultado[:has_error] = true
@@ -54,14 +54,12 @@ class EntidadCuentaContable < ApplicationRecord
     result_procesos                 = Response.new
     categoria_entidad_contable      = nil
 
-    if params[:tipo_categoria] && params[:tipo_categoria_id]
+    if ( params[:tipo_categoria] && params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
       categoria_entidad_contable    = @modelo[params[:tipo_categoria]].find_by_id(params[:tipo_categoria_id])
     end
 
     entidad_cuenta                  = EntidadCuentaContable.where(:id => params[:id]).first_or_create
-		has_cuenta_contable             = entidad_cuenta.has_cuenta_contable
-
-		# TODO: poner una entidad_cuenta_original para poder validar correctamente los procesos_crear_cuenta
+    has_cuenta_contable             = entidad_cuenta.has_cuenta_contable
 
 
     if !has_cuenta_contable
@@ -75,7 +73,7 @@ class EntidadCuentaContable < ApplicationRecord
 
     entidad_cuenta.valid?
 
-    is_valid                                            = entidad_cuenta.otras_validaciones(params)
+    is_valid                                            = entidad_cuenta.otras_validaciones(params, has_cuenta_contable)
 
     result_procesos                                     = entidad_cuenta.procesos_crear_cuenta(has_cuenta_contable, params) if !is_valid[:has_error] && params[:tipo_agrupacion_contable] != TipoAgrupacionContable.sin_cuenta
 
@@ -101,7 +99,7 @@ class EntidadCuentaContable < ApplicationRecord
     end
 
     if !has_cuenta_contable
-      cuenta_control                     = ( self.tipo_agrupacion_contable == TipoAgrupacionContable.individual && self.origen_categoria.nil? ) ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control
+      cuenta_control                     = ( self.tipo_agrupacion_contable == TipoAgrupacionContable.individual ) ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control
       res                                = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta], false)
       cuenta_contable_control            = res.get_data()
       self.cuenta_contable_id            = cuenta_contable_control[:id] if res.status_valid
