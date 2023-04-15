@@ -24,16 +24,20 @@ class Articulo < ApplicationRecord
     tipo_articulo = TipoArticulo.find_by_id(self.tipo_articulo_id)
 
     if tipo_articulo.tipo == TipoArticuloType.venta_normal
-
-      self.errors.add(:base, 'Medida articulo no puede estar vacio.')                   if self.medida == nil
-      self.errors.add(:base, 'Debe de especificar en que medida se vende el articulo.') if self.vendido_en == nil
-      self.errors.add(:base, 'Debe de especificar una medida de alerta en venta.')      if self.medida_alerta == nil
-      self.errors.add(:base, 'El costo del articulo debe de ser mayor a 0.')            if self.costo_principal == 0
-
+      self.errors.add(:base, 'Medida articulo no puede estar vacio.')                    if self.medida == nil
+      self.errors.add(:base, 'Debe de especificar en que medida se vende el articulo.')  if self.vendido_en == nil
+      self.errors.add(:base, 'Debe de especificar una medida de alerta en venta.')       if self.medida_alerta == nil
+      self.errors.add(:base, 'El costo del articulo debe de ser mayor a 0.')             if self.costo_principal == 0
     end
 
-    if self.medida == 'Caja' && (!params[:contenido_articulos].present? || params[:contenido_articulos].length == 0)
-      self.errors.add(:base, 'Los articulos comprados en caja deben de tener la cantidad especificada.')
+    if self.medida == 'Caja'
+
+      self.errors.add(:base, 'Los articulos comprados en caja deben de tener la cantidad especificada.') if !params[:contenido_articulos].present? || params[:contenido_articulos].length == 0
+
+      contenido_padre = params[:contenido_articulos].find { | contenido | contenido[:condicion].downcase == 'padre' }
+      contenido_hijo  = params[:contenido_articulos].find { | contenido | contenido[:condicion].downcase == 'hijo' }
+      self.errors.add(:base, 'Si la caja contiene paquetes debe de especificar cuantas unidades tiene el paquete.') if  (contenido_padre.nil? || !contenido_hijo.nil? ) && ( contenido_padre[:medida].downcase == 'paquete' && params[:contenido_articulos].length == 1 ) || ( contenido_padre[:medida].downcase == 'paquete' && contenido_hijo[:cantidad] == 0 )
+
     end
 
   end
@@ -77,45 +81,52 @@ class Articulo < ApplicationRecord
       articulo.valid?
       articulo.otras_validaciones(params)
 
-      dependencias = [
-        { modelo: ContenidoArticulo,          key_object: 'contenido_articulos',           padre: articulo },
-        { modelo: FormulasProductosTerminado, key_object: 'formulas_productos_terminados', padre: articulo },
-        { modelo: EntidadCuentaContable,      key_object: 'cuentas_contables',     padre: articulo },
-				{ modelo: Imagen,                     key_object: 'imagenes',                      padre: articulo }
-      ]
+      if articulo.errors.empty?
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
-        articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
-        articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
-        articulo.entidad_cuentas_contables       = dependencia_data if key_object == 'cuentas_contables'
-        articulo.imagenes                        = dependencia_data if key_object == 'imagenes'
-      }
+        dependencias = [
+          { modelo: ContenidoArticulo,          key_object: 'contenido_articulos',           padre: articulo },
+          { modelo: FormulasProductosTerminado, key_object: 'formulas_productos_terminados', padre: articulo },
+          { modelo: EntidadCuentaContable,      key_object: 'cuentas_contables',     padre: articulo },
+          { modelo: Imagen,                     key_object: 'imagenes',                      padre: articulo }
+        ]
+
+        res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+          articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
+          articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
+          articulo.entidad_cuentas_contables       = dependencia_data if key_object == 'cuentas_contables'
+          articulo.imagenes                        = dependencia_data if key_object == 'imagenes'
+        }
 
 
-      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
+        res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
 
 
-      if res.status_valid && articulo.errors.empty?
+        if res.status_valid
 
-        if ant_articulo.nil?
-          ant_articulo                = articulo
-          ant_articulo_contenido      = ant_articulo.contenido_articulos
-          ant_articulo_formula        = ant_articulo.formulas_productos_terminados
+          if ant_articulo.nil?
+            ant_articulo                = articulo
+            ant_articulo_contenido      = ant_articulo.contenido_articulos
+            ant_articulo_formula        = ant_articulo.formulas_productos_terminados
+          end
+
+          res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
+
+          if res_historico.status_valid
+
+            res.set_data(articulo)
+            action = params['id'] ? 'actualizado' : 'creado'
+            res.add_msg("Articulo #{action} correctamente.")
+          else
+            res.add_msgs(res_historico.get_msgs)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+
         end
 
-        res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
+      end
 
-        if res_historico.status_valid
-
-          res.set_data(articulo)
-          action = params['id'] ? 'actualizado' : 'creado'
-          res.add_msg("Articulo #{action} correctamente.")
-        else
-          res.add_msgs(res_historico.get_msgs)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
-        end
-
-      else
+      if !articulo.errors.empty? || !res.status_valid
+        res.add_msgs(res.get_msgs.to_a)
         res.add_msgs(articulo.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
@@ -249,7 +260,6 @@ class Articulo < ApplicationRecord
     contenidos[articulo["medida"]]         = contenido.length == 0 ? 1 : contenido.first['cantidad']
     contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
 
-
     if contenido.length == 2
 
       cantPrincipal = 1
@@ -265,7 +275,7 @@ class Articulo < ApplicationRecord
       contenidos[contenido[0]['medida']] = cantPadre
       contenidos[contenido[1]['medida']] = cantHijo
     end
-    contenidos
+    contenidos.with_indifferent_access
   end
 
   # =====================================================================================================================
@@ -308,6 +318,6 @@ class Articulo < ApplicationRecord
       cantidades[contenido[1]['medida']] = existencia
     end
 
-    return cantidades
+    return cantidades.with_indifferent_access
   end
 end

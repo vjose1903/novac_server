@@ -322,7 +322,7 @@ class CabeceraFactura < ApplicationRecord
   def self.calculateNextDay
     tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime('%a')
 
-    next_date = ""
+    next_date = ''
 
     if tomorrow.downcase === 'sun'
       next_date = (DateTime.now.beginning_of_day + 2.days).strftime('%Y-%m-%d')
@@ -337,7 +337,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_group_facturas_by_id(params)
     res                = Response.new()
 
-    ids                = params[:ids].split(",").map(&:to_i)
+    ids                = params[:ids].split(',').map(&:to_i)
     facturas           = CabeceraFactura.where(id: ids).includes(CabeceraFactura.models_includes)
 
     res.set_data(facturas, {all: true})
@@ -371,7 +371,7 @@ class CabeceraFactura < ApplicationRecord
 
     where_ = "cabecera_facturas.tipo = '#{tipo}' "
     where_ += "AND cabecera_facturas.is_adelantada = #{is_adelantada} "                                               if is_adelantada
-    where_ += "AND (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) "  if is_adelantada
+    where_ += 'AND (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) '  if is_adelantada
     where_ += "AND cabecera_facturas.#{campo} = #{valor_where} "                                                      unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
     where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"                                            unless tipo_factura_id == "0"
     where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params[:pagada].present? && pagada != "0"
@@ -401,7 +401,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_viajes_by_completar(params, paginate_options)
     res                  = Response.new(paginate_options)
 
-    palabra_a_buscar     = params["palabra_a_buscar"]
+    palabra_a_buscar     = params['palabra_a_buscar']
     where                = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day}' AND '#{DateTime.now.end_of_day}') )"
     joins_               = 'inner join clientes on clientes.id = cabecera_facturas.cliente_id'
 
@@ -559,7 +559,7 @@ class CabeceraFactura < ApplicationRecord
           factura_original.forma_pago      = factura_nueva['forma_pago']
 
           if factura_original.save!
-            factura_editada                = CabeceraFactura.find_by_id(params['id'])
+            factura_editada                = CabeceraFactura.find_by_id(params[:id])
             res.set_data(factura_editada, {all: true})
             res.add_msg('Factura editada correctamente.')
           else
@@ -596,7 +596,7 @@ class CabeceraFactura < ApplicationRecord
         movimiento.destroy
       end
 
-      dependencias                 = [ {modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: factura} ]
+      dependencias                 = [ { modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: factura } ]
 
       res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
         factura.movimientos_viaje  = dependencia_data if key_object == 'movimientos_viaje'
@@ -644,7 +644,7 @@ class CabeceraFactura < ApplicationRecord
     res                 = Response.new
     res_valid           = Response.new
 
-    ids                 = params[:ids].split(",").map(&:to_i)
+    ids                 = params[:ids].split(',').map(&:to_i)
     documentos          = CabeceraFactura.where(id: ids).includes(CabeceraFactura.models_includes)
     obj_deleted         = { success: [], error: [] }.with_indifferent_access
 
@@ -752,7 +752,7 @@ class CabeceraFactura < ApplicationRecord
 
     unless factura.save!
       res.add_msgs(factura.errors.to_a)
-      res.add_msg('Error agregando nota la factura')
+      res.add_msg('Error agregando nota a la factura')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

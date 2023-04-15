@@ -51,7 +51,7 @@ class DetalleFacturaNota < ApplicationRecord
 			fecha            = nota["fecha_equivalente"]
 			accion           = TiposNotas.get_tipo(nota["tipo_factura_id"])
 
-			if params["cantidad_en_unidades"] > 0
+			if params['cantidad_en_unidades'] > 0
 				res_valid        = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, nota )
 
 				unless res_valid.status_valid
