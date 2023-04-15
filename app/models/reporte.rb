@@ -439,7 +439,7 @@ class Reporte < ApplicationRecord
 
           acu = 0
           DetalleFactura.select(select_).joins(joins_).where(query).order('articulo_id ASC').group("detalle_facturas.articulo_id")
-          .includes([{articulo: [:contenido_articulos, :tipo_articulo]} ]).each do |df|
+          .includes([{articulo: [:contenido_articulos, :tipo_articulo]} ]).each do | df |
             acu += 1
             query_nota       = {}
             query_nota['detalles_facturas_notas.articulo_id']      = df.articulo_id
@@ -454,12 +454,16 @@ class Reporte < ApplicationRecord
             notas = DetalleFacturaNota.select(select_notas).joins(joins_notas).where(query_nota)
             notas = notas[0]
 
+
             detalle                          = df.attributes
+
+
             detalle['cantidad_devuelto']     = notas['cantidad_devuelto']
             detalle['total_devuelto']        = notas['total_devuelto']
             detalle['nombre']                = df.articulo.nombre
             detalle['total_vendido']         = df.total
-            detalle['total_general']         = detalle['total_vendido'] - detalle['cantidad_devuelto']
+            detalle['total_descuento']       = df.descuento_valor
+            detalle['total_general']         = detalle['total_vendido'] - detalle['total_devuelto']
             detalle['contenido']             = Articulo.calcularContenidos(df.articulo, false)
 
             mostrar = calcular_cantidad_proporcional(detalle)
@@ -493,26 +497,12 @@ class Reporte < ApplicationRecord
 
     # ---------------------------------------------------------------------------------------------------------
     def self.calcular_cantidad_proporcional(detalle)
-			puts " detalle[:articulo_id] ==> ".magenta + " #{detalle['articulo_id']}"
-			if detalle['articulo_id'] == 208
-				puts " "
-				puts " "
-				puts " "
-				puts " detalle ==> ".yellow + " #{detalle.to_json}"
-				puts " "
-				puts " "
-				puts " "
-			end
 
       total_venta=0
       plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Funda: 'Fundas' }
 
       vendido_mostrar  = "0.00"
       devuelto_mostrar = "0.00"
-
-
-      # contenidos_menores     = contenidos.values.select { | contenido_cant | contenido_cant >= 0.25 }
-      # contenido_seleccionado = contenidos.key(contenidos_menores.sort.reverse.first)
 
       if detalle['cantidad_en_unidades'] >= 1
         seleccionados          = detalle['contenido'].values.select { | contenido_cant | contenido_cant <= detalle['cantidad_en_unidades'] }
