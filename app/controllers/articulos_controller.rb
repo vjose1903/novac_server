@@ -15,6 +15,12 @@ class ArticulosController < ApplicationController
     return Response.new(params, nil, { stock: Articulo.all.where({ estado: true}).count } , nil, get_parametros_opcionales).send_response self
   end
 
+  def getActualPriceDetalles
+
+		resultado = Articulo.get_actual_price_detalles(params, get_parametros_opcionales)
+		resultado.send_response self
+  end
+
   def crear_actualizar_articulo
 		parametros = params
 		parametros["id"] = params["id"] if params["id"]
@@ -54,7 +60,6 @@ class ArticulosController < ApplicationController
   def get_parametros_opcionales
     return {
       all:                            params['all'] || false,
-      id:                             params['id'] || false,
       imagen_id:                      params['imagen_id'] || false,
       tipo_articulo_id:               params['tipo_articulo_id'] || false,
       nombre:                         params['nombre'] || false,
@@ -80,6 +85,7 @@ class ArticulosController < ApplicationController
       cantidades:                     params['cantidades'] || false,
       calcular_saco:                  params['calcular_saco'] || false,
       costos:                         params['costos'] || false,
+      tipo_articulo:                  params['tipo_articulo'] || false,
     }
   end
 

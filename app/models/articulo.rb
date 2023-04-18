@@ -11,9 +11,9 @@ class Articulo < ApplicationRecord
   # has_many :imagen
   accepts_nested_attributes_for :contenido_articulos
 
-  validates :nombre,              presence: { :message => "Nombre articulo no puede estar vacio." },         uniqueness: { scope: :estado, case_sensitive: false, :message => "Articulo ya esta registrado" }, :if => :estado
-  validates :costo_principal,     presence: { :message => "El costo del articulo no puede estar vacio." }
-  validates :precio_principal,    presence: { :message => "El precio del articulo no puede estar vacio." },  numericality: { greater_than: 0, :message => "El precio del articulo debe de ser mayor a 0." }
+  validates :nombre,              presence: { :message => 'Nombre articulo no puede estar vacio.' },         uniqueness: { scope: :estado, case_sensitive: false, :message => 'Articulo ya esta registrado' }, :if => :estado
+  validates :costo_principal,     presence: { :message => 'El costo del articulo no puede estar vacio.' }
+  validates :precio_principal,    presence: { :message => 'El precio del articulo no puede estar vacio.' },  numericality: { greater_than: 0, :message => 'El precio del articulo debe de ser mayor a 0.' }
 
 
   def otras_validaciones(params)
@@ -22,16 +22,23 @@ class Articulo < ApplicationRecord
 
     if tipo_articulo.tipo == TipoArticuloType.venta_normal
 
-      self.errors.add(:base, "Medida articulo no puede estar vacio.") if self.medida == nil
-      self.errors.add(:base, "Debe de especificar en que medida se vende el articulo.") if self.vendido_en == nil
-      self.errors.add(:base, "Debe de especificar una medida de alerta en venta.") if self.medida_alerta == nil
-      self.errors.add(:base, "El costo del articulo debe de ser mayor a 0.") if self.costo_principal == 0
+      self.errors.add(:base, 'Medida articulo no puede estar vacio.') if self.medida == nil
+      self.errors.add(:base, 'Debe de especificar en que medida se vende el articulo.') if self.vendido_en == nil
+      self.errors.add(:base, 'Debe de especificar una medida de alerta en venta.') if self.medida_alerta == nil
+      self.errors.add(:base, 'El costo del articulo debe de ser mayor a 0.') if self.costo_principal == 0
 
     end
 
-		if self.medida == 'Caja' && (!params['contenido_articulos'].present? || params['contenido_articulos'].length == 0)
-			self.errors.add(:base, "Los articulos comprados en caja debem de tener la cantidad especificada.")
-		end
+    if self.medida == 'Caja'
+
+      self.errors.add(:base, 'Los articulos comprados en caja deben de tener la cantidad especificada.') if !params[:contenido_articulos].present? || params[:contenido_articulos].length == 0
+
+      contenido_padre = params[:contenido_articulos].find { | contenido | contenido[:condicion].downcase == 'padre' }
+      contenido_hijo  = params[:contenido_articulos].find { | contenido | contenido[:condicion].downcase == 'hijo' }
+
+      self.errors.add(:base, 'Si la caja contiene paquetes debe de especificar cuantas unidades tiene el paquete.') if  (contenido_padre.nil? || !contenido_hijo.nil? ) && ( contenido_padre[:medida].downcase == 'paquete' && params[:contenido_articulos].length == 1 ) || ( contenido_padre[:medida].downcase == 'paquete' && contenido_hijo[:cantidad] == 0 )
+
+    end
 
   end
 
@@ -76,41 +83,48 @@ class Articulo < ApplicationRecord
 
       # imagen_attributes
 
-      dependencias = [
-        {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
-        {modelo: FormulasProductosTerminado, key_object: "formulas_productos_terminados", padre: articulo},
-      ]
+      if articulo.errors.empty?
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
-        articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
-        articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
-      }
+        dependencias = [
+          {modelo: ContenidoArticulo,          key_object: "contenido_articulos",           padre: articulo},
+          {modelo: FormulasProductosTerminado, key_object: "formulas_productos_terminados", padre: articulo},
+        ]
+
+        res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+          articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
+          articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
+        }
 
 
-      res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
+        res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
 
 
-      if res.status_valid && articulo.errors.empty?
+        if res.status_valid
 
-        if ant_articulo.nil?
-          ant_articulo                = articulo
-          ant_articulo_contenido      = ant_articulo.contenido_articulos
-          ant_articulo_formula        = ant_articulo.formulas_productos_terminados
+          if ant_articulo.nil?
+            ant_articulo                = articulo
+            ant_articulo_contenido      = ant_articulo.contenido_articulos
+            ant_articulo_formula        = ant_articulo.formulas_productos_terminados
+          end
+
+          res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
+
+          if res_historico.status_valid
+
+            res.set_data(articulo)
+            action = params['id'] ? 'actualizado' : 'creado'
+            res.add_msg("Articulo #{action} correctamente.")
+          else
+            res.add_msgs(res_historico.get_msgs)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+
         end
 
-        res_historico = MantenimientoArticulo.add_historico(ant_articulo, ant_articulo_contenido, ant_articulo_formula)
+      end
 
-        if res_historico.status_valid
-
-          res.set_data(articulo)
-          action = params['id'] ? 'actualizado' : 'creado'
-          res.add_msg("Articulo #{action} correctamente.")
-        else
-          res.add_msgs(res_historico.get_msgs)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
-        end
-
-      else
+      if !articulo.errors.empty? || !res.status_valid
+        res.add_msgs(res.get_msgs.to_a)
         res.add_msgs(articulo.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
@@ -238,15 +252,15 @@ class Articulo < ApplicationRecord
     contenido = articulo.contenido_articulos
     contenidos = {}
 
-    if sacos && articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
+    if sacos && articulo["vendido_en"] == 'Saco' && articulo['calcular_saco']
       [100, 50, 25].each do |c|
         contenidos["Saco_#{c}"] = c
       end
     end
 
-		articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
-    contenidos[articulo["medida"]]         = contenido.length == 0 ? 1 : contenido.first["cantidad"]
-    contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
+    articulo['medida']                     = articulo['medida'] == 'N/A' || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
+    contenidos[articulo['medida']]         = contenido.length == 0 ? 1 : contenido.first['cantidad']
+    contenidos[contenido.first['medida']]  = 1 if contenido.length > 0
 
 
     if contenido.length == 2
@@ -256,27 +270,41 @@ class Articulo < ApplicationRecord
       cantPadre     = 1
 
       contenido.each do |conte|
-        cantPrincipal *= conte["cantidad"]
-        cantPadre      = conte["cantidad"] if conte["referencia"] != nil
+        cantPrincipal *= conte['cantidad']
+        cantPadre      = conte['cantidad'] if conte['referencia'] != nil
       end
 
-      contenidos[articulo["medida"]]     = cantPrincipal
-      contenidos[contenido[0]["medida"]] = cantPadre
-      contenidos[contenido[1]["medida"]] = cantHijo
+      contenidos[articulo['medida']]     = cantPrincipal
+      contenidos[contenido[0]['medida']] = cantPadre
+      contenidos[contenido[1]['medida']] = cantHijo
     end
-    contenidos
+    contenidos.with_indifferent_access
   end
 
+  # =====================================================================================================================
+
+  def self.get_actual_price_detalles(params, parametros_opcionales)
+    res                = Response.new()
+    ids                = params[:ids].split(',').map(&:to_i)
+
+    articulos          = Articulo.where(id: ids).includes(Articulo.models_includes)
+
+    res.set_data( articulos, { **parametros_opcionales } )
+
+    return res
+  end
+
+  # =====================================================================================================================
   def self.calcularCantidades(articulo)
     contenido = articulo.contenido_articulos
 
-    existencia = articulo["existencia"].nil? ? 0 : articulo["existencia"]
+    existencia = articulo['existencia'].nil? ? 0 : articulo['existencia']
 
     cantidades = {}
 
-		articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
-    cantidades[articulo["medida"]]         = contenido.length == 0 ? existencia : (existencia / contenido.first["cantidad"])
-    cantidades[contenido.first["medida"]]  = existencia if contenido.length > 0
+    articulo['medida']                     = articulo['medida'] == 'N/A' || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
+    cantidades[articulo['medida']]         = contenido.length == 0 ? existencia : (existencia / contenido.first['cantidad'])
+    cantidades[contenido.first['medida']]  = existencia if contenido.length > 0
 
     if contenido.length == 2
 
@@ -284,15 +312,15 @@ class Articulo < ApplicationRecord
       cantPadre = 1
 
       contenido.each do |conte|
-        maxCant   = conte["cantidad"] * maxCant
-        cantPadre = conte["cantidad"] if conte["condicion"] == "hijo"
+        maxCant   = conte['cantidad'] * maxCant
+        cantPadre = conte['cantidad'] if conte['condicion'] == 'hijo'
       end
 
-      cantidades[articulo["medida"]]     = (existencia / maxCant)
-      cantidades[contenido[0]["medida"]] = (existencia / cantPadre)
-      cantidades[contenido[1]["medida"]] = existencia
+      cantidades[articulo['medida']]     = (existencia / maxCant)
+      cantidades[contenido[0]['medida']] = (existencia / cantPadre)
+      cantidades[contenido[1]['medida']] = existencia
     end
 
-    return cantidades
+    return cantidades.with_indifferent_access
   end
 end

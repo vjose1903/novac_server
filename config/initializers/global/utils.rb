@@ -93,11 +93,11 @@ def agregar_movimientos_viajes
     end
 
 
-		movimiento_backend   = MovimientoViaje.where({user_id: movimiento[:user_id], vehiculo_id: movimiento[:vehiculo_id], cabecera_factura_id: movimiento[:cabecera_factura_id]})
+    movimiento_backend   = MovimientoViaje.where({user_id: movimiento[:user_id], vehiculo_id: movimiento[:vehiculo_id], cabecera_factura_id: movimiento[:cabecera_factura_id]})
 
-		if movimiento_backend.empty?
-			movimiento_viaje   = MovimientoViaje.create(movimiento)
-		end
+    if movimiento_backend.empty?
+      movimiento_viaje   = MovimientoViaje.create(movimiento)
+    end
   end
 
 
@@ -304,6 +304,7 @@ def recalcular_cantidad_en_undidades
 end
 
 
+
 def calcularContenidos(articulo )
 
   contenido = articulo["contenido_articulos"]
@@ -389,4 +390,29 @@ def find_articulo_mantenimiento(articulo, hasta)
   end
 
   return historico
+end
+
+
+def edit_cantidad_unidades
+  detalles = DetalleFactura.all.where("detalle_facturas.cantidad = detalle_facturas.cantidad_en_unidades AND detalle_facturas.unidad not in ('Libra', 'Unidad') ").includes([ articulo: [:contenido_articulos] ])
+  detalles.each do | detalle |
+    contenido            = detalle.articulo.contenido_articulos
+    contenidos           = Articulo.calcularContenidos(detalle.articulo)
+    unidad_vendida       = detalle.unidad
+    unidad_vendida_split = detalle.unidad.split(' ')
+
+    is_saco_calculado    = unidad_vendida_split.length > 1
+
+    if is_saco_calculado
+      multiplo = contenidos[:"Saco_#{unidad_vendida_split[2]}"]
+    else
+      multiplo = contenidos[:"#{unidad_vendida_split[0]}"]
+    end
+
+    detalle.cantidad_en_unidades = detalle.cantidad.to_f * multiplo
+    detalle.save!
+  end
+
+  puts "----- ----- ----- ----- ----- ----- LISTO ----- ----- ----- ----- ----- -----".yellow
+  return nil
 end
