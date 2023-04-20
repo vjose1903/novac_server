@@ -1,0 +1,73 @@
+{
+  "id":                     null,
+  "tipo_articulo_id":       3,
+  "nombre":                 "Crecimiento de cerdos",
+  "costo_principal":        1500,
+  "precio_principal":       1700,
+  "aviso_existencia":       2,
+  "medida_alerta":          "Quintal",
+  "fecha_ingreso":          "19/04/2023",
+  "medida":                 "Quintal",
+  "is_detallable":          true,
+  "contenido_articulos": [
+    {
+      "referencia":         null,
+      "articulo_id":        null,
+      "id":                 null,
+      "costo":              15,
+      "precio":             17,
+      "cantidad":           100,
+      "medida":             "Libra",
+      "condicion":          "padre"
+    }
+  ],
+  "existencia":             0,
+  "calcular_itbis":         false,
+  "estado":                 true,
+  "is_combo":               true,
+  "vendido_en":             "Saco",
+  "is_materia_prima":       false,
+  "calcular_saco":          true,
+  "otros_costos":           "40.00",
+  "formulas_productos_terminados": [
+    {
+      "id":                 null,
+      "articulo_combo":     210,
+      "cantidad":           1,
+      "costo":              9.25,
+      "precio":             9.9,
+      "medida":             "Libra"
+    },
+    {
+      "id":                 null,
+      "articulo_combo":     98,
+      "cantidad":           2,
+      "costo":              37,
+      "precio":             39,
+      "medida":             "Libra"
+    }
+  ],
+  "cuentas_contables":[
+    {
+      "tipo_categoria_id":                 1,
+      "tipo_categoria":                    "sub_categoria",
+      "tipo_agrupacion_contable":          "sub_tipo_articulo",
+      "is_comun":                          true,
+      "configuracion_entidad_cuenta_id":   11
+    },
+    {
+      "tipo_categoria_id":                 3,
+      "tipo_categoria":                    "categoria",
+      "tipo_agrupacion_contable":          "tipo_articulo",
+      "is_comun":                          false,
+      "configuracion_entidad_cuenta_id":   40
+    },
+    {
+      "tipo_categoria_id":                 3,
+      "tipo_categoria":                    "categoria",
+      "tipo_agrupacion_contable":          "tipo_articulo",
+      "is_comun":                          false,
+      "configuracion_entidad_cuenta_id":   43
+    }
+  ]
+}
