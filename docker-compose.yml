@@ -11,7 +11,7 @@ services:
     ports:
       - 127.0.0.1:9731:5432
 
-  brendy-prod:
+  brendy-dev:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
@@ -31,4 +31,4 @@ services:
     ports:
       - 9091:9091
     depends_on:
-      - brendy-prod
+      - brendy-dev

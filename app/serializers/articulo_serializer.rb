@@ -140,14 +140,20 @@ class ArticuloSerializer < ActiveModel::Serializer
     obj["#{object.medida}"]['costo']   = object.costo_principal
     obj["#{object.medida}"]['precio']  = object.precio_principal
 
-    object.contenido_articulos.each do |conte|
+    object.contenido_articulos.each do | conte |
       obj["#{conte.medida}"]           = {}
       obj["#{conte.medida}"]['costo']  = conte.costo
       obj["#{conte.medida}"]['precio'] = conte.precio
     end
 
+		puts "object --> ".green + " #{object.to_json}"
+
+		puts "object.calcular_saco --> ".red + " #{object.calcular_saco}"
     if object.calcular_saco
       [100, 50, 25].each do | peso |
+				puts "peso --> ".red + " #{peso}"
+				puts "obj --> ".yellow + " #{obj}"
+
         obj["Saco_#{peso}"]              = {}
         obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * obj['Quintal']['costo']
         obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * obj['Quintal']['precio']
