@@ -67,7 +67,7 @@ class Articulo < ApplicationRecord
       articulo.medida_alerta                    = params[:medida_alerta]
       articulo.existencia                       = params[:existencia]
       articulo.codigo                           = params[:codigo]
-      articulo.fecha_ingreso                    = params[:fecha_ingreso]
+      articulo.fecha_ingreso                    = params[:fecha_ingreso] if params[:id].nil?
       articulo.medida                           = params[:medida]
       articulo.is_detallable                    = params[:is_detallable]
       articulo.aviso_existencia                 = params[:aviso_existencia]
