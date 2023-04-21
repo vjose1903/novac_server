@@ -30,7 +30,7 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def cuentas_contables
-    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, origen_categoria: true })
+		serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true })
   end
 
   def get_param(col)

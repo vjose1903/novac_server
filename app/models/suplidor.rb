@@ -12,7 +12,7 @@ class Suplidor < ApplicationRecord
     usa_moneda_nacional  = self.divisa.is_principal
     cantidad_cuentas     = !usa_moneda_nacional ? suplidor_configs.length : ( suplidor_configs.length - 1 )
 
-    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( suplidor_configs.length < params[:cuentas_contables].length )
+    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length < cantidad_cuentas )
       self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
     end
   end
@@ -57,8 +57,8 @@ class Suplidor < ApplicationRecord
 
       if suplidor.errors.empty?
         dependencias = [
-          {modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: suplidor },
-          {modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }
+          { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: suplidor },
+          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }
         ]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |

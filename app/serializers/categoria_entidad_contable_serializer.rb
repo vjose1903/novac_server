@@ -18,11 +18,11 @@ class CategoriaEntidadContableSerializer < ActiveModel::Serializer
   end
 
   def cuenta_contable_control
-    serialize_parser(object.cuenta_contable_control, {id: true, descripcion: true, codigo: true})
+    serialize_parser(object.cuenta_contable_control, { id: true, descripcion: true, codigo: true })
   end
 
   def cuenta_contable_auxiliar
-    serialize_parser(object.cuenta_contable_auxiliar, {id: true, descripcion: true, codigo: true})
+    serialize_parser(object.cuenta_contable_auxiliar, { id: true, descripcion: true, codigo: true })
   end
 
 

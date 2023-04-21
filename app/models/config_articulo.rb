@@ -72,8 +72,7 @@ class ConfigArticulo < ApplicationRecord
         articulo.formulas_productos_terminados.each do | formula |
           unidades_minimas        = [ 'Unidad', 'Libra', 'Onza' ];
 
-          articulo_combo          = Articulo.find_by_id(formula.articulo_combo)
-          contenido_minimo        = articulo_combo.contenido_articulos.find { | contenido | unidades_minimas.my_includes_str(contenido.medida) }
+          contenido_minimo        = formula.articulo_combo.contenido_articulos.find { | contenido | unidades_minimas.my_includes_str(contenido.medida) }
 
           formula.costo           = contenido_minimo.costo
           formula.precio          = contenido_minimo.precio

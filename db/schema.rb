@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_21_141522) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -517,11 +517,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
     t.bigint "articulo_id"
     t.float "cantidad"
     t.float "costo"
-    t.integer "articulo_combo"
     t.float "precio"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "medida"
+    t.bigint "articulo_combo_id"
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
   end
 
@@ -982,6 +982,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_03_134948) do
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"
+  add_foreign_key "formulas_productos_terminados", "articulos", column: "articulo_combo_id"
   add_foreign_key "historico_producciones", "articulos"
   add_foreign_key "historico_producciones", "users"
   add_foreign_key "mantenimiento_articulos", "articulos"

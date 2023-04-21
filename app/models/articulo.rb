@@ -1,6 +1,6 @@
 class Articulo < ApplicationRecord
   belongs_to :tipo_articulo
-  belongs_to :sub_tipo_articulo
+  belongs_to :sub_tipo_articulo, optional: true
 
   has_many  :contenido_articulos,           dependent: :destroy
   has_many  :formulas_productos_terminados
@@ -40,10 +40,25 @@ class Articulo < ApplicationRecord
 
     end
 
+
+    articulo_configs   = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.articulo)
+    cantidad_cuentas   = articulo_configs.length - 2
+
+    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length <  cantidad_cuentas )
+      self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+    end
+
   end
 
   def self.models_includes
-    includes = [:tipo_articulo, {contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}, :entidad_cuentas_contables, :mantenimiento_articulos]
+    includes = [
+      :mantenimiento_articulos,
+      { tipo_articulo: :sub_tipo_articulo },
+      { sub_tipo_articulo: :tipo_articulo },
+      { contenido_articulos: :articulo },
+      { formulas_productos_terminados: { articulo: { contenido_articulos: :articulo }, articulo_combo: { contenido_articulos: :articulo } } },
+      { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta, :origen_categoria ] }
+    ]
     return includes
   end
 
@@ -81,22 +96,26 @@ class Articulo < ApplicationRecord
       articulo.valid?
       articulo.otras_validaciones(params)
 
+      Articulo.agregar_cuentas_descuento(params)                           if articulo.errors.empty?
+
+      cuentas_config = { view_prima: false, descripcion_cuenta: articulo.nombre }.with_indifferent_access
+      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if articulo.errors.empty?
+
       if articulo.errors.empty?
 
         dependencias = [
           { modelo: ContenidoArticulo,          key_object: 'contenido_articulos',           padre: articulo },
           { modelo: FormulasProductosTerminado, key_object: 'formulas_productos_terminados', padre: articulo },
-          { modelo: EntidadCuentaContable,      key_object: 'cuentas_contables',     padre: articulo },
+          { modelo: EntidadCuentaContable,      key_object: 'entidad_cuentas_contables',     padre: articulo },
           { modelo: Imagen,                     key_object: 'imagenes',                      padre: articulo }
         ]
 
         res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
           articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
           articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
-          articulo.entidad_cuentas_contables       = dependencia_data if key_object == 'cuentas_contables'
+          articulo.entidad_cuentas_contables       = dependencia_data if key_object == 'entidad_cuentas_contables'
           articulo.imagenes                        = dependencia_data if key_object == 'imagenes'
         }
-
 
         res = articulo.set_contenido_referencia_and_codigo() if res.status_valid && articulo.errors.empty? && articulo.save!
 
@@ -114,7 +133,7 @@ class Articulo < ApplicationRecord
           if res_historico.status_valid
 
             res.set_data(articulo)
-            action = params['id'] ? 'actualizado' : 'creado'
+            action = params[:id] ? 'actualizado' : 'creado'
             res.add_msg("Articulo #{action} correctamente.")
           else
             res.add_msgs(res_historico.get_msgs)
@@ -138,6 +157,27 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
+  def self.agregar_cuentas_descuento(params)
+    articulo_configs   = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.articulo)
+
+    articulo_configs.each do | config |
+      if config.key == 'descuento_ventas' || config.key == 'descuento_compras'
+        config_descuento = {
+          tipo_categoria_id:                 params[:tipo_articulo_id],
+          tipo_categoria:                    "tipo_articulo",
+          tipo_agrupacion_contable:          "categoria",
+          is_comun:                          true,
+          configuracion_entidad_cuenta_id:   config.id
+        }.with_indifferent_access
+
+        params[:cuentas_contables].push(config_descuento)
+      end
+    end
+
+
+  end
+  # =====================================================================================================================
+
   def set_contenido_referencia_and_codigo
     res = Response.new
     self.contenido_articulos.last.referencia    = self.contenido_articulos.first.id if self.contenido_articulos.length > 1
@@ -154,7 +194,7 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
 
 
-  def self.filtrarArticulo(params)
+  def self.filtrarArticulo(params, parametros_opcionales=nil)
     res              = Response.new(set_paginate_options(params))
     arg              = params[:arg]
     fecha            = "#{params[:fecha]}:00"
@@ -170,7 +210,7 @@ class Articulo < ApplicationRecord
 
     articulos_ = Articulo
     .joins('inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id')
-    .where(where).includes(models_includes)
+    .where(where).includes(Articulo.models_includes)
     .order('articulos.id ASC')
 
     articulos = []
@@ -203,7 +243,7 @@ class Articulo < ApplicationRecord
     if articulos.length > 0
 
       articulos = params[:paginado].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
-      res.set_data(articulos, { all: true, historicos: historicos }, Articulo.models_includes)
+      res.set_data(articulos, { all: true, historicos: historicos, **parametros_opcionales }, Articulo.models_includes)
       # res.set_data(articulos)
     else
       cantidad_registros = Articulo.where({estado: true}).count
@@ -320,4 +360,5 @@ class Articulo < ApplicationRecord
 
     return cantidades.with_indifferent_access
   end
+
 end

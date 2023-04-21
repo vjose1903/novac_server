@@ -160,12 +160,12 @@ def reponer_formulas
 
 
     if formula_b == 0
-      value.each do |f|
+      value.each do | f |
         nueva_formula = FormulasProductosTerminado.new
         nueva_formula.articulo_id        = f.articulo_id
         nueva_formula.cantidad           = f.cantidad
         nueva_formula.costo              = f.costo
-        nueva_formula.articulo_combo     = f.articulo_combo
+        nueva_formula.articulo_combo_id  = f.articulo_combo_id
         nueva_formula.precio             = f.precio
         nueva_formula.medida             = "Libra"
 
@@ -189,7 +189,7 @@ end
 def agregar_formula_id_to_mantenimiento_formulas
 
   MantenimientoFormula.all.each do | mantenimiento |
-    formula_equivalente          = FormulasProductosTerminado.where({ articulo_id: mantenimiento.articulo_id, articulo_combo: mantenimiento.articulo_combo }).first
+    formula_equivalente          = FormulasProductosTerminado.where({ articulo_id: mantenimiento.articulo_id, articulo_combo_id: mantenimiento.articulo_combo }).first
 
     puts "(#{formula_equivalente})".yellow
 

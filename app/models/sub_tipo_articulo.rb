@@ -3,7 +3,7 @@ class SubTipoArticulo < ApplicationRecord
   has_many   :entidad_cuentas_contables,       :as => :origen_categoria, class_name: 'EntidadCuentaContable'
   has_many   :tipo_articulo_cuentas_contables, :as => :origen_tipo,      class_name: 'TipoArticuloCuentaContable'
 
-  validates :descripcion,                presence: { :message => "Descripción de la sub categoria no puede estar vacia." },         uniqueness: { scope: [ :tipo_articulo_id ], case_sensitive: false, :message => "Sub categoria ya está registrada." }
+  validates :descripcion,                presence: { :message => 'Descripción de la sub categoria no puede estar vacia.' },         uniqueness: { scope: [ :tipo_articulo_id ], case_sensitive: false, :message => "Sub categoria ya está registrada." }
 
   # ============================================================================================================================================
 
@@ -47,7 +47,7 @@ class SubTipoArticulo < ApplicationRecord
 
       end
     else
-      res.add_msg("Tipo de articulo, no existe.")
+      res.add_msg('Tipo de articulo, no existe.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

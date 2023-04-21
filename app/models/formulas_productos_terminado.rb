@@ -1,11 +1,12 @@
 class FormulasProductosTerminado < ApplicationRecord
   belongs_to :articulo
+	belongs_to :articulo_combo, class_name: 'Articulo', optional: false
 
-  validates :costo,     presence: { :message => "El costo del ingrediente de la formula no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
-  validates :precio,    presence: { :message => "El precio del ingrediente de la formula no puede estar vacio." } , numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
+  validates :costo,     presence: { :message => 'El costo del ingrediente de la formula no puede estar vacio.' },   numericality: { greater_than: 0, :message => 'El costo del ingrediente de la formula debe de ser mayor a 0.' }
+  validates :precio,    presence: { :message => 'El precio del ingrediente de la formula no puede estar vacio.' } , numericality: { greater_than: 0, :message => 'El costo del ingrediente de la formula debe de ser mayor a 0.' }
 
   def otras_validaciones
-    ingrediente = Articulo.find_by_id(self.articulo_combo)
+    ingrediente = self.articulo_combo
 
     if self.cantidad.nil?
       self.errors.add(:base, "Debe introducir la cantidad necesaria de #{ingrediente.nombre}, para completar la formula.")
@@ -16,13 +17,13 @@ class FormulasProductosTerminado < ApplicationRecord
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
     res = Response.new
-		formula                   = FormulasProductosTerminado.where(:id => params["id"]).first_or_create
+    formula                     = FormulasProductosTerminado.where(:id => params[:id]).first_or_create
 
-    formula.cantidad          = params["cantidad"]
-    formula.articulo_combo    = params["articulo_combo"]
-    formula.precio            = params["precio"]
-    formula.costo             = params["costo"]
-    formula.medida            = params["medida"]
+    formula.cantidad            = params[:cantidad]
+    formula.articulo_combo_id   = params[:articulo_combo_id]
+    formula.precio              = params[:precio]
+    formula.costo               = params[:costo]
+    formula.medida              = params[:medida]
     formula.valid?
     formula.otras_validaciones
 
@@ -44,25 +45,15 @@ class FormulasProductosTerminado < ApplicationRecord
 
     items.each do |item|
 
-			if !item['articulo_combo'].nil? && !item['cantidad'].nil?
-				res_temp = self.crear_actualizar_contenido_articulo(item, padre, !item[:id].nil?)
+      if !item[:articulo_combo_id].nil? && !item[:cantidad].nil?
+        res_temp = self.crear_actualizar_contenido_articulo(item, padre, !item[:id].nil?)
 
-				if res_temp.status_valid
-					puts "::::::::::::::::::::::::::::".green
-					puts "::::::::::::::::::::::::::::".green
-					puts ":::::::   CONTINUAR  :::::::".green
-					puts "::::::::::::::::::::::::::::".green
-					puts "::::::::::::::::::::::::::::".green
-					array_valid.push(res_temp.get_data)
-				else
-					puts "::::::::::::::::::::::::::::".red
-					puts "::::::::::::::::::::::::::::".red
-					puts "::::::: EXISTE ERROR :::::::".red
-					puts "::::::::::::::::::::::::::::".red
-					puts "::::::::::::::::::::::::::::".red
-					return res_temp
-				end
-			end
+        if res_temp.status_valid
+          array_valid.push(res_temp.get_data)
+        else
+          return res_temp
+        end
+      end
     end
 
     res_valid.set_data array_valid

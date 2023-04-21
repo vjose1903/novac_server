@@ -112,11 +112,12 @@ class MantenimientoArticulo < ApplicationRecord
   def self.crearArticuloHistorico(historico, articulo)
 
     contenidoArticulo = articulo.contenido_articulos
-    formulaArticulo = articulo.formulas_productos_terminados
+    formulaArticulo   = articulo.formulas_productos_terminados
 
     articuloHistorico = {}
     articuloHistorico['id']                     = articulo['id']
     articuloHistorico['tipo_articulo_id']       = historico['ant_tipoArticuloId']
+    articuloHistorico['sub_tipo_articulo_id']   = articulo['sub_tipo_articulo_id']
     articuloHistorico['nombre']                 = historico['ant_nombre']
     articuloHistorico['costo_principal']        = historico['ant_costoP']
     articuloHistorico['precio_principal']       = historico['ant_precioP']
@@ -173,7 +174,9 @@ class MantenimientoArticulo < ApplicationRecord
       formulas.to_a.each do |f|
 
         obj_formula = f.slice(:articulo_id, :articulo_combo, :cantidad, :costo, :precio, :medida)
-        obj_formula['id']               = f['formula_id']
+        obj_formula[:id]                 = f[:formula_id]
+        obj_formula[:articulo_combo_id]  = f[:articulo_combo]
+        obj_formula.delete("articulo_combo")
 
         fomulaS.push(FormulasProductosTerminado.new(obj_formula))
       end

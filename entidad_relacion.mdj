@@ -17712,7 +17712,7 @@
 							"_parent": {
 								"$ref": "AAAAAAF7W375jkg4hLE="
 							},
-							"name": "articulo_combo",
+							"name": "articulo_combo_id",
 							"length": 0
 						},
 						{
@@ -20862,7 +20862,7 @@
 							"_parent": {
 								"$ref": "AAAAAAF7W4JPUEk0Yxk="
 							},
-							"name": "articulo_combo",
+							"name": "articulo_combo_id",
 							"length": 0
 						},
 						{

@@ -47,6 +47,7 @@ rails g migration AddFechaEquivalenteToCuadreCaja fecha_equivalente:datetime
 
 
 
+
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 

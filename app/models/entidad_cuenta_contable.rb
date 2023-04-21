@@ -91,15 +91,32 @@ class EntidadCuentaContable < ApplicationRecord
   # ============================================================================================================================================
 
   def procesos_crear_cuenta(has_cuenta_contable, params)
-    res                       = Response.new
+    res                         = Response.new
+    if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo
+      cuenta_contable_art       = self.origen_categoria.tipo_articulo_cuentas_contables.find_by({ key: self.key })
+    end
 
     if self.is_comun
-      self.cuenta_contable_id = self.origen_categoria.cuenta_contable_auxiliar_id
+
+      if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo
+        self.cuenta_contable_id = cuenta_contable_art.cuenta_contable_auxiliar_id
+      else
+        self.cuenta_contable_id = self.origen_categoria.cuenta_contable_auxiliar_id
+      end
+
       return res
     end
 
+
     if !has_cuenta_contable
-      cuenta_control                     = ( self.tipo_agrupacion_contable == TipoAgrupacionContable.individual ) ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control
+      cuenta_control                     = nil
+
+      if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo
+        cuenta_control                   = cuenta_contable_art.cuenta_contable_control
+      else
+        cuenta_control                   = ( self.tipo_agrupacion_contable == TipoAgrupacionContable.individual ) ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control
+      end
+
       res                                = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta], false)
       cuenta_contable_control            = res.get_data()
       self.cuenta_contable_id            = cuenta_contable_control[:id] if res.status_valid

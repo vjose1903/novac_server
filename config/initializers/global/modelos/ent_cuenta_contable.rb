@@ -2,6 +2,7 @@ module EntCuentaContable
 
 
   def self.parsear_cuentas_contables(params, args)
+		puts "======================================== ANDO AQUIIII ========================================".green
     cuentas                     = []
     is_prima                    = false
 

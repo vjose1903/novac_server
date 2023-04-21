@@ -1,6 +1,7 @@
 class ArticuloSerializer < ActiveModel::Serializer
   attribute :id
   attribute :tipo_articulo_id,                   if: Proc.new { self.get_param('tipo_articulo_id')           || self.get_param('all') }
+  attribute :sub_tipo_articulo_id,               if: Proc.new { self.get_param('sub_tipo_articulo_id')       || self.get_param('all') }
   attribute :nombre,                             if: Proc.new { self.get_param('nombre')                     || self.get_param('all') }
   attribute :costo_principal,                    if: Proc.new { self.get_param('costo_principal')            || self.get_param('all') }
   attribute :precio_principal,                   if: Proc.new { self.get_param('precio_principal')           || self.get_param('all') }
@@ -22,15 +23,15 @@ class ArticuloSerializer < ActiveModel::Serializer
   attribute :formulas_productos_terminados,      if: Proc.new { object.is_combo && (self.get_param('formulas_productos_terminados')      || self.get_param('all')) }
 
   attribute :descripcion,                        if: Proc.new { self.get_param('descripcion')                || self.get_param('all') }
-
   attribute :contenido,                          if: Proc.new { self.get_param('contenido')                  || self.get_param('all') }
   attribute :cantidades,                         if: Proc.new { self.get_param('cantidades')                 || self.get_param('all') }
-  attribute :cuentas_contables,                  if: Proc.new { self.get_param('cuentas_contables')  || self.get_param('all') }
   attribute :calcular_saco,                      if: Proc.new { self.get_param('calcular_saco')              || self.get_param('all') }
 
   attribute :costos,                             if: Proc.new { self.get_param('costos')                     || self.get_param('all') }
   attribute :tipo_articulo,                      if: Proc.new { self.get_param('tipo_articulo')              || self.get_param('all')}
   attribute :sub_tipo_articulo,                  if: Proc.new { self.get_param('sub_tipo_articulo')          || self.get_param('all')}
+
+  attribute :cuentas_contables,                  if: Proc.new { self.get_param('cuentas_contables') }
 
 
   def medida
@@ -69,8 +70,9 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def cuentas_contables
-    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, origen_categoria: true })
+    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true })
   end
+
 
   def calcularContenidos(articulo, sacos)
 
@@ -157,10 +159,6 @@ class ArticuloSerializer < ActiveModel::Serializer
     end
 
     obj
-  end
-
-  def tipo_articulo
-    object.tipo_articulo
   end
 
   def getContentHistorico(tipo)

@@ -32,7 +32,7 @@
   "formulas_productos_terminados": [
     {
       "id":                 null,
-      "articulo_combo":     210,
+      "articulo_combo_id":  210,
       "cantidad":           1,
       "costo":              9.25,
       "precio":             9.9,
@@ -40,7 +40,7 @@
     },
     {
       "id":                 null,
-      "articulo_combo":     98,
+      "articulo_combo_id":  98,
       "cantidad":           2,
       "costo":              37,
       "precio":             39,

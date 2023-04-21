@@ -2,24 +2,24 @@ class DetalleProduccion < ApplicationRecord
   belongs_to :produccion
   belongs_to :articulo
 
-  validates :articulo,    presence: { :message => "Articulo no puede estar vacio." }
-  validates :medida,      presence: { :message => "Medida de los ingredientes no puede estar vacia." }
-  validates :cantidad,    presence: { :message => "Cantidad de los ingredientes no puede estar vacio." }, numericality: { greater_than: 0, :message => "La cantidad de los ingredientes debe de ser mayor a 0." }
+  validates :articulo,    presence: { :message => 'Articulo no puede estar vacio.' }
+  validates :medida,      presence: { :message => 'Medida de los ingredientes no puede estar vacia.' }
+  validates :cantidad,    presence: { :message => 'Cantidad de los ingredientes no puede estar vacio.' }, numericality: { greater_than: 0, :message => 'La cantidad de los ingredientes debe de ser mayor a 0.' }
 
   def self.crear_actualizar_detalle_produccion(params, padre, is_save=false)
     res = Response.new
-		detalle_produccion                           = DetalleProduccion.where(:id => params["id"]).first_or_create
+		detalle_produccion                           = DetalleProduccion.where(:id => params[:id]).first_or_create
 
-    detalle_produccion.articulo_id               = params["articulo_id"]
-    detalle_produccion.cantidad                  = params["cantidad"]
-    detalle_produccion.cantidad_en_unidades      = params["cantidad_en_unidades"]
-    detalle_produccion.medida                    = params["medida"]
+    detalle_produccion.articulo_id               = params[:articulo_id]
+    detalle_produccion.cantidad                  = params[:cantidad]
+    detalle_produccion.cantidad_en_unidades      = params[:cantidad_en_unidades]
+    detalle_produccion.medida                    = params[:medida]
 
     detalle_produccion.valid?
 
     detalle_produccion.errors.delete(:produccion) if !is_save
 
-    res_proceso                            = detalle_produccion.procesos_detalle(params)
+    res_proceso                                  = detalle_produccion.procesos_detalle(params)
 
 
     if res_proceso.status_valid && detalle_produccion.errors.empty? && (!is_save || (is_save && detalle_produccion.save!))
@@ -54,10 +54,10 @@ class DetalleProduccion < ApplicationRecord
   def procesos_detalle(params)
     res = Response.new
 
-    params["ingredientes"].each do |ingrediente|
-      articulo_ingrediente     = Articulo.find_by_id(ingrediente["articulo_combo"])
+    params[:ingredientes].each do | ingrediente |
+      articulo_ingrediente     = Articulo.find_by_id(ingrediente[:articulo_combo_id])
 
-      mov                      = (articulo_ingrediente.existencia - ingrediente["cantidad_en_unidades"])
+      mov                      = ( articulo_ingrediente.existencia - ingrediente[:cantidad_en_unidades] )
 
       unless articulo_ingrediente.update({ existencia: mov })
         res.add_msgs(articulo_ingrediente.errors)

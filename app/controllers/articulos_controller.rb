@@ -16,20 +16,17 @@ class ArticulosController < ApplicationController
   end
 
   def getActualPriceDetalles
-
-		resultado = Articulo.get_actual_price_detalles(params, get_parametros_opcionales)
-		resultado.send_response self
+    resultado = Articulo.get_actual_price_detalles(params, get_parametros_opcionales)
+    resultado.send_response self
   end
 
   def crear_actualizar_articulo
-		parametros = params
-		parametros["id"] = params["id"] if params["id"]
-    resultado = Articulo.create_update_articulo(parametros, @articulo, true)
-		resultado.send_response self
-	end
+    resultado = Articulo.create_update_articulo(params, @articulo, true)
+    resultado.send_response self
+  end
 
   def getArticulosFiltrados
-    resultado = Articulo.filtrarArticulo(params)
+    resultado = Articulo.filtrarArticulo(params, get_parametros_opcionales)
     resultado.send_response self
   end
 
@@ -46,7 +43,7 @@ class ArticulosController < ApplicationController
 
   def checkIfExcede
     excede = @articulo.existencia.to_f < params["cantidad"].to_f
-		excede = false if @articulo.tipo_articulo.tipo == TipoArticuloType.servicio
+    excede = false if @articulo.tipo_articulo.tipo == TipoArticuloType.servicio
     return Response.new(params, nil, excede, nil, nil).send_response self
   end
 
@@ -59,7 +56,7 @@ class ArticulosController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      all:                            params['all'] || false,
+      all:                            true,
       tipo_articulo_id:               params['tipo_articulo_id'] || false,
       nombre:                         params['nombre'] || false,
       costo_principal:                params['costo_principal'] || false,
@@ -85,6 +82,8 @@ class ArticulosController < ApplicationController
       calcular_saco:                  params['calcular_saco'] || false,
       costos:                         params['costos'] || false,
       tipo_articulo:                  params['tipo_articulo'] || false,
+      sub_tipo_articulo:              params['sub_tipo_articulo'] || false,
+      cuentas_contables:              params['cuentas_contables'] || false,
     }
   end
 

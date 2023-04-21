@@ -1,4 +1,5 @@
 class TipoArticulo < ApplicationRecord
+  has_many   :sub_tipo_articulo
   has_many   :entidad_cuentas_contables,       :as => :origen_categoria, class_name: 'EntidadCuentaContable'
   has_many   :tipo_articulo_cuentas_contables, :as => :origen_tipo,      class_name: 'TipoArticuloCuentaContable'
 
