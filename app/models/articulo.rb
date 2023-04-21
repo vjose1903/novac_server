@@ -286,7 +286,7 @@ class Articulo < ApplicationRecord
 
     articulos          = Articulo.where(id: ids).includes(Articulo.models_includes)
 
-    res.set_data(articulos, {**parametros_opcionales})
+    res.set_data( articulos, { **parametros_opcionales } )
 
     return res
   end
