@@ -4,19 +4,19 @@ services:
   db-dev:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-brendy-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: N0v@cgu@rd
       POSTGRES_USER: novacSystem
     ports:
       - 127.0.0.1:9731:5432
 
-  brendy-dev:
+  agrodemi-dev:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
     environment:
-      ALMACEN: "panaderia_brendy"
+      ALMACEN: "ADM"
       RAILS_ENV: "development"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
@@ -29,6 +29,6 @@ services:
   nginx-proxy-dev:
     build: ./docker/services/nginx
     ports:
-      - 9091:9091
+      - 9090:9090
     depends_on:
-      - brendy-dev
+      - agrodemi-dev
