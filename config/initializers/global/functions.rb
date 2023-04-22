@@ -1,6 +1,7 @@
 require 'net/smtp'
 require "zlib"
 require 'openssl'
+require 'json'
 
 class Response
 
@@ -229,6 +230,11 @@ def decrypt(str)
   cipher.update(decrypted) + cipher.final
 end
 
+
+# ---------------------------------------------------------------------------------------------------------
+def pretty_json(json)
+	return JSON.pretty_generate(json)
+end
 # ---------------------------------------------------------------------------------------------------------
 
 def round_to_nearest_multiple_of_5(number)

@@ -96,7 +96,7 @@ class Articulo < ApplicationRecord
       articulo.valid?
       articulo.otras_validaciones(params)
 
-      Articulo.agregar_cuentas_descuento(params)                           if articulo.errors.empty?
+      articulo.agregar_cuentas_descuento(params)                           if articulo.errors.empty?
 
       cuentas_config = { view_prima: false, descripcion_cuenta: articulo.nombre }.with_indifferent_access
       EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if articulo.errors.empty?
@@ -157,25 +157,48 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-  def self.agregar_cuentas_descuento(params)
-    articulo_configs   = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.articulo)
+  def agregar_cuentas_descuento(params)
+    if params[:id].nil? || !params[:id].present?
+      articulo_configs   = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.articulo).where("key IN ('descuento_ventas','descuento_compras')")
 
-    articulo_configs.each do | config |
-      if config.key == 'descuento_ventas' || config.key == 'descuento_compras'
-        config_descuento = {
-          tipo_categoria_id:                 params[:tipo_articulo_id],
-          tipo_categoria:                    "tipo_articulo",
-          tipo_agrupacion_contable:          "categoria",
-          is_comun:                          true,
-          configuracion_entidad_cuenta_id:   config.id
-        }.with_indifferent_access
+      articulo_configs.each do | config |
 
-        params[:cuentas_contables].push(config_descuento)
+          argumentos = { tipo_articulo_id: params[:tipo_articulo_id], tipo_categoria: "tipo_articulo", tipo_agrupacion_contable: "categoria", is_comun: true, configuracion_entidad_cuenta_id: config.id }.with_indifferent_access
+          Articulo.push_cuentas(params, argumentos)
+
       end
-    end
 
+    else
+
+      articulo_cuentas_Descuentos   = self.entidad_cuentas_contables.where("key IN ('descuento_ventas','descuento_compras')")
+      articulo_cuentas_Descuentos.each do | cuenta |
+
+        argumentos = {id: cuenta.id, tipo_articulo_id: params[:tipo_articulo_id], tipo_categoria: "tipo_articulo", tipo_agrupacion_contable: "categoria", is_comun: cuenta.is_comun, configuracion_entidad_cuenta_id: cuenta.configuracion_entidad_cuenta_id }.with_indifferent_access
+        Articulo.push_cuentas(params, argumentos)
+
+      end
+
+    end
+  end
+
+
+  # =====================================================================================================================
+
+  def self.push_cuentas(params, args)
+
+    config_descuento = {
+      id:                                args[:id] || nil,
+      tipo_categoria_id:                 args[:tipo_articulo_id],
+      tipo_categoria:                    args[:tipo_categoria],
+      tipo_agrupacion_contable:          args[:tipo_agrupacion_contable],
+      is_comun:                          args[:is_comun],
+      configuracion_entidad_cuenta_id:   args[:configuracion_entidad_cuenta_id],
+    }.with_indifferent_access
+
+    params[:cuentas_contables].push(config_descuento)
 
   end
+
   # =====================================================================================================================
 
   def set_contenido_referencia_and_codigo

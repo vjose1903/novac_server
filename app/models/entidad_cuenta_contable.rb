@@ -61,7 +61,6 @@ class EntidadCuentaContable < ApplicationRecord
     entidad_cuenta                  = EntidadCuentaContable.where(:id => params[:id]).first_or_create
     has_cuenta_contable             = entidad_cuenta.has_cuenta_contable
 
-
     if !has_cuenta_contable
       entidad_cuenta.configuracion_entidad_cuenta_id    = params[:configuracion_entidad_cuenta_id]
       entidad_cuenta.tipo_agrupacion_contable           = params[:tipo_agrupacion_contable]
@@ -107,7 +106,6 @@ class EntidadCuentaContable < ApplicationRecord
       return res
     end
 
-
     if !has_cuenta_contable
       cuenta_control                     = nil
 
@@ -121,6 +119,7 @@ class EntidadCuentaContable < ApplicationRecord
       cuenta_contable_control            = res.get_data()
       self.cuenta_contable_id            = cuenta_contable_control[:id] if res.status_valid
     else
+
       self.cuenta_contable.descripcion   = params[:descripcion_cuenta]
       self.cuenta_contable.save!
     end
