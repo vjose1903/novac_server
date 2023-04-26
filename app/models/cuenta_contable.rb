@@ -48,7 +48,7 @@ class CuentaContable < ApplicationRecord
       if result_procesos.status_valid && cuenta_contable.errors.empty? && (!is_save || (is_save && cuenta_contable.save!))
         res.set_data(cuenta_contable)
       else
-        res.add_msgs(result_procesos.get_msgs)
+        res.add_msgs(result_procesos.get_msgs.to_a)
         res.add_msgs(cuenta_contable.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
@@ -75,8 +75,8 @@ class CuentaContable < ApplicationRecord
       self.nivel          = result_next_nivel.get_data
 
     else
-      res.add_msgs(result_next_codigo.get_msgs)
-      res.add_msgs(result_next_nivel.get_msgs)
+      res.add_msgs(result_next_codigo.get_msgs.to_a)
+      res.add_msgs(result_next_nivel.get_msgs.to_a)
 
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

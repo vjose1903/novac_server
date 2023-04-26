@@ -35,7 +35,7 @@ class CategoriaEntidadContable < ApplicationRecord
           res.add_msg("Categoria de #{CatEntidadContable.tipos[cate_entidad_cont.entidad]} #{action} correctamente.")
 
         else
-          res.add_msgs(result_procesos.get_msgs)
+          res.add_msgs(result_procesos.get_msgs.to_a)
           res.add_msgs(cate_entidad_cont.errors.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
 

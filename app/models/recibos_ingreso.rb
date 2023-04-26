@@ -80,7 +80,7 @@ class RecibosIngreso < ApplicationRecord
             res.add_msg("Recibo #{action} correctamente.")
 
           else
-            res.add_msgs(result.get_msgs)
+            res.add_msgs(result.get_msgs.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
           end
 
@@ -170,12 +170,12 @@ class RecibosIngreso < ApplicationRecord
           msg             = params["tipo"] === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
           res.add_msg(msg)
         else
-          res.add_msgs(res_valid.get_msgs)
+          res.add_msgs(res_valid.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 
       else
-        res.add_msgs(res_valid.get_msgs)
+        res.add_msgs(res_valid.get_msgs.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 

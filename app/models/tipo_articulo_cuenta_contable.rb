@@ -30,7 +30,7 @@ class TipoArticuloCuentaContable < ApplicationRecord
     if result_procesos.status_valid && tipo_articulo_cuenta.errors.empty? && (!is_save || (is_save && tipo_articulo_cuenta.save!))
       res.set_data(tipo_articulo_cuenta)
     else
-      res.add_msgs(result_procesos.get_msgs)
+      res.add_msgs(result_procesos.get_msgs.to_a)
       res.add_msgs(tipo_articulo_cuenta.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

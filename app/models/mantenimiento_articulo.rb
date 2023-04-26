@@ -52,7 +52,7 @@ class MantenimientoArticulo < ApplicationRecord
         res_proceso = MantenimientoFormula.add_historico(formulas, secuencia)
 
         unless res_proceso.status_valid
-          res.add_msgs(res_proceso.get_msgs)
+          res.add_msgs(res_proceso.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 

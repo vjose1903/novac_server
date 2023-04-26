@@ -211,7 +211,7 @@ rails g model tipo_articulo_cuenta_contable origen_tipo:references{polymorphic} 
 ✅ rails g model detalle_asiento_contable cabeza_asiento_contable:references cuenta_contable_auxiliar:references cuenta_contable_control:references valor_debito:float valor_credito:float
 
 ✅ rails g scaffold categoria_entidad_contable descripcion:string entidad:string key:string cuenta_contable_control:references cuenta_contable_auxiliar:references configuracion_entidad_cuenta:references
-rails g scaffold entidad_cuenta_contable origen_entidad:references{polymorphic} cuenta_contable:references key:string tipo_agrupacion_contable:string origen_categoria:references{polymorphic}
+✅ rails g scaffold entidad_cuenta_contable origen_entidad:references{polymorphic} cuenta_contable:references key:string tipo_agrupacion_contable:string origen_categoria:references{polymorphic}
 
 rails g scaffold deposito cuenta_bancaria:references user:references user_anulador:references tasa:float monto:float monto_local:float comentario:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean
 rails g scaffold transferencia cuenta_bancaria_origen:references cuenta_bancaria_destino:references user:references user_anulador:references tipo:string tasa:float monto:float monto_local:float comentario:string nombre_banco_tercero:string cuenta_bancaria_tercero:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean

@@ -102,7 +102,7 @@ class CabeceraConduce < ApplicationRecord
 					res.set_status(HTTP_STATUS_CODE[:conflict])
 				end
 			else
-				res.add_msgs(res_valid.get_msgs)
+				res.add_msgs(res_valid.get_msgs.to_a)
 				res.set_status(HTTP_STATUS_CODE[:conflict])
 			end
 

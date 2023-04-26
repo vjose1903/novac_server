@@ -77,7 +77,7 @@ module CatEntidadContable
       cuenta_contable            = temp_cuenta_contable.get_data.as_json.with_indifferent_access
       res.set_data(cuenta_contable)
     else
-      res.add_msgs(temp_cuenta_contable.get_msgs)
+      res.add_msgs(temp_cuenta_contable.get_msgs.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

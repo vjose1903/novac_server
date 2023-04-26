@@ -20,13 +20,13 @@ class CatalogoDeCuentas < ApplicationRecord
             resultado                   = CatalogoDeCuentas.create_cuentas_default(grupo[:cuentas_contables], grupo_cuenta_db, primera_cuenta_contable_db)
 
             unless resultado.status_valid
-              res.add_msgs(resultado.get_msgs)
+              res.add_msgs(resultado.get_msgs.to_a)
               res.set_status(HTTP_STATUS_CODE[:conflict])
               return res
             end
 
           else
-            res.add_msgs(temp_grupo_cuenta.get_msgs)
+            res.add_msgs(temp_grupo_cuenta.get_msgs.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
             return res
           end
@@ -85,7 +85,7 @@ class CatalogoDeCuentas < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.renderError(res, resultado)
-    res.add_msgs(resultado.get_msgs)
+    res.add_msgs(resultado.get_msgs.to_a)
     res.set_status(HTTP_STATUS_CODE[:conflict])
     return res
   end

@@ -136,7 +136,7 @@ class Articulo < ApplicationRecord
             action = params[:id] ? 'actualizado' : 'creado'
             res.add_msg("Articulo #{action} correctamente.")
           else
-            res.add_msgs(res_historico.get_msgs)
+            res.add_msgs(res_historico.get_msgs.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
           end
 

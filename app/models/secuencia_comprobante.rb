@@ -50,7 +50,7 @@ class SecuenciaComprobante < ApplicationRecord
       end
 
       if !ncf.errors.empty? || !res.status_valid || !res_valid.status_valid
-        res.add_msgs(res_valid.get_msgs)
+        res.add_msgs(res_valid.get_msgs.to_a)
         res.add_msgs(ncf.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end

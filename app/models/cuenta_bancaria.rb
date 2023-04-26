@@ -51,7 +51,7 @@ class CuentaBancaria < ApplicationRecord
         if result_procesos.status_valid && cuenta_bancaria.errors.empty? && (!is_save || (is_save && cuenta_bancaria.save!))
           res.set_data(cuenta_bancaria)
         else
-          res.add_msgs(result_procesos.get_msgs)
+          res.add_msgs(result_procesos.get_msgs.to_a)
           res.add_msgs(cuenta_bancaria.errors.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
@@ -92,7 +92,7 @@ class CuentaBancaria < ApplicationRecord
           self.cuenta_contable_prima_id   = cuenta_contable[:id] if is_prima
 
         else
-          res.add_msgs(temp_cuenta_contable.get_msgs)
+          res.add_msgs(temp_cuenta_contable.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 

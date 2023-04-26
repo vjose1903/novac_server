@@ -41,5 +41,5 @@ class CuentasContablesController < ApplicationController
       @cuenta_contable = respuesta.get_data
 
       return respuesta.send_response self if @cuenta_contable.nil?
-  end
+    end
 end
