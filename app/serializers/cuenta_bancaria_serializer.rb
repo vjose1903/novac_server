@@ -5,6 +5,8 @@ class CuentaBancariaSerializer < ActiveModel::Serializer
   attribute :descripcion,                   if: Proc.new { self.get_param('descripcion')             || self.get_param('all') }
   attribute :fecha_apertura,                if: Proc.new { self.get_param('fecha_apertura')          || self.get_param('all') }
   attribute :estado,                        if: Proc.new { self.get_param('estado')                  || self.get_param('all') }
+  attribute :balance_inicial_libro,         if: Proc.new { self.get_param('balance_inicial_libro')   || self.get_param('all') }
+  attribute :balance_inicial_banco,         if: Proc.new { self.get_param('balance_inicial_banco')   || self.get_param('all') }
 
   attribute :cuenta_contable,               if: Proc.new {  self.get_param('cuenta_contable')         || self.get_param('all') }
   attribute :cuenta_contable_prima,         if: Proc.new { (self.get_param('cuenta_contable_prima')   || self.get_param('all')) && !object.cuenta_contable_prima.nil? }

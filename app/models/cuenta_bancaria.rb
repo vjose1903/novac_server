@@ -36,6 +36,8 @@ class CuentaBancaria < ApplicationRecord
         cuenta_bancaria.divisa_id                  = params[:divisa_id]
         cuenta_bancaria.fecha_apertura             = params[:fecha_apertura]
         cuenta_bancaria.numero_cuenta              = params[:numero_cuenta]
+        cuenta_bancaria.balance_inicial_libro      = params[:balance_inicial_libro]
+        cuenta_bancaria.balance_inicial_banco      = params[:balance_inicial_banco]
         cuenta_bancaria.comentario                 = params[:comentario]
         cuenta_bancaria.descripcion                = params[:descripcion]
 

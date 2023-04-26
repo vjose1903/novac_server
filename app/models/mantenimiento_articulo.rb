@@ -166,22 +166,23 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico['contenido_articulos'] = contents
 
     if historico['ant_isCombo']
-      fomulaS = []
+      fomulas = []
 
       formulas = MantenimientoFormula.where({secuencia: historico['secuencia']})
       formulaArticulo
 
-      formulas.to_a.each do |f|
+      formulas.to_a.each do | f |
 
         obj_formula = f.slice(:articulo_id, :articulo_combo, :cantidad, :costo, :precio, :medida)
         obj_formula[:id]                 = f[:formula_id]
         obj_formula[:articulo_combo_id]  = f[:articulo_combo]
         obj_formula.delete("articulo_combo")
+        obj_formula.delete("formula_id") # <--- OJO
 
-        fomulaS.push(FormulasProductosTerminado.new(obj_formula))
+        fomulas.push(FormulasProductosTerminado.new(obj_formula))
       end
 
-      articuloHistorico['formulas_productos_terminados'] = fomulaS
+      articuloHistorico['formulas_productos_terminados'] = fomulas
     end
 
     return articuloHistorico

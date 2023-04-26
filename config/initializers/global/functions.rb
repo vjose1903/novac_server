@@ -8,7 +8,7 @@ class Response
   def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 
     @paginate_class          = Paginator.new(params)
-    @res                     = {status: status_, data: data,  msg: msg_}
+    @res                     = { status: status_, data: data,  msg: msg_ }
 
     set_data(data, parametros_opcionales) unless data.nil?
 

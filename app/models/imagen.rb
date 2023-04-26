@@ -4,7 +4,7 @@ require 'mime/types'
 
 class Imagen < ApplicationRecord
 
-  belongs_to :origen, polymorphic: true
+  belongs_to :origen_img, polymorphic: true
 
     # ============================================================================================================================================
 

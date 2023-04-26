@@ -8,11 +8,14 @@ class DetalleAsientoContable < ApplicationRecord
   validates :valor_credito, numericality: true, allow_nil: true, allow_blank: true
 
   def otras_validaciones(params)
-    unless ( self.valor_debito.present? && self.valor_credito.present? ) && ( self.valor_debito > 0 || self.valor_credito > 0 )
-      cuenta_auxiliar_id = self.cuenta_contable_auxiliar_id
-      cuenta_auxiliar = CuentaContable.find_by_id(cuenta_auxiliar_id)
+    cuenta_auxiliar = self.cuenta_contable_auxiliar
 
+    unless ( self.valor_debito.present? && self.valor_credito.present? ) && ( self.valor_debito > 0 || self.valor_credito > 0 )
       self.errors.add(:base, "Debe de especificar el monto para la cuenta: #{cuenta_auxiliar.descripcion}.")
+    end
+
+    if self.cuenta_contable_auxiliar.is_control
+      self.errors.add(:base, "La cuenta: #{cuenta_auxiliar.descripcion}, es control, debe de seleccionar una cuenta auxiliar.")
     end
   end
 
