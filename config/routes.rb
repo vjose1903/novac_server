@@ -212,8 +212,14 @@ Rails.application.routes.draw do
     end
   end
 
-	resources :cabezas_asientos_contables do
+  resources :cabezas_asientos_contables do
     collection do
+    end
+  end
+
+  resources :depositos do
+    collection do
+      delete "anular/:id"                   => "depositos#anularDeposito"
     end
   end
 

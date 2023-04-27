@@ -1,5 +1,6 @@
 class Divisa < ApplicationRecord
   has_many :imagenes, :as => :origen_img, dependent: :destroy, class_name: 'Imagen'
+  has_many :tasas_de_cambio
 
   validates :nombre, presence: { :message => 'Debe de especificar el nombre de la divisa.' }, uniqueness: { scope: [:estado], case_sensitive: false, :message => 'Divisa ya está registrada' }, :if => :estado
 

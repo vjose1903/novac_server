@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_26_190243) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_26_193320) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -335,6 +335,27 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_190243) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["grupo_cuenta_id"], name: "index_cuentas_contables_on_grupo_cuenta_id"
+  end
+
+  create_table "depositos", force: :cascade do |t|
+    t.bigint "cuenta_bancaria_id", null: false
+    t.bigint "user_creador_id", null: false
+    t.bigint "user_anulador_id"
+    t.bigint "last_user_update_id"
+    t.float "tasa"
+    t.float "monto"
+    t.float "monto_local"
+    t.string "comentario"
+    t.string "numero_referencia"
+    t.date "fecha_equivalente"
+    t.date "fecha_anulacion"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuenta_bancaria_id"], name: "index_depositos_on_cuenta_bancaria_id"
+    t.index ["last_user_update_id"], name: "index_depositos_on_last_user_update_id"
+    t.index ["user_anulador_id"], name: "index_depositos_on_user_anulador_id"
+    t.index ["user_creador_id"], name: "index_depositos_on_user_creador_id"
   end
 
   create_table "detalle_conduces", force: :cascade do |t|
@@ -960,6 +981,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_190243) do
   add_foreign_key "cuentas_bancarias", "divisas"
   add_foreign_key "cuentas_bancarias", "tipo_cuentas_bancarias"
   add_foreign_key "cuentas_contables", "grupos_de_cuentas"
+  add_foreign_key "depositos", "cuentas_bancarias"
+  add_foreign_key "depositos", "users", column: "last_user_update_id"
+  add_foreign_key "depositos", "users", column: "user_anulador_id"
+  add_foreign_key "depositos", "users", column: "user_creador_id"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"

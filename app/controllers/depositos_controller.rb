@@ -1,9 +1,9 @@
 class DepositosController < ApplicationController
-  before_action :set_deposito, only: [ :show, :destroy ]
+  before_action :set_deposito, only: [ :show, :anularDeposito ]
 
   # GET /depositos
   def index
-    return Response.new(params, nil, Deposito.all.where({ estado: true}).order('id ASC'), nil).send_response self
+    return Response.new(params, nil, Deposito.all.where({ estado: true}).order('id ASC').includes(Deposito.models_includes), nil, { all: true }).send_response self
   end
 
   # GET /depositos/1
@@ -12,7 +12,7 @@ class DepositosController < ApplicationController
   end
 
   def crear_actualizar_deposito
-    res = Deposito.create_update_deposito(params, nil, true)
+    res = Deposito.create_update_deposito(params)
     res.send_response self
   end
 
@@ -26,9 +26,10 @@ class DepositosController < ApplicationController
     crear_actualizar_deposito
   end
 
-  # DELETE /depositos/1
-  def destroy
-    resultado = borrar_entidad(@deposito)
+
+	# DELETE /depositos/1
+  def anularDeposito
+    resultado = @deposito.anular_registro
     resultado.send_response self
   end
 

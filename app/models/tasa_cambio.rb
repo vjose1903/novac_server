@@ -1,7 +1,6 @@
 class TasaCambio < ApplicationRecord
   belongs_to :divisa
 
-
   # ============================================================================================================================================
 
   def self.create_tasa_cambio(params, divisa, is_save)
