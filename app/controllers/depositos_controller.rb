@@ -27,7 +27,7 @@ class DepositosController < ApplicationController
   end
 
 
-	# DELETE /depositos/1
+	# DELETE /depositos/anular/1
   def anularDeposito
     resultado = @deposito.anular_registro
     resultado.send_response self

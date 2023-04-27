@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_26_193320) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_27_132913) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -339,6 +339,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_193320) do
 
   create_table "depositos", force: :cascade do |t|
     t.bigint "cuenta_bancaria_id", null: false
+    t.bigint "divisa_id", null: false
     t.bigint "user_creador_id", null: false
     t.bigint "user_anulador_id"
     t.bigint "last_user_update_id"
@@ -353,6 +354,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_193320) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["cuenta_bancaria_id"], name: "index_depositos_on_cuenta_bancaria_id"
+    t.index ["divisa_id"], name: "index_depositos_on_divisa_id"
     t.index ["last_user_update_id"], name: "index_depositos_on_last_user_update_id"
     t.index ["user_anulador_id"], name: "index_depositos_on_user_anulador_id"
     t.index ["user_creador_id"], name: "index_depositos_on_user_creador_id"
@@ -889,6 +891,33 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_193320) do
     t.datetime "updated_at", precision: nil, null: false
   end
 
+  create_table "transferencias", force: :cascade do |t|
+    t.bigint "cuenta_bancaria_origen_id", null: false
+    t.bigint "cuenta_bancaria_destino_id"
+    t.bigint "divisa_id", null: false
+    t.bigint "user_creador_id", null: false
+    t.bigint "last_user_update_id"
+    t.bigint "user_anulador_id"
+    t.float "tasa"
+    t.float "monto"
+    t.float "monto_local"
+    t.string "comentario"
+    t.string "nombre_banco_tercero"
+    t.string "cuenta_bancaria_tercero"
+    t.string "numero_referencia"
+    t.date "fecha_equivalente"
+    t.date "fecha_anulacion"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuenta_bancaria_destino_id"], name: "index_transferencias_on_cuenta_bancaria_destino_id"
+    t.index ["cuenta_bancaria_origen_id"], name: "index_transferencias_on_cuenta_bancaria_origen_id"
+    t.index ["divisa_id"], name: "index_transferencias_on_divisa_id"
+    t.index ["last_user_update_id"], name: "index_transferencias_on_last_user_update_id"
+    t.index ["user_anulador_id"], name: "index_transferencias_on_user_anulador_id"
+    t.index ["user_creador_id"], name: "index_transferencias_on_user_creador_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "provider", default: "email", null: false
     t.string "uid", default: "", null: false
@@ -982,6 +1011,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_193320) do
   add_foreign_key "cuentas_bancarias", "tipo_cuentas_bancarias"
   add_foreign_key "cuentas_contables", "grupos_de_cuentas"
   add_foreign_key "depositos", "cuentas_bancarias"
+  add_foreign_key "depositos", "divisas"
   add_foreign_key "depositos", "users", column: "last_user_update_id"
   add_foreign_key "depositos", "users", column: "user_anulador_id"
   add_foreign_key "depositos", "users", column: "user_creador_id"
@@ -1043,6 +1073,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_193320) do
   add_foreign_key "tipo_articulo_cuentas_contables", "configuraciones_entidades_cuentas"
   add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
   add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_control_id"
+  add_foreign_key "transferencias", "cuentas_bancarias", column: "cuenta_bancaria_destino_id"
+  add_foreign_key "transferencias", "cuentas_bancarias", column: "cuenta_bancaria_origen_id"
+  add_foreign_key "transferencias", "divisas"
+  add_foreign_key "transferencias", "users", column: "last_user_update_id"
+  add_foreign_key "transferencias", "users", column: "user_anulador_id"
+  add_foreign_key "transferencias", "users", column: "user_creador_id"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

@@ -1,0 +1,37 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cuenta_bancaria_origen: one
+  cuenta_bancaria_destino: one
+  user_creador: one
+  last_user_update: one
+  user_anulador: one
+  tipo: MyString
+  tasa: 1.5
+  monto: 1.5
+  monto_local: 1.5
+  comentario: MyString
+  nombre_banco_tercero: MyString
+  cuenta_bancaria_tercero: MyString
+  numero_referencia: MyString
+  fecha_equivalente: 2023-04-27
+  fecha_anulacion: 2023-04-27
+  estado: false
+
+two:
+  cuenta_bancaria_origen: two
+  cuenta_bancaria_destino: two
+  user_creador: two
+  last_user_update: two
+  user_anulador: two
+  tipo: MyString
+  tasa: 1.5
+  monto: 1.5
+  monto_local: 1.5
+  comentario: MyString
+  nombre_banco_tercero: MyString
+  cuenta_bancaria_tercero: MyString
+  numero_referencia: MyString
+  fecha_equivalente: 2023-04-27
+  fecha_anulacion: 2023-04-27
+  estado: false

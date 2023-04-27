@@ -25,7 +25,7 @@ class CuentaBancaria < ApplicationRecord
 
     banco                                          = Banco.find_by_id(params[:banco_id]) if banco.nil?
 
-    unless banco.nil?
+    unless banco.nil? || !banco.estado
       CuentaBancaria.transaction do
 
         cuenta_bancaria                            = CuentaBancaria.where(:id => params[:id]).first_or_create
@@ -59,7 +59,9 @@ class CuentaBancaria < ApplicationRecord
       end
 
     else
-      res.add_msg("El banco que seleccionó para crear esta cuanta, no existe o esta desabilitado.")
+
+      res.add_msg("El banco que seleccionó para crear esta cuanta, no existe.")         if banco.nil?
+      res.add_msg("El banco que seleccionó para crear esta cuanta, está desabilitado.") if !banco.nil? && !banco.estado
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

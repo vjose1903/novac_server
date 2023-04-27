@@ -34,7 +34,7 @@ class Divisa < ApplicationRecord
         }
 
         if res.status_valid && divisa.errors.empty? && (!is_save || (is_save && divisa.save!))
-          result_tasa             = TasaCambio.create_year_tasa_cambio(divisa) if params[:id].nil?
+          result_tasa             = TasaCambio.create_year_tasa_cambio(divisa, params[:current_tasa]) if params[:id].nil?
 
           res.set_data(serialize_parser(divisa, { all: true }))
 
@@ -72,7 +72,13 @@ class Divisa < ApplicationRecord
     return resultado
 
   end
+
   # =========================================================================================================================================================
+
+	def getMontoTasa(fecha)
+    current_tasa        = self.tasas_de_cambio.find_by({ fecha_equivalente: formatearFecha(fecha.to_s, TipoFecha.sin_hora) })
+		return current_tasa
+	end
 
 end
 1

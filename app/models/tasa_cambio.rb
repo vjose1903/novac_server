@@ -88,7 +88,7 @@ class TasaCambio < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def self.create_year_tasa_cambio(divisa)
+  def self.create_year_tasa_cambio(divisa, current_tasa=0 )
 
     res_valid   = Response.new
     array_valid = []
@@ -97,7 +97,7 @@ class TasaCambio < ApplicationRecord
     end_date    = Date.new(Date.today.year, 12, 31)
 
     (start_date..end_date).each do | date |
-      new_tasa_cambio = { divisa_id: divisa.id, valor: 0, fecha_equivalente: formatearFecha(date.to_s, TipoFecha.sin_hora) }.with_indifferent_access
+      new_tasa_cambio = { divisa_id: divisa.id, valor: current_tasa, fecha_equivalente: formatearFecha(date.to_s, TipoFecha.sin_hora) }.with_indifferent_access
       resultado       = TasaCambio.create_tasa_cambio(new_tasa_cambio, divisa, true)
 
       if resultado.status_valid

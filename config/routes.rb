@@ -223,6 +223,12 @@ Rails.application.routes.draw do
     end
   end
 
+	resources :transferencias do
+    collection do
+      delete "anular/:id"                   => "transferencias#anularTransferencia"
+    end
+  end
+
 
 
 

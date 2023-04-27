@@ -11,12 +11,17 @@ class DepositoSerializer < ActiveModel::Serializer
   attribute :estado,                   if: Proc.new { self.get_param('estado')                || self.get_param('all') }
 
   attribute :cuenta_bancaria,          if: Proc.new { self.get_param('cuenta_bancaria')       || self.get_param('all') }
+  attribute :divisa,                   if: Proc.new { self.get_param('divisa')                || self.get_param('all') }
   attribute :user_creador,             if: Proc.new { self.get_param('user_creador')          || self.get_param('all') }
-  attribute :user_anulador,            if: Proc.new { self.get_param('user_anulador')         || self.get_param('all') }
   attribute :last_user_update,         if: Proc.new { self.get_param('last_user_update')      || self.get_param('all') }
+  attribute :user_anulador,            if: Proc.new { self.get_param('user_anulador')         || self.get_param('all') }
 
   def cuenta_bancaria
     serialize_parser(object.cuenta_bancaria, { id: true, descripcion: true })
+  end
+
+  def divisa
+    serialize_parser(object.divisa, { id: true, nombre: true })
   end
 
   def user_creador
