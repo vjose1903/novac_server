@@ -1,5 +1,7 @@
 class TipoCuentaBancaria < ApplicationRecord
 
+	validates :descripcion,                presence: { :message => "Descripción del tipo de cuenta no puede estar vacia." },         uniqueness: { case_sensitive: false, :message => "Tipo de cuenta ya está registrada." }
+
   def self.create_update_tipo_cuenta(params, is_save=false)
     res                            = Response.new
 

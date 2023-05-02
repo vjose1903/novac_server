@@ -1,7 +1,7 @@
 class PeriodoFiscal < ApplicationRecord
   belongs_to :usuario_cerrador,     dependent: :destroy, class_name: 'User', optional: true
   has_one    :detalle_periodo_fiscal
-
+  has_one    :cierre_cuenta
 
   validates :fecha_inicio, presence: { :message => "Debe de especificar una fecha de inicio para el periodo fiscal." }
   validates :fecha_cierre, presence: { :message => "Debe de especificar una fecha de cierre para el periodo fiscal." }
@@ -9,7 +9,7 @@ class PeriodoFiscal < ApplicationRecord
   # ============================================================================================================================================
 
   def self.models_includes
-    includes = [:detalle_periodo_fiscal, :usuario_cerrador]
+    includes = [ :detalle_periodo_fiscal, :usuario_cerrador ]
     return includes
   end
 
@@ -56,7 +56,7 @@ class PeriodoFiscal < ApplicationRecord
 
     Mes.labels.keys.each do | month_number |
       current_month_number                                      = month_number.to_s.gsub("_", "").strip
-      detalle[:"#{Mes::Label.byNumber(current_month_number)}"]  = current_month_number.to_i == self.fecha_inicio.month
+      detalle[:"#{Mes::Label.byNumber(current_month_number)}"]  = nil
     end
 
     resultado = DetallePeriodoFiscal.create_update_detalle(detalle, self, false)
@@ -110,7 +110,7 @@ class PeriodoFiscal < ApplicationRecord
   # ============================================================================================================================================
 
   def self.get_open_period
-    return PeriodoFiscal.find_by({ estado: true })
+    return PeriodoFiscal.find_by({ estado: true, is_open: true })
   end
 
   # ============================================================================================================================================
@@ -123,6 +123,42 @@ class PeriodoFiscal < ApplicationRecord
 
     return is_open
   end
+
+  # =========================================================================================================================================================
+
+  def get_actual_open_month
+    actual_open_month = nil
+
+    self.detalle_periodo_fiscal.as_json.each do | key, value |
+      actual_open_month = key if "#{value}" == "true"
+    end
+
+    return actual_open_month
+  end
+
+
+  # =========================================================================================================================================================
+
+  def self.filtrar(filter_target, params)
+    res = Response.new(params)
+
+    periodos_fiscales = PeriodoFiscal
+    .where("( (periodos_fiscales.fecha_inicio between '#{(Date.parse filter_target).beginning_of_day}' AND '#{(Date.parse filter_target).end_of_day}' ) OR (periodos_fiscales.fecha_cierre between '#{(Date.parse filter_target).beginning_of_day}' AND '#{(Date.parse filter_target).end_of_day}' ) ) AND periodos_fiscales.estado = true")
+    .order('periodos_fiscales.id ASC')
+    .includes(PeriodoFiscal.models_includes)
+
+    if periodos_fiscales.length > 0
+      res.set_data(periodos_fiscales, { all: true }, PeriodoFiscal.models_includes)
+    else
+      res.set_data([])
+      cantidad_registros = PeriodoFiscal.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen periodos fiscales registrados.' : 'No existen periodos fiscales con las especificaciones introducidas.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+
 
 end
 

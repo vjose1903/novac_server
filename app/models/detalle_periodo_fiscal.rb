@@ -6,7 +6,7 @@ class DetallePeriodoFiscal < ApplicationRecord
   def self.create_update_detalle(params, padre, is_save=false)
     res                                       = Response.new
 
-    detalle_periodo_fiscal                    = DetallePeriodoFiscal.where(:id => params["id"]).first_or_create
+    detalle_periodo_fiscal                    = DetallePeriodoFiscal.where(:id => params[:id]).first_or_create
 
     detalle_periodo_fiscal.enero              = params[:enero]
     detalle_periodo_fiscal.febrero            = params[:febrero]
@@ -35,23 +35,4 @@ class DetallePeriodoFiscal < ApplicationRecord
     return res
   end
 
-  # ============================================================================================================================================
-
-  def self.validar_e_inicializar(items, padre, save)
-    res_valid = Response.new
-    array_valid=[]
-
-    items.each do |item|
-      res_temp = self.create_update_detalle(item, padre, !item[:id].nil?)
-
-      if res_temp.status_valid
-        array_valid.push(res_temp.get_data)
-      else
-        return res_temp
-      end
-    end
-
-    res_valid.set_data array_valid
-    return res_valid
-  end
 end

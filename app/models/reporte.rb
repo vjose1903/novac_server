@@ -141,7 +141,7 @@ class Reporte < ApplicationRecord
 
     # ---------------------------------------------------------------------------------------------------------
     def self.calcularCantidades(articulos)
-        array                         =[]
+        array                         = []
         plural                        = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Galon: 'Galones', Funda: 'Fundas', Producto: 'Productos' }
         articulos.each do |articulo|
             obj                       = articulo.attributes

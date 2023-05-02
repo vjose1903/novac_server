@@ -3,7 +3,16 @@ class PeriodosFiscalesController < ApplicationController
 
   # GET /periodos_fiscales
   def index
-    return Response.new(params, nil, PeriodoFiscal.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    if ( params[:filter_target].present? || !params[:filter_target].nil?)
+
+      resultado = PeriodoFiscal.filtrar(params[:filter_target], set_paginate_options(params))
+      resultado.send_response self
+
+    else
+
+      return Response.new(params, nil, PeriodoFiscal.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+
+    end
   end
 
   # GET /periodos_fiscales/1
@@ -33,7 +42,7 @@ class PeriodosFiscalesController < ApplicationController
   end
 
   def openNewPeriodo
-		resultado = PeriodoFiscal.open_new_periodo()
+    resultado = PeriodoFiscal.open_new_periodo()
     resultado.send_response self
   end
 

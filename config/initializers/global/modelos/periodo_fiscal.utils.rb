@@ -1,18 +1,20 @@
 module Mes
   # Numbers
 
-  ENERO           = 1
-  FEBRERO         = 2
-  MARZO           = 3
-  ABRIL           = 4
-  MAYO            = 5
-  JUNIO           = 6
-  JULIO           = 7
-  AGOSTO          = 8
-  SEPTIEMBRE      = 9
-  OCTUBRE         = 10
-  NOVIEMBRE       = 11
-  DICIEMBRE       = 12
+  NUMBERS = {
+    :enero           => 1,
+    :febrero         => 2,
+    :marzo           => 3,
+    :abril           => 4,
+    :mayo            => 5,
+    :junio           => 6,
+    :julio           => 7,
+    :agosto          => 8,
+    :septiembre      => 9,
+    :octubre         => 10,
+    :noviembre       => 11,
+    :diciembre       => 12,
+	}.with_indifferent_access
 
 
   # Labels
@@ -29,61 +31,70 @@ module Mes
     :_10_         => 'octubre',
     :_11_         => 'noviembre',
     :_12_         => 'diciembre'
-  }
+  }.with_indifferent_access
 
-	def self.labels
-		return LABELS
-	end
+  def self.numbers
+    return NUMBERS
+  end
+
+  def self.labels
+    return LABELS
+  end
 
   module Number
 
     def self.enero
-      return ENERO
+      return NUMBERS[:enero]
     end
 
     def self.febrero
-      return FEBRERO
+      return NUMBERS[:febrero]
     end
 
     def self.marzo
-      return MARZO
+      return NUMBERS[:marzo]
     end
 
     def self.abril
-      return ABRIL
+      return NUMBERS[:abril]
     end
 
     def self.mayo
-      return MAYO
+      return NUMBERS[:mayo]
     end
 
     def self.junio
-      return JUNIO
+      return NUMBERS[:junio]
     end
 
     def self.julio
-      return JULIO
+      return NUMBERS[:julio]
     end
 
     def self.agosto
-      return AGOSTO
+      return NUMBERS[:agosto]
     end
 
     def self.septiembre
-      return SEPTIEMBRE
+      return NUMBERS[:septiembre]
     end
 
     def self.octubre
-      return OCTUBRE
+      return NUMBERS[:octubre]
     end
 
     def self.noviembre
-      return NOVIEMBRE
+      return NUMBERS[:noviembre]
     end
 
     def self.diciembre
-      return DICIEMBRE
+      return NUMBERS[:diciembre]
     end
+
+    def self.byLabel(label)
+      return NUMBERS[:"#{label}"]
+    end
+
   end
 
   module Label

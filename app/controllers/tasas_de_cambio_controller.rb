@@ -1,5 +1,5 @@
 class TasasDeCambioController < ApplicationController
-  before_action :set_tasa_cambio, only: [ :show, :destroy ]
+  before_action :set_tasa_cambio, only: [ :show ]
 
   # GET /tasas_de_cambio
   def index
@@ -14,12 +14,6 @@ class TasasDeCambioController < ApplicationController
   # GET /tasas_de_cambio/custom/get_history_changes
   def getHistoryChanges
     resultado = TasaCambio.get_history_changes(params)
-    resultado.send_response self
-  end
-
-  # POST /tasas_de_cambio
-  def create
-    resultado = TasaCambio.create_tasa_cambio(params, nil, true)
     resultado.send_response self
   end
 
