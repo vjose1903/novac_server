@@ -3,11 +3,9 @@ class PeriodosFiscalesController < ApplicationController
 
   # GET /periodos_fiscales
   def index
-    if ( params[:filter_target].present? || !params[:filter_target].nil?)
-
+    if has_filter_target(params)
       resultado = PeriodoFiscal.filtrar(params[:filter_target], set_paginate_options(params))
       resultado.send_response self
-
     else
 
       return Response.new(params, nil, PeriodoFiscal.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self

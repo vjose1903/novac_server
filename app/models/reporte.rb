@@ -140,12 +140,12 @@ class Reporte < ApplicationRecord
     end
 
     # ---------------------------------------------------------------------------------------------------------
-    def self.calcularCantidades(articulos)
+    def self.getCantidades(articulos)
         array                         = []
         plural                        = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Galon: 'Galones', Funda: 'Fundas', Producto: 'Productos' }
         articulos.each do |articulo|
             obj                       = articulo.attributes
-            obj['cantidades']         = Articulo.calcularCantidades(articulo)
+            obj['cantidades']         = articulo.calcularCantidades
 
             cant                      = number_with_delimiter( ('%.2f' % obj['cantidades'][articulo['medida']]).gsub(',','.'))
 
@@ -160,7 +160,7 @@ class Reporte < ApplicationRecord
 
         inventario_temp    = []
         inventario_temp    = Articulo.all.where({estado: true}).order('nombre ASC').includes(Articulo.models_includes)
-        inventario_temp    = calcularCantidades(inventario_temp)
+        inventario_temp    = getCantidades(inventario_temp)
         cantidad_articulos = inventario_temp.length
         inventario         = inventario_temp.sort_by! { |item| item['nombre']}
 
@@ -459,7 +459,7 @@ class Reporte < ApplicationRecord
             detalle['total_vendido']         = df.total
             detalle['total_descuento']       = df.descuento_valor
             detalle['total_general']         = detalle['total_vendido'] - detalle['total_devuelto']
-            detalle['contenido']             = Articulo.calcularContenidos(df.articulo, false)
+            detalle['contenido']             = df.articulo.calcularContenidos(false)
 
             mostrar = calcular_cantidad_proporcional(detalle)
             detalle['vendido_mostrar']       = mostrar['vendido_mostrar']

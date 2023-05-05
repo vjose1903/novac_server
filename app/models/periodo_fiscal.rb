@@ -126,6 +126,19 @@ class PeriodoFiscal < ApplicationRecord
 
   # =========================================================================================================================================================
 
+  def get_first_null_month
+    actual_open_month = nil
+
+    self.detalle_periodo_fiscal.as_json.each do | key, value |
+      actual_open_month = key if value.nil?
+      break if value.nil?
+    end
+
+    return actual_open_month
+  end
+
+  # =========================================================================================================================================================
+
   def get_actual_open_month
     actual_open_month = nil
 
@@ -159,6 +172,56 @@ class PeriodoFiscal < ApplicationRecord
     return res
   end
 
+  # =========================================================================================================================================================
+
+  def get_next_prev_actual_month(params, type)
+
+    especificMonthObj            = nil
+    actual_open_month            = self.get_actual_open_month
+    actual_open_month_number     = Mes::Number.byLabel(actual_open_month)
+    months_labels_array          = Mes::NUMBERS.keys
+
+    first_null_month             = self.get_first_null_month
+
+    only_months                  = self.detalle_periodo_fiscal.as_json.slice(*months_labels_array)
+    are_all_month_equal          = only_months.values.uniq.length == 1 && only_months.values.uniq.first == params[:uniq_check_target]
+    some_month_open              = only_months.values.select { | month | month == true }
+    all_month_same               = only_months.values.uniq.length == 1
+
+    if ( type == 'next' && some_month_open.empty? && !all_month_same ) || ( type != 'next' && !actual_open_month.nil? && ( actual_open_month_number >= params[:init_index] && actual_open_month_number <= params[:last_index] ) ) || ( params[:check_actual_null] && actual_open_month.nil? && are_all_month_equal ) || ( type != 'actual' && actual_open_month.nil? && !all_month_same )
+
+      if params[:check_actual_null] && actual_open_month.nil? && are_all_month_equal
+        actual_open_month_number = params[:uniq_check_index]
+      end
+
+      if !first_null_month.nil? && actual_open_month.nil? && !are_all_month_equal && ( type == 'next' || type == 'prev' )
+
+        actual_open_month_number = ( Mes::Number.byLabel(first_null_month))
+        actual_open_month_number -= 1 if type == 'next'
+      end
+
+      especificMonthObj          = { label: Mes::Label.byNumber( eval("#{actual_open_month_number} #{params[:operador]} #{params[:value_to_eval]}") ), number: ( eval("#{actual_open_month_number} #{params[:operador]} #{params[:value_to_eval]}") ) }
+    end
+
+    return especificMonthObj
+
+  end
+  # =========================================================================================================================================================
+
+  def prev_month_open
+    params = { :uniq_check_target =>  false, :init_index => 2, :last_index =>  12, :check_actual_null =>  true, :uniq_check_index =>  13, :operador =>  "-", :value_to_eval => 1 }
+    return self.get_next_prev_actual_month(params, 'prev')
+  end
+
+  def actual_month_open
+    params = { :uniq_check_target =>  false, :init_index => 1, :last_index =>  12, :check_actual_null =>  false, :uniq_check_index =>  0, :operador =>  "+", :value_to_eval => 0 }
+    return self.get_next_prev_actual_month(params, 'actual')
+  end
+
+  def next_month_open
+    params = { :uniq_check_target =>  nil, :init_index => 1, :last_index =>  11, :check_actual_null =>  true, :uniq_check_index =>  0, :operador =>  "+", :value_to_eval => 1 }
+    return self.get_next_prev_actual_month(params, 'next')
+  end
 
 end
 

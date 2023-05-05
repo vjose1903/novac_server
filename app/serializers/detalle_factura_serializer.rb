@@ -73,7 +73,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
   end
 
   def contenidos
-    calcularContenidos(object.articulo, true)
+    object.articulo.calcularContenidos(true)
   end
 
   def articulo_estado
@@ -84,63 +84,8 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     costos()
   end
 
-
   def costos
-    obj = {}
-
-    obj["#{@articuloSelect.medida}"]            = {}
-    obj["#{@articuloSelect.medida}"]['costo']   = @articuloSelect.costo_principal
-    obj["#{@articuloSelect.medida}"]['precio']  = @articuloSelect.precio_principal
-
-    @articuloSelect.contenido_articulos.each do |conte|
-      obj["#{conte.medida}"]           = {}
-      obj["#{conte.medida}"]['costo']  = conte.costo
-      obj["#{conte.medida}"]['precio'] = conte.precio
-    end
-
-    if @articuloSelect.calcular_saco
-      [100, 50, 25].each do | peso |
-        obj["Saco_#{peso}"]              = {}
-        obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * obj['Quintal']['costo']
-        obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * obj['Quintal']['precio']
-      end
-    end
-
-    obj
-  end
-
-  def calcularContenidos(articulo, sacos)
-
-    contenido = articulo.contenido_articulos
-    contenidos = {}
-
-    if sacos && articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
-      [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c
-      end
-    end
-
-    articulo['medida']                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
-    contenidos[articulo["medida"]]         = contenido.length == 0 ? 1 : contenido.first["cantidad"]
-    contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
-
-
-    if contenido.length == 2
-
-      cantPrincipal = 1
-      cantHijo      = 1
-      cantPadre     = 1
-
-      contenido.each do |conte|
-        cantPrincipal *= conte["cantidad"]
-        cantPadre      = conte["cantidad"] if conte["referencia"] != nil
-      end
-
-      contenidos[articulo["medida"]]     = cantPrincipal
-      contenidos[contenido[0]["medida"]] = cantPadre
-      contenidos[contenido[1]["medida"]] = cantHijo
-    end
-    contenidos
+    @articuloSelect.costos
   end
 
 

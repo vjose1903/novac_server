@@ -62,103 +62,19 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def contenido
-    calcularContenidos(object, true)
+    object.calcularContenidos(true)
   end
 
   def cantidades
-    calcularCantidades(object)
+    object.calcularCantidades
   end
 
   def cuentas_contables
     serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true })
   end
 
-
-  def calcularContenidos(articulo, sacos)
-
-    contenidos = {}
-
-    if sacos && articulo['vendido_en'] == 'Saco' && articulo["calcular_saco"]
-      [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c
-      end
-    end
-
-    articulo['medida']                                      = articulo['medida'] == "N/A" || articulo['medida'] == nil ? object.tipo_articulo.tipo.titleize : articulo['medida']
-    contenidos[articulo['medida']]                          = object.contenido_articulos.length == 0 ? 1 : object.contenido_articulos.first['cantidad']
-    contenidos[object.contenido_articulos.first['medida']]  = 1 if object.contenido_articulos.length > 0
-
-
-    if object.contenido_articulos.length == 2
-
-      cantPrincipal  = 1
-      cantHijo       = 1
-      cantPadre      = 1
-
-      object.contenido_articulos.each do |conte|
-        cantPrincipal *= conte['cantidad']
-        cantPadre = conte['cantidad'] if conte['referencia'] != nil
-      end
-
-      contenidos[articulo['medida']]                      = cantPrincipal
-      contenidos[object.contenido_articulos[0]['medida']] = cantPadre
-      contenidos[object.contenido_articulos[1]['medida']] = cantHijo
-    end
-    contenidos
-  end
-
-  def calcularCantidades(articulo)
-
-    existencia = articulo['existencia'].nil? ? 0 : articulo['existencia']
-
-    cantidades = {}.with_indifferent_access
-
-    articulo['medida']                                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? object.tipo_articulo.tipo.titleize : articulo['medida']
-    cantidades[articulo['medida']]                         = object.contenido_articulos.length == 0 ? existencia : (existencia / object.contenido_articulos.first['cantidad'])
-    cantidades[object.contenido_articulos.first['medida']] = existencia if object.contenido_articulos.length > 0
-
-    if object.contenido_articulos.length == 2
-
-      maxCant   = 1
-      cantPadre = 1
-
-      object.contenido_articulos.each do |conte|
-        maxCant   = conte['cantidad'] * maxCant
-        cantPadre = conte['cantidad'] if conte['condicion'] == 'hijo'
-      end
-
-      cantidades[articulo['medida']]                      = (existencia / maxCant)
-      cantidades[object.contenido_articulos[0]['medida']] = (existencia / cantPadre)
-      cantidades[object.contenido_articulos[1]['medida']] = existencia
-    end
-
-    return cantidades
-  end
-
   def costos
-
-    obj = {}.with_indifferent_access
-
-    obj["#{object.medida}"]            = {}.with_indifferent_access
-    obj["#{object.medida}"]['costo']   = object.costo_principal
-    obj["#{object.medida}"]['precio']  = object.precio_principal
-
-    object.contenido_articulos.each do | conte |
-      obj["#{conte.medida}"]           = {}
-      obj["#{conte.medida}"]['costo']  = conte.costo
-      obj["#{conte.medida}"]['precio'] = conte.precio
-    end
-
-    if object.calcular_saco && ( obj['Quintal'].present? && !obj['Quintal'].nil?)
-      [100, 50, 25].each do | peso |
-
-        obj["Saco_#{peso}"]              = {}.with_indifferent_access
-        obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * obj['Quintal']['costo']
-        obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * obj['Quintal']['precio']
-      end
-    end
-
-    obj
+    object.costos
   end
 
   def getContentHistorico(tipo)

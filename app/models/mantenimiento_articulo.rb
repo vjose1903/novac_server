@@ -90,14 +90,12 @@ class MantenimientoArticulo < ApplicationRecord
     fecha_ultima_edicion_articulo   = calculateDateUTC(articulo["updated_at"])
 
     if fecha_factura_parsed >= fecha_ultima_edicion_articulo
-      # historico.push(Articulo.parseal(articulo))
       historico.push(articulo)
     else
       hist        = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, "<=", "DESC")
       hist        = get_historico_by_date_mayor_or_menor(fecha_factura_parsed, articulo_id, ">=", "ASC")   if hist.blank?
 
       if hist.blank?
-        # historico.push(Articulo.parseal(articulo))
         historico.push(articulo)
       else
         articulo  = crearArticuloHistorico(hist.first, articulo)

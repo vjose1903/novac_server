@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_27_132913) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_27_132943) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -325,7 +325,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_27_132913) do
   create_table "cuentas_contables", force: :cascade do |t|
     t.bigint "grupo_cuenta_id", null: false
     t.string "descripcion"
-    t.integer "cuenta_control"
     t.string "codigo"
     t.integer "nivel"
     t.string "origen"
@@ -334,6 +333,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_27_132913) do
     t.boolean "estado", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "cuenta_control_id"
     t.index ["grupo_cuenta_id"], name: "index_cuentas_contables_on_grupo_cuenta_id"
   end
 
@@ -1009,6 +1009,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_27_132913) do
   add_foreign_key "cuentas_bancarias", "cuentas_contables", column: "cuenta_contable_prima_id"
   add_foreign_key "cuentas_bancarias", "divisas"
   add_foreign_key "cuentas_bancarias", "tipo_cuentas_bancarias"
+  add_foreign_key "cuentas_contables", "cuentas_contables", column: "cuenta_control_id"
   add_foreign_key "cuentas_contables", "grupos_de_cuentas"
   add_foreign_key "depositos", "cuentas_bancarias"
   add_foreign_key "depositos", "divisas"

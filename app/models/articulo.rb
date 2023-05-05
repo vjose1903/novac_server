@@ -277,50 +277,21 @@ class Articulo < ApplicationRecord
     return res
   end
 
-  # =====================================================================================================================
-  def self.parseal(objeto)
+	# =====================================================================================================================
 
-    begin
-      att = objeto.attributes
-    rescue
-      att = objeto
-    end
+  def calcularContenidos(sacos = true)
 
-    att = att.first if att.kind_of?(Array)
-    id  = att['id']
-
-    att['contenido_articulos']           = ContenidoArticulo.where({ articulo_id: id })
-    att['formulas_productos_terminados'] = FormulasProductosTerminado.where({ articulo_id: id })
-
-    tipoArt            = TipoArticulo.find_by_id(objeto['tipo_articulo_id'])
-    att['descripcion'] = tipoArt['descripcion']
-    return att
-  end
-  # =====================================================================================================================
-  def self.parsealHistorico(objeto)
-
-    objeto['descripcion']              = objeto['descripcion']
-    objeto['contenido_articulos']      = objeto['contenido_articulos']
-
-    objeto['contenido']                = calcularContenidos(objeto)
-    objeto['cantidades']               = calcularCantidades(objeto)
-
-    return objeto
-  end
-
-  def self.calcularContenidos(articulo, sacos = true )
-
-    contenido = articulo.contenido_articulos
+    contenido = self.contenido_articulos
     contenidos = {}
 
-    if sacos && articulo['vendido_en'] == 'Saco' && articulo['calcular_saco']
+    if sacos && self['vendido_en'] == 'Saco' && self['calcular_saco']
       [100, 50, 25].each do |c|
         contenidos["Saco_#{c}"] = c
       end
     end
 
-    articulo['medida']                     = articulo['medida'] == 'N/A' || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
-    contenidos[articulo["medida"]]         = contenido.length == 0 ? 1 : contenido.first['cantidad']
+    self['medida']                         = self['medida'] == 'N/A' || self['medida'] == nil ? self.tipo_articulo.tipo.titleize : self['medida']
+    contenidos[self["medida"]]             = contenido.length == 0 ? 1 : contenido.first['cantidad']
     contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
 
     if contenido.length == 2
@@ -334,7 +305,7 @@ class Articulo < ApplicationRecord
         cantPadre      = conte['cantidad'] if conte['referencia'] != nil
       end
 
-      contenidos[articulo['medida']]     = cantPrincipal
+      contenidos[self['medida']]         = cantPrincipal
       contenidos[contenido[0]['medida']] = cantPadre
       contenidos[contenido[1]['medida']] = cantHijo
     end
@@ -355,15 +326,40 @@ class Articulo < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.calcularCantidades(articulo)
-    contenido = articulo.contenido_articulos
 
-    existencia = articulo['existencia'].nil? ? 0 : articulo['existencia']
+	def costos
+    obj = {}
 
+    obj["#{self.medida}"]              = {}
+    obj["#{self.medida}"]['costo']     = self.costo_principal
+    obj["#{self.medida}"]['precio']    = self.precio_principal
+
+    self.contenido_articulos.each do |conte|
+      obj["#{conte.medida}"]           = {}
+      obj["#{conte.medida}"]['costo']  = conte.costo
+      obj["#{conte.medida}"]['precio'] = conte.precio
+    end
+
+    if self.calcular_saco
+      [100, 50, 25].each do | peso |
+        obj["Saco_#{peso}"]            = {}
+        obj["Saco_#{peso}"]['costo']   = (peso / 100.to_f) * obj['Quintal']['costo']
+        obj["Saco_#{peso}"]['precio']  = (peso / 100.to_f) * obj['Quintal']['precio']
+      end
+    end
+
+    obj
+  end
+
+  # =====================================================================================================================
+
+  def calcularCantidades
+    contenido  = self.contenido_articulos
+    existencia = self['existencia'].nil? ? 0 : self['existencia']
     cantidades = {}
 
-    articulo['medida']                     = articulo['medida'] == 'N/A' || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
-    cantidades[articulo['medida']]         = contenido.length == 0 ? existencia : (existencia / contenido.first['cantidad'])
+    self['medida']                         = self['medida'] == 'N/A' || self['medida'] == nil ? self.tipo_articulo.tipo.titleize : self['medida']
+    cantidades[self['medida']]             = contenido.length == 0 ? existencia : (existencia / contenido.first['cantidad'])
     cantidades[contenido.first['medida']]  = existencia if contenido.length > 0
 
     if contenido.length == 2
@@ -376,7 +372,7 @@ class Articulo < ApplicationRecord
         cantPadre = conte['cantidad'] if conte['condicion'] == 'hijo'
       end
 
-      cantidades[articulo['medida']]     = (existencia / maxCant)
+      cantidades[self['medida']]         = (existencia / maxCant)
       cantidades[contenido[0]['medida']] = (existencia / cantPadre)
       cantidades[contenido[1]['medida']] = existencia
     end

@@ -318,49 +318,6 @@ def recalcular_cantidad_en_undidades
   return nil
 end
 
-
-
-def calcularContenidos(articulo )
-
-  contenido = articulo["contenido_articulos"]
-  contenidos = {}
-
-  if articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
-    [100, 50, 25].each do |c|
-      contenidos["Saco_#{c}"] = c
-    end
-  end
-
-  articulo['medida']                          = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo['tipo_articulo'].tipo.titleize : articulo['medida']
-
-  contenidos[articulo["medida"]]              = contenido.to_a.length == 0 ? 1 : contenido.to_a.first["cantidad"]
-
-  if contenido.to_a.length > 0
-
-  else
-  end
-
-  contenidos[contenido.to_a.first["medida"]]  = 1 if contenido.to_a.length > 0
-
-
-  if contenido.to_a.length == 2
-
-    cantPrincipal = 1
-    cantHijo      = 1
-    cantPadre     = 1
-
-    contenido.to_a.each do |conte|
-      cantPrincipal *= conte["cantidad"]
-      cantPadre      = conte["cantidad"] if conte["referencia"] != nil
-    end
-
-    contenidos[articulo["medida"]]          = cantPrincipal
-    contenidos[contenido.to_a[0]["medida"]] = cantPadre
-    contenidos[contenido.to_a[1]["medida"]] = cantHijo
-  end
-  contenidos
-end
-
 def parse_unidad_saco(unidad, articulo)
   unidad_split  = unidad.split(" ")
   if articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
@@ -412,7 +369,7 @@ def edit_cantidad_unidades
   detalles = DetalleFactura.all.where("detalle_facturas.cantidad = detalle_facturas.cantidad_en_unidades AND detalle_facturas.unidad not in ('Libra', 'Unidad') ").includes([ articulo: [:contenido_articulos] ])
   detalles.each do | detalle |
     contenido            = detalle.articulo.contenido_articulos
-    contenidos           = Articulo.calcularContenidos(detalle.articulo)
+    contenidos           = detalle.articulo.calcularContenidos(true)
     unidad_vendida       = detalle.unidad
     unidad_vendida_split = detalle.unidad.split(' ')
 

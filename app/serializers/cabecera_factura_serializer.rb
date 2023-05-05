@@ -57,7 +57,6 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
   def cliente
 
-		puts "object.cliente_id.nil? ".red  + " #{ object.cliente_id.nil? }"
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre

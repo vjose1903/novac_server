@@ -166,6 +166,10 @@ def set_entidad(modelo, params, models_includes= nil, key='id')
 end
 
 # ---------------------------------------------------------------------------------------------------------
+def has_filter_target(params)
+	return params[:filter_target].present? && !params[:filter_target].nil? && params[:filter_target].strip != ''
+end
+	# ---------------------------------------------------------------------------------------------------------
 
 def traducir(key, others=nil)
   others_tem = {}

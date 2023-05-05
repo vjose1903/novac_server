@@ -4,8 +4,16 @@ class CuentasContablesController < ApplicationController
 
   # GET /cuentas_contables
   def index
-    cuentas = CuentaContable.all.where({ estado: true}).order('codigo ASC')
-    return Response.new(params, nil, CatalogoCuenta::CuentaContable.iterator(cuentas), nil).send_response self
+		puts " "
+		puts "has_filter_target(params) ===> ".yellow + " #{has_filter_target(params)}"
+		puts " "
+    if has_filter_target(params)
+      resultado = CuentaContable.filtrar(params[:filter_target])
+      resultado.send_response self
+    else
+      cuentas   = CuentaContable.all.where({ estado: true}).order('codigo ASC').includes(CuentaContable.models_includes)
+      return Response.new(params, nil, CatalogoCuenta::CuentaContable.iterator(cuentas), nil).send_response self
+    end
   end
 
   # GET /cuentas_contables/1
@@ -14,7 +22,7 @@ class CuentasContablesController < ApplicationController
   end
 
   def crear_actualizar_cuenta_contable
-    res          = CuentaContable.create_update_cuenta_contable(params, nil, true)
+    res = CuentaContable.create_update_cuenta_contable(params, nil, true)
     res.send_response self
   end
 
