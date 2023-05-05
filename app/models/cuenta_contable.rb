@@ -1,6 +1,6 @@
 class CuentaContable < ApplicationRecord
   belongs_to :grupo_cuenta
-	belongs_to :cuenta_control,   class_name: 'CuentaContable', optional: true
+  belongs_to :cuenta_control,   class_name: 'CuentaContable', optional: true
 
   attribute :cuentas_contables
 
@@ -13,7 +13,7 @@ class CuentaContable < ApplicationRecord
     includes = [ :cuenta_control, :grupo_cuenta ]
     return includes
   end
-	# ============================================================================================================================================
+  # ============================================================================================================================================
 
   def otras_validaciones(params, grupo_cuenta)
 
@@ -30,38 +30,30 @@ class CuentaContable < ApplicationRecord
 
   def self.filtrar(filter_target)
     res                   = Response.new
-    all_cuentas           = CuentaContable.all.where({ estado: true}).order('codigo ASC')
+    all_cuentas           = CuentaContable.all.where({ estado: true}).order('codigo ASC').includes(CuentaContable.models_includes)
 
-		fathers_tree          = []
-    temp_cuentas_filtered = all_cuentas.select { | cuenta | (cuenta.descripcion.downcase.include? filter_target.downcase) || (cuenta.codigo.downcase.include? filter_target.downcase) }
-		puts "temp_cuentas_filtered ".red  + " #{temp_cuentas_filtered.to_json}"
+    fathers_tree          = []
+    cuentas_selected = all_cuentas.select { | cuenta | (cuenta.descripcion.downcase.include? filter_target.downcase) || (cuenta.codigo.downcase.include? filter_target.downcase) }
 
-		temp_cuentas_filtered.each do | cuenta_filtered |
-			puts "cuenta_filtered --> ".green + " #{cuenta_filtered.to_json}"
-			puts "cuenta_filtered.cuenta_control --> ".red + " #{cuenta_filtered.cuenta_control}"
+    cuentas_selected.uniq.each do | cuenta_filtered |
 
-			CuentaContable.get_fathers_tree(fathers_tree, cuenta_filtered) if (!fathers_tree.my_includes_obj('id', cuenta_filtered.cuenta_control_id) && !temp_cuentas_filtered.my_includes_obj('id', cuenta_filtered.cuenta_control_id))
+			puts "cuenta_filtered --> ".red + " #{cuenta_filtered.to_json}"
 
-		end
 
-    cuentas_filtered      = [*cuentas_nivel_1, *temp_cuentas_filtered]
-    puts "cuentas_filtered ".red  + " #{cuentas_filtered.to_json}"
+      CuentaContable.get_fathers_tree(fathers_tree, cuenta_filtered.cuenta_control)
+    end
+    cuentas_filtered      = [*fathers_tree, *cuentas_selected]
 
-    puts " "
-    puts " "
-    puts " "
-    puts " "
-    puts " "
-    puts " "
-    puts " "
-    puts " ======== " * 10
+    cuentas_filtered      = cuentas_filtered.select { | cuenta | !cuenta.nil? }
+
+		cuentas_filtered = cuentas_filtered.sort_by! { | item | item.codigo }
 
 
     if !cuentas_filtered.empty? && cuentas_filtered.length > 0
-      puts "ENTROOOO ".yellow
-      cuentas_filtered_parsed = CatalogoCuenta::CuentaContable.iterator( all_cuentas, cuentas_filtered )
-      puts "cuentas_filtered_parsed ".magenta
-      puts pretty_json(cuentas_filtered_parsed)
+      # puts "ENTROOOO ".yellow
+      cuentas_filtered_parsed = CatalogoCuenta::CuentaContable.iterator( cuentas_filtered.uniq )
+      # puts "cuentas_filtered_parsed ".magenta
+      # puts pretty_json(cuentas_filtered_parsed)
 
       res.set_data(cuentas_filtered_parsed)
     else
@@ -74,9 +66,19 @@ class CuentaContable < ApplicationRecord
   end
 
   # ============================================================================================================================================
-	def self.get_fathers_tree(fathers_tree, current_cuenta)
+  def self.get_fathers_tree(fathers_tree, current_cuenta, index_padre = 0)
+			# TODO: revisar por que no esta entrando la cuenta 203 filtrando por : alcacho
+			cuenta_is_pushed = fathers_tree.any? { |item| item.id == current_cuenta.cuenta_control_id}
+      puts "padre (#{index_padre})   -  current_cuenta.cuenta_control --> ".cyan +  "#{current_cuenta.to_json}"
 
-	end
+      fathers_tree.push(current_cuenta) if !cuenta_is_pushed && !current_cuenta.nil?
+
+			unless current_cuenta.cuenta_control_id.nil?
+				index_padre +=1
+      	CuentaContable.get_fathers_tree(fathers_tree, current_cuenta.cuenta_control, index_padre)
+			end
+
+  end
   # ============================================================================================================================================
 
   def self.create_update_cuenta_contable(params, grupo_cuenta, is_save=false)

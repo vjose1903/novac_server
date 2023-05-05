@@ -341,7 +341,15 @@ class Array
   end
 
   def my_includes_obj(key, value)
-    return  self.any? { |item| item[key] == value }
+    return  self.any? do  |item|
+			res = false
+			begin
+				res = "#{item[key]}" == "#{value}"
+			rescue => exception
+				res = "#{item.attributes[key]}" == "#{value}"
+			end
+			return res
+		end
   end
 
   def get_order

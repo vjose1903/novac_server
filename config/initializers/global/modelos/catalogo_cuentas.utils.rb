@@ -26,12 +26,12 @@ module CatalogoCuenta
 
   module CuentaContable
 
-    def self.iterator( all_cuentas, cuentas_filtered=nil )
+    def self.iterator( all_cuentas )
       cuentas_parsed = []
-      array_cuentas  = cuentas_filtered.nil? ? all_cuentas : cuentas_filtered
 
-      array_cuentas.each do | cuenta |
-        arreglo_sin_cuenta_actual     = all_cuentas.filter { | item | item.codigo != cuenta.codigo }
+      all_cuentas.each do | cuenta |
+
+        arreglo_sin_cuenta_actual     = all_cuentas.select { | item | item.codigo != cuenta.codigo }
         padre                         = obtener_padre(arreglo_sin_cuenta_actual, cuenta)
 
         unless padre.nil?
@@ -44,12 +44,6 @@ module CatalogoCuenta
       end
 
       return cuentas_parsed
-    end
-
-    # =======================================================================================================================================
-
-    def self.get_fathers_tree()
-
     end
 
     # =======================================================================================================================================
