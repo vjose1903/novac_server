@@ -4,11 +4,9 @@ class CuentasContablesController < ApplicationController
 
   # GET /cuentas_contables
   def index
-		puts " "
-		puts "has_filter_target(params) ===> ".yellow + " #{has_filter_target(params)}"
-		puts " "
+
     if has_filter_target(params)
-      resultado = CuentaContable.filtrar(params[:filter_target])
+      resultado = CuentaContable.filtrar(params)
       resultado.send_response self
     else
       cuentas   = CuentaContable.all.where({ estado: true}).order('codigo ASC').includes(CuentaContable.models_includes)

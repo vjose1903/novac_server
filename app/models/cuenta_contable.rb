@@ -10,9 +10,10 @@ class CuentaContable < ApplicationRecord
   # ============================================================================================================================================
 
   def self.models_includes
-    includes = [ :cuenta_control, :grupo_cuenta ]
+    includes = [ :grupo_cuenta, :cuenta_control ]
     return includes
   end
+
   # ============================================================================================================================================
 
   def otras_validaciones(params, grupo_cuenta)
@@ -28,32 +29,24 @@ class CuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def self.filtrar(filter_target)
+  def self.filtrar( params )
+
     res                   = Response.new
-    all_cuentas           = CuentaContable.all.where({ estado: true}).order('codigo ASC').includes(CuentaContable.models_includes)
+    all_cuentas           = CuentaContable.all.where({ estado: true }).order('codigo ASC').includes(CuentaContable.models_includes)
+    filter_target         = params[:filter_target]
+    include_fathers_tree  = params[:include_fathers_tree].to_boolean
 
     fathers_tree          = []
-    cuentas_selected = all_cuentas.select { | cuenta | (cuenta.descripcion.downcase.include? filter_target.downcase) || (cuenta.codigo.downcase.include? filter_target.downcase) }
+    cuentas_selected      = all_cuentas.select { | cuenta | (cuenta.descripcion.downcase.include? filter_target.downcase) || (cuenta.codigo.downcase.include? filter_target.downcase) }
 
-    cuentas_selected.uniq.each do | cuenta_filtered |
+    cuentas_selected.uniq.each {  | cuenta_filtered | CuentaContable.get_fathers_tree(fathers_tree, cuenta_filtered.cuenta_control) unless cuenta_filtered.cuenta_control_id.nil? } if include_fathers_tree
 
-			puts "cuenta_filtered --> ".red + " #{cuenta_filtered.to_json}"
-
-
-      CuentaContable.get_fathers_tree(fathers_tree, cuenta_filtered.cuenta_control)
-    end
     cuentas_filtered      = [*fathers_tree, *cuentas_selected]
 
-    cuentas_filtered      = cuentas_filtered.select { | cuenta | !cuenta.nil? }
-
-		cuentas_filtered = cuentas_filtered.sort_by! { | item | item.codigo }
-
+    cuentas_filtered      = cuentas_filtered.select { | cuenta | !cuenta.nil? }.sort_by! { | item | item.codigo }
 
     if !cuentas_filtered.empty? && cuentas_filtered.length > 0
-      # puts "ENTROOOO ".yellow
       cuentas_filtered_parsed = CatalogoCuenta::CuentaContable.iterator( cuentas_filtered.uniq )
-      # puts "cuentas_filtered_parsed ".magenta
-      # puts pretty_json(cuentas_filtered_parsed)
 
       res.set_data(cuentas_filtered_parsed)
     else
@@ -66,18 +59,13 @@ class CuentaContable < ApplicationRecord
   end
 
   # ============================================================================================================================================
-  def self.get_fathers_tree(fathers_tree, current_cuenta, index_padre = 0)
-			# TODO: revisar por que no esta entrando la cuenta 203 filtrando por : alcacho
-			cuenta_is_pushed = fathers_tree.any? { |item| item.id == current_cuenta.cuenta_control_id}
-      puts "padre (#{index_padre})   -  current_cuenta.cuenta_control --> ".cyan +  "#{current_cuenta.to_json}"
+  def self.get_fathers_tree(fathers_tree, current_cuenta)
+
+      cuenta_is_pushed = current_cuenta.nil? ? true : fathers_tree.any? { |item| item.id == current_cuenta.id}
 
       fathers_tree.push(current_cuenta) if !cuenta_is_pushed && !current_cuenta.nil?
 
-			unless current_cuenta.cuenta_control_id.nil?
-				index_padre +=1
-      	CuentaContable.get_fathers_tree(fathers_tree, current_cuenta.cuenta_control, index_padre)
-			end
-
+      CuentaContable.get_fathers_tree(fathers_tree, current_cuenta.cuenta_control) unless current_cuenta.cuenta_control_id.nil?
   end
   # ============================================================================================================================================
 
