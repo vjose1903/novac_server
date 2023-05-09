@@ -20,7 +20,7 @@ class MovimientosInventario < ApplicationRecord
 				if operador == "-" # --------- SALIDA ---------
 
 					if mov < 0
-						res.add_msg("Cantidad introducida para el articulo << #{articulo.nombre.titleize} >> excede la cantidad disponible en inventario. ")
+						res.add_msg("Cantidad introducida para el articulo << #{articulo.nombre.capitalize} >> excede la cantidad disponible en inventario. ")
 						res.set_status(HTTP_STATUS_CODE[:conflict])
 						return res
 					end

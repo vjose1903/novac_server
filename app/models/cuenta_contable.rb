@@ -16,7 +16,7 @@ class CuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def otras_validaciones(params, grupo_cuenta)
+  def otras_validaciones(params, grupo_cuenta, cuenta_contable_original)
 
     unless self.is_control
       cuenta_control          = CuentaContable.find_by({id: self.cuenta_control_id, estado: true})
@@ -25,16 +25,26 @@ class CuentaContable < ApplicationRecord
       self.errors.add(:base, "El tipo de la cuenta no puede ser distinto al de su cuenta control.")   if cuenta_control.tipo   != self.tipo
     end
 
+    if !self.id.nil? && cuenta_contable_original[:is_control] != self.is_control
+      cuentas_contables = CuentaContable.where({cuenta_control_id: self.id})
+
+      if !cuentas_contables.empty?
+        msg = params[:is_control] ? "No se puede cambiar a una cuenta control, por que la cuenta: #{cuenta_contable_original[:descripcion]}, ya tiene cuentas auxiliares." : "No se puede cambiar a una cuenta auxiliar, por que la cuenta: #{cuenta_contable_original[:descripcion]}, ya tiene cuentas auxiliares."
+        self.errors.add(:base, msg)
+      end
+    end
+
+
   end
 
   # ============================================================================================================================================
 
-  def self.filtrar( params )
+  def self.filtrar( params, parametros_opcionales={} )
 
     res                   = Response.new
     all_cuentas           = CuentaContable.all.where({ estado: true }).order('codigo ASC').includes(CuentaContable.models_includes)
     filter_target         = params[:filter_target]
-    include_fathers_tree  = params[:include_fathers_tree].to_boolean
+    include_fathers_tree  = params[:include_fathers_tree].present? ? params[:include_fathers_tree].to_boolean : false
 
     fathers_tree          = []
     cuentas_selected      = all_cuentas.select { | cuenta | (cuenta.descripcion.downcase.include? filter_target.downcase) || (cuenta.codigo.downcase.include? filter_target.downcase) }
@@ -46,7 +56,7 @@ class CuentaContable < ApplicationRecord
     cuentas_filtered      = cuentas_filtered.select { | cuenta | !cuenta.nil? }.sort_by! { | item | item.codigo }
 
     if !cuentas_filtered.empty? && cuentas_filtered.length > 0
-      cuentas_filtered_parsed = CatalogoCuenta::CuentaContable.iterator( cuentas_filtered.uniq )
+      cuentas_filtered_parsed = CatalogoCuenta::CuentaContable.iterator( cuentas_filtered.uniq, parametros_opcionales )
 
       res.set_data(cuentas_filtered_parsed)
     else
@@ -75,31 +85,36 @@ class CuentaContable < ApplicationRecord
     grupo_cuenta                         = GrupoCuenta.find_by_id(params[:grupo_cuenta_id]) if grupo_cuenta.nil?
 
     unless grupo_cuenta.nil?
+      CuentaContable.transaction do
+        cuenta_contable                    = CuentaContable.where(:id => params[:id]).first_or_create
+        cuenta_contable_original           = cuenta_contable.attributes.with_indifferent_access
 
-      cuenta_contable                    = CuentaContable.where(:id => params[:id]).first_or_create
+        params[:descripcion]               = params[:descripcion].upcase   if params[:is_control]
+        params[:descripcion]               = params[:descripcion].capitalize if !params[:is_control]
 
-      params[:descripcion]               = params[:descripcion].upcase if params[:is_control]
+        cuenta_contable.grupo_cuenta_id    = params[:grupo_cuenta_id]
+        cuenta_contable.descripcion        = params[:descripcion]
+        cuenta_contable.cuenta_control_id  = params[:cuenta_control_id]
+        cuenta_contable.origen             = params[:origen]
+        cuenta_contable.tipo               = params[:tipo]
+        cuenta_contable.is_control         = params[:is_control]
 
-      cuenta_contable.grupo_cuenta_id    = params[:grupo_cuenta_id]
-      cuenta_contable.descripcion        = params[:descripcion]
-      cuenta_contable.cuenta_control_id  = params[:cuenta_control_id]
-      cuenta_contable.origen             = params[:origen]
-      cuenta_contable.tipo               = params[:tipo]
-      cuenta_contable.is_control         = params[:is_control]
+        result_procesos                    = cuenta_contable.procesos_cuentas(grupo_cuenta, params)
 
-      result_procesos                    = cuenta_contable.procesos_cuentas(grupo_cuenta)
+        cuenta_contable.valid?
+        cuenta_contable.otras_validaciones(params, grupo_cuenta, cuenta_contable_original)
 
-      cuenta_contable.valid?
-      cuenta_contable.otras_validaciones(params, grupo_cuenta)
+        cuenta_contable.errors.delete(:grupo_cuenta) if !is_save
 
-      cuenta_contable.errors.delete(:grupo_cuenta) if !is_save
+        if result_procesos.status_valid && cuenta_contable.errors.empty? && (!is_save || (is_save && cuenta_contable.save!))
+          res.set_data(cuenta_contable)
+        else
+          res.add_msgs(result_procesos.get_msgs.to_a)
+          res.add_msgs(cuenta_contable.errors.to_a)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
 
-      if result_procesos.status_valid && cuenta_contable.errors.empty? && (!is_save || (is_save && cuenta_contable.save!))
-        res.set_data(cuenta_contable)
-      else
-        res.add_msgs(result_procesos.get_msgs.to_a)
-        res.add_msgs(cuenta_contable.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        transaction_rollback if !cuenta_contable.errors.empty? || !res.status_valid
       end
 
     else
@@ -112,22 +127,25 @@ class CuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def procesos_cuentas(grupo_cuenta)
+  def procesos_cuentas(grupo_cuenta, params)
     res = Response.new
-    cuenta_control                   = CuentaContable.find_by({id: self.cuenta_control_id, estado: true}) || nil
-    result_next_codigo               = CuentaContable.get_next_cuenta_codigo(self, grupo_cuenta, cuenta_control)
-    result_next_nivel                = CuentaContable.get_next_cuenta_nivel(self, cuenta_control)
+
+    if params[:action] == 'create'
+      cuenta_control                   = CuentaContable.find_by({id: self.cuenta_control_id, estado: true}) || nil
+      result_next_codigo               = CuentaContable.get_next_cuenta_codigo(self, grupo_cuenta, cuenta_control)
+      result_next_nivel                = CuentaContable.get_next_cuenta_nivel(self, cuenta_control)
 
 
-    if result_next_codigo.status_valid && result_next_nivel.status_valid
-      self.codigo         = result_next_codigo.get_data
-      self.nivel          = result_next_nivel.get_data
+      if result_next_codigo.status_valid && result_next_nivel.status_valid
+        self.codigo         = result_next_codigo.get_data
+        self.nivel          = result_next_nivel.get_data
 
-    else
-      res.add_msgs(result_next_codigo.get_msgs.to_a)
-      res.add_msgs(result_next_nivel.get_msgs.to_a)
+      else
+        res.add_msgs(result_next_codigo.get_msgs.to_a)
+        res.add_msgs(result_next_nivel.get_msgs.to_a)
 
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
     end
 
     return res
@@ -173,9 +191,46 @@ class CuentaContable < ApplicationRecord
     unless next_codigo.nil?
       res.set_data(next_codigo)
     else
-      res.add_msg("Error creando el codigo para la cuenta contable: #{cuenta_contable.descripcion}")
+      res.add_msg("Error creando el codigo para la cuenta contable: #{cuenta_contable.descripcion}.")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
+
+    return res
+  end
+
+  # ============================================================================================================================================
+
+  def deactivate_or_reactivate(params, skip_condition=false)
+    res         = Response.new
+
+    if  self.cuenta_control.estado || skip_condition
+
+      self.estado = params[:status].to_boolean
+
+      if self.save!
+        cuentas_contables = CuentaContable.where({cuenta_control_id: self.id})
+
+        cuentas_contables.each do | cuenta_contable |
+          cuenta_contable.deactivate_or_reactivate(params, true) if cuenta_contable.estado != params[:status].to_boolean
+        end
+
+        action = params[:status].to_boolean ? 'reactivada' : 'desactivada'
+
+        res.add_msg("cuenta contable: #{self.descripcion}, #{!cuentas_contables.empty? ? "y sus cuentas auxiliares #{action}s" : action}  correctamente.")
+      else
+        res.add_msg("Error desactivando la cuenta contable: #{self.descripcion}.")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+    else
+
+      action = params[:status].to_boolean ? 'reactivar' : 'desactivar'
+
+      res.add_msg("No puede #{action} esta cuenta, por que su cuenta control esta desactivada.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+
+    end
+
 
     return res
   end

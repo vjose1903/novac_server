@@ -27,7 +27,7 @@ Rails.application.routes.draw do
   resources :acciones
   resources :config_articulos
   resources :grupos_de_cuentas
-  resources :cuentas_contables
+
   resources :configuraciones_entidades_cuentas
   resources :divisas
   resources :tipo_cuentas_bancarias
@@ -226,6 +226,12 @@ Rails.application.routes.draw do
 	resources :transferencias do
     collection do
       delete "anular/:id"                   => "transferencias#anularTransferencia"
+    end
+  end
+
+	resources :cuentas_contables do
+    collection do
+      patch ":id/deactivate_or_reactivate"     => "cuentas_contables#deactivateOrReactivate"
     end
   end
 

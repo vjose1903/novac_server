@@ -408,7 +408,6 @@ G_CATALOGO_DEFAULT = [
       { descripcion: "EFECTIVO EN CAJA",                                    is_control: true, origen: "D", tipo: "R" },
       { descripcion: "EFECTIVO EN BANCO MONEDA NACIONAL",                   is_control: true, origen: "D", tipo: "R" },
       { descripcion: "EFECTIVO EN BANCO MONEDA EXTRANJERA",                 is_control: true, origen: "D", tipo: "R" },
-      { descripcion: "TRANSFERENCIAS NOMINA",                               is_control: true, origen: "D", tipo: "R" },
     ]},
     { descripcion: "CUENTAS POR COBRAR",                           is_control: true, origen: "D", tipo: "R", cuentas_contables: [
       { descripcion: "CUENTAS POR COBRAR CLIENTES",                         is_control: true, origen: "D", tipo: "R" },

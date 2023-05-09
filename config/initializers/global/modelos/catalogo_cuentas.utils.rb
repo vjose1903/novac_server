@@ -26,7 +26,7 @@ module CatalogoCuenta
 
   module CuentaContable
 
-    def self.iterator( all_cuentas )
+    def self.iterator( all_cuentas, parametros_opcionales={} )
       cuentas_parsed = []
 
       all_cuentas.each do | cuenta |
@@ -36,9 +36,9 @@ module CatalogoCuenta
 
         unless padre.nil?
           padre.cuentas_contables     = [] if padre.cuentas_contables.nil?
-          padre.cuentas_contables.push(serialize_parser(cuenta, { all: true }))
+          padre.cuentas_contables.push(serialize_parser(cuenta, { all: true, **parametros_opcionales }))
         else
-          cuentas_parsed.push(serialize_parser(cuenta, { all: true }))
+          cuentas_parsed.push(serialize_parser(cuenta, { all: true, **parametros_opcionales }))
         end
 
       end

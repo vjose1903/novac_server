@@ -290,7 +290,7 @@ class Articulo < ApplicationRecord
       end
     end
 
-    self['medida']                         = self['medida'] == 'N/A' || self['medida'] == nil ? self.tipo_articulo.tipo.titleize : self['medida']
+    self['medida']                         = self['medida'] == 'N/A' || self['medida'] == nil ? self.tipo_articulo.tipo.capitalize : self['medida']
     contenidos[self["medida"]]             = contenido.length == 0 ? 1 : contenido.first['cantidad']
     contenidos[contenido.first["medida"]]  = 1 if contenido.length > 0
 
@@ -358,7 +358,7 @@ class Articulo < ApplicationRecord
     existencia = self['existencia'].nil? ? 0 : self['existencia']
     cantidades = {}
 
-    self['medida']                         = self['medida'] == 'N/A' || self['medida'] == nil ? self.tipo_articulo.tipo.titleize : self['medida']
+    self['medida']                         = self['medida'] == 'N/A' || self['medida'] == nil ? self.tipo_articulo.tipo.capitalize : self['medida']
     cantidades[self['medida']]             = contenido.length == 0 ? existencia : (existencia / contenido.first['cantidad'])
     cantidades[contenido.first['medida']]  = existencia if contenido.length > 0
 

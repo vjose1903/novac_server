@@ -48,7 +48,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
 
   def tipo_factura
-    object.tipo_factura.descripcion.titleize
+    object.tipo_factura.descripcion.capitalize
   end
 
   def detalle_facturas

@@ -42,7 +42,7 @@ class NotaSerializer < ActiveModel::Serializer
   end
 
 	def tipo_factura
-    object.tipo_factura.descripcion.titleize
+    object.tipo_factura.descripcion.capitalize
   end
 
 	def facturas_aplicadas
