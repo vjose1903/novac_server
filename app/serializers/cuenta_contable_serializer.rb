@@ -11,9 +11,10 @@ class CuentaContableSerializer < ActiveModel::Serializer
   attribute :estado,                 if: Proc.new {  self.get_param('estado')                  || self.get_param('all') }
   attribute :tipo,                   if: Proc.new {  self.get_param('tipo')                    || self.get_param('all') }
 
-  attribute :cuentas_contables,      if: Proc.new { (self.get_param('cuentas_contables')       || self.get_param('all') ) && !object.cuentas_contables.nil? }
-  attribute :cuenta_control,         if: Proc.new {  self.get_param('cuenta_control')                                     && !object.cuenta_control.nil? }
   attribute :cuenta_control_id,      if: Proc.new {  self.get_param('cuenta_control_id') }
+  attribute :cuentas_contables,      if: Proc.new {  self.get_param('cuentas_contables')                                  && !object.cuentas_contables.nil? }
+  attribute :cuenta_control,         if: Proc.new {  self.get_param('cuenta_control')                                     && !object.cuenta_control.nil? }
+  attribute :label,                  if: Proc.new {  self.get_param('label') }
 
   def origen
     OrigenGrupo.get_label(object.origen)
@@ -25,6 +26,10 @@ class CuentaContableSerializer < ActiveModel::Serializer
 
   def cuenta_control
     serialize_parser(object.cuenta_control, {id: true, descripcion: true, codigo: true, tipo: true, origen: true })
+  end
+
+  def label
+    object.label
   end
 
   def get_param(col)

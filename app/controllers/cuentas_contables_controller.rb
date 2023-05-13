@@ -5,12 +5,16 @@ class CuentasContablesController < ApplicationController
   # GET /cuentas_contables
   def index
 
+
     if has_filter_target(params)
-      resultado = CuentaContable.filtrar(params, get_parametros_opcionales)
+      resultado      = CuentaContable.filtrar(params, get_parametros_opcionales)
       resultado.send_response self
     else
-      cuentas   = CuentaContable.all.order('codigo ASC').includes(CuentaContable.models_includes)
-      return Response.new(params, nil, CatalogoCuenta::CuentaContable.iterator(cuentas, get_parametros_opcionales), nil).send_response self
+
+      cuentas        = CuentaContable.all.order('codigo ASC').where("#{get_parametros_opcionales[:"only_aux"] ? 'is_control=false' : ''} #{get_parametros_opcionales[:"only_control"] ? 'is_control=true' : ''}").includes(CuentaContable.models_includes)
+      cuentas_send   = get_parametros_opcionales[:"iterator"] ? CatalogoCuenta::CuentaContable.iterator(cuentas, get_parametros_opcionales) : serialize_parser(cuentas, get_parametros_opcionales)
+
+      return Response.new(params, nil, cuentas_send, nil).send_response self
     end
   end
 
@@ -44,9 +48,13 @@ class CuentasContablesController < ApplicationController
 
     def get_parametros_opcionales
       return {
-        all:                          params[:all].present? ? params[:all] : true,
-        cuenta_control:               params[:cuenta_control]    || false,
-        cuenta_control_id:            params[:cuenta_control_id] || false,
+        all:                 params[:all].present? ? params[:all]                               : true,
+        cuenta_control:      params[:cuenta_control]                                           || false,
+        cuenta_control_id:   params[:cuenta_control_id]                                        || false,
+        iterator:            params[:iterator].present? ? params[:iterator].to_boolean          : false,
+        only_aux:            params[:only_aux].present? ? params[:only_aux].to_boolean          : false,
+        only_control:        params[:only_control].present? ? params[:only_control].to_boolean  : false,
+        label:               params[:label].present? ? params[:label].to_boolean                : false,
       }
     end
 

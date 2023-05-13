@@ -9,6 +9,11 @@ class CuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
+  def label
+    return "( #{self.codigo} ) -  #{self.descripcion}"
+  end
+  # ============================================================================================================================================
+
   def self.models_includes
     includes = [ :grupo_cuenta, :cuenta_control ]
     return includes
@@ -42,8 +47,11 @@ class CuentaContable < ApplicationRecord
   def self.filtrar( params, parametros_opcionales={} )
 
     res                   = Response.new
-    all_cuentas           = CuentaContable.all.where({ estado: true }).order('codigo ASC').includes(CuentaContable.models_includes)
+    only_aux              = parametros_opcionales[:"only_aux"]
+    only_control          = parametros_opcionales[:"only_control"]
+    all_cuentas           = CuentaContable.all.where({ estado: true }).where("#{only_aux ? 'is_control=false' : ''} #{only_control ? 'is_control=true' : ''}").order('codigo ASC').includes(CuentaContable.models_includes)
     filter_target         = params[:filter_target]
+
     include_fathers_tree  = params[:include_fathers_tree].present? ? params[:include_fathers_tree].to_boolean : false
 
     fathers_tree          = []
@@ -56,9 +64,10 @@ class CuentaContable < ApplicationRecord
     cuentas_filtered      = cuentas_filtered.select { | cuenta | !cuenta.nil? }.sort_by! { | item | item.codigo }
 
     if !cuentas_filtered.empty? && cuentas_filtered.length > 0
-      cuentas_filtered_parsed = CatalogoCuenta::CuentaContable.iterator( cuentas_filtered.uniq, parametros_opcionales )
 
-      res.set_data(cuentas_filtered_parsed)
+      cuentas_send        = parametros_opcionales[:"iterator"] ? CatalogoCuenta::CuentaContable.iterator(cuentas_filtered.uniq, parametros_opcionales) : serialize_parser(cuentas_filtered.uniq, parametros_opcionales)
+
+      res.set_data(cuentas_send)
     else
       res.set_data([])
       res.add_msg('No existen cuentas contables con las especificaciones introducidas.')

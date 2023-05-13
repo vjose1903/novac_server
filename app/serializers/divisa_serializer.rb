@@ -4,10 +4,12 @@ class DivisaSerializer < ActiveModel::Serializer
   attribute :simbolo,                          if: Proc.new { self.get_param('simbolo')        || self.get_param('all') }
   attribute :is_principal,                     if: Proc.new { self.get_param('is_principal')   || self.get_param('all') }
   attribute :estado,                           if: Proc.new { self.get_param('estado')         || self.get_param('all') }
-	attribute :imagenes,                         if: Proc.new { self.get_param('imagenes')       || self.get_param('all') }
+	attribute :imagen,                           if: Proc.new { self.get_param('imagen')         || self.get_param('all') }
 
-	def imagenes
-    serialize_parser(object.imagenes, { id: true, file_name: true })
+	def imagen
+
+    serialize_parser(object.imagenes.first, { id: true, file_name: true })
+
   end
 
 
