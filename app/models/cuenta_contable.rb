@@ -52,7 +52,7 @@ class CuentaContable < ApplicationRecord
     all_cuentas           = CuentaContable.all.where({ estado: true }).where("#{only_aux ? 'is_control=false' : ''} #{only_control ? 'is_control=true' : ''}").order('codigo ASC').includes(CuentaContable.models_includes)
     filter_target         = params[:filter_target]
 
-    include_fathers_tree  = params[:include_fathers_tree].present? ? params[:include_fathers_tree].to_boolean : false
+    include_fathers_tree  = parametros_opcionales[:include_fathers_tree]
 
     fathers_tree          = []
     cuentas_selected      = all_cuentas.select { | cuenta | (cuenta.descripcion.downcase.include? filter_target.downcase) || (cuenta.codigo.downcase.include? filter_target.downcase) }

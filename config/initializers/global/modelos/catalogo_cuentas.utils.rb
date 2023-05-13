@@ -28,7 +28,6 @@ module CatalogoCuenta
 
     def self.iterator( all_cuentas, parametros_opcionales={} )
       cuentas_parsed = []
-
       all_cuentas.each do | cuenta |
 
         arreglo_sin_cuenta_actual     = all_cuentas.select { | item | item.codigo != cuenta.codigo }
@@ -36,9 +35,10 @@ module CatalogoCuenta
 
         unless padre.nil?
           padre.cuentas_contables     = [] if padre.cuentas_contables.nil?
-          padre.cuentas_contables.push(serialize_parser(cuenta, { all: true, **parametros_opcionales }))
+          padre.cuentas_contables.push(serialize_parser(cuenta, { all: true, cuentas_contables: true, **parametros_opcionales }))
         else
-          cuentas_parsed.push(serialize_parser(cuenta, { all: true, **parametros_opcionales }))
+          cuenta.cuentas_contables     = []
+          cuentas_parsed.push(serialize_parser(cuenta, { all: true, cuentas_contables: true, **parametros_opcionales }))
         end
 
       end

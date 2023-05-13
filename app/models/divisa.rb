@@ -23,6 +23,7 @@ class Divisa < ApplicationRecord
       divisa.nombre               = params[:nombre]
       divisa.simbolo              = params[:simbolo]
       divisa.is_principal         = params[:is_principal]
+      divisa.current_tasa         = params[:current_tasa] if params[:current_tasa].present?
 
       divisa.valid?
 
@@ -75,10 +76,10 @@ class Divisa < ApplicationRecord
 
   # =========================================================================================================================================================
 
-	def getMontoTasa(fecha)
+  def getMontoTasa(fecha)
     current_tasa        = self.tasas_de_cambio.find_by({ fecha_equivalente: formatearFecha(fecha.to_s, TipoFecha.sin_hora) })
-		return current_tasa
-	end
+    return current_tasa
+  end
 
 end
 1

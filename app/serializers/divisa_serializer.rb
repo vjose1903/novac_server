@@ -4,6 +4,7 @@ class DivisaSerializer < ActiveModel::Serializer
   attribute :simbolo,                          if: Proc.new { self.get_param('simbolo')        || self.get_param('all') }
   attribute :is_principal,                     if: Proc.new { self.get_param('is_principal')   || self.get_param('all') }
   attribute :estado,                           if: Proc.new { self.get_param('estado')         || self.get_param('all') }
+  attribute :current_tasa,                     if: Proc.new { self.get_param('current_tasa')   || self.get_param('all') }
 	attribute :imagen,                           if: Proc.new { self.get_param('imagen')         || self.get_param('all') }
 
 	def imagen
