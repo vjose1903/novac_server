@@ -1,14 +1,14 @@
 class DivisasController < ApplicationController
-  before_action :set_divisa, only:[ :show, :destroy ]
+  before_action :set_divisa, only:[ :show, :deactivateOrReactivate ]
 
   # GET /divisas
   def index
-    return Response.new(params, nil, Divisa.all.where({ estado: true}).order('id ASC').includes(Divisa.models_includes), nil, { all: true }).send_response self
+    return Response.new(params, nil, Divisa.all.order('id ASC').includes(Divisa.models_includes), nil, { all: true }).send_response self
   end
 
   # GET /divisas/1
   def show
-    return Response.new(params, nil, @divisa, nil, {all: true}).send_response self
+    return Response.new(params, nil, @divisa, nil, { all: true }).send_response self
   end
 
   def crear_actualizar_divisa
@@ -26,9 +26,9 @@ class DivisasController < ApplicationController
     crear_actualizar_divisa
   end
 
-  # DELETE /divisas/1
-  def destroy
-    resultado = @divisa.delete_divisa
+  # DELETE /divisas/deactivate_or_reactivate/1
+  def deactivateOrReactivate
+    resultado = @divisa.deactivate_or_reactivate(params)
     resultado.send_response self
   end
 

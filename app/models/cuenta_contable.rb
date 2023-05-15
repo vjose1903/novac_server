@@ -225,7 +225,7 @@ class CuentaContable < ApplicationRecord
 
         action = params[:status].to_boolean ? 'reactivada' : 'desactivada'
 
-        res.add_msg("cuenta contable: #{self.descripcion}, #{!cuentas_contables.empty? ? "y sus cuentas auxiliares #{action}s" : action}  correctamente.")
+        res.add_msg("Cuenta contable: #{self.descripcion}, #{!cuentas_contables.empty? ? "y sus cuentas auxiliares #{action}s" : action}  correctamente.")
       else
         res.add_msg("Error desactivando la cuenta contable: #{self.descripcion}.")
         res.set_status(HTTP_STATUS_CODE[:conflict])

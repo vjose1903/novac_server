@@ -29,7 +29,7 @@ Rails.application.routes.draw do
   resources :grupos_de_cuentas
 
   resources :configuraciones_entidades_cuentas
-  resources :divisas
+
   resources :tipo_cuentas_bancarias
 
 
@@ -232,6 +232,12 @@ Rails.application.routes.draw do
 	resources :cuentas_contables do
     collection do
       patch ":id/deactivate_or_reactivate"     => "cuentas_contables#deactivateOrReactivate"
+    end
+  end
+
+	resources :divisas do
+    collection do
+      patch ":id/deactivate_or_reactivate"     => "divisas#deactivateOrReactivate"
     end
   end
 

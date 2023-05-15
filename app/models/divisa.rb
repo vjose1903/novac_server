@@ -22,8 +22,9 @@ class Divisa < ApplicationRecord
 
       divisa.nombre               = params[:nombre]
       divisa.simbolo              = params[:simbolo]
-      divisa.is_principal         = params[:is_principal]
-      divisa.current_tasa         = params[:current_tasa] if params[:current_tasa].present?
+      divisa.is_principal         = params[:is_principal]   if params[:is_principal].present?
+      divisa.current_tasa         = params[:current_tasa]   if params[:current_tasa].present?
+      divisa.predeterminado       = params[:predeterminado] if params[:predeterminado].present?
 
       divisa.valid?
 
@@ -58,19 +59,28 @@ class Divisa < ApplicationRecord
   end
 
   # =========================================================================================================================================================
-  def delete_divisa
+  def deactivate_or_reactivate(params)
+		res         = Response.new
 
-    imagenes  = self.imagenes.map { | imagen | { file_hash: imagen.file_hash }.with_indifferent_access }
+    unless self.predeterminado
 
-    resultado = borrar_entidad(self)
+      self.estado = params[:status].to_boolean
+      if self.save!
+        action = params[:status].to_boolean ? 'reactivada' : 'desactivada'
 
-    if resultado.status_valid && self.imagenes.empty?
-      imagenes.each do | imagen |
-        Imagen.removeFileInThisServer(imagen)
+        res.add_msg("Divisa: #{self.nombre}, #{action} correctamente.")
+      else
+        res.add_msg("Error desactivando la divisa: #{self.nombre}.")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
+
+    else
+      res.add_msg("No se puede desactivar la divisa: #{self.nombre}, por que es predeterminada.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    return resultado
+
+    return res
 
   end
 

@@ -490,6 +490,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_05_13_145120) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.float "current_tasa", default: 1.0
+    t.boolean "predeterminado", default: false
   end
 
   create_table "documentos_de_identidad", force: :cascade do |t|

@@ -173,6 +173,7 @@ rails g migration changeCuentaControlToReference
 rails g migration addCurrentTasaToDivisa
 
 
+
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 
 rails g migration changeTipoFacturaToAceptNullNotas
