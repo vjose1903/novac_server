@@ -56,33 +56,52 @@ class TasaCambio < ApplicationRecord
       return res
     end
 
-    TasaCambio.transaction do
-      tasas                 = []
+    current_divisa = Divisa.find_by_id(params[:id])
 
-      start_date            = Date.new(Date.parse(params[:fecha_equivalente]).year, 1, 1)
-      end_date              = Date.new(Date.parse(params[:fecha_equivalente]).year, 12, 31)
+    if !current_divisa.nil? && current_divisa.estado
 
-      is_today_change       = Date.parse(params[:fecha_equivalente]) == Date.today
+      TasaCambio.transaction do
+        tasas                 = []
 
-      all_tasas             = TasaCambio.where("fecha_equivalente between '#{start_date}' AND '#{end_date}'").order("id ASC")
-      is_the_first_change   = all_tasas.all? { | tasa | tasa.valor == 0 }
+        start_date            = Date.new(Date.parse(params[:fecha_equivalente]).year, 1, 1)
+        end_date              = Date.new(Date.parse(params[:fecha_equivalente]).year, 12, 31)
 
-      tasa_en_turno         = TasaCambio.where({ fecha_equivalente: Date.parse(params[:fecha_equivalente]).beginning_of_day..Date.parse(params[:fecha_equivalente]).end_of_day}).first unless is_today_change
+        is_today_change       = Date.parse(params[:fecha_equivalente]) == Date.today
 
-      where_clause          = is_today_change || is_the_first_change ? "fecha_equivalente >= '#{params[:fecha_equivalente]}'" : "secuencia = #{tasa_en_turno.secuencia}"
-      tasas                 = TasaCambio.where("#{where_clause} AND (fecha_equivalente between '#{start_date}' AND '#{end_date}')").order("id ASC")
+        tasa_en_turno         = TasaCambio.where({divisa_id: params[:divisa_id], fecha_equivalente: Date.parse(params[:fecha_equivalente]).beginning_of_day..Date.parse(params[:fecha_equivalente]).end_of_day}).first unless is_today_change
 
+        where_clause          = is_today_change ? "fecha_equivalente >= '#{params[:fecha_equivalente]}'" : "secuencia = #{tasa_en_turno.secuencia}"
+        tasas                 = TasaCambio.where("divisa_id = #{params[:divisa_id]} AND #{where_clause} AND (fecha_equivalente between '#{start_date}' AND '#{end_date}')").order("id ASC")
 
-      tasas.each do | tasa |
-        tasa.valor             = params[:valor]
-        tasa.last_user_update  = get_current_user[:id]
-        tasa.secuencia         = (tasa.secuencia + 1) if is_today_change || is_the_first_change
-        tasa.save!
+        tasas.each do | tasa |
+          tasa.valor                = params[:valor]
+          tasa.last_user_update_id  = get_current_user[:id]
+          tasa.secuencia            = (tasa.secuencia + 1) if is_today_change
+          tasa.save!
+        end
+
+        current_divisa.current_tasa = params[:valor]
+
+        if current_divisa.save!
+          res.add_msg('Tasa de Cambio modificada correctamente.')
+        else
+          res.add_msg("Error actualizando la tasa actual para la divisa #{current_divisa.nombre}.")
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
+        transaction_rollback if !current_divisa.errors.empty? || !res.status_valid
       end
 
 
-      res.add_msg('Tasa de Cambio modificada correctamente.')
+    else
+
+      razon = current_divisa.nil? ? 'no existe' : 'está desactivada'
+      res.add_msg("La divisa que esta intentando cambiar la tasa, #{razon}.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+
     end
+
+
     return res
   end
 
