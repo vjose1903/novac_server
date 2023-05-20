@@ -10,6 +10,33 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
     end
   end
 
+  # ============================================================================================================================================
+
+  def self.models_includes
+    includes = [ :cuenta_contable ]
+    return includes
+  end
+
+  # ============================================================================================================================================
+
+  def self.filtrar( params, parametros_opcionales={} )
+
+    res                   = Response.new
+    filter_target         = params[:filter_target]
+
+    configs_filtered      = ConfiguracionEntidadCuenta.all.where({ entidad: filter_target }).order('id ASC').includes(ConfiguracionEntidadCuenta.models_includes)
+
+    if !configs_filtered.empty? && configs_filtered.length > 0
+      res.set_data(serialize_parser(configs_filtered, parametros_opcionales))
+    else
+      res.set_data([])
+      res.add_msg('No existen configuraciones para entidades contables con las especificaciones introducidas.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+
   # =========================================================================================================================================================
 
   def self.create_update_configuracion_entidad_cuenta(params, configuracion_entidad_cuenta, is_save=false)
@@ -52,10 +79,11 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
     return {
       grupo_cuenta_id: cuenta_control.grupo_cuenta_id,
       descripcion: descripcion,
-      cuenta_control: cuenta_control.id,
+      cuenta_control_id: cuenta_control.id,
       is_control: is_control,
       origen: cuenta_control.origen,
-      tipo: cuenta_control.tipo
+      tipo: cuenta_control.tipo,
+      action: 'create'
     }.with_indifferent_access
   end
 

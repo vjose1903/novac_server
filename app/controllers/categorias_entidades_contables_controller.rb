@@ -3,7 +3,8 @@ class CategoriasEntidadesContablesController < ApplicationController
 
   # GET /categorias_entidades_contables
   def index
-    return Response.new(params, nil, CategoriaEntidadContable.all, nil, { all: true }).send_response self
+    resultado = CategoriaEntidadContable.get_all(params)
+    resultado.send_response self
   end
 
   # GET /categorias_entidades_contables/1

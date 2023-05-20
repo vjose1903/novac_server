@@ -5,9 +5,9 @@ require 'json'
 
 class Response
 
-  def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
+  def initialize(pagination_options=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
 
-    @paginate_class          = Paginator.new(params)
+    @paginate_class          = Paginator.new(pagination_options)
     @res                     = { status: status_, data: data,  msg: msg_ }
 
     set_data(data, parametros_opcionales) unless data.nil?
@@ -166,10 +166,18 @@ def set_entidad(modelo, params, models_includes= nil, key='id')
 end
 
 # ---------------------------------------------------------------------------------------------------------
-def has_filter_target(params)
-	return params[:filter_target].present? && !params[:filter_target].nil? && params[:filter_target].strip != ''
+
+def has_paginate_options(params)
+  return params[:page].present? && params[:per_page].present? && params[:paginado].present?
 end
-	# ---------------------------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------------------------
+
+def has_filter_target(params)
+  return params[:filter_target].present? && !params[:filter_target].nil? && params[:filter_target].strip != ''
+end
+
+  # ---------------------------------------------------------------------------------------------------------
 
 def traducir(key, others=nil)
   others_tem = {}
@@ -237,7 +245,7 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 def pretty_json(json)
-	return JSON.pretty_generate(json)
+  return JSON.pretty_generate(json)
 end
 # ---------------------------------------------------------------------------------------------------------
 
@@ -342,14 +350,14 @@ class Array
 
   def my_includes_obj(key, value)
     return  self.any? do  |item|
-			res = false
-			begin
-				res = "#{item[key]}" == "#{value}"
-			rescue => exception
-				res = "#{item.attributes[key]}" == "#{value}"
-			end
-			return res
-		end
+      res = false
+      begin
+        res = "#{item[key]}" == "#{value}"
+      rescue => exception
+        res = "#{item.attributes[key]}" == "#{value}"
+      end
+      return res
+    end
   end
 
   def get_order

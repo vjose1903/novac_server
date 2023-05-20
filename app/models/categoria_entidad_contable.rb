@@ -1,5 +1,5 @@
 class CategoriaEntidadContable < ApplicationRecord
-	self.table_name = "categorias_entidades_contables"
+  self.table_name = "categorias_entidades_contables"
 
   belongs_to :cuenta_contable_control,      class_name: 'CuentaContable', optional: false
   belongs_to :cuenta_contable_auxiliar,     class_name: 'CuentaContable', optional: true
@@ -8,6 +8,15 @@ class CategoriaEntidadContable < ApplicationRecord
   has_many   :entidad_cuentas_contables, :as => :origen_categoria, dependent: :destroy, class_name: 'EntidadCuentaContable'
 
   validates :descripcion,                presence: { :message => "Descripción de la categoria no puede estar vacia." },         uniqueness: { scope:[ :configuracion_entidad_cuenta_id ], case_sensitive: false, :message => "Categoria ya está registrada." }
+
+  # =========================================================================================================================================================
+
+  def self.models_includes
+    includes = [ :cuenta_contable_control, :cuenta_contable_auxiliar, :configuracion_entidad_cuenta ]
+    return includes
+  end
+
+  # =========================================================================================================================================================
 
   def self.create_update_categoria_entidad_contable(parametros, is_save=false)
     res                     = Response.new
@@ -43,12 +52,52 @@ class CategoriaEntidadContable < ApplicationRecord
           return res
         end
       end
-
     end
 
     return res
 
   end
+  # ============================================================================================================================================
+
+  def self.get_all(params)
+
+    paginate_options =  has_paginate_options(params) ? set_paginate_options(params) : nil
+    res              = Response.new(paginate_options)
+
+    filter_target    = params[:filter_target]
+    configuracion_id = params[:configuracion_id]
+
+    where_            = ""
+    where_           += "configuracion_entidad_cuenta_id=#{configuracion_id}" if params[:configuracion_id].present?
+    where_           += "#{params[:configuracion_id].present? ? 'AND' : ''} lower(categorias_entidades_contables.descripcion) like lower('%#{filter_target}%')" if has_filter_target(params)
+
+    categorias       = CategoriaEntidadContable.where(where_).order('id ASC').includes(CategoriaEntidadContable.models_includes)
+
+    if categorias.length > 0
+      res.set_data(categorias, { all: true }, CategoriaEntidadContable.models_includes)
+    else
+      res.set_data([])
+
+      res.add_msg('No existen categorias con las especificaciones introducidas.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+
+
+
+    if has_paginate_options(params)
+      return Response.new(params, nil, CategoriaEntidadContable.all, nil, { all: true }).send_response self
+    else
+      if has_filter_target(params)
+        return Response.new(params, nil, CategoriaEntidadContable.all, nil, { all: true }).send_response self
+      else
+        return Response.new(params, nil, CategoriaEntidadContable.all, nil, { all: true }).send_response self
+      end
+    end
+
+  end
+
   # ============================================================================================================================================
 
   def self.check_params(params)
@@ -64,7 +113,7 @@ class CategoriaEntidadContable < ApplicationRecord
     configuracion                                   = self.configuracion_entidad_cuenta
 
     descripcion_cuenta                              = "#{ConfigEntidadCuentaCont::Keys.label[:"#{configuracion.key}"]} categoria: #{self.descripcion}"
-    cuenta_contable_db                              = CuentaContable.find_by("lower(descripcion) like lower('#{descripcion_cuenta}') AND cuenta_control=#{configuracion.cuenta_contable_id}")
+    cuenta_contable_db                              = CuentaContable.find_by("lower(descripcion) like lower('#{descripcion_cuenta}') AND cuenta_control_id=#{configuracion.cuenta_contable_id}")
 
     if cuenta_contable_db.nil?
       if self.cuenta_contable_control_id.nil?
@@ -85,7 +134,7 @@ class CategoriaEntidadContable < ApplicationRecord
 
     if res.status_valid && configuracion.has_comun
       descripcion_cuenta                            = "#{ConfigEntidadCuentaCont::Keys.label[:"#{configuracion.key}"]} común: #{self.descripcion}"
-      cuenta_contable_db                            = CuentaContable.find_by("lower(descripcion) like lower('#{descripcion_cuenta}') AND cuenta_control=#{self.cuenta_contable_control.id}")
+      cuenta_contable_db                            = CuentaContable.find_by("lower(descripcion) like lower('#{descripcion_cuenta}') AND cuenta_control_id=#{self.cuenta_contable_control.id}")
 
       if cuenta_contable_db.nil?
         if self.cuenta_contable_auxiliar_id.nil?

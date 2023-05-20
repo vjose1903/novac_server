@@ -70,7 +70,6 @@ module CatEntidadContable
   def self.createCuenta(cuenta_control, descripcion, is_control)
     res = Response.new
     cuenta_contable              = ConfiguracionEntidadCuenta.molde_cuenta(cuenta_control, descripcion, is_control)
-
     temp_cuenta_contable         = CuentaContable.create_update_cuenta_contable(cuenta_contable, nil, true)
 
     if temp_cuenta_contable.status_valid

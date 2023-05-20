@@ -102,8 +102,8 @@ class Cliente < ApplicationRecord
 
   # =========================================================================================================================================================
 
-  def self.filtrarCliente(arg, params)
-    res = Response.new(params)
+  def self.filtrarCliente(arg, paginate_options)
+    res = Response.new(paginate_options)
 
     clientes = Cliente
     .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")

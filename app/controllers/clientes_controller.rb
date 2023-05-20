@@ -16,6 +16,7 @@ class ClientesController < ApplicationController
     arg       = params[:arg]
     resultado = Cliente.filtrarCliente(arg, set_paginate_options(params))
     resultado.send_response self
+
   end
 
 

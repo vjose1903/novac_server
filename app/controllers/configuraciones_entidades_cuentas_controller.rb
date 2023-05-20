@@ -3,7 +3,13 @@ class ConfiguracionesEntidadesCuentasController < ApplicationController
 
   # GET /configuraciones_entidades_cuentas
   def index
-    return Response.new(params, nil, ConfiguracionEntidadCuenta.all.order('id DESC'), nil, {all: true}).send_response self
+
+    if has_filter_target(params)
+      resultado      = ConfiguracionEntidadCuenta.filtrar(params, get_parametros_opcionales)
+      resultado.send_response self
+    else
+      return Response.new(params, nil, ConfiguracionEntidadCuenta.all.order('id DESC').includes(ConfiguracionEntidadCuenta.models_includes), nil, {all: true}).send_response self
+    end
   end
 
   # GET /configuraciones_entidades_cuentas/1
@@ -20,6 +26,12 @@ class ConfiguracionesEntidadesCuentasController < ApplicationController
   # PATCH/PUT /configuraciones_entidades_cuentas/1
   def update
     actualizar_configuracion_entidad_cuenta
+  end
+
+  def get_parametros_opcionales
+    return {
+      all:                   params[:all].present? ? params[:all]                                               : true,
+    }
   end
 
   private
