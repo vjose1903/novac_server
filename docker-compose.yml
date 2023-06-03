@@ -11,7 +11,7 @@ services:
     ports:
       - 127.0.0.1:9731:5432
 
-  agrodemi-dev:
+  agrodemi-prod:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
@@ -31,4 +31,4 @@ services:
     ports:
       - 9090:9090
     depends_on:
-      - agrodemi-dev
+      - agrodemi-prod
