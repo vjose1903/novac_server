@@ -237,7 +237,11 @@ Rails.application.routes.draw do
 
 	resources :divisas do
     collection do
-      patch ":id/deactivate_or_reactivate"     => "divisas#deactivateOrReactivate"
+			patch ":id/deactivate_or_reactivate"     => "divisas#deactivateOrReactivate"
+
+      scope "custom" do
+        get "get_principal"                    => "divisas#getPrincipalDivisa"
+      end
     end
   end
 

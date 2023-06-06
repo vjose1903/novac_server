@@ -11,6 +11,11 @@ class DivisasController < ApplicationController
     return Response.new(params, nil, @divisa, nil, { all: true }).send_response self
   end
 
+  # GET custom/get_principal
+  def getPrincipalDivisa
+    return Response.new(params, nil, Divisa.find_by_is_principal(true), nil, { all: true }).send_response self
+  end
+
   def crear_actualizar_divisa
     resultado = Divisa.create_update_divisa(params, true)
     resultado.send_response self
