@@ -388,3 +388,9 @@ end
 def get_current_user
   return Thread.current[:current_user]
 end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def system_has_contabilidad
+  return Thread.current[:has_contabilidad]
+end

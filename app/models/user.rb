@@ -23,11 +23,14 @@ class User < ApplicationRecord
 
   include DeviseTokenAuth::Concerns::User
 
-  def otras_validaciones(params)
-    user_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.user)
+  def otras_validaciones(params, has_contabilidad)
 
-    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( user_configs.length < params[:cuentas_contables].length )
-      self.errors.add(:base, 'Debe de especificar todas los atributos para cuentas contables.')
+    if has_contabilidad
+      user_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.user)
+
+      if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( user_configs.length < params[:cuentas_contables].length )
+        self.errors.add(:base, 'Debe de especificar todas los atributos para cuentas contables.')
+      end
     end
 
     self.errors.add(:base, 'Debe de especificar almenos un role al empleado.')                          if !params[:ids_roles].present?         || params[:ids_roles].nil?
@@ -76,6 +79,15 @@ class User < ApplicationRecord
 
   def self.crear_actualizar_user(params , is_save=false)
     res                           = Response.new
+    @has_contabilidad             = system_has_contabilidad
+
+    puts " "
+    puts "================================================".red
+    puts "                has_contabilidad                ".red
+    puts "================================================".red
+    puts "               #{@has_contabilidad}              "
+    puts "================================================".red
+    puts " "
     User.transaction do
       user                        = User.where(:id => params[:id]).first_or_create
 
@@ -93,16 +105,17 @@ class User < ApplicationRecord
 
       user.valid?
 
-      user.otras_validaciones(params)
+      user.otras_validaciones(params, @has_contabilidad)
 
-      cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
-      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if user.errors.empty?
+      if @has_contabilidad
+        cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
+        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if user.errors.empty?
+      end
 
       if user.errors.empty?
-        dependencias = [
-          { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: user },
-          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }
-        ]
+        dependencias = [ { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: user } ]
+				dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }) if @has_contabilidad
+
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           user.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
@@ -112,7 +125,7 @@ class User < ApplicationRecord
         if res.status_valid && user.save!
           res.set_data(serialize_parser(user, {all: true}))
 
-          action = params["id"] ? 'actualizado' : 'creado'
+          action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Empleado #{action} correctamente.")
         end
       end
@@ -135,7 +148,7 @@ class User < ApplicationRecord
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
     .where("lower(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
-    .order("users.id ASC")
+    .order('users.id ASC')
 
     if users.length > 0
       res.set_data(users, {all: true, roles: true}, User.models_includes)
