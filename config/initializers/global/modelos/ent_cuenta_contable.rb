@@ -13,7 +13,7 @@ module EntCuentaContable
       end
 
       descripcion_cuenta = "#{ConfigEntidadCuentaCont::Keys.label[:"#{configuracion.key}"]}: #{args[:descripcion_cuenta]}#{is_prima ? ' PRIMA' : ''}"
-      cuentas.push( { tipo_categoria: args[:tipo_categoria], descripcion_cuenta: descripcion_cuenta, **config_cuenta.as_json }.with_indifferent_access )
+      cuentas.push( {  **config_cuenta.as_json, descripcion_cuenta: descripcion_cuenta, tipo_categoria: args[:tipo_categoria] || config_cuenta[:tipo_categoria] }.with_indifferent_access )
     end
 
     params[:entidad_cuentas_contables] = cuentas

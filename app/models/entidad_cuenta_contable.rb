@@ -27,9 +27,10 @@ class EntidadCuentaContable < ApplicationRecord
     resultado = { has_error: false }.with_indifferent_access
 
     if self.is_comun
-      if ( params[:tipo_categoria].nil? || params[:tipo_categoria_id].nil? ) && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
+      # TODO: revisar en articulos como validar el tipo_categoria
+      # if ( params[:tipo_categoria].nil? || params[:tipo_categoria_id].nil? ) && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
+      if ( params[:tipo_categoria_id].nil? ) && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
         configuacion          = self.configuracion_entidad_cuenta
-
         self.errors.add(:base, "Debe de seleccionar la categoria del #{self.origen_entidad_type}, para poder agregarlo a una cuenta común de #{ConfigEntidadCuentaCont::Keys.get_label(configuacion.key)}.")
         resultado[:has_error] = true
       end
@@ -38,7 +39,9 @@ class EntidadCuentaContable < ApplicationRecord
     unless params[:id].nil?
       if has_cuenta_contable
         if self.tipo_agrupacion_contable != params[:tipo_agrupacion_contable] || self.is_comun != params[:is_comun] || self.configuracion_entidad_cuenta_id.to_s != params[:configuracion_entidad_cuenta_id].to_s || self.origen_categoria_id.to_s !=  params[:tipo_categoria_id].to_s
-          self.errors.add(:base, "No se le pueden cambiar las caracteristicas a una cuenta contable una vez creada.")
+
+          self.errors.add(:base, "No se le pueden cambiar las caracteristicas a una cuenta contable una vez creada, SOLO SE PUEDE ACTUALIZAR SI ES UNA CUENTA COMÚN.")
+
           resultado[:has_error] = true
         end
       end
@@ -54,8 +57,20 @@ class EntidadCuentaContable < ApplicationRecord
     result_procesos                 = Response.new
     categoria_entidad_contable      = nil
 
-    if ( params[:tipo_categoria] && params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
+    puts "ANDO AQUIII ".magenta
+    puts "params[:tipo_categoria] --> ".blue + " (#{params[:tipo_categoria]})"
+    puts "params[:tipo_categoria_id] --> ".blue + " (#{params[:tipo_categoria_id]})"
+    puts "params[:tipo_agrupacion_contable] --> ".green + " (#{params[:tipo_agrupacion_contable]})"
+    puts "TipoAgrupacionContable.individual --> ".green + " (#{TipoAgrupacionContable.individual})"
+    puts "==============>  ".red  + " (#{( params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )})"
+
+    # TODO: revisar en articulos como validar el tipo_categoria
+    # if ( params[:tipo_categoria] && params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
+    if ( params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
+
+
       categoria_entidad_contable    = @modelo[params[:tipo_categoria]].find_by_id(params[:tipo_categoria_id])
+      puts "categoria_entidad_contable ".red + " #{categoria_entidad_contable.to_json}"
     end
 
     entidad_cuenta                  = EntidadCuentaContable.where(:id => params[:id]).first_or_create
@@ -100,6 +115,9 @@ class EntidadCuentaContable < ApplicationRecord
       if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo
         self.cuenta_contable_id = cuenta_contable_art.cuenta_contable_auxiliar_id
       else
+        puts "self ".yellow + " #{self.to_json}"
+        puts "self.origen_categoria ".red + " #{self.origen_categoria.to_json}"
+
         self.cuenta_contable_id = self.origen_categoria.cuenta_contable_auxiliar_id
       end
 

@@ -12,7 +12,7 @@ class EntidadCuentaContableSerializer < ActiveModel::Serializer
 
 
   def cuenta_contable
-    serialize_parser(object.cuenta_contable, { id: true, descripcion: true, codigo: true })
+    serialize_parser(object.cuenta_contable, { id: true, descripcion: true, codigo: true, label: true })
   end
 
   def origen_categoria

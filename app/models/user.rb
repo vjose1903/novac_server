@@ -27,7 +27,6 @@ class User < ApplicationRecord
 
     if has_contabilidad
       user_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.user)
-
       if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( user_configs.length < params[:cuentas_contables].length )
         self.errors.add(:base, 'Debe de especificar todas los atributos para cuentas contables.')
       end
@@ -110,11 +109,12 @@ class User < ApplicationRecord
       if @has_contabilidad
         cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
         EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if user.errors.empty?
+
       end
 
       if user.errors.empty?
         dependencias = [ { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: user } ]
-				dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }) if @has_contabilidad
+        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }) if @has_contabilidad
 
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
