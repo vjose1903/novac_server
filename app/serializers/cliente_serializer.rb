@@ -15,6 +15,7 @@ class ClienteSerializer < ActiveModel::Serializer
 
   attribute :documentos_de_identidad,            if: Proc.new { self.get_param('documentos_de_identidad')   || self.get_param('all') }
   attribute :cuentas_contables,                  if: Proc.new { self.get_param('cuentas_contables')         || self.get_param('all') }
+  attribute :imagen,                           if: Proc.new { self.get_param('imagen')         || self.get_param('all') }
 
   def vendedor
     vendedor = User.find_by_id(object.vendedor_id)
@@ -30,7 +31,11 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def cuentas_contables
-		serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true })
+    serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true })
+  end
+
+  def imagen
+    serialize_parser(object.imagenes.first, { id: true, file_name: true })
   end
 
   def get_param(col)

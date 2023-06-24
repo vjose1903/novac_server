@@ -1,6 +1,7 @@
 class Cliente < ApplicationRecord
   has_many    :documentos_de_identidad,    :as => :origen,         dependent: :destroy, class_name: 'DocumentoDeIdentidad'
   has_many    :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
+	has_many    :imagenes,                   :as => :origen_img,     dependent: :destroy, class_name: 'Imagen'
 
   validates :nombre,              presence: { :message => 'Nombre del cliente no puede estar vacio.' },         uniqueness: { scope: [:estado, :apellido], case_sensitive: false, :message => 'Cliente ya está registrado' }, :if => :estado
   validates :apellido,            presence: { :message => 'Apellido del cliente no puede estar vacio.' }
@@ -30,6 +31,7 @@ class Cliente < ApplicationRecord
   def self.models_includes
     includes = [
       :documentos_de_identidad,
+			:imagenes,
       { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
     ]
     return includes
@@ -73,12 +75,14 @@ class Cliente < ApplicationRecord
       if cliente.errors.empty?
         dependencias = [
           { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',     padre: cliente },
-          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables',   padre: cliente }
+          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables',   padre: cliente },
+					{ modelo: Imagen,                key_object: 'imagenes',                    padre: cliente }
         ]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           cliente.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
           cliente.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
+					cliente.imagenes                   = dependencia_data if key_object == 'imagenes'
         }
 
         if res.status_valid && cliente.save!
