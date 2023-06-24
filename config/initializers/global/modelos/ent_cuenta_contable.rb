@@ -1,5 +1,14 @@
 module EntCuentaContable
 
+  ENTIDAD_LABEL = {
+    CLIENTE:          'cliente',
+    SUPLIDOR:         'suplidor',
+    USER:             'empleado',
+    CUENTA_BANCARIA:  'cuenta bancaria',
+    ARTICULO:         'articulo'
+  }.with_indifferent_access
+
+
 
   def self.parsear_cuentas_contables(params, args)
     cuentas                     = []
@@ -18,6 +27,11 @@ module EntCuentaContable
 
     params[:entidad_cuentas_contables] = cuentas
 
+  end
+
+  def self.get_label(key)
+    key = key.upcase if key != key.upcase
+    return ENTIDAD_LABEL[:"#{key}"]
   end
 
 end

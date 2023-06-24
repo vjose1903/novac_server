@@ -11,7 +11,6 @@ class DocumentoDeIdentidad < ApplicationRecord
 
   def self.crear_actualizar_documento(params, padre, is_save=false)
     res = Response.new
-		puts "ANDO AQUIII".red
     documento                = DocumentoDeIdentidad.where(:id => params[:id]).first_or_create
 
     documento.descripcion    = params[:descripcion]
@@ -49,14 +48,6 @@ class DocumentoDeIdentidad < ApplicationRecord
     end
 
     res_valid.set_data array_valid
-
-		puts " "
-		puts " "
-		puts "documentos res_valid ==> ".green + " #{res_valid.get_data.to_json}"
-		puts " "
-		puts " "
-
-
     return res_valid
   end
 
