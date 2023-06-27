@@ -1,7 +1,7 @@
 class Cliente < ApplicationRecord
   has_many    :documentos_de_identidad,    :as => :origen,         dependent: :destroy, class_name: 'DocumentoDeIdentidad'
   has_many    :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
-	has_many    :imagenes,                   :as => :origen_img,     dependent: :destroy, class_name: 'Imagen'
+  has_many    :imagenes,                   :as => :origen_img,     dependent: :destroy, class_name: 'Imagen'
 
   validates :nombre,              presence: { :message => 'Nombre del cliente no puede estar vacio.' },         uniqueness: { scope: [:estado, :apellido], case_sensitive: false, :message => 'Cliente ya está registrado' }, :if => :estado
   validates :apellido,            presence: { :message => 'Apellido del cliente no puede estar vacio.' }
@@ -12,11 +12,13 @@ class Cliente < ApplicationRecord
   validates :vendedor_id,         presence: { :message => 'Debe de seleccionar un vendedor para el cliente.' }
   validates :direccion,           presence: { :message => 'Direccion del cliente no puede estar vacio.' }
 
-  def otras_validaciones(params)
-    cliente_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
+  def otras_validaciones(params, has_contabilidad)
+    if has_contabilidad
+      cliente_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
 
-    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( cliente_configs.length < params[:cuentas_contables].length )
-      self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+      if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( cliente_configs.length < params[:cuentas_contables].length )
+        self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+      end
     end
   end
 
@@ -31,7 +33,7 @@ class Cliente < ApplicationRecord
   def self.models_includes
     includes = [
       :documentos_de_identidad,
-			:imagenes,
+      :imagenes,
       { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
     ]
     return includes
@@ -50,6 +52,8 @@ class Cliente < ApplicationRecord
 
   def self.create_update_cliente(params , is_save=false)
     res                            = Response.new
+    @has_contabilidad              = system_has_contabilidad
+
     Cliente.transaction do
 
       cliente                      = Cliente.where(:id => params[:id]).first_or_create
@@ -67,22 +71,25 @@ class Cliente < ApplicationRecord
 
       cliente.valid?
 
-      cliente.otras_validaciones(params)
+      cliente.otras_validaciones(params, @has_contabilidad)
 
-      cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: cliente.nombre_completo }.with_indifferent_access
-      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if cliente.errors.empty?
+      if @has_contabilidad
+        cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: cliente.nombre_completo }.with_indifferent_access
+        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if cliente.errors.empty?
+      end
 
       if cliente.errors.empty?
         dependencias = [
           { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',     padre: cliente },
-          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables',   padre: cliente },
-					{ modelo: Imagen,                key_object: 'imagenes',                    padre: cliente }
+          { modelo: Imagen,                key_object: 'imagenes',                    padre: cliente }
         ]
+
+        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: cliente }) if @has_contabilidad
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           cliente.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
           cliente.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
-					cliente.imagenes                   = dependencia_data if key_object == 'imagenes'
+          cliente.imagenes                   = dependencia_data if key_object == 'imagenes'
         }
 
         if res.status_valid && cliente.save!
@@ -113,7 +120,7 @@ class Cliente < ApplicationRecord
     .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
     .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")
     .order('clientes.id ASC')
-		.includes(Cliente.models_includes)
+    .includes(Cliente.models_includes)
 
 
     if clientes.length > 0

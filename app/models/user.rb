@@ -80,13 +80,6 @@ class User < ApplicationRecord
     res                           = Response.new
     @has_contabilidad             = system_has_contabilidad
 
-    puts " "
-    puts "================================================".red
-    puts "                has_contabilidad                ".red
-    puts "================================================".red
-    puts "               #{@has_contabilidad}              "
-    puts "================================================".red
-    puts " "
     User.transaction do
       user                        = User.where(:id => params[:id]).first_or_create
 
@@ -109,7 +102,6 @@ class User < ApplicationRecord
       if @has_contabilidad
         cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
         EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if user.errors.empty?
-
       end
 
       if user.errors.empty?

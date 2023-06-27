@@ -7,13 +7,15 @@ class Suplidor < ApplicationRecord
   validates :nombre,     presence: { :message => 'Nombre del suplidor no puede estar vacio.' },      uniqueness: { scope: :estado, case_sensitive: false, :message => 'Suplidor ya está registrado.' }, :if => :estado
   validates :direccion,  presence: { :message => 'Dirección del suplidor no puede estar vacio.' }
 
-  def otras_validaciones(params)
-    suplidor_configs     = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
-    usa_moneda_nacional  = self.divisa.is_principal
-    cantidad_cuentas     = !usa_moneda_nacional ? suplidor_configs.length : ( suplidor_configs.length - 1 )
+  def otras_validaciones(params, has_contabilidad)
+    if has_contabilidad
+      suplidor_configs     = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
+      usa_moneda_nacional  = self.divisa.is_principal
+      cantidad_cuentas     = !usa_moneda_nacional ? suplidor_configs.length : ( suplidor_configs.length - 1 )
 
-    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length < cantidad_cuentas )
-      self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+      if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length < cantidad_cuentas )
+        self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+      end
     end
   end
 
@@ -37,7 +39,9 @@ class Suplidor < ApplicationRecord
   # ============================================================================================================================================
 
   def self.create_update_suplidor(params, is_save=false)
-    res         = Response.new
+    res               = Response.new
+    @has_contabilidad = system_has_contabilidad
+
     Suplidor.transaction do
 
       suplidor  = Suplidor.where(:id => params[:id]).first_or_create
@@ -50,16 +54,17 @@ class Suplidor < ApplicationRecord
       suplidor.estado                          = true
       suplidor.valid?
 
-      suplidor.otras_validaciones(params)
+      suplidor.otras_validaciones(params, @has_contabilidad)
 
-      cuentas_config = { view_prima: true, usa_moneda_nacional: suplidor.divisa.is_principal, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: suplidor.nombre_completo }.with_indifferent_access
-      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if suplidor.errors.empty?
+      if @has_contabilidad
+        cuentas_config = { view_prima: true, usa_moneda_nacional: suplidor.divisa.is_principal, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: suplidor.nombre_completo }.with_indifferent_access
+        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if suplidor.errors.empty?
+      end
 
       if suplidor.errors.empty?
-        dependencias = [
-          { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: suplidor },
-          { modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }
-        ]
+        dependencias = [ { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: suplidor } ]
+        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }) if @has_contabilidad
+
 
         res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
           suplidor.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'

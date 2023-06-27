@@ -10,6 +10,7 @@ class SuplidorSerializer < ActiveModel::Serializer
 
   attribute :documentos_de_identidad,       if: Proc.new { self.get_param('documentos_de_identidad')     || self.get_param('all') }
   attribute :cuentas_contables,             if: Proc.new { self.get_param('cuentas_contables')           || self.get_param('all') }
+	attribute :divisa,                        if: Proc.new { self.get_param('divisa')                      || self.get_param('all') }
 
 
   def nombre_completo
@@ -22,6 +23,10 @@ class SuplidorSerializer < ActiveModel::Serializer
 
   def cuentas_contables
 		serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true })
+  end
+
+	def divisa
+    serialize_parser(object.divisa, { id: true, nombre: true, imagen: true })
   end
 
   def get_param(col)
