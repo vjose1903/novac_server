@@ -109,9 +109,6 @@ class EntidadCuentaContable < ApplicationRecord
       if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo
         self.cuenta_contable_id = cuenta_contable_art.cuenta_contable_auxiliar_id
       else
-        puts "self ".yellow + " #{self.to_json}"
-        puts "self.origen_categoria ".red + " #{self.origen_categoria.to_json}"
-
         self.cuenta_contable_id = self.origen_categoria.cuenta_contable_auxiliar_id
       end
 
