@@ -1,10 +1,15 @@
 class TipoArticulosController < ApplicationController
 
-  before_action :set_tipo_articulo, only: [ :show, :destroy ]
+  before_action :set_tipo_articulo, only: [ :show ]
 
   # GET /tipo_articulos
   def index
-    return Response.new(params, nil, TipoArticulo.all.includes(TipoArticulo.models_includes), nil, { all: true }).send_response self
+    if has_filter_target(params)
+      resultado      = TipoArticulo.filtrar(params, get_parametros_opcionales)
+      resultado.send_response self
+    else
+      return Response.new(params, nil, TipoArticulo.all.includes(TipoArticulo.models_includes), nil, { all: true }).send_response self
+    end
   end
 
   # GET /tipo_articulos/1
@@ -17,7 +22,7 @@ class TipoArticulosController < ApplicationController
     resultado.send_response self
   end
 
-	# POST /tipo_articulos
+  # POST /tipo_articulos
   def create
     crear_actualizar_tipo_articulo
   end
@@ -25,6 +30,12 @@ class TipoArticulosController < ApplicationController
   # PATCH/PUT /tipo_articulos/1
   def update
     crear_actualizar_tipo_articulo
+  end
+
+	def get_parametros_opcionales
+    return {
+      all: params[:all].present? ? params[:all] : true,
+    }
   end
 
   private

@@ -14,6 +14,29 @@ class TipoArticulo < ApplicationRecord
     return includes
   end
 
+  # ============================================================================================================================================
+
+  def self.filtrar( params, parametros_opcionales={} )
+
+    res                   = Response.new
+    filter_target         = params[:filter_target]
+
+    tiposArticulos = TipoArticulo
+    .where("lower(tipo_articulos.descripcion) like lower('%#{filter_target}%')")
+    .order('tipo_articulos.id ASC').to_a
+
+    if tiposArticulos.length > 0
+      res.set_data(tiposArticulos, {all: true})
+    else
+      res.set_data([])
+      cantidad_registros = TipoArticulo.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen categorias registrados.' : 'No existe categoria de articulo con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+
   # =========================================================================================================================================================
 
   def self.create_update_tipo_articulo(params, is_save=false)
