@@ -26,7 +26,7 @@ class SuplidorSerializer < ActiveModel::Serializer
   end
 
 	def divisa
-    serialize_parser(object.divisa, { id: true, nombre: true, imagen: true })
+    serialize_parser(object.divisa, { id: true, nombre: true, imagen: true, nombre: true })
   end
 
   def get_param(col)

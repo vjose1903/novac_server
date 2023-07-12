@@ -8,9 +8,7 @@ class DivisaSerializer < ActiveModel::Serializer
 	attribute :imagen,                           if: Proc.new { self.get_param('imagen')         || self.get_param('all') }
 
 	def imagen
-
     serialize_parser(object.imagenes.first, { id: true, file_name: true })
-
   end
 
 
