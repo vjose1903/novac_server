@@ -7,6 +7,33 @@ class SubTipoArticulo < ApplicationRecord
 
   # ============================================================================================================================================
 
+  def self.filtrar( params, parametros_opcionales={} )
+
+    res                   = Response.new
+    filter_target         = has_filter_target(params) ? params[:filter_target] : nil
+    tipo_articulo_id      = params[:tipo_articulo_id].present? ? params[:tipo_articulo_id] : nil
+
+    where_                = ""
+    where_               += "lower(sub_tipo_articulos.descripcion) like lower('%#{filter_target}%')" unless filter_target.nil?
+    where_               += "#{filter_target.nil? ? "" : " AND " }tipo_articulo_id = #{tipo_articulo_id}" unless tipo_articulo_id.nil?
+
+    subTiposArticulos = SubTipoArticulo.where(where_).order('sub_tipo_articulos.id ASC').to_a
+
+    if subTiposArticulos.length > 0
+      res.set_data(subTiposArticulos, parametros_opcionales)
+    else
+      res.set_data([])
+      cantidad_registros = tipo_articulo_id.nil? ? SubTipoArticulo.all.count : SubTipoArticulo.where({ tipo_articulo_id: tipo_articulo_id }).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen sub categorias registradas.' : 'No existe sub categoria de articulo con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+
+  # ============================================================================================================================================
+
+
   def self.create_update_sub_tipo_articulo( params, tipo_articulo)
     res            = Response.new
     tipo_articulo  = TipoArticulo.find_by_id(params[:tipo_articulo_id])

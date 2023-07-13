@@ -26,7 +26,7 @@ class TipoArticulo < ApplicationRecord
     .order('tipo_articulos.id ASC').to_a
 
     if tiposArticulos.length > 0
-      res.set_data(tiposArticulos, {all: true})
+      res.set_data(tiposArticulos, parametros_opcionales)
     else
       res.set_data([])
       cantidad_registros = TipoArticulo.where({estado: true}).count

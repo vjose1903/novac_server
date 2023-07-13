@@ -3,7 +3,8 @@ class SubTipoArticulosController < ApplicationController
 
   # GET /sub_tipo_articulos
   def index
-    return Response.new(params, nil, SubTipoArticulo.all, nil, { all: true }).send_response self
+    resultado      = SubTipoArticulo.filtrar(params, get_parametros_opcionales)
+    resultado.send_response self
   end
 
   # GET /sub_tipo_articulos/1
@@ -24,6 +25,12 @@ class SubTipoArticulosController < ApplicationController
   # PATCH/PUT /sub_tipo_articulos/1
   def update
     crear_actualizar_sub_tipo_articulo
+  end
+
+  def get_parametros_opcionales
+    return {
+      all: params[:all].present? ? params[:all] : true,
+    }
   end
 
   private

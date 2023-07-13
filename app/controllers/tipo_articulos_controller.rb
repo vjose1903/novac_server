@@ -32,7 +32,7 @@ class TipoArticulosController < ApplicationController
     crear_actualizar_tipo_articulo
   end
 
-	def get_parametros_opcionales
+  def get_parametros_opcionales
     return {
       all: params[:all].present? ? params[:all] : true,
     }
