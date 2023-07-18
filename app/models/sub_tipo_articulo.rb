@@ -60,6 +60,9 @@ class SubTipoArticulo < ApplicationRecord
 
           if res.status_valid && sub_tipo_articulo.errors.empty? && sub_tipo_articulo.save!
             res.set_data(sub_tipo_articulo)
+
+            action = params[:id] ? 'actualizado' : 'creado'
+            res.add_msg("Sub tipo articulo #{action} correctamente.")
           end
 
         end
@@ -87,20 +90,20 @@ class SubTipoArticulo < ApplicationRecord
 
   def procesos_parsear_cuentas(params, tipo_articulo)
     res = Response.new
+    cuentas                     = []
 
+    configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
 
+    configs_articulo.each do | config_articulo |
+      config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
 
-    if params[:id].nil? || !params[:id].present? || self.tipo_articulo_cuentas_contables.empty?
-      cuentas                     = []
-      configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
+      cuenta_contable_per_config_key = self.tipo_articulo_cuentas_contables.find { | cuenta | cuenta[:key] == config_articulo.key }
 
-      configs_articulo.each do | config_articulo |
+      descripcion_cuenta        = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
+      descripcion_cuenta_comun  = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
 
-        if G_SUB_TIPO_CONFIG_VALID.my_includes_str( config_articulo.key )
-          config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
+      if params[:id].nil? || !params[:id].present? || cuenta_contable_per_config_key.nil?
 
-          descripcion_cuenta        = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
-          descripcion_cuenta_comun  = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
 
           cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
 
@@ -114,31 +117,21 @@ class SubTipoArticulo < ApplicationRecord
             is_control:                       config_muck[:is_control],
             has_comun:                        config_muck[:has_comun]
           }.with_indifferent_access)
-        end
-      end
 
-
-      params[:tipo_articulo_cuentas_contables] = cuentas
-    else
-
-      cuentas = []
-
-      self.tipo_articulo_cuentas_contables.each do | cuenta |
-
-        config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == cuenta.key && config[:entidad] == cuenta.entidad }.with_indifferent_access
+      else
 
         cuentas.push({
-          id:                       cuenta.id,
-          descripcion_cuenta:       "#{ConfigEntidadCuentaCont::Keys.label[:"#{cuenta.key}"]}: #{self.descripcion}",
-          descripcion_cuenta_comun: "#{ConfigEntidadCuentaCont::Keys.label[:"#{cuenta.key}"]} común: #{self.descripcion}",
+          id:                       cuenta_contable_per_config_key.id,
+          descripcion_cuenta:       descripcion_cuenta,
+          descripcion_cuenta_comun: descripcion_cuenta_comun,
           has_comun:                config_muck[:has_comun],
           is_control:               config_muck[:is_control]
         })
-      end
 
-      params[:tipo_articulo_cuentas_contables] = cuentas
+      end
     end
 
+    params[:tipo_articulo_cuentas_contables] = cuentas
 
     return res
   end

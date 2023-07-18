@@ -167,5 +167,3 @@ G_ROLES_CUSTOM = [
 G_CONFIG_ARTICULOS = [
   { porciento_ganancia: 10}
 ]
-
-G_SUB_TIPO_CONFIG_VALID = [	'inventario' ]

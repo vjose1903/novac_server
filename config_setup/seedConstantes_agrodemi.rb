@@ -174,6 +174,4 @@ G_CONFIG_ARTICULOS = [
   { porciento_ganancia: 15}
 ]
 
-G_SUB_TIPO_CONFIG_VALID = [	'inventario' ]
-
 
