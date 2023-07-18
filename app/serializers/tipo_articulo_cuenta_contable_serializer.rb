@@ -1,11 +1,11 @@
 class TipoArticuloCuentaContableSerializer < ActiveModel::Serializer
 
-  attribute :id,                      if: Proc.new {    self.get_param('id')                      || self.get_param('all')  }
-  attribute :key,                     if: Proc.new {    self.get_param('key')                     || self.get_param('all')  }
-  attribute :descripcion_control,     if: Proc.new {  ( self.get_param('descripcion_control')     || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
-  attribute :codigo_control,          if: Proc.new {  ( self.get_param('codigo_control')          || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
-  attribute :is_control_control,      if: Proc.new {  ( self.get_param('is_control_control')      || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
-  attribute :label_control,           if: Proc.new {  ( self.get_param('label_control')           || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
+  attribute :id,                       if: Proc.new {   self.get_param('id')                      || self.get_param('all')  }
+  attribute :key,                      if: Proc.new {   self.get_param('key')                     || self.get_param('all')  }
+  attribute :descripcion_control,      if: Proc.new { ( self.get_param('descripcion_control')     || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
+  attribute :codigo_control,           if: Proc.new { ( self.get_param('codigo_control')          || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
+  attribute :is_control_control,       if: Proc.new { ( self.get_param('is_control_control')      || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
+  attribute :label_control,            if: Proc.new { ( self.get_param('label_control')           || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
 
   attribute :descripcion_auxiliar,     if: Proc.new { ( self.get_param('descripcion_auxiliar')    || self.get_param('all') ) && !object.cuenta_contable_auxiliar.nil? }
   attribute :codigo_auxiliar,          if: Proc.new { ( self.get_param('codigo_auxiliar')         || self.get_param('all') ) && !object.cuenta_contable_auxiliar.nil? }

@@ -4,8 +4,11 @@ class ConfiguracionEntidadCuentaSerializer < ActiveModel::Serializer
   attribute :entidad,                                     if: Proc.new { self.get_param('entidad')            || self.get_param('all') }
   attribute :key,                                         if: Proc.new { self.get_param('key')                || self.get_param('all') }
   attribute :is_nacional,                                 if: Proc.new { self.get_param('is_nacional')        || self.get_param('all') }
-  attribute :cuenta_contable,                             if: Proc.new { self.get_param('cuenta_contable')    || self.get_param('all') }
   attribute :cuenta_contable_id,                          if: Proc.new { self.get_param('cuenta_contable_id') || self.get_param('all') }
+  attribute :has_comun,                                   if: Proc.new { self.get_param('has_comun')          || self.get_param('all') }
+  attribute :has_individual,                              if: Proc.new { self.get_param('has_individual')     || self.get_param('all') }
+
+  attribute :cuenta_contable,                             if: Proc.new { self.get_param('cuenta_contable')    || self.get_param('all') }
 
 	def cuenta_contable
     serialize_parser(object.cuenta_contable, {id: true, descripcion: true, codigo: true, label: true })

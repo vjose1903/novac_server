@@ -89,45 +89,46 @@ class SubTipoArticulo < ApplicationRecord
   # ============================================================================================================================================
 
   def procesos_parsear_cuentas(params, tipo_articulo)
-    res = Response.new
-    cuentas                     = []
+    res                           = Response.new
+    cuentas                       = []
 
-    configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
+    configs_articulo              = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
 
     configs_articulo.each do | config_articulo |
-      config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
+      config_muck                 = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
 
-      cuenta_contable_per_config_key = self.tipo_articulo_cuentas_contables.find { | cuenta | cuenta[:key] == config_articulo.key }
+      if config_muck[:has_comun]
+        cuenta_contable_per_config_key = self.tipo_articulo_cuentas_contables.find { | cuenta | cuenta[:key] == config_articulo.key }
 
-      descripcion_cuenta        = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
-      descripcion_cuenta_comun  = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
+        descripcion_cuenta        = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
+        descripcion_cuenta_comun  = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
 
-      if params[:id].nil? || !params[:id].present? || cuenta_contable_per_config_key.nil?
+        if params[:id].nil? || !params[:id].present? || cuenta_contable_per_config_key.nil?
 
+            cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
 
-          cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
+            cuentas.push({
+              key:                              config_articulo.key,
+              entidad:                          config_articulo.entidad,
+              descripcion_cuenta:               descripcion_cuenta,
+              descripcion_cuenta_comun:         descripcion_cuenta_comun,
+              cuenta_contable:                  cuenta_contable,
+              configuracion_entidad_cuenta_id:  config_articulo.id,
+              is_control:                       config_muck[:is_control],
+              has_comun:                        config_muck[:has_comun]
+            }.with_indifferent_access)
+
+        else
 
           cuentas.push({
-            key:                              config_articulo.key,
-            entidad:                          config_articulo.entidad,
-            descripcion_cuenta:               descripcion_cuenta,
-            descripcion_cuenta_comun:         descripcion_cuenta_comun,
-            cuenta_contable:                  cuenta_contable,
-            configuracion_entidad_cuenta_id:  config_articulo.id,
-            is_control:                       config_muck[:is_control],
-            has_comun:                        config_muck[:has_comun]
-          }.with_indifferent_access)
+            id:                       cuenta_contable_per_config_key.id,
+            descripcion_cuenta:       descripcion_cuenta,
+            descripcion_cuenta_comun: descripcion_cuenta_comun,
+            has_comun:                config_muck[:has_comun],
+            is_control:               config_muck[:is_control]
+          })
 
-      else
-
-        cuentas.push({
-          id:                       cuenta_contable_per_config_key.id,
-          descripcion_cuenta:       descripcion_cuenta,
-          descripcion_cuenta_comun: descripcion_cuenta_comun,
-          has_comun:                config_muck[:has_comun],
-          is_control:               config_muck[:is_control]
-        })
-
+        end
       end
     end
 

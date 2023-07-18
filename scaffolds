@@ -171,6 +171,7 @@ rails g migration addMoreCamposToConfiguracionEntidadCuenta
 rails g migration addCamposCuentasBancarias
 rails g migration changeCuentaControlToReference
 rails g migration addCurrentTasaToDivisa
+rails g migration addHasCuentaIndividualToConfingCuenta
 
 
 

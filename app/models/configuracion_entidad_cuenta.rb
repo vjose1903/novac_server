@@ -52,6 +52,7 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
       configuracion_entidad_cuenta.key                    = params[:key]                  if params[:key].present?
       configuracion_entidad_cuenta.is_nacional            = params[:is_nacional]          if params[:is_nacional].present?
       configuracion_entidad_cuenta.has_comun              = params[:has_comun]            if params[:has_comun].present?
+      configuracion_entidad_cuenta.has_individual         = params[:has_individual]       if params[:has_individual].present?
       configuracion_entidad_cuenta.valid?
 
       configuracion_entidad_cuenta.otras_validaciones(params)

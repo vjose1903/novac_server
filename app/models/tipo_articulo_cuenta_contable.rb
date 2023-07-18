@@ -11,7 +11,7 @@ class TipoArticuloCuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def self.create_updatetipo_articulo_cuenta_contable(params, padre, is_save=false)
+  def self.create_update_tipo_articulo_cuenta_contable(params, padre, is_save=false)
     res                                                   = Response.new
 
     tipo_articulo_cuenta                                  = TipoArticuloCuentaContable.where(:id => params[:id]).first_or_create
@@ -84,7 +84,7 @@ class TipoArticuloCuentaContable < ApplicationRecord
     array_valid = []
 
     items.each do |item|
-      res_temp  = self.create_updatetipo_articulo_cuenta_contable(item, padre, !item[:id].nil?)
+      res_temp  = self.create_update_tipo_articulo_cuenta_contable(item, padre, !item[:id].nil?)
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)

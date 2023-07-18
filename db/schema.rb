@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_05_13_145120) do
+ActiveRecord::Schema[7.0].define(version: 2023_07_18_201427) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -247,6 +247,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_05_13_145120) do
     t.string "key"
     t.boolean "is_nacional"
     t.boolean "has_comun"
+    t.boolean "has_individual"
     t.index ["cuenta_contable_id"], name: "index_configuraciones_entidades_cuentas_on_cuenta_contable_id"
   end
 

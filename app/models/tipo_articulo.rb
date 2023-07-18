@@ -74,7 +74,8 @@ class TipoArticulo < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      transaction_rollback if !tipo_articulo.errors.empty? || !res.status_valid
+      # transaction_rollback if !tipo_articulo.errors.empty? || !res.status_valid
+      transaction_rollback
     end
 
     return res
@@ -84,52 +85,48 @@ class TipoArticulo < ApplicationRecord
   # ============================================================================================================================================
 
   def procesos_parsear_cuentas(params)
-    res = Response.new
+    res                         = Response.new
+    cuentas                     = []
 
-    if params[:id].nil? || !params[:id].present? || self.tipo_articulo_cuentas_contables.empty?
+    configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
 
-      cuentas                     = []
-      configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
+    configs_articulo.each do | config_articulo |
+			puts "config_articulo --> ".yellow + " #{config_articulo.to_json}"
+      config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
+			puts "config_muck --> ".magenta + " #{config_muck.to_json}"
 
-      configs_articulo.each do | config_articulo |
+      cuenta_contable_per_config_key = self.tipo_articulo_cuentas_contables.find { | cuenta | cuenta[:key] == config_articulo.key }
 
-        config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
+      descripcion_cuenta             = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
+      descripcion_cuenta_comun       = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
 
-        descripcion_cuenta        = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
-        descripcion_cuenta_comun  = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
+      if params[:id].nil? || !params[:id].present? || cuenta_contable_per_config_key.nil?
 
-        cuentas.push({
-          key:                               config_articulo.key,
-          entidad:                           config_articulo.entidad,
-          descripcion_cuenta:                descripcion_cuenta,
-          descripcion_cuenta_comun:          descripcion_cuenta_comun,
-          cuenta_contable:                   config_articulo.cuenta_contable,
-          configuracion_entidad_cuenta_id:   config_articulo.id,
-          is_control:                        config_muck[:is_control],
-          has_comun:                         config_articulo.has_comun
-        }.with_indifferent_access)
-      end
+          cuentas.push({
+            key:                               config_articulo.key,
+            entidad:                           config_articulo.entidad,
+            descripcion_cuenta:                descripcion_cuenta,
+            descripcion_cuenta_comun:          descripcion_cuenta_comun,
+            cuenta_contable:                   config_articulo.cuenta_contable,
+            configuracion_entidad_cuenta_id:   config_articulo.id,
+            is_control:                        config_muck[:is_control],
+            has_comun:                         config_articulo.has_comun
+          }.with_indifferent_access)
 
-      params[:tipo_articulo_cuentas_contables] = cuentas
-    else
-
-      cuentas = []
-
-      self.tipo_articulo_cuentas_contables.each do | cuenta |
-        config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == cuenta.configuracion_entidad_cuenta.key && config[:entidad] == cuenta.configuracion_entidad_cuenta.entidad }.with_indifferent_access
+      else
 
         cuentas.push({
-          id:                       cuenta.id,
-          descripcion_cuenta:       "#{ConfigEntidadCuentaCont::Keys.label[:"#{cuenta.key}"]}: #{self.descripcion}",
-          descripcion_cuenta_comun: "#{ConfigEntidadCuentaCont::Keys.label[:"#{cuenta.key}"]} común: #{self.descripcion}",
-          has_comun:                cuenta.configuracion_entidad_cuenta.has_comun,
+          id:                       cuenta_contable_per_config_key.id,
+          descripcion_cuenta:       descripcion_cuenta,
+          descripcion_cuenta_comun: descripcion_cuenta_comun,
+          has_comun:                cuenta_contable_per_config_key.configuracion_entidad_cuenta.has_comun,
           is_control:               config_muck[:is_control]
         })
+
       end
-
-      params[:tipo_articulo_cuentas_contables] = cuentas
-
     end
+
+    params[:tipo_articulo_cuentas_contables] = cuentas
 
     return res
   end
