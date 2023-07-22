@@ -7,6 +7,8 @@ class ConfiguracionEntidadCuentaSerializer < ActiveModel::Serializer
   attribute :cuenta_contable_id,                          if: Proc.new { self.get_param('cuenta_contable_id') || self.get_param('all') }
   attribute :has_comun,                                   if: Proc.new { self.get_param('has_comun')          || self.get_param('all') }
   attribute :has_individual,                              if: Proc.new { self.get_param('has_individual')     || self.get_param('all') }
+  attribute :has_categoria,                               if: Proc.new { self.get_param('has_categoria')      || self.get_param('all') }
+  attribute :has_sub_categoria,                           if: Proc.new { self.get_param('has_sub_categoria')  || self.get_param('all') }
 
   attribute :cuenta_contable,                             if: Proc.new { self.get_param('cuenta_contable')    || self.get_param('all') }
 

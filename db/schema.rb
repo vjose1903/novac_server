@@ -248,6 +248,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_18_201427) do
     t.boolean "is_nacional"
     t.boolean "has_comun"
     t.boolean "has_individual"
+    t.boolean "has_categoria"
+    t.boolean "has_sub_categoria"
     t.index ["cuenta_contable_id"], name: "index_configuraciones_entidades_cuentas_on_cuenta_contable_id"
   end
 
