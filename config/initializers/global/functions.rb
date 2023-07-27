@@ -95,7 +95,9 @@ class Paginator
 
     total_pag = (items.length.to_f / per_page.to_f).ceil
 
-    return { data: models_includes.nil? ? itemsPaginated : itemsPaginated.to_activerecord_relation.includes(models_includes) , total_registros: items.length, total_paginas: total_pag }
+		items_parsed = models_includes.nil? ? itemsPaginated : itemsPaginated.nil? ? itemsPaginated : itemsPaginated.to_activerecord_relation.includes(models_includes)
+
+    return { data: items_parsed, total_registros: items.length, total_paginas: total_pag }
   end
 
   def is_paginated
