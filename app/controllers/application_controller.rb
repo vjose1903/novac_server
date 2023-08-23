@@ -40,7 +40,24 @@ class ApplicationController < ActionController::API
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
     # res = result
-
+		TipoArticulo.all.each do | tipo_articulo |
+			tipo_articulo.descripcion = "#{tipo_articulo.descripcion}"
+			puts " "
+			puts " "
+			puts " "
+			puts " "
+			puts " ------ ".red * 8
+			puts "ACTUALIZANDO #{tipo_articulo.descripcion.upcase}"
+			puts " ------ ".red * 8
+			puts " "
+			puts " "
+			puts " "
+			resultado = TipoArticulo.create_update_tipo_articulo(tipo_articulo.attributes.with_indifferent_access, true)
+			unless resultado.status_valid
+				res = resultado
+				break
+			end
+		end
     res.send_response self
 
   end

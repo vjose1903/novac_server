@@ -7,7 +7,7 @@ class TipoArticuloCuentaContable < ApplicationRecord
   belongs_to :cuenta_contable_control,   class_name: 'CuentaContable', optional: true
   belongs_to :cuenta_contable_auxiliar,  class_name: 'CuentaContable', optional: true
 
-  validates :key,              presence: true,       uniqueness: { scope: [:origen_tipo_type, :origen_tipo_id], case_sensitive: false, :message => "Cuenta contable ya está registrada." }
+  validates :key,              presence: true,       uniqueness: { scope: [:origen_tipo_type, :origen_tipo_id], case_sensitive: false, :message => "<Tipo Articulo> Cuenta contable ya está registrada." }
 
   # ============================================================================================================================================
 

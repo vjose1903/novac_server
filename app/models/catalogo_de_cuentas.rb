@@ -5,7 +5,6 @@ class CatalogoDeCuentas < ApplicationRecord
     CatalogoDeCuentas.transaction do
 
       all_grupos = GrupoCuenta.where({ estado: true })
-
       if all_grupos.empty?
         G_CATALOGO_DEFAULT.each do | grupo |
           temp_grupo_cuenta             = GrupoCuenta.create_update_grupo_cuenta(grupo.with_indifferent_access, true)
@@ -49,7 +48,7 @@ class CatalogoDeCuentas < ApplicationRecord
     res = Response.new
 
     cuentas_contables.each do | cuenta |
-      next_cuenta_contable         = { grupo_cuenta_id: grupo_cuenta.id, cuenta_control: cuenta_control.id, **cuenta }.with_indifferent_access
+      next_cuenta_contable         = { grupo_cuenta_id: grupo_cuenta.id, cuenta_control_id: cuenta_control.id, **cuenta, action: 'create' }.with_indifferent_access
 
       temp_cuenta_contable         = CuentaContable.create_update_cuenta_contable(next_cuenta_contable, grupo_cuenta, true)
 

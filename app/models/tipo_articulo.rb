@@ -74,8 +74,7 @@ class TipoArticulo < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      # transaction_rollback if !tipo_articulo.errors.empty? || !res.status_valid
-      transaction_rollback
+      transaction_rollback if !tipo_articulo.errors.empty? || !res.status_valid
     end
 
     return res

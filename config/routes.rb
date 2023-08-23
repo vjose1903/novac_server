@@ -32,6 +32,7 @@ Rails.application.routes.draw do
 
   resources :tipo_cuentas_bancarias
 
+	get "ruta/test"              => "application#testFunction"
 
   resources :roles do
     collection do
@@ -179,8 +180,6 @@ Rails.application.routes.draw do
       end
     end
   end
-
-  get "ruta/test"                         => "application#testFunction"
 
   resources :permisos do
     collection do

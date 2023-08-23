@@ -77,7 +77,8 @@ class GrupoCuenta < ApplicationRecord
         descripcion:  grupo_cuenta.descripcion,
         origen:       grupo_cuenta.origen,
         tipo:         grupo_cuenta.tipo,
-        is_control:   true
+        is_control:   true,
+				action:       'create'
       }.with_indifferent_access
     ]
 
