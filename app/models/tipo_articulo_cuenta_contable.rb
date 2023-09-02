@@ -16,9 +16,9 @@ class TipoArticuloCuentaContable < ApplicationRecord
 
     tipo_articulo_cuenta                                  = TipoArticuloCuentaContable.where(:id => params[:id]).first_or_create
 
-    tipo_articulo_cuenta.key                              = params[:key]                             if params[:key].present?     || !params[:key].nil?
-    tipo_articulo_cuenta.entidad                          = params[:entidad]                         if params[:entidad].present? || !params[:entidad].nil?
-    tipo_articulo_cuenta.configuracion_entidad_cuenta_id  = params[:configuracion_entidad_cuenta_id] if params[:configuracion_entidad_cuenta_id].present? || !params[:configuracion_entidad_cuenta_id].nil?
+    tipo_articulo_cuenta.key                              = params[:key]                             if params.has_key?(:key)                             || !params[:key].nil?
+    tipo_articulo_cuenta.entidad                          = params[:entidad]                         if params.has_key?(:entidad)                         || !params[:entidad].nil?
+    tipo_articulo_cuenta.configuracion_entidad_cuenta_id  = params[:configuracion_entidad_cuenta_id] if params.has_key?(:configuracion_entidad_cuenta_id) || !params[:configuracion_entidad_cuenta_id].nil?
     tipo_articulo_cuenta.origen_tipo                      = padre
 
     result_procesos                                       = tipo_articulo_cuenta.procesos_cuentas(params)

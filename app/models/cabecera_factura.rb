@@ -354,7 +354,7 @@ class CabeceraFactura < ApplicationRecord
     res                  = Response.new(paginate_options)
 
     campoNum           = params[:campo]
-    valor_des          = params[:valor].present? ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
+    valor_des          = params.has_key?(:valor) ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
     tipo_factura_id    = params[:tipo_factura_id]
     is_adelantada      = params[:is_adelantada] != '0' ? params[:is_adelantada].to_boolean : false
     tipo               = params[:tipo] ? params[:tipo] : 'venta'
@@ -374,8 +374,8 @@ class CabeceraFactura < ApplicationRecord
     where_ += 'AND (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) '  if is_adelantada
     where_ += "AND cabecera_facturas.#{campo} = #{valor_where} "                                                      unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
     where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"                                            unless tipo_factura_id == "0"
-    where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params[:pagada].present? && pagada != "0"
-    where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params[:estado].present? && estado != "0"
+    where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params.has_key?(:pagada) && pagada != "0"
+    where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params.has_key?(:estado) && estado != "0"
 
     joins_ = 'inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id '
     joins_ += 'inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id ' if is_adelantada

@@ -34,8 +34,8 @@ class Deposito < ApplicationRecord
 
         deposito        = Deposito.where(:id => params[:id]).first_or_create
 
-        deposito.user_creador_id          = get_current_user[:id] if (params[:id].nil?  || !params[:id].present?) && deposito.id.nil?
-        deposito.last_user_update_id      = get_current_user[:id] if (!params[:id].nil? || params[:id].present?) && !deposito.id.nil?
+        deposito.user_creador_id          = get_current_user[:id] if (params[:id].nil?  || !params.has_key?(:id)) && deposito.id.nil?
+        deposito.last_user_update_id      = get_current_user[:id] if (!params[:id].nil? || params.has_key?(:id)) && !deposito.id.nil?
         deposito.cuenta_bancaria_id       = params[:cuenta_bancaria_id]
         deposito.divisa_id                = params[:divisa_id]
         deposito.monto                    = params[:monto]

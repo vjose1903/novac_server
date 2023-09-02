@@ -100,7 +100,7 @@ class EntidadCuentaContable < ApplicationRecord
 
   def procesos_crear_cuenta(has_cuenta_contable, params)
     res                         = Response.new
-    if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo
+    if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
       cuenta_contable_art       = self.origen_categoria.tipo_articulo_cuentas_contables.find_by({ key: self.key })
     end
 
@@ -118,7 +118,7 @@ class EntidadCuentaContable < ApplicationRecord
     if !has_cuenta_contable
       cuenta_control                     = nil
 
-      if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo
+      if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
         cuenta_control                   = cuenta_contable_art.cuenta_contable_control
       else
         cuenta_control                   = ( self.tipo_agrupacion_contable == TipoAgrupacionContable.individual ) ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control

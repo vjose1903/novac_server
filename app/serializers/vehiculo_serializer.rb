@@ -38,7 +38,6 @@ class VehiculoSerializer < ActiveModel::Serializer
     if !object.user_id.nil?
       object.user.nombre_completo
     else
-			puts "@propietario ==> ".red + " #{@propietario.to_json}"
       nombre    = @propietario[:nombre].capitalize
       nombre    += " #{@propietario[:apellido].capitalize}" unless @propietario[:apellido].blank?
       nombre    = nombre.gsub("  ", " ").strip

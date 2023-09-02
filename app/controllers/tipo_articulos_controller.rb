@@ -34,7 +34,7 @@ class TipoArticulosController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      all: params[:all].present? ? params[:all] : true,
+      all: params.has_key?(:all) ? params[:all] : true,
     }
   end
 

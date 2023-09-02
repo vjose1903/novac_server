@@ -11,7 +11,7 @@ class SubTipoArticulo < ApplicationRecord
 
     res                   = Response.new
     filter_target         = has_filter_target(params) ? params[:filter_target] : nil
-    tipo_articulo_id      = params[:tipo_articulo_id].present? ? params[:tipo_articulo_id] : nil
+    tipo_articulo_id      = params.has_key?(:tipo_articulo_id) ? params[:tipo_articulo_id] : nil
 
     where_                = ""
     where_               += "lower(sub_tipo_articulos.descripcion) like lower('%#{filter_target}%')" unless filter_target.nil?
@@ -103,7 +103,7 @@ class SubTipoArticulo < ApplicationRecord
         descripcion_cuenta        = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
         descripcion_cuenta_comun  = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
 
-        if params[:id].nil? || !params[:id].present? || cuenta_contable_per_config_key.nil?
+        if params[:id].nil? || !params.has_key?(:id) || cuenta_contable_per_config_key.nil?
 
             cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
 

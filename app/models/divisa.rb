@@ -22,9 +22,9 @@ class Divisa < ApplicationRecord
 
       divisa.nombre               = params[:nombre]
       divisa.simbolo              = params[:simbolo]
-      divisa.is_principal         = params[:is_principal]   if params[:is_principal].present?
-      divisa.current_tasa         = params[:current_tasa]   if params[:current_tasa].present?
-      divisa.predeterminado       = params[:predeterminado] if params[:predeterminado].present?
+      divisa.is_principal         = params[:is_principal]   if params.has_key?(:is_principal)
+      divisa.current_tasa         = params[:current_tasa]   if params.has_key?(:current_tasa)
+      divisa.predeterminado       = params[:predeterminado] if params.has_key?(:predeterminado)
 
       divisa.valid?
 

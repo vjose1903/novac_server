@@ -60,7 +60,7 @@ class CatalogoDeCuentas < ApplicationRecord
 
         if !next_config_entidad_cuenta.nil?
           config                   = { cuenta_contable_id: cuenta_contable_db.id, **next_config_entidad_cuenta }.with_indifferent_access
-          config.delete(:id) if config[:id].present?
+          config.delete(:id) if config.has_key?(:id)
 
           resultado                = ConfiguracionEntidadCuenta.create_update_configuracion_entidad_cuenta(config, nil, true)
 

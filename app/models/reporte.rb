@@ -560,7 +560,7 @@ class Reporte < ApplicationRecord
 
         query['fecha_equivalente']    = tipo_reporte == TipoReporteVentas.ventas_hoy ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
         query['cliente_id']           = cliente_id         if tipo_reporte == TipoReporteVentas.ventas_cliente
-        query['tipo_factura_id']      = tipo_factura_id    if params[:tipo_factura_id].present? && tipo_factura_id != "0"
+        query['tipo_factura_id']      = tipo_factura_id    if params.has_key?(:tipo_factura_id) && tipo_factura_id != "0"
         query['tipo']                 = 'venta'
         query['is_nota']              = false
 

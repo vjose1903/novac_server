@@ -49,7 +49,7 @@ class TipoArticulo < ApplicationRecord
 
       tipo_articulo.descripcion        = params[:descripcion]
       tipo_articulo.tipo               = params[:tipo]
-      tipo_articulo.codigo             = tipo_articulo.descripcion.downcase.gsub(" ", "_").strip if params[:id].nil? || !params[:id].present?
+      tipo_articulo.codigo             = tipo_articulo.descripcion.downcase.gsub(" ", "_").strip if params[:id].nil? || !params.has_key?(:id)
       result_procesos                  = tipo_articulo.procesos_parsear_cuentas(params)
 
       tipo_articulo.valid?
@@ -90,16 +90,14 @@ class TipoArticulo < ApplicationRecord
     configs_articulo            = ConfiguracionEntidadCuenta.where({ entidad: ConfigEntidadCuentaCont.articulo })
 
     configs_articulo.each do | config_articulo |
-			puts "config_articulo --> ".yellow + " #{config_articulo.to_json}"
       config_muck               = G_CONFIG_ENTIDAD_CUENTA.find { | config | config[:key] == config_articulo.key && config[:entidad] == config_articulo.entidad }.with_indifferent_access
-			puts "config_muck --> ".magenta + " #{config_muck.to_json}"
 
       cuenta_contable_per_config_key = self.tipo_articulo_cuentas_contables.find { | cuenta | cuenta[:key] == config_articulo.key }
 
       descripcion_cuenta             = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]}: #{self.descripcion}"
       descripcion_cuenta_comun       = "#{ConfigEntidadCuentaCont::Keys.label[:"#{config_articulo.key}"]} común: #{self.descripcion}"
 
-      if params[:id].nil? || !params[:id].present? || cuenta_contable_per_config_key.nil?
+      if params[:id].nil? || !params.has_key?(:id) || cuenta_contable_per_config_key.nil?
 
           cuentas.push({
             key:                               config_articulo.key,

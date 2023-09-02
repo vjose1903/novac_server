@@ -32,7 +32,7 @@ class Articulo < ApplicationRecord
 
     if self.medida == 'Caja'
 
-      self.errors.add(:base, 'Los articulos comprados en caja deben de tener la cantidad especificada.') if !params[:contenido_articulos].present? || params[:contenido_articulos].length == 0
+      self.errors.add(:base, 'Los articulos comprados en caja deben de tener la cantidad especificada.') if !params.has_key?(:contenido_articulos) || params[:contenido_articulos].length == 0
 
       contenido_padre = params[:contenido_articulos].find { | contenido | contenido[:condicion].downcase == 'padre' }
       contenido_hijo  = params[:contenido_articulos].find { | contenido | contenido[:condicion].downcase == 'hijo' }
@@ -44,7 +44,7 @@ class Articulo < ApplicationRecord
     articulo_configs   = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.articulo)
     cantidad_cuentas   = articulo_configs.length - 2
 
-    if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length <  cantidad_cuentas )
+    if !params.has_key?(:cuentas_contables) || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length <  cantidad_cuentas )
       self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
     end
 
@@ -158,7 +158,7 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
 
   def agregar_cuentas_descuento(params)
-    if params[:id].nil? || !params[:id].present?
+    if params[:id].nil? || !params.has_key?(:id)
       articulo_configs   = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.articulo).where("key IN ('descuento_ventas','descuento_compras')")
 
       articulo_configs.each do | config |

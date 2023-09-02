@@ -15,7 +15,7 @@ class MovimientosInventario < ApplicationRecord
 			if articulo.nombre != 'Transporte' && tipo_articulo.tipo != TipoArticuloType.servicio
 				mov           = eval("#{articulo.existencia} #{operador} #{movimiento["cantidad_en_unidades"]}")
 
-				mov           = 0 if mov < 0 && movimiento['vende_sin_inventario'].present? && movimiento['vende_sin_inventario']
+				mov           = 0 if mov < 0 && movimiento.has_key?(:vende_sin_inventario) && movimiento['vende_sin_inventario']
 
 				if operador == "-" # --------- SALIDA ---------
 

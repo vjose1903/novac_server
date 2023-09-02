@@ -16,7 +16,7 @@ class Cliente < ApplicationRecord
     if has_contabilidad
       cliente_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
 
-      if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( cliente_configs.length < params[:cuentas_contables].length )
+      if !params.has_key?(:cuentas_contables) || params[:cuentas_contables].nil? || ( cliente_configs.length < params[:cuentas_contables].length )
         self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
       end
     end

@@ -12,11 +12,11 @@ class Transferencia < ApplicationRecord
 
   def otras_validaciones(params)
 
-    if ( !params[:cuenta_bancaria_destino_id].present? || params[:cuenta_bancaria_destino_id].nil? ) && ( params[:nombre_banco_tercero].nil? || !params[:nombre_banco_tercero].present? )
+    if ( !params.has_key?(:cuenta_bancaria_destino_id) || params[:cuenta_bancaria_destino_id].nil? ) && ( params[:nombre_banco_tercero].nil? || !params.has_key?(:nombre_banco_tercero) )
       self.errors.add(:base, 'Debe de seleccionar el banco de tercero, para esta transferencia.')
     end
 
-    if ( !params[:cuenta_bancaria_destino_id].present? || params[:cuenta_bancaria_destino_id].nil? ) && ( params[:cuenta_bancaria_tercero].nil? || !params[:cuenta_bancaria_tercero].present? )
+    if ( !params.has_key?(:cuenta_bancaria_destino_id) || params[:cuenta_bancaria_destino_id].nil? ) && ( params[:cuenta_bancaria_tercero].nil? || !params.has_key?(:cuenta_bancaria_tercero) )
       self.errors.add(:base, 'Debe de especificar la cuenta del banco de tercero a la cual ira dirigida la transferencia.')
     end
 
@@ -59,8 +59,8 @@ class Transferencia < ApplicationRecord
         transferencia.cuenta_bancaria_origen_id   = params[:cuenta_bancaria_origen_id]
         transferencia.cuenta_bancaria_destino_id  = params[:cuenta_bancaria_destino_id]
         transferencia.divisa_id                   = params[:divisa_id]
-        transferencia.user_creador_id             = get_current_user[:id] if (params[:id].nil?  || !params[:id].present?) && transferencia.id.nil?
-        transferencia.last_user_update_id         = get_current_user[:id] if (!params[:id].nil? || params[:id].present?) && !transferencia.id.nil?
+        transferencia.user_creador_id             = get_current_user[:id] if (params[:id].nil?  || !params.has_key?(:id)) && transferencia.id.nil?
+        transferencia.last_user_update_id         = get_current_user[:id] if (!params[:id].nil? || params.has_key?(:id)) && !transferencia.id.nil?
         transferencia.monto                       = params[:monto]
         transferencia.comentario                  = params[:comentario]
         transferencia.nombre_banco_tercero        = params[:nombre_banco_tercero]

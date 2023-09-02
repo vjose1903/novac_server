@@ -49,14 +49,14 @@ class CuentasContablesController < ApplicationController
 
     def get_parametros_opcionales
       return {
-        all:                   params[:all].present? ? params[:all]                                               : true,
+        all:                   params.has_key?(:all) ? params[:all]                                               : true,
         cuenta_control:        params[:cuenta_control]                                                           || false,
         cuenta_control_id:     params[:cuenta_control_id]                                                        || false,
-        iterator:              params[:iterator].present? ? params[:iterator].to_boolean                          : false,
-        only_aux:              params[:only_aux].present? ? params[:only_aux].to_boolean                          : false,
-        only_control:          params[:only_control].present? ? params[:only_control].to_boolean                  : false,
-        include_fathers_tree:  params[:include_fathers_tree].present? ? params[:include_fathers_tree].to_boolean  : false,
-        label:                 params[:label].present? ? params[:label].to_boolean                                : false,
+        iterator:              params.has_key?(:iterator) ? params[:iterator].to_boolean                          : false,
+        only_aux:              params.has_key?(:only_aux) ? params[:only_aux].to_boolean                          : false,
+        only_control:          params.has_key?(:only_control) ? params[:only_control].to_boolean                  : false,
+        include_fathers_tree:  params.has_key?(:include_fathers_tree) ? params[:include_fathers_tree].to_boolean  : false,
+        label:                 params.has_key?(:label) ? params[:label].to_boolean                                : false,
       }
     end
 

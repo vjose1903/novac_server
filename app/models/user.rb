@@ -27,12 +27,12 @@ class User < ApplicationRecord
 
     if has_contabilidad
       user_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.user)
-      if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( user_configs.length < params[:cuentas_contables].length )
+      if !params.has_key?(:cuentas_contables) || params[:cuentas_contables].nil? || ( user_configs.length < params[:cuentas_contables].length )
         self.errors.add(:base, 'Debe de especificar todas los atributos para cuentas contables.')
       end
     end
 
-    self.errors.add(:base, 'Debe de especificar almenos un role al empleado.')                          if !params[:ids_roles].present?         || params[:ids_roles].nil?
+    self.errors.add(:base, 'Debe de especificar almenos un role al empleado.')                          if !params.has_key?(:ids_roles)         || params[:ids_roles].nil?
   end
 
   # =====================================================================================================================

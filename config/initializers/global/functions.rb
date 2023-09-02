@@ -170,13 +170,13 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def has_paginate_options(params)
-  return params[:page].present? && params[:per_page].present? && params[:paginado].present?
+  return params.has_key?(:page) && params.has_key?(:per_page) && params.has_key?(:paginado)
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 def has_filter_target(params)
-  return params[:filter_target].present? && !params[:filter_target].nil? && params[:filter_target].strip != ''
+  return params.has_key?(:filter_target) && !params[:filter_target].nil? && params[:filter_target].strip != ''
 end
 
   # ---------------------------------------------------------------------------------------------------------

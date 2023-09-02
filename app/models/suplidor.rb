@@ -13,7 +13,7 @@ class Suplidor < ApplicationRecord
       usa_moneda_nacional  = self.divisa.is_principal
       cantidad_cuentas     = !usa_moneda_nacional ? suplidor_configs.length : ( suplidor_configs.length - 1 )
 
-      if !params[:cuentas_contables].present? || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length < cantidad_cuentas )
+      if !params.has_key?(:cuentas_contables) || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length < cantidad_cuentas )
         self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
       end
     end

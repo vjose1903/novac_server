@@ -68,8 +68,8 @@ class CategoriaEntidadContable < ApplicationRecord
     configuracion_id = params[:configuracion_id]
 
     where_            = ""
-    where_           += "configuracion_entidad_cuenta_id=#{configuracion_id}" if params[:configuracion_id].present?
-    where_           += "#{params[:configuracion_id].present? ? 'AND' : ''} lower(categorias_entidades_contables.descripcion) like lower('%#{filter_target}%')" if has_filter_target(params)
+    where_           += "configuracion_entidad_cuenta_id=#{configuracion_id}" if params.has_key?(:configuracion_id)
+    where_           += "#{params.has_key?(:configuracion_id) ? 'AND' : ''} lower(categorias_entidades_contables.descripcion) like lower('%#{filter_target}%')" if has_filter_target(params)
 
     categorias       = CategoriaEntidadContable.where(where_).order('id ASC').includes(CategoriaEntidadContable.models_includes)
 
