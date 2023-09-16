@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_07_18_201438) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_16_153739) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -846,7 +846,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_07_18_201438) do
 
   create_table "tasas_de_cambio", force: :cascade do |t|
     t.bigint "divisa_id", null: false
-    t.bigint "user_id", null: false
+    t.bigint "user_id"
     t.bigint "last_user_update_id"
     t.date "fecha_equivalente"
     t.float "valor", default: 0.0

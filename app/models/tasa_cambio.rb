@@ -16,7 +16,7 @@ class TasaCambio < ApplicationRecord
         tasa_cambio.valor              = params[:valor]              unless params[:valor].nil?
         tasa_cambio.divisa_id          = params[:divisa_id]          unless params[:divisa_id].nil?
         tasa_cambio.fecha_equivalente  = params[:fecha_equivalente]  unless params[:fecha_equivalente].nil?
-        tasa_cambio.user_id            = get_current_user[:id]
+        tasa_cambio.user_id            = get_current_user[:id]       unless get_current_user.nil?
 
         tasa_cambio.valor              = 1 if tasa_cambio.divisa.is_principal
 
@@ -75,7 +75,7 @@ class TasaCambio < ApplicationRecord
 
         tasas.each do | tasa |
           tasa.valor                = params[:valor]
-          tasa.last_user_update_id  = get_current_user[:id]
+          tasa.last_user_update_id  = get_current_user[:id] unless get_current_user.nil?
           tasa.secuencia            = (tasa.secuencia + 1) if is_today_change
           tasa.save!
         end

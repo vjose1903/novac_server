@@ -169,3 +169,7 @@ G_ROLES_CUSTOM = [
 G_CONFIG_ARTICULOS = [
 	{ porciento_ganancia: 10}
 ]
+
+G_DIVISA_DEFAULT = [
+  { nombre: 'Peso Dominicano', simbolo: 'RD$', is_principal: true, estado: true, current_tasa: 1,  predeterminado: true, imagenes: { file_name: 'peso_dominicano.png', base_64: G_IMG_PESO } },
+]
