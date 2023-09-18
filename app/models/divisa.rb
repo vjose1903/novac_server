@@ -28,8 +28,6 @@ class Divisa < ApplicationRecord
 
       divisa.valid?
 
-			puts "divisa ".red + " #{divisa.to_json}"
-
       if divisa.errors.empty?
         dependencias              = [{ modelo: Imagen, key_object: 'imagenes', padre: divisa }]
 

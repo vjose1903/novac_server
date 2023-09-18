@@ -42,7 +42,7 @@ class Imagen < ApplicationRecord
       array_valid=[]
 
       items.each do |item|
-        res_temp = self.create_update_imagen(item, padre, !item[:id].nil?)
+        res_temp = self.create_update_imagen(item.with_indifferent_access, padre, !item[:id].nil?)
 
         if res_temp.status_valid
           array_valid.push(res_temp.get_data)
@@ -75,7 +75,6 @@ class Imagen < ApplicationRecord
     def self.saveFileInThisServer(params)
       file_name      = params[:file_name]
       base64_string  = params[:base_64]
-
 
       FileUtils.mkdir_p(IMAGES_PATH) unless File.exist?(IMAGES_PATH)
 
