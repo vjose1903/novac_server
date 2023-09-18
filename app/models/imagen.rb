@@ -42,7 +42,9 @@ class Imagen < ApplicationRecord
       array_valid=[]
 
       items.each do |item|
-        res_temp = self.create_update_imagen(item.with_indifferent_access, padre, !item[:id].nil?)
+				item = item.with_indifferent_access if !item.is_a?(ActionController::Parameters)
+
+        res_temp = self.create_update_imagen(item, padre, !item[:id].nil?)
 
         if res_temp.status_valid
           array_valid.push(res_temp.get_data)
