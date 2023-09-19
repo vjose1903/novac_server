@@ -326,17 +326,20 @@ end
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
   dependencias.each do | dependencia |
-		items = parametros[dependencia[:key_object]].kind_of?(Array) ? parametros[dependencia[:key_object]] : [**parametros[dependencia[:key_object]]]
-    if !items.nil? && !items.empty?
-      res_dependencia = dependencia[:modelo].validar_e_inicializar(items, dependencia[:padre], save)
+		unless parametros[dependencia[:key_object]].nil?
+			items = parametros[dependencia[:key_object]].kind_of?(Array) ? parametros[dependencia[:key_object]] : [**parametros[dependencia[:key_object]]]
 
-      if res_dependencia.status_valid
-        yield dependencia[:key_object], res_dependencia.get_data if block_given?
-      else
-        return res_dependencia
-      end
+			if !items.nil? && !items.empty?
+				res_dependencia = dependencia[:modelo].validar_e_inicializar(items, dependencia[:padre], save)
 
-    end
+				if res_dependencia.status_valid
+					yield dependencia[:key_object], res_dependencia.get_data if block_given?
+				else
+					return res_dependencia
+				end
+
+			end
+		end
 
   end
 
