@@ -15,11 +15,11 @@ class PeriodoFiscal < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def self.create_update_periodo_fiscal(params, is_save=false)
+  def self.create_periodo_fiscal(params, is_save=false)
     res                                = Response.new
     PeriodoFiscal.transaction do
 
-      periodo_fiscal                   = PeriodoFiscal.where(:id => params[:id]).first_or_create
+      periodo_fiscal                   = PeriodoFiscal.new
 
       periodo_fiscal.fecha_inicio      = params[:fecha_inicio]
       periodo_fiscal.fecha_cierre      = params[:fecha_cierre]
@@ -82,12 +82,10 @@ class PeriodoFiscal < ApplicationRecord
 
         new_periodo_fiscal.fecha_inicio     = new_periodo_fiscal.fecha_inicio.advance(years: 1)
         new_periodo_fiscal.fecha_cierre     = new_periodo_fiscal.fecha_cierre.advance(years: 1)
-        new_periodo_fiscal.estado           = true
         res                                 = new_periodo_fiscal.add_detalle(params)
 
-        last_periodo_fiscal.estado          = false
 
-        if res.status_valid && ((new_periodo_fiscal.errors.empty? && new_periodo_fiscal.save!) && (last_periodo_fiscal.errors.empty? && last_periodo_fiscal.save!))
+        if res.status_valid && ((new_periodo_fiscal.errors.empty? && new_periodo_fiscal.save!))
           res.set_data(serialize_parser(new_periodo_fiscal, {all:true}))
           res.add_msg("Periodo Fiscal: #{formatearFecha(new_periodo_fiscal.fecha_inicio.to_s, TipoFecha.sin_hora)} - #{formatearFecha(new_periodo_fiscal.fecha_cierre.to_s, TipoFecha.sin_hora)} abierto correctamente.")
         else
@@ -96,7 +94,7 @@ class PeriodoFiscal < ApplicationRecord
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 
-        transaction_rollback if (!new_periodo_fiscal.errors.empty? || !last_periodo_fiscal.errors.empty?) || !res.status_valid
+        transaction_rollback if !new_periodo_fiscal.errors.empty? || !res.status_valid
 
       else
         res.add_msg("Para abrir un nuevo periodo fiscal primero debe de registrar el primer periodo")

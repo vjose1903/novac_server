@@ -152,35 +152,35 @@ end
 
 G_PERMISOS.each do | permiso |
 
-  permiso_backend = Permiso.find_by_descripcion(permiso[:descripcion])
+  permiso_db = Permiso.find_by_descripcion(permiso[:descripcion])
 
-  if permiso_backend.nil?
+  if permiso_db.nil?
     puts "------".red * 7
     puts "CREANDO PERMISO: #{permiso[:descripcion]}"
     puts "------".red * 7
-    permiso_backend = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
-    puts " " if !permiso_backend.errors.empty?
-    puts "ERROR- permiso: ".red + "#{permiso_backend.errors.to_json}" if !permiso_backend.errors.empty?
+    permiso_db = Permiso.create({descripcion: permiso[:descripcion], nombre: permiso[:nombre], controlador: permiso[:controlador], mostrar_front: permiso[:mostrar_front]})
+    puts " " if !permiso_db.errors.empty?
+    puts "ERROR- permiso: ".red + "#{permiso_db.errors.to_json}" if !permiso_db.errors.empty?
   end
 
   permiso[:acciones].each do | accion |
-    accion_backend = Accion.find_by_descripcion(accion[:descripcion])
+    accion_db = Accion.find_by_descripcion(accion[:descripcion])
 
-    if accion_backend.nil?
+    if accion_db.nil?
       puts " "
       puts "------".yellow * 7
       puts "CREANDO ACCION #{accion[:descripcion]}"
       puts "------".yellow * 7
-      accion_backend = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo], mostrar_front: accion[:mostrar_front]})
-      puts " " if !accion_backend.errors.empty?
-      puts "ERROR- accion: ".red + "#{accion_backend.errors.to_json}" if !accion_backend.errors.empty?
+      accion_db = Accion.create({descripcion: accion[:descripcion], nombre: accion[:nombre], metodo: accion[:metodo], mostrar_front: accion[:mostrar_front]})
+      puts " " if !accion_db.errors.empty?
+      puts "ERROR- accion: ".red + "#{accion_db.errors.to_json}" if !accion_db.errors.empty?
     end
 
 
-    permiso_accion = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+    permiso_accion = PermisoAccion.where({permiso_id: permiso_db.id, accion_id: accion_db.id})
 
     if permiso_accion.empty?
-      perm_action = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+      perm_action = PermisoAccion.create({permiso_id: permiso_db.id, accion_id: accion_db.id})
       puts " "
       puts "------".magenta * 7
       puts "CREANDO PERMISO_ACCION"
@@ -205,10 +205,10 @@ end
 
 all_permisos_aciones         = PermisoAccion.all
 
-all_permisos_aciones.each do | permiso_accion_backend |
+all_permisos_aciones.each do | permiso_accion_db |
 
-  if permiso_accion_backend.permiso.mostrar_front && permiso_accion_backend.accion.mostrar_front
-    rol_permiso_accion_molde = {role_id: role_administrador.id , permiso_accion_id: permiso_accion_backend.id}
+  if permiso_accion_db.permiso.mostrar_front && permiso_accion_db.accion.mostrar_front
+    rol_permiso_accion_molde = {role_id: role_administrador.id , permiso_accion_id: permiso_accion_db.id}
     rol_permiso_accion       = RolPermisoAccion.where(rol_permiso_accion_molde)
     if rol_permiso_accion.empty?
       rol_permiso_accion     = RolPermisoAccion.create(rol_permiso_accion_molde)
@@ -225,35 +225,35 @@ end
 
 
 G_ROLES_CUSTOM.each do | rol |
-  rol_backend = Role.find_by_key(rol[:key])
+  rol_db = Role.find_by_key(rol[:key])
 
-  if rol_backend.nil?
-    rol_backend = Role.create({ nombre: rol[:nombre], key: rol[:key], descripcion: rol[:descripcion], ruta_defecto: rol[:ruta_defecto], estado: true})
+  if rol_db.nil?
+    rol_db = Role.create({ nombre: rol[:nombre], key: rol[:key], descripcion: rol[:descripcion], ruta_defecto: rol[:ruta_defecto], estado: true})
     puts " "
     puts "------".yellow * 7
-    puts "CREANDO ROLE <<#{rol_backend.nombre}>> "
+    puts "CREANDO ROLE <<#{rol_db.nombre}>> "
     puts "------".yellow * 7
     puts " "
-    puts "ERROR- role: ".red + "#{rol_backend.errors.to_json}" if !rol_backend.errors.empty?
+    puts "ERROR- role: ".red + "#{rol_db.errors.to_json}" if !rol_db.errors.empty?
   end
 
   rol[:permisos_acciones].each do | permiso_accion |
 
-    permiso_backend = Permiso.find_by_descripcion(permiso_accion[:permiso_descripcion])
+    permiso_db = Permiso.find_by_descripcion(permiso_accion[:permiso_descripcion])
 
     permiso_accion[:acciones].each do |accion|
-      accion_backend = Accion.find_by_descripcion(accion)
+      accion_db = Accion.find_by_descripcion(accion)
 
-      permiso_accion_backend = PermisoAccion.where({permiso_id: permiso_backend.id, accion_id: accion_backend.id})
+      permiso_accion_db = PermisoAccion.where({permiso_id: permiso_db.id, accion_id: accion_db.id})
 
-      permiso_accion_backend = PermisoAccion.create({permiso_id: permiso_backend.id, accion_id: accion_backend.id}) if permiso_accion_backend.empty?
+      permiso_accion_db = PermisoAccion.create({permiso_id: permiso_db.id, accion_id: accion_db.id}) if permiso_accion_db.empty?
 
-      permiso_accion_backend = permiso_accion_backend.first if permiso_accion_backend.kind_of?(Array)
+      permiso_accion_db = permiso_accion_db.first if permiso_accion_db.kind_of?(Array)
 
-      rol_permiso_accion       = RolPermisoAccion.where({role_id: rol_backend.id , permiso_accion_id: permiso_accion_backend.id})
+      rol_permiso_accion       = RolPermisoAccion.where({role_id: rol_db.id , permiso_accion_id: permiso_accion_db.id})
 
       if rol_permiso_accion.empty?
-        rol_permiso_accion     = RolPermisoAccion.create({role_id: rol_backend.id , permiso_accion_id: permiso_accion_backend.id})
+        rol_permiso_accion     = RolPermisoAccion.create({role_id: rol_db.id , permiso_accion_id: permiso_accion_db.id})
 
         puts " "
         puts "------".magenta * 7
@@ -308,26 +308,26 @@ end
 
 G_CONFIG_ARTICULOS.each do | config |
 
-  configuracion_articulo_backend =  ConfigArticulo.find_by_id(1)
+  configuracion_articulo_db =  ConfigArticulo.find_by_id(1)
 
 
-  if configuracion_articulo_backend.nil?
-    configuracion_articulo_backend = ConfigArticulo.create(config)
+  if configuracion_articulo_db.nil?
+    configuracion_articulo_db = ConfigArticulo.create(config)
     puts " "
     puts "------".cyan * 7
     puts "CREANDO CONFIGURACION ARTICULO"
     puts "------".cyan * 7
     puts " "
-    puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_backend.errors.to_json}" if !configuracion_articulo_backend.errors.empty?
+    puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_db.errors.to_json}" if !configuracion_articulo_db.errors.empty?
   end
 
 end
 
 G_CONFIG_ENTIDAD_CUENTA.each do | config |
-  configuracion_entidad_backend     = ConfiguracionEntidadCuenta.find_by_descripcion(config[:descripcion])
+  configuracion_entidad_db     = ConfiguracionEntidadCuenta.find_by_descripcion(config[:descripcion])
 
 
-  if configuracion_entidad_backend.nil?
+  if configuracion_entidad_db.nil?
     cuenta_contable_db              = CuentaContable.find_by_descripcion(config[:cuenta_contable_descripcion])
     if cuenta_contable_db.nil?
       puts " "
@@ -340,7 +340,7 @@ G_CONFIG_ENTIDAD_CUENTA.each do | config |
       config_molde                  = { cuenta_contable_id: cuenta_contable_db.id, **config }.with_indifferent_access
 
       resultado                     = ConfiguracionEntidadCuenta.create_update_configuracion_entidad_cuenta(config_molde, nil, true)
-      configuracion_entidad_backend = resultado.get_data
+      configuracion_entidad_db = resultado.get_data
       puts " "
       puts "------".cyan * 8
       puts "CREANDO CONFIGURACION ENTIDAD CUENTA"
@@ -353,28 +353,42 @@ end
 
 
 G_DIVISA_DEFAULT.each do | divisa |
-
 	divisa_db              = Divisa.find_by({nombre: divisa[:nombre], estado: true})
 	if divisa_db.nil?
 		divisa['action'] = 'create'
 		resultado = Divisa.create_update_divisa(divisa.with_indifferent_access, true)
-		divisa_backend = resultado.get_data
+		divisa_db = resultado.get_data
 		puts " "
 		puts "------".cyan * 8
 		puts "CREANDO DIVISA"
 		puts "------".cyan * 8
 		puts " "
-		puts "ERROR- divisa_backend: ".red + "#{resultado.get_msgs.to_json}" if !resultado.status_valid
+		puts "ERROR- divisa_db: ".red + "#{resultado.get_msgs.to_json}" if !resultado.status_valid
 	end
 end
 
-# G_OTROS_COSTOS.each do | otro_costo |
-# 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])
-#
-# 	if otro_costo_backend.nil?
-# 		puts "------".red * 7
-# 		puts "CREANDO OTRO COSTO: #{otro_costo[:key]}"
-# 		puts "------".red * 7
-# 		otro_costo_backend = OtroCosto.create({descripcion: otro_costo[:descripcion], key: otro_costo[:key], precio: otro_costo[:precio], costo: otro_costo[:costo], estado: true})
-# 	end
-# end
+
+
+def primer_y_ultimo_dia_del_anio_actual
+  year = Date.today.year
+  fecha_inicio = Date.new(year, 1, 1)
+  fecha_cierre = Date.new(year, 12, 31)
+  return fecha_inicio, fecha_cierre
+end
+
+if ( G_HAS_CONTABILIDAD )
+	fecha_inicio, fecha_cierre = primer_y_ultimo_dia_del_anio_actual()
+
+	periodo_fiscal_db   = PeriodoFiscal.find_by({fecha_inicio: fecha_inicio, fecha_cierre: fecha_cierre})
+
+	if periodo_fiscal_db.nil?
+		resultado = PeriodoFiscal.create_periodo_fiscal({fecha_inicio: fecha_inicio, fecha_cierre: fecha_cierre}.with_indifferent_access, true)
+		periodo_fiscal_db = resultado.get_data
+		puts " "
+		puts "------".cyan * 8
+		puts "CREANDO PERIODO FISCAL"
+		puts "------".cyan * 8
+		puts " "
+		puts "ERROR- periodo_fiscal_db: ".red + "#{resultado.get_msgs.to_json}" if !resultado.status_valid
+	end
+end
