@@ -97,6 +97,7 @@ rails generate serializer detalle_factura
 rails generate serializer imagen
 rails generate serializer detalle_asiento_contable
 rails generate serializer tipo_articulo
+rails generate serializer pago_factura_detalle
 
 rails g migration AddCamposToImagen
 rails g migration AddCamposToPeriodoFiscal
@@ -188,8 +189,11 @@ rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
 
 rails g scaffold sub_tipo_articulo tipo_articulo:references cuenta_contable:references descripcion:string
-
 rails g model tipo_articulo_cuenta_contable origen_tipo:references{polymorphic} key:string cuenta_contable_control:references cuenta_contable_auxiliar:references
+
+rails g scaffold pago_factura user:references suplidor:references fecha_equivalente:date numero:integer forma_pago:string tipo_factura:references estado:boolean total:float
+rails g model pago_factura_detalle pago_factura:references cabecera_factura:references balance_anterior_factura:float balance_factura:float deposito:float is_ultimo:boolean descripcion:string pago_a_tiempo:boolean
+
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 // CONTABILIDAD
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -219,3 +223,7 @@ rails g model tipo_articulo_cuenta_contable origen_tipo:references{polymorphic} 
 
 ✅ rails g scaffold deposito cuenta_bancaria:references user_creador:references user_anulador:references tasa:float monto:float monto_local:float comentario:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean
 ✅ rails g scaffold transferencia cuenta_bancaria_origen:references cuenta_bancaria_destino:references user_creador:references last_user_update:references user_anulador:references tipo:string tasa:float monto:float monto_local:float comentario:string nombre_banco_tercero:string cuenta_bancaria_tercero:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean
+
+// rails g migration addHasCuentaIndividualToConfingCuenta
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------

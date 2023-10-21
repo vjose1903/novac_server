@@ -116,6 +116,13 @@ Rails.application.routes.draw do
     end
   end
 
+	resources :pago_facturas do
+		collection do
+			get "filtro/:arg"                                => "pago_facturas#getPagosFiltrados"
+      get "revertir/:tipo/:id"                         => "pago_facturas#revertirPagos"
+		end
+	end
+
   resources :cabecera_conduces do
     collection do
       get "filtro/:arg"                                => "cabecera_conduces#getConducesFiltrados"
@@ -126,6 +133,10 @@ Rails.application.routes.draw do
   resources :suplidores do
     collection do
       get "filtro/:arg"                                => "suplidores#getSuplidoresFiltrados"
+
+			scope "custom" do
+				get "get_balances/:id"                         => "suplidores#getBalances"
+			end
     end
   end
 
@@ -134,7 +145,7 @@ Rails.application.routes.draw do
       get "filtro/:arg"                                => "clientes#getClientesFiltrados"
 
       scope "custom" do
-        get "get_balances/:id"                    => "clientes#getBalances"
+        get "get_balances/:id"                         => "clientes#getBalances"
       end
     end
   end

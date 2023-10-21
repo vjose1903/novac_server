@@ -1,5 +1,5 @@
 class SuplidoresController < ApplicationController
-  before_action :set_suplidor, only: [:show, :destroy]
+  before_action :set_suplidor, only: [:show, :destroy, :getBalances]
 
   # GET /suplidores
   def index
@@ -22,8 +22,12 @@ class SuplidoresController < ApplicationController
   end
 
   def crear_actualizar_suplidor
-
     resultado = Suplidor.create_update_suplidor(params, true)
+    resultado.send_response self
+  end
+
+  def getBalances
+    resultado = @suplidor.get_balances_and_facturas(params, set_paginate_options(params))
     resultado.send_response self
   end
 

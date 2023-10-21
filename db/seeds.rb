@@ -67,6 +67,7 @@ tipos_factura = [
   { "referencia": nil, "descripcion": "Venta Credito", },
   { "referencia": nil, "descripcion": "pre_venta", },
   { "referencia": nil, "descripcion": "cotizacion", },
+  { "referencia": nil, "descripcion": "pago_factura", },
 ]
 
 tipos_factura.each do |tipo_fac|

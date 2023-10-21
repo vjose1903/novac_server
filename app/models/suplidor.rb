@@ -114,4 +114,14 @@ class Suplidor < ApplicationRecord
     return res
   end
 
+    # =========================================================================================================================================================
+		def get_balances_and_facturas(params, paginate_options)
+			res               = Response.new()
+			suplidor_en_turno = self
+			query             = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND cabecera_facturas.tipo = 'compra' AND cabecera_facturas.estado = true  AND cabecera_facturas.suplidor_id = #{suplidor_en_turno.id}"
+			res               = Balances.get_balances_and_facturas(params, paginate_options, query)
+			return res
+		end
+		# =========================================================================================================================================================
+
 end

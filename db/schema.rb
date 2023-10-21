@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_16_153739) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_21_140411) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -551,7 +551,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_16_153739) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "medida"
-    t.bigint "articulo_combo_id"
+    t.bigint "articulo_combo"
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
   end
 
@@ -712,6 +712,37 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_16_153739) do
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"
+  end
+
+  create_table "pago_factura_detalles", force: :cascade do |t|
+    t.bigint "pago_factura_id", null: false
+    t.bigint "cabecera_factura_id", null: false
+    t.float "balance_anterior_factura"
+    t.float "balance_factura"
+    t.float "deposito"
+    t.boolean "is_ultimo"
+    t.string "descripcion"
+    t.boolean "pago_a_tiempo"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cabecera_factura_id"], name: "index_pago_factura_detalles_on_cabecera_factura_id"
+    t.index ["pago_factura_id"], name: "index_pago_factura_detalles_on_pago_factura_id"
+  end
+
+  create_table "pago_facturas", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "suplidor_id", null: false
+    t.bigint "tipo_factura_id", null: false
+    t.date "fecha_equivalente"
+    t.integer "numero"
+    t.string "forma_pago"
+    t.boolean "estado", default: true
+    t.float "total"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["suplidor_id"], name: "index_pago_facturas_on_suplidor_id"
+    t.index ["tipo_factura_id"], name: "index_pago_facturas_on_tipo_factura_id"
+    t.index ["user_id"], name: "index_pago_facturas_on_user_id"
   end
 
   create_table "periodos_fiscales", force: :cascade do |t|
@@ -1045,7 +1076,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_16_153739) do
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"
-  add_foreign_key "formulas_productos_terminados", "articulos", column: "articulo_combo_id"
+  add_foreign_key "formulas_productos_terminados", "articulos", column: "articulo_combo"
   add_foreign_key "historico_producciones", "articulos"
   add_foreign_key "historico_producciones", "users"
   add_foreign_key "mantenimiento_articulos", "articulos"
@@ -1060,6 +1091,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_16_153739) do
   add_foreign_key "notas", "clientes"
   add_foreign_key "notas", "tipo_facturas"
   add_foreign_key "notas", "users"
+  add_foreign_key "pago_factura_detalles", "cabecera_facturas"
+  add_foreign_key "pago_factura_detalles", "pago_facturas"
+  add_foreign_key "pago_facturas", "suplidores"
+  add_foreign_key "pago_facturas", "tipo_facturas"
+  add_foreign_key "pago_facturas", "users"
   add_foreign_key "periodos_fiscales", "users", column: "usuario_cerrador_id"
   add_foreign_key "permisos_acciones", "acciones"
   add_foreign_key "permisos_acciones", "permisos"
