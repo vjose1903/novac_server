@@ -274,48 +274,48 @@ end
 
 def recalcular_cantidad_en_undidades
   # query_principal = "cabecera_facturas.tipo = 'venta' AND articulo_id not in (102, 213, 165, 69, 214, 108, 214)"
-  query_principal = "cabecera_facturas.tipo = 'venta'"
-  DetalleFactura.where(query_principal).joins("inner join cabecera_facturas on detalle_facturas.cabecera_factura_id = cabecera_facturas.id").includes([ {articulo: [:contenido_articulos, :tipo_articulo]}, :cabecera_factura ]).each do | detalle |
-    articulo           = detalle.articulo
-    cabecera_factura   = detalle.cabecera_factura
-    tipo_articulo      = articulo.tipo_articulo
+  # query_principal = "cabecera_facturas.tipo = 'venta'"
+  # DetalleFactura.where(query_principal).joins("inner join cabecera_facturas on detalle_facturas.cabecera_factura_id = cabecera_facturas.id").includes([ {articulo: [:contenido_articulos, :tipo_articulo]}, :cabecera_factura ]).each do | detalle |
+  #   articulo           = detalle.articulo
+  #   cabecera_factura   = detalle.cabecera_factura
+  #   tipo_articulo      = articulo.tipo_articulo
 
-    articulo_historico = find_articulo_mantenimiento(articulo, cabecera_factura.fecha_equivalente)
-    unidad_en_turno    = detalle.unidad
+  #   articulo_historico = find_articulo_mantenimiento(articulo, cabecera_factura.fecha_equivalente)
+  #   unidad_en_turno    = detalle.unidad
 
-    unidad_en_turno    = parse_unidad_saco(detalle.unidad, articulo_historico) if detalle.unidad.include? "Saco de"
+  #   unidad_en_turno    = parse_unidad_saco(detalle.unidad, articulo_historico) if detalle.unidad.include? "Saco de"
 
-    contenidos         = calcularContenidos(articulo_historico)
-    contenido_en_turno = contenidos[unidad_en_turno]
+  #   contenidos         = calcularContenidos(articulo_historico)
+  #   contenido_en_turno = contenidos[unidad_en_turno]
 
-    calculo   = 0
+  #   calculo   = 0
 
-    if unidad_en_turno.include? "Saco_"
+  #   if unidad_en_turno.include? "Saco_"
 
-      unidad_en_turno_split = unidad_en_turno.split("_")
-      saco                  = unidad_en_turno_split[1].to_i
-      calculo               = saco * detalle.cantidad if !saco.nil?
-
-
-    elsif unidad_en_turno.include? "Saco de"
-      unidad_en_turno_split = unidad_en_turno.split(" ")
-      saco                  = unidad_en_turno_split[2].to_i
-      calculo               = saco * detalle.cantidad if !saco.nil?
+  #     unidad_en_turno_split = unidad_en_turno.split("_")
+  #     saco                  = unidad_en_turno_split[1].to_i
+  #     calculo               = saco * detalle.cantidad if !saco.nil?
 
 
-    else
+  #   elsif unidad_en_turno.include? "Saco de"
+  #     unidad_en_turno_split = unidad_en_turno.split(" ")
+  #     saco                  = unidad_en_turno_split[2].to_i
+  #     calculo               = saco * detalle.cantidad if !saco.nil?
 
-      calculo = detalle.cantidad * contenido_en_turno if !contenido_en_turno.nil?
-    end
 
-    if calculo > 0 && (calculo.to_f >= detalle.cantidad_en_unidades + 0.1 || calculo.to_f <= detalle.cantidad_en_unidades - 0.1)
-      detalle.cantidad_en_unidades = calculo
-      detalle.save!
-    end
+  #   else
 
-  end
+  #     calculo = detalle.cantidad * contenido_en_turno if !contenido_en_turno.nil?
+  #   end
 
-  return nil
+  #   if calculo > 0 && (calculo.to_f >= detalle.cantidad_en_unidades + 0.1 || calculo.to_f <= detalle.cantidad_en_unidades - 0.1)
+  #     detalle.cantidad_en_unidades = calculo
+  #     detalle.save!
+  #   end
+
+  # end
+
+  # return nil
 end
 
 def parse_unidad_saco(unidad, articulo)
