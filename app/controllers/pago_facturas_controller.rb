@@ -4,7 +4,7 @@ class PagoFacturasController < ApplicationController
 
   # GET /pago_facturas
   def index
-    return Response.new(params, nil, PagoFacturas.where({estado: true}).order('id DESC'), nil, { all: true }).send_response self
+    return Response.new(params, nil, PagoFactura.where({estado: true}).order('id DESC'), nil, { all: true }).send_response self
   end
 
   # GET /pago_facturas/1
@@ -14,7 +14,7 @@ class PagoFacturasController < ApplicationController
 
   def getPagosFiltrados
     arg = params["arg"]
-    resultado = PagoFacturas.filtrarPagos(arg, set_paginate_options(params))
+    resultado = PagoFactura.filtrarPagos(arg, set_paginate_options(params))
     resultado.send_response self
   end
 
@@ -22,7 +22,7 @@ class PagoFacturasController < ApplicationController
     parametros = params
     parametros["id"] = params["id"] if params["id"]
 
-    resultado = PagoFacturas.create_update(parametros, true)
+    resultado = PagoFactura.create_update(parametros, true)
     resultado.send_response self
   end
 
@@ -37,7 +37,7 @@ class PagoFacturasController < ApplicationController
   end
 
 	def revertirPagos
-    resultado = PagoFacturas.revertirPago(params)
+    resultado = PagoFactura.revertirPago(params)
     resultado.send_response self
   end
 
