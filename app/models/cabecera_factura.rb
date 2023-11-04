@@ -110,6 +110,7 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.tiene_nota               = params[:tiene_nota]
             cabecera_factura.pre_factura              = params[:pre_factura]
             cabecera_factura.cotizacion               = params[:cotizacion]
+            cabecera_factura.can_pagar                = params[:can_pagar]
 
             cabecera_factura.otras_validaciones(params, @tipo_de_factura)
 
