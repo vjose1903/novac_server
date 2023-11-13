@@ -91,8 +91,7 @@ function replaceFiles(cliente, objFile) {
 
     if (key.includes("ENVIRONMENT_")) replaceString += environmentSelected;
 
-		const searchStr = '$$' + key + '$$';
-    fileData = fileData.replaceAll(searchStr, replaceString);
+    fileData = fileData.replaceAll(`$$${key}$$`, replaceString);
   });
 
   fs.writeFileSync(pathAdd(`../${objFile.path}`), fileData);
