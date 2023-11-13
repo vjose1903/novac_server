@@ -9,19 +9,20 @@ namespace :db do
 
     rails_env              = ENV.fetch("RAILS_ENV") { "development" }
 
+		tulu                 = ENV.fetch("TULU")
+		timestamp            = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
+		archive_path         = "#{Rails.root}/db/$$ALMACEN$$_#{rails_env.downcase}_#{timestamp}.sql"
+
+		ENV['PGPASSWORD'] = tulu
+		host                 = rails_env == 'development' ? 'db-dev' : 'db-prod'
+
+		pg_dump              = "pg_dump --format=c --inserts -U novacSystem -h #{host} --dbname=$$ALMACEN$$_#{rails_env.downcase} -f #{archive_path}"
+
+		`cd #{Rails.root}/public && #{pg_dump}`
+
     if rails_env != "development"
-      tulu                 = ENV.fetch("TULU")
-      timestamp            = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
-      archive_path         = "#{Rails.root}/db/$$ALMACEN$$_#{rails_env.downcase}_#{timestamp}.sql"
+			require 'google/apis/drive_v2'
 
-      ENV['PGPASSWORD'] = tulu
-
-      # pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-dev --dbname=$$ALMACEN$$_#{rails_env.downcase} -f #{archive_path}"
-      pg_dump              = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-prod --dbname=$$ALMACEN$$_#{rails_env.downcase} -f #{archive_path}"
-
-      `cd #{Rails.root}/public && #{pg_dump}`
-
-      require 'google/apis/drive_v2'
       ENV['GOOGLE_APPLICATION_CREDENTIALS'] = "#{Rails.root}/config/google_api_credentials.json"
       drive                = Google::Apis::DriveV2::DriveService.new
       drive.authorization  = Google::Auth.get_application_default([Google::Apis::DriveV2::AUTH_DRIVE_FILE])
@@ -41,6 +42,12 @@ namespace :db do
       puts " "
       puts "|==============================|"
       puts "|         BACKUP CREADO        |"
+      puts "|==============================|"
+      puts " "
+		else
+      puts " "
+      puts "|==============================|"
+      puts "|  BACKUP DEVELOPMENT CREADO   |"
       puts "|==============================|"
       puts " "
     end
