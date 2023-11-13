@@ -257,6 +257,7 @@ end
 # 16662 -> Quintal
 # 47352 -> Quintal
 # 793   -> Libra
+
 def recalcular_cantidad_en_undidades
   # query_principal = "cabecera_facturas.tipo = 'venta' AND articulo_id not in (102, 213, 165, 69, 214, 108, 214)"
   # query_principal = "cabecera_facturas.tipo = 'venta'"
@@ -395,18 +396,50 @@ end
 
 def edit_cantidad_unidades
   detalles = DetalleFactura.all.where("detalle_facturas.cantidad = detalle_facturas.cantidad_en_unidades AND detalle_facturas.unidad not in ('Libra', 'Unidad') ").includes([ articulo: [:contenido_articulos] ])
+	puts "ANDO AQUIII".yellow
   detalles.each do | detalle |
     contenido            = detalle.articulo.contenido_articulos
+    articulo             = detalle.articulo
     contenidos           = Articulo.calcularContenidos(detalle.articulo)
     unidad_vendida       = detalle.unidad
     unidad_vendida_split = detalle.unidad.split(' ')
 
     is_saco_calculado    = unidad_vendida_split.length > 1
 
+		contenidoHasSacoWithAmount = contenidos.keys.map! {|s| s.to_s.downcase }.any?(/saco_/)
+
     if is_saco_calculado
-      multiplo = contenidos[:"Saco_#{unidad_vendida_split[2]}"]
+			if !contenidoHasSacoWithAmount && unidad_vendida.downcase.include?("saco de")
+				multiplo = contenidos[:"Saco"]
+			elsif contenidoHasSacoWithAmount && !unidad_vendida.downcase.include?("saco de")
+				simbolo = "Saco_100"
+
+				if articulo.nombre.include?("50")
+					simbolo = "Saco_50"
+				elsif articulo.nombre.include?("25")
+					simbolo = "Saco_25"
+				end
+
+				multiplo = contenidos[:"#{simbolo}"]
+			else
+				multiplo = contenidos[:"Saco_#{unidad_vendida_split[2]}"]
+			end
     else
-      multiplo = contenidos[:"#{unidad_vendida_split[0]}"]
+			if !contenidoHasSacoWithAmount && unidad_vendida.downcase.include?("saco de")
+				multiplo = contenidos[:"Saco"]
+			elsif contenidoHasSacoWithAmount && !unidad_vendida.downcase.include?("saco de")
+				simbolo = "Saco_100"
+
+				if articulo.nombre.include?("50")
+					simbolo = "Saco_50"
+				elsif articulo.nombre.include?("25")
+					simbolo = "Saco_25"
+				end
+
+				multiplo = contenidos[:"#{simbolo}"]
+			else
+				multiplo = contenidos[:"#{unidad_vendida_split[0]}"]
+			end
     end
 
     detalle.cantidad_en_unidades = detalle.cantidad.to_f * multiplo

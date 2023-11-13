@@ -514,7 +514,7 @@ class Reporte < ApplicationRecord
       contenido_seleccionado_valor = detalle['contenido'][contenido_seleccionado]
 
       cant_vendido = detalle['cantidad_en_unidades'] / contenido_seleccionado_valor.to_f
-      vendido_mostrar = "#{("%.2f" % cant_vendido).gsub(',','.')} #{cant_vendido == 1 ? contenido_seleccionado : plural[contenido_seleccionado.to_sym]}"
+      vendido_mostrar = "#{roundNumberToDecimal(cant_vendido)} #{cant_vendido == 1 ? contenido_seleccionado : plural[contenido_seleccionado.to_sym]}"
 
       if detalle['cantidad_devuelto'] >= 1
         seleccionados          = detalle['contenido'].values.select { | contenido_cant | contenido_cant <= detalle['cantidad_devuelto'] }
@@ -526,7 +526,7 @@ class Reporte < ApplicationRecord
       contenido_seleccionado_valor = detalle['contenido'][contenido_seleccionado]
 
       cant_devuelto = detalle['cantidad_devuelto'] / contenido_seleccionado_valor.to_f
-      devuelto_mostrar = "#{("%.2f" % cant_devuelto).gsub(',','.')} #{cant_devuelto == 1 ? contenido_seleccionado : plural[contenido_seleccionado.to_sym]}"
+      devuelto_mostrar = "#{roundNumberToDecimal(cant_devuelto)} #{cant_devuelto == 1 ? contenido_seleccionado : plural[contenido_seleccionado.to_sym]}"
       # TODO: revisar esto
 
       # detalle['contenido'].each do |key, value|
