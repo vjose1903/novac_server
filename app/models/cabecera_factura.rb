@@ -6,6 +6,7 @@ class CabeceraFactura < ApplicationRecord
 
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos, dependent: :destroy
+  has_many :pago_factura_detalles, dependent: :destroy
   has_many :facturas_aplicadas
   # TODO: quitar esto despues de que todo este modificado
   has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"

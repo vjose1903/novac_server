@@ -11,19 +11,21 @@ const cyan = chalk.cyan;
 
 let PRODUCTION = 'no';
 let BACKGROUND = 'no';
-let is_PRODUCTION = 'no';
-let is_BACKGROUND = 'no';
 
-function shDockerContainer() {
-  const isProd = is_PRODUCTION;
+function execCommandInContainer(commandKey) {
+	const commands = { migrate:'migrate', seed:'seed', create:'create', 'migrate-status'	:'migrate:status' }
+	execDockerContainer(`rake db:${commands[commandKey]}`)
+}
+
+function execDockerContainer(command) {
 
   const cliente = fs.readFileSync(pathAdd('../config_setup/actual_cliente.txt'), 'utf8').trim();
-  const environmentSelected = isProd === 'yes' ? '-prod' : '-dev';
+  const environmentSelected = PRODUCTION === 'yes' ? '-prod' : '-dev';
 
-  console.log(`${green(' docker-compose exec ')}${cliente}${environmentSelected} sh`);
+  console.log(`${green(' docker-compose exec ')}${cliente}${environmentSelected} ${command}`);
   console.log(`${white(' ')}`);
 
-  execSync(`docker-compose exec ${cliente}${environmentSelected} sh`, { stdio: 'inherit' });
+  execSync(`docker-compose exec ${cliente}${environmentSelected} ${command}`, { stdio: 'inherit' });
 }
 
 function getActualClient() {
@@ -88,9 +90,6 @@ const args = process.argv.slice(2);
 args.forEach((opt) => {
   console.log(' ');
 
-  is_PRODUCTION = 'no';
-  is_BACKGROUND = 'no';
-
   switch (opt) {
     case '-w':
       console.log('la opcion -w');
@@ -100,9 +99,9 @@ args.forEach((opt) => {
       console.log('la opcion -r');
       dockerCommand('restart');
       break;
-    case '-e':
+    case '-sh':
       console.log('la opcion -e');
-      shDockerContainer();
+      execDockerContainer('sh');
       break;
     case '-a':
       console.log('la opcion -a');
@@ -111,7 +110,6 @@ args.forEach((opt) => {
     case '-p':
       console.log('la opcion -p');
       PRODUCTION = 'yes';
-      is_PRODUCTION = 'yes';
       console.log(`${white(' ')}`);
       console.log(`${yellow(' -=-=-=- EJECUTANDO EN PRODUCCION -=-=-=-')}${white(' ')}`);
       console.log(`${white(' ')}`);
@@ -119,7 +117,6 @@ args.forEach((opt) => {
     case '-t':
       console.log('la opcion -t');
       BACKGROUND = 'yes';
-      is_BACKGROUND = 'yes';
       break;
     case '-c':
       console.log('la opcion -c');
@@ -128,6 +125,34 @@ args.forEach((opt) => {
 				setClient(args[clientIndex]);
 				removeItemAtIndex(args, clientIndex)
 			}
+
+      break;
+    case '-e':
+      console.log('la opcion -e');
+      const commandIndex = args.indexOf('-e') + 1;
+			const command = args[commandIndex]
+			console.log("command ==> ", command);
+			if (command != undefined) {
+				if (['migrate', 'seed', 'create', 'migrate-status'].includes(command)) {
+					execCommandInContainer(command);
+					removeItemAtIndex(args, commandIndex)
+				}else{
+					console.log(`${red('************************************')}`);
+					console.log(`${red('**                                **')}`);
+					console.log(`${red('**      COMANDO NO PERMITIDO      **')}`);
+					console.log(`${red('**                                **')}`);
+					console.log(`${red('************************************')}`);
+					process.exit(2);
+				}
+			} else {
+				console.log(`${red('**********************************************')}`);
+				console.log(`${red('**                                          **')}`);
+				console.log(`${red('**      DEBE DE ESPECIFICAR UN COMANDO      **')}`);
+				console.log(`${red('**                                          **')}`);
+				console.log(`${red('**********************************************')}`);
+				process.exit(2);
+			}
+
 
       break;
     case '-b':

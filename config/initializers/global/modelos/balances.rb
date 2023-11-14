@@ -1,5 +1,5 @@
 module Balances
-	def self.get_balances_and_facturas(params, paginate_options, query)
+	def self.get_balances_and_facturas(params, paginate_options, query, detalleKey)
 		paginate_class               = Paginator.new(paginate_options)
 		res                          = Response.new()
 
@@ -20,8 +20,8 @@ module Balances
 			data[:balances][:notas_credito]   += notas_credito.reduce(0) { | acu, item |  (item.total).abs + acu }
 			data[:balances][:notas_debito]    += notas_debito.reduce(0) { | acu, item |  (item.total).abs + acu }
 
-			recibos                            = factura.detalle_recibos
-			data[:balances][:abonado]         += recibos.reduce(0) { | acu, item |  item.deposito + acu }
+			detalles                           = factura.send(detalleKey)
+			data[:balances][:abonado]         += detalles.reduce(0) { | acu, item |  item.deposito + acu }
 
 		end
 

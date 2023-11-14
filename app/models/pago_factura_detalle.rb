@@ -2,7 +2,7 @@ class PagoFacturaDetalle < ApplicationRecord
   belongs_to :pago_factura
   belongs_to :cabecera_factura, optional: true
 
-	validates :deposito,    presence: { :message => "El pago no esta completado." }, numericality: { greater_than: 0, :message => "El deposito del pago debe de ser mayor a 0." }
+	validates :deposito,    presence: { :message => 'El pago no esta completado.' }, numericality: { greater_than: 0, :message => 'El deposito del pago debe de ser mayor a 0.' }
 
 
   def self.crear_actualizar_detalle_pago(params, padre, is_save=false)
@@ -24,10 +24,10 @@ class PagoFacturaDetalle < ApplicationRecord
 
       detalle_pago.valid?
 
-      detalle_pago.errors.delete(:pago_facturas) if !is_save
+      detalle_pago.errors.delete(:pago_factura) if !is_save
 
       res_valid                                 = detalle_pago.set_last_pago_no_ultimo
-      res_valid                                 = CabeceraFactura.payFactura(params["cabecera_factura_id"], params) if res_valid.status_valid
+      res_valid                                 = CabeceraFactura.payFactura(params['cabecera_factura_id'], params) if res_valid.status_valid
 
       if res_valid.status_valid && detalle_pago.errors.empty? && (!is_save || (is_save && detalle_pago.save!))
         res.set_data(detalle_pago)
@@ -66,12 +66,12 @@ class PagoFacturaDetalle < ApplicationRecord
   def self.get_last_pago_by_cabecera_factura(id_cabecera)
 
     last_pago = PagoFacturaDetalle
-    .joins("inner join pago_facturas on pago_facturas.id = pago_factura_detalles.pago_factura_id")
+    .joins('inner join pago_facturas on pago_facturas.id = pago_factura_detalles.pago_factura_id')
     .where("pago_factura_detalles.cabecera_factura_id=#{id_cabecera} and pago_factura_detalles.is_ultimo = true")
-    .order("pago_factura_detalles.created_at DESC")
+    .order('pago_factura_detalles.created_at DESC')
     .limit(1)
 
-    return last_pago[0]
+    return last_pago.first
   end
 
   #  --------------------------------------------------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class PagoFacturaDetalle < ApplicationRecord
       end
     end
 
-    res_valid.set_data object_valid
+    res_valid.set_data array_valid
     return res_valid
   end
 end

@@ -144,7 +144,7 @@ class Cliente < ApplicationRecord
     res               = Response.new()
     cliente_en_turno  = self
     query             = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND (cabecera_facturas.tipo = 'venta' OR cabecera_facturas.tipo = 'pre_venta') AND cabecera_facturas.estado = true  AND cabecera_facturas.cliente_id = #{cliente_en_turno.id}"
-    res               = Balances.get_balances_and_facturas(params, paginate_options, query)
+    res               = Balances.get_balances_and_facturas(params, paginate_options, query, 'detalle_recibos')
 
     return res
 

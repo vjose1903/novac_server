@@ -552,7 +552,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_04_120937) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "medida"
-    t.bigint "articulo_combo"
+    t.bigint "articulo_combo_id"
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
   end
 
@@ -1077,7 +1077,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_04_120937) do
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"
-  add_foreign_key "formulas_productos_terminados", "articulos", column: "articulo_combo"
+  add_foreign_key "formulas_productos_terminados", "articulos", column: "articulo_combo_id"
   add_foreign_key "historico_producciones", "articulos"
   add_foreign_key "historico_producciones", "users"
   add_foreign_key "mantenimiento_articulos", "articulos"
