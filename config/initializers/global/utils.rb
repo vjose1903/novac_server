@@ -271,53 +271,6 @@ def make_producto_terminado_calcular_saco
   return nil
 end
 
-
-def recalcular_cantidad_en_undidades
-  # query_principal = "cabecera_facturas.tipo = 'venta' AND articulo_id not in (102, 213, 165, 69, 214, 108, 214)"
-  # query_principal = "cabecera_facturas.tipo = 'venta'"
-  # DetalleFactura.where(query_principal).joins("inner join cabecera_facturas on detalle_facturas.cabecera_factura_id = cabecera_facturas.id").includes([ {articulo: [:contenido_articulos, :tipo_articulo]}, :cabecera_factura ]).each do | detalle |
-  #   articulo           = detalle.articulo
-  #   cabecera_factura   = detalle.cabecera_factura
-  #   tipo_articulo      = articulo.tipo_articulo
-
-  #   articulo_historico = find_articulo_mantenimiento(articulo, cabecera_factura.fecha_equivalente)
-  #   unidad_en_turno    = detalle.unidad
-
-  #   unidad_en_turno    = parse_unidad_saco(detalle.unidad, articulo_historico) if detalle.unidad.include? "Saco de"
-
-  #   contenidos         = calcularContenidos(articulo_historico)
-  #   contenido_en_turno = contenidos[unidad_en_turno]
-
-  #   calculo   = 0
-
-  #   if unidad_en_turno.include? "Saco_"
-
-  #     unidad_en_turno_split = unidad_en_turno.split("_")
-  #     saco                  = unidad_en_turno_split[1].to_i
-  #     calculo               = saco * detalle.cantidad if !saco.nil?
-
-
-  #   elsif unidad_en_turno.include? "Saco de"
-  #     unidad_en_turno_split = unidad_en_turno.split(" ")
-  #     saco                  = unidad_en_turno_split[2].to_i
-  #     calculo               = saco * detalle.cantidad if !saco.nil?
-
-
-  #   else
-
-  #     calculo = detalle.cantidad * contenido_en_turno if !contenido_en_turno.nil?
-  #   end
-
-  #   if calculo > 0 && (calculo.to_f >= detalle.cantidad_en_unidades + 0.1 || calculo.to_f <= detalle.cantidad_en_unidades - 0.1)
-  #     detalle.cantidad_en_unidades = calculo
-  #     detalle.save!
-  #   end
-
-  # end
-
-  # return nil
-end
-
 def parse_unidad_saco(unidad, articulo)
   unidad_split  = unidad.split(" ")
   if articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
@@ -367,18 +320,50 @@ end
 
 def edit_cantidad_unidades
   detalles = DetalleFactura.all.where("detalle_facturas.cantidad = detalle_facturas.cantidad_en_unidades AND detalle_facturas.unidad not in ('Libra', 'Unidad') ").includes([ articulo: [:contenido_articulos] ])
+	puts "ANDO AQUIII".yellow
   detalles.each do | detalle |
     contenido            = detalle.articulo.contenido_articulos
-    contenidos           = detalle.articulo.calcularContenidos(true)
+    articulo             = detalle.articulo
+    contenidos           = Articulo.calcularContenidos(detalle.articulo)
     unidad_vendida       = detalle.unidad
     unidad_vendida_split = detalle.unidad.split(' ')
 
     is_saco_calculado    = unidad_vendida_split.length > 1
 
+		contenidoHasSacoWithAmount = contenidos.keys.map! {|s| s.to_s.downcase }.any?(/saco_/)
+
     if is_saco_calculado
-      multiplo = contenidos[:"Saco_#{unidad_vendida_split[2]}"]
+			if !contenidoHasSacoWithAmount && unidad_vendida.downcase.include?("saco de")
+				multiplo = contenidos[:"Saco"]
+			elsif contenidoHasSacoWithAmount && !unidad_vendida.downcase.include?("saco de")
+				simbolo = "Saco_100"
+
+				if articulo.nombre.include?("50")
+					simbolo = "Saco_50"
+				elsif articulo.nombre.include?("25")
+					simbolo = "Saco_25"
+				end
+
+				multiplo = contenidos[:"#{simbolo}"]
+			else
+				multiplo = contenidos[:"Saco_#{unidad_vendida_split[2]}"]
+			end
     else
-      multiplo = contenidos[:"#{unidad_vendida_split[0]}"]
+			if !contenidoHasSacoWithAmount && unidad_vendida.downcase.include?("saco de")
+				multiplo = contenidos[:"Saco"]
+			elsif contenidoHasSacoWithAmount && !unidad_vendida.downcase.include?("saco de")
+				simbolo = "Saco_100"
+
+				if articulo.nombre.include?("50")
+					simbolo = "Saco_50"
+				elsif articulo.nombre.include?("25")
+					simbolo = "Saco_25"
+				end
+
+				multiplo = contenidos[:"#{simbolo}"]
+			else
+				multiplo = contenidos[:"#{unidad_vendida_split[0]}"]
+			end
     end
 
     detalle.cantidad_en_unidades = detalle.cantidad.to_f * multiplo

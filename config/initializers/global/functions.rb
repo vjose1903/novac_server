@@ -389,6 +389,22 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 
+def roundNumberToDecimal(num)
+
+	num = num.to_s
+	num_split = num.split(".")
+	decimales = num_split.length > 1 ? num_split.last : nil
+
+	if decimales.nil? || decimales.length == 1
+		num = "#{("%.2f" % num)}"
+	elsif decimales.length > 2
+		num = num.to_f.round(2).to_s
+	end
+
+	return "#{num.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+end
+
+# ---------------------------------------------------------------------------------------------------------
 def get_current_user
   return Thread.current[:current_user]
 end
