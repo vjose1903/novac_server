@@ -43,6 +43,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
   attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
   attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
+  attribute :recibos,                                        if: Proc.new { self.get_param('recibos') || self.get_param('all') }
   attribute :cotizacion,                                     if: Proc.new { self.get_param('cotizacion') || self.get_param('all') }
   attribute :pre_factura,                                    if: Proc.new { self.get_param('pre_factura') || self.get_param('all') }
 
@@ -60,12 +61,14 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre
+      cliente["nombre_completo"]   = object.NoCliente_nombre
       cliente["direccion"]         = object.NoCliente_direccion
       cliente["telefono"]          = "----------"
       cliente["rnc"]               = "----------"
     else
       client_                      = object.cliente.attributes
       cliente["nombre"]            = object.cliente.nombre_completo
+			cliente["nombre_completo"]   = cliente["nombre"]
       cliente["telefono"]          = client_["telefono"]
       cliente["direccion"]         = client_["direccion"]
 
@@ -80,6 +83,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     unless object.suplidor.blank?
       supli_                        = object.suplidor.attributes
       suplidor["nombre"]            = supli_["nombre"].capitalize
+      suplidor["nombre_completo"]   = object.suplidor.nombre_completo.capitalize
       suplidor["direccion"]         = supli_["direccion"]
       suplidor["telefono"]          = supli_["telefono"]
 
@@ -115,13 +119,13 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
     notas
   end
 
-  def pagos
-    pago_parseo    = []
+  def recibos
+    recibo_parseo    = []
     if object.Bruto != nil && ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
-      pagos          = object.detalle_recibos
+      recibos          = object.detalle_recibos
 
-      if pagos.length > 0
-        pagos.map do |detalle_recibo|
+      if recibos.length > 0
+        recibos.map do |detalle_recibo|
 
           recibo           = detalle_recibo.recibos_ingreso
           detalle_recibo   = detalle_recibo.as_json.with_indifferent_access
@@ -130,7 +134,30 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
           detalle_recibo[:recibo_creado_por] = recibo.user.nombre_completo
           detalle_recibo[:fecha_equivalente] = recibo["fecha_equivalente"]
 
-          pago_parseo.push( detalle_recibo )
+          recibo_parseo.push( detalle_recibo )
+        end
+      end
+
+    end
+    recibo_parseo
+  end
+
+  def pagos
+    pago_parseo    = []
+    if object.Bruto != nil && ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado')
+      pagos          = object.pago_factura_detalles
+
+      if pagos.length > 0
+        pagos.map do | detalle_pago |
+
+          pago           = detalle_pago.pago_factura
+          detalle_pago   = detalle_pago.as_json.with_indifferent_access
+
+          detalle_pago[:numero]            = pago.numero
+          detalle_pago[:pago_creado_por]   = pago.user.nombre_completo
+          detalle_pago[:fecha_equivalente] = pago.fecha_equivalente
+
+          pago_parseo.push( detalle_pago )
         end
       end
 

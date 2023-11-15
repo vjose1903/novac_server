@@ -108,7 +108,7 @@ class PagoFactura < ApplicationRecord
     last_cuadre         = CuadreCaja.all.last
 
     last_pago           = PagoFacturaDetalle.get_last_pago_by_cabecera_factura(params[:id])
-    pago_id             = params[:tipo] === 'by_factura' ? last_pago.recibos_ingreso_id : params[:id]
+    pago_id             = params[:tipo] === 'by_factura' ? last_pago.pago_factura_id : params[:id]
     @pago_a_anular      = PagoFactura.find_by_id(pago_id)
 
     if !@pago_a_anular.nil?
@@ -173,7 +173,7 @@ class PagoFactura < ApplicationRecord
     res_valid     = Response.new
 
     self.pago_factura_detalles.each  do |item|
-      res_temp    = RecibosIngreso.revertirPagoDetalle(item, self)
+      res_temp    = PagoFactura.revertirPagoDetalle(item, self)
       return res_temp unless res_temp.status_valid
     end
 
