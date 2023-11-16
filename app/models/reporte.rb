@@ -33,42 +33,45 @@ class Reporte < ApplicationRecord
         return obj
     end
     # ---------------------------------------------------------------------------------------------------------
-    def self.buscar_suplidor(supli, max_lengt=0)
-        suplidor = {}
+    def self.buscar_suplidor(suplidor_id, max_lengt=0, retornar)
+        objSuplidor = {}
+				unless suplidor_id.nil?
+					suplidor    = Suplidor.find_by_id(suplidor_id)
 
-        suplidor[:nombre]    = supli.nombre_completo
-        longitud             = suplidor[:nombre].length
+					tempNom               = suplidor.nombre_completo
+					longitud              = tempNom.length
 
-        suplidor[:nombre]    = "#{tempNom[0, (max_lengt + 1)]}..." if max_lengt > 0 && ( longitud > max_lengt )
+					objSuplidor[:nombre]  = ((longitud > max_lengt) && max_lengt != 0) ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes_str('nombre')
 
-        documento            = supli.documentos_de_identidad.find { | doc |  doc.principal == true }
-        suplidor[:rnc]       = documento.nil? ? '----------' : documento['documento']
+					documento             = suplidor.documentos_de_identidad.find { | doc |  doc.principal == true } if retornar.my_includes_str('rnc')
+					objSuplidor[:rnc]     = documento.nil? ? '----------' : documento.documento if retornar.my_includes_str('rnc')
+				end
 
-        return suplidor.with_indifferent_access
+        return objSuplidor.with_indifferent_access
     end
 
     # ---------------------------------------------------------------------------------------------------------
     def self.buscar_cliente(factura, max_lengt, retornar)
-        cliente = {}
+        objCliente   = {}
         if !factura['cliente_id'].nil?
-            cli = factura.cliente if (factura.instance_of? CabeceraFactura) || (factura.instance_of? RecibosIngreso)
-            cli = Cliente.find_by_id(factura['cliente_id']) if (!factura.instance_of? CabeceraFactura) && (!factura.instance_of? RecibosIngreso)
+            cliente  = factura.cliente if (factura.instance_of? CabeceraFactura) || (factura.instance_of? RecibosIngreso)
+            cliente  = Cliente.find_by_id(factura['cliente_id']) if (!factura.instance_of? CabeceraFactura) && (!factura.instance_of? RecibosIngreso)
 
-            tempNom = cli.nombre_completo
-            longitud= tempNom.length
+            tempNom  = cliente.nombre_completo
+            longitud = tempNom.length
 
-            cliente[:nombre] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes_str('nombre')
+            objCliente[:nombre] = longitud > max_lengt ? "#{tempNom[0, (max_lengt + 1)]}..." : tempNom if retornar.my_includes_str('nombre')
 
-            documento = cli.documentos_de_identidad.find { |doc| doc.principal == true } if retornar.my_includes_str('rnc')
-            cliente[:rnc] = documento.nil? ? '----------' : documento.documento   if retornar.my_includes_str('rnc')
+            documento = cliente.documentos_de_identidad.find { |doc| doc.principal == true } if retornar.my_includes_str('rnc')
+            objCliente[:rnc] = documento.nil? ? '----------' : documento.documento   if retornar.my_includes_str('rnc')
         else
             if !factura['NoCliente_nombre'].nil?
-                cliente[:nombre] = factura['NoCliente_nombre']
-                cliente[:rnc] = '-------------'
+                objCliente[:nombre] = factura['NoCliente_nombre']
+                objCliente[:rnc] = '-------------'
             end
         end
 
-        return cliente.with_indifferent_access
+        return objCliente.with_indifferent_access
     end
 
     # ---------------------------------------------------------------------------------------------------------
@@ -126,6 +129,60 @@ class Reporte < ApplicationRecord
         cuentas = cuentas.sort_by! { |item| item['total_pendiente']}.reverse if tipo == Report::CxC.agrupado
 
         obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: "Cliente: #{ buscar_cliente({ cliente_id: cliente_id }.with_indifferent_access , 125, ['nombre'])['nombre'] }"}
+        return obj
+
+    end
+
+    # ---------------------------------------------------------------------------------------------------------
+
+    def self.get_cuentas_pagar(params)
+        current_user                 = get_current_user
+
+        cuentas_temp                 = []
+        tipo                         = params[:tipo]
+        suplidor_id                  = params[:suplidor_id]
+
+        longitud                     = tipo == Report::CxP.por_suplidor ? 60 : tipo == Report::CxP.detallado ? 58 : 78
+
+        query  = "cabecera_facturas.tipo = 'compra' AND cabecera_facturas.estado = true AND cabecera_facturas.can_pagar"
+        query += " AND cabecera_facturas.suplidor_id = #{suplidor_id}" if tipo == Report::CxP.por_suplidor
+
+        total_cuentas      = 0
+        cuentas            = []
+        inicio_select      = "CASE WHEN LENGTH(suplidores.nombre) > #{longitud}
+                                THEN CONCAT(SUBSTRING(suplidores.nombre, 1, #{longitud}), '...')
+                              ELSE suplidores.nombre END AS suplidor_nombre,"
+
+        inicio_select     += "suplidores.id #{tipo == Report::CxP.agrupado ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
+
+        select_ = ''
+        if tipo == Report::CxP.por_suplidor
+          select_ = "#{inicio_select}, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
+        else
+          select_ = "#{inicio_select}, #{tipo == Report::CxP.agrupado ? 'sum (' : ''} cabecera_facturas.balance#{tipo == Report::CxP.agrupado ? ')' : ''} as total_pendiente,
+          #{tipo == Report::CxP.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
+          #{tipo == Report::CxP.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
+          #{tipo == Report::CxP.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
+          #{tipo == Report::CxP.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
+        end
+
+        group_by = tipo == Report::CxP.por_suplidor ? '' : tipo == Report::CxP.detallado ? 'cabecera_facturas.id, suplidores.id' : 'suplidores.id'
+
+        CabeceraFactura.joins('inner join suplidores on cabecera_facturas.suplidor_id = suplidores.id')
+        .select(select_).where(query).where('cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false').group(group_by)
+        .order("#{tipo == Report::CxP.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
+            cabeza                      = cf.attributes
+
+            total_cuentas              += cabeza['total_pendiente']
+            cabeza['tipo_documento']    = 'Compra'
+            cabeza['numero_documento']  = cabeza['numero_comprobante'] if tipo != Report::CxP.agrupado
+            cabeza                      = sustituirMonto(cabeza) if tipo == Report::CxP.detallado
+            cuentas.push(cabeza)
+        end
+
+        cuentas = cuentas.sort_by! { |item| item['total_pendiente']}.reverse if tipo == Report::CxP.agrupado
+
+        obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: "Suplidor: #{ buscar_suplidor(suplidor_id , 125, ['nombre'])['nombre'] }"}
         return obj
 
     end
@@ -267,7 +324,7 @@ class Reporte < ApplicationRecord
 
         temp.each do |detalle|
           att                          = detalle.attributes
-          suplidor                     = buscar_suplidor(detalle.cabecera_factura.suplidor)
+          suplidor                     = buscar_suplidor(detalle.cabecera_factura.suplidor_id, 0, ['nombre'])['nombre']
           att['suplidor_nombre']       = suplidor[:nombre]
 
           contenido.push(att)
