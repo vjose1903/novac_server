@@ -54,6 +54,13 @@ class ReportesController < ApplicationController
 
       tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
 
+    elsif tipo_reporte == 'pago_facturas'
+      # ------------------- REPORTE DE PAGO DE FACTURAS --------------------
+      body   = Reporte.get_pagos(params)
+      titulo = 'Reporte de Pago de Facturas'
+
+      tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
+
     elsif tipo_reporte == 'ventas_productos'
       # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
       body               = Reporte.get_ventas_por_producto(params)

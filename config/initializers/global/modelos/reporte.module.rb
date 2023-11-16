@@ -40,4 +40,19 @@ module Report
     end
 
   end
+
+	module PagoFactura
+		TIPOS = {
+			detallado:    'detallado',
+			agrupado:     'agrupado',
+		}
+
+		def self.detallado
+			return TIPOS[:detallado]
+		end
+
+		def self.agrupado
+			return TIPOS[:agrupado]
+		end
+	end
 end

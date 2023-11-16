@@ -292,17 +292,49 @@ class Reporte < ApplicationRecord
         return obj
       end
 
+    # ---------------------------------------------------------------------------------------------------------
+
+    def self.get_pagos(params)
+        temp         = []
+        pagos        = []
+        desde        = params[:desde]
+        hasta        = params[:hasta].nil? ? params[:desde] : params[:hasta]
+        order        = params[:order]
+        tipo         = params[:tipo]
+
+        query        = {}
+        query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+
+        temp = PagoFactura.where(query).order("id #{order}").includes(PagoFactura.models_includes)
+
+        total_pagado = 0
+        temp.each do |pago|
+          att = pago.attributes
+          total_pagado += pago['total']
+
+          suplidor                = buscar_suplidor(pago.suplidor_id, 55, ['nombre'])
+          att['suplidor_nombre']  = suplidor[:nombre]
+          pagos.push(att.with_indifferent_access)
+        end
+
+        pagos = sum_by_day_recibos(pagos) if tipo == Report::PagoFactura.agrupado
+
+        obj = { body: pagos, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_pagado, devuelto: 0 }, sub_t: ''}
+
+        return obj
+      end
+
       # ---------------------------------------------------------------------------------------------------------
 
       def self.sum_by_day_recibos(records)
-      recibos_agrupadas = records.group_by { |record| record[:fecha_equivalente].to_date }.map do |date, group|
+      pagos_agrupadas = records.group_by { |record| record[:fecha_equivalente].to_date }.map do |date, group|
         {
           fecha: formatearFecha(date.to_s, TipoFecha.sin_hora),
           total_general: group.reduce(0) { | acu, item |  item[:total] + acu }
         }
       end
 
-      return recibos_agrupadas
+      return pagos_agrupadas
     end
     # ---------------------------------------------------------------------------------------------------------
 
