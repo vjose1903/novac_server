@@ -13,8 +13,14 @@ let PRODUCTION = 'no';
 let BACKGROUND = 'no';
 
 function execCommandInContainer(commandKey) {
-	const commands = { migrate:'migrate', seed:'seed', create:'create', 'migrate-status'	:'migrate:status' }
-	execDockerContainer(`rake db:${commands[commandKey]}`)
+	const rakeCommands = { migrate:'migrate', seed:'seed', create:'create', 'migrate-status'	:'migrate:status' }
+	const railsCommands = { console: 'c' }
+
+	if (commandKey in rakeCommands) {
+		execDockerContainer(`rake db:${rakeCommands[commandKey]}`)
+	} else if (commandKey in railsCommands) {
+		execDockerContainer(`rails ${railsCommands[commandKey]}`)
+	}
 }
 
 function execDockerContainer(command) {
@@ -133,7 +139,7 @@ args.forEach((opt) => {
 			const command = args[commandIndex]
 			console.log("command ==> ", command);
 			if (command != undefined) {
-				if (['migrate', 'seed', 'create', 'migrate-status'].includes(command)) {
+				if (['migrate', 'seed', 'create', 'migrate-status', 'console'].includes(command)) {
 					execCommandInContainer(command);
 					removeItemAtIndex(args, commandIndex)
 				}else{

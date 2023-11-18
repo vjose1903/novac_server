@@ -119,7 +119,7 @@ def formar_permisos
     end
 
   end
-  return permisos_parsed
+  return permisos_parsed.to_json
 end
 
 
