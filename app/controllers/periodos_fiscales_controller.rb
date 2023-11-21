@@ -43,6 +43,13 @@ class PeriodosFiscalesController < ApplicationController
     resultado = PeriodoFiscal.open_new_periodo()
     resultado.send_response self
   end
+  def isOpenMonth
+    isOpen    = PeriodoFiscal.is_open_month(params[:fecha])
+
+    resultado =  Response.new(params, nil, {isOpen: isOpen}, nil, nil)
+    resultado.send_response self
+  end
+
 
   private
     # Use callbacks to share common setup or constraints between actions.

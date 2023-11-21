@@ -116,8 +116,9 @@ class PeriodoFiscal < ApplicationRecord
   def self.is_open_month(fecha)
     fecha_equivalente         = Date.parse(fecha)
     current_periodo_fiscal    = PeriodoFiscal.get_open_period
+    monthToEvaluate           = current_periodo_fiscal.detalle_periodo_fiscal[:"#{Mes::Label.byNumber(fecha_equivalente.month)}"]
 
-    is_open = ( fecha_equivalente.year == current_periodo_fiscal.fecha_inicio.year ) && current_periodo_fiscal.detalle_periodo_fiscal[:"#{Mes::Label.byNumber(fecha_equivalente.month)}"]
+    is_open = ( fecha_equivalente.year == current_periodo_fiscal.fecha_inicio.year ) && (monthToEvaluate != nil && monthToEvaluate == true)
 
     return is_open
   end

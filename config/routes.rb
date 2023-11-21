@@ -204,6 +204,7 @@ Rails.application.routes.draw do
     collection do
       scope "custom" do
         post "open_new_periodo"           => "periodos_fiscales#openNewPeriodo"
+        get "is_open_month"               => "periodos_fiscales#isOpenMonth"
       end
     end
   end
