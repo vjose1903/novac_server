@@ -6,6 +6,7 @@ class CabezaAsientoContable < ApplicationRecord
   validates :fecha_equivalente, presence: { :message => "Debe de especificar una fecha valida para la entrada de diario." }
   has_many  :detalles_asientos_contables, dependent: :destroy
 
+  # ============================================================================================================================================
   def self.validate_params(params)
 
     begin
@@ -36,6 +37,20 @@ class CabezaAsientoContable < ApplicationRecord
     return res
   end
 
+  # ===================================================================================================================================================
+
+  def self.models_includes
+    user_includes   = [:documentos_de_identidad ]
+    includes = [
+                 { usuario_creador: user_includes },
+                 { usuario_anulador: user_includes },
+                 { detalles_asientos_contables: DetalleAsientoContable.models_includes },
+                 { periodo_fiscal: PeriodoFiscal.models_includes },
+    ]
+    return includes
+  end
+
+  # ============================================================================================================================================
   def self.create_update_asiento_contable(params)
     res = Response.new
     CabezaAsientoContable.transaction do
@@ -49,12 +64,10 @@ class CabezaAsientoContable < ApplicationRecord
         cabeza_asiento_contable.usuario_creador_id     = get_current_user[:id]
         cabeza_asiento_contable.periodo_fiscal_id      = current_periodo_fiscal.id
         cabeza_asiento_contable.comentario             = params[:comentario]
-        cabeza_asiento_contable.tipo                   = AsientoContable.manual
+        cabeza_asiento_contable.tipo                   = params.has_key?(:tipo) && !params[:tipo].nil? ? params[:tipo] : AsientoContable.manual
         cabeza_asiento_contable.fecha_equivalente      = params[:fecha_equivalente]
-        puts "------ANDO AQUIII------".green
-        puts "cabeza_asiento_contable --> ".yellow + " #{cabeza_asiento_contable.to_json}"
+
         cabeza_asiento_contable.valid?
-        puts "cabeza_asiento_contable.errors --> ".red + " #{cabeza_asiento_contable.errors.to_json}"
 
         if cabeza_asiento_contable.errors.empty?
 
@@ -64,18 +77,8 @@ class CabezaAsientoContable < ApplicationRecord
             cabeza_asiento_contable.detalles_asientos_contables = dependencia_data if key_object == 'detalles_asientos_contables'
           }
 
-          detalles_debito  = cabeza_asiento_contable.detalles_asientos_contables.filter { | detalle | detalle.valor_credito.nil? && is_number?(detalle.valor_debito) }
-          detalles_credito = cabeza_asiento_contable.detalles_asientos_contables.filter { | detalle | detalle.valor_debito.nil? && is_number?(detalle.valor_credito) }
+          cabeza_asiento_contable.validate_detalles_amount
 
-          total_debito     = detalles_debito.reduce(0) { | acu, item |  item.valor_debito + acu }
-          total_credito    = detalles_credito.reduce(0) { | acu, item |  item.valor_credito + acu }
-
-          puts "total_debito => ".red + " #{total_debito}"
-          puts "total_credito => ".green + " #{total_credito}"
-
-          puts "=> ".yellow + " #{total_credito == total_debito}"
-
-          cabeza_asiento_contable.is_validated = total_credito == total_debito
 
           if res.status_valid && cabeza_asiento_contable.save!
             res.set_data(cabeza_asiento_contable)
@@ -95,6 +98,47 @@ class CabezaAsientoContable < ApplicationRecord
 
     end
     return res
+
   end
 
+  # ============================================================================================================================================
+  def validate_detalles_amount
+    detalles_debito  = self.detalles_asientos_contables.filter { | detalle | detalle.valor_credito.nil? && detalle.valor_debito.is_number? }
+    detalles_credito = self.detalles_asientos_contables.filter { | detalle | detalle.valor_debito.nil? && detalle.valor_credito.is_number? }
+
+    total_debito     = detalles_debito.reduce(0) { | acu, item |  item.valor_debito + acu }
+    total_credito    = detalles_credito.reduce(0) { | acu, item |  item.valor_credito + acu }
+
+
+    self.is_validated = total_credito == total_debito
+  end
+
+  # ============================================================================================================================================
+
+  def self.filtrarAsientos(params, pagination_params)
+    res = Response.new(pagination_params)
+    query       = {}
+    arg         = params[:arg]
+    desde       = params[:desde]
+    hasta       = params[:hasta].nil? ? params[:desde] : params[:hasta]
+    puts "desde ".yellow + " #{desde}"
+    puts "hasta ".green + " #{hasta}"
+    query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+
+    asientos = CabezaAsientoContable
+                    .where(query)
+                   .where("lower(cabezas_asientos_contables.comentario ) like lower('%#{arg}%')  AND cabezas_asientos_contables.estado = true")
+                   .order('cabezas_asientos_contables.id ASC').to_a
+
+    if asientos.length > 0
+      res.set_data(asientos, {all: true})
+    else
+      res.set_data([])
+      cantidad_registros = CabezaAsientoContable.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen entradas de diario registradas.' : 'No existe entrada de diario con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
 end

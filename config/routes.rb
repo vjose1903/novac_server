@@ -225,6 +225,7 @@ Rails.application.routes.draw do
 
   resources :cabezas_asientos_contables do
     collection do
+      get "filtro/:arg"                     => "cabezas_asientos_contables#getAsientosFiltrados"
     end
   end
 
@@ -242,7 +243,7 @@ Rails.application.routes.draw do
 
 	resources :cuentas_contables do
     collection do
-      patch ":id/deactivate_or_reactivate"     => "cuentas_contables#deactivateOrReactivate"
+      patch ":id/deactivate_or_reactivate"  => "cuentas_contables#deactivateOrReactivate"
     end
   end
 

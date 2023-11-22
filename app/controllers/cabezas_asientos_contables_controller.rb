@@ -12,6 +12,11 @@ class CabezasAsientosContablesController < ApplicationController
   end
 
 
+  def getAsientosFiltrados
+    resultado = CabezaAsientoContable.filtrarAsientos(params, set_paginate_options(params))
+    resultado.send_response self
+  end
+
   def crear_actualizar_asiento_contable
     resultado = CabezaAsientoContable.create_update_asiento_contable(params)
     resultado.send_response self

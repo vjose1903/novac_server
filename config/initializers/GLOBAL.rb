@@ -33,9 +33,15 @@ def my_query(query)
 end
 
 # ---------------------------------------------------------------------------------------------------------
+
+class Numeric
+  def is_number?
+    true if Float(self) rescue false
+  end
+end
+
 class String
-  def numeric?
-    return true if self =~ /\A\d+\Z/
+  def is_number?
     true if Float(self) rescue false
   end
 
@@ -89,12 +95,6 @@ def parsearHora(dateTime, lUtc = true)
   return hora
 end
 
-# ---------------------------------------------------------------------------------------------------------
-class String
-  def is_number?
-    true if Float(self) rescue false
-  end
-end
 # ---------------------------------------------------------------------------------------------------------
 
 class Array
