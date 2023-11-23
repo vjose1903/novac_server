@@ -1,9 +1,11 @@
 class DetalleAsientoContableSerializer < ActiveModel::Serializer
-  attribute :id,                         if: Proc.new { self.get_param('id')                          || self.get_param('all') }
-  attribute :valor_credito,              if: Proc.new { self.get_param('valor_credito')               || self.get_param('all') }
-  attribute :valor_debito,               if: Proc.new { self.get_param('valor_debito')                || self.get_param('all') }
-  attribute :cuenta_contable_auxiliar,   if: Proc.new { self.get_param('cuenta_contable_auxiliar')    || self.get_param('all') }
-  attribute :cuenta_contable_control,    if: Proc.new { self.get_param('cuenta_contable_control')     || self.get_param('all') }
+  attribute :id,                          if: Proc.new { self.get_param('id')                            || self.get_param('all') }
+  attribute :valor_credito,               if: Proc.new { self.get_param('valor_credito')                 || self.get_param('all') }
+  attribute :valor_debito,                if: Proc.new { self.get_param('valor_debito')                  || self.get_param('all') }
+  attribute :cuenta_contable_auxiliar,    if: Proc.new { self.get_param('cuenta_contable_auxiliar')      || self.get_param('all') }
+  attribute :cuenta_contable_auxiliar_id, if: Proc.new { self.get_param('cuenta_contable_auxiliar_id')   || self.get_param('all') }
+  attribute :cuenta_contable_control,     if: Proc.new { self.get_param('cuenta_contable_control')       || self.get_param('all') }
+  attribute :cuenta_contable_control_id,  if: Proc.new { self.get_param('cuenta_contable_control_id')    || self.get_param('all') }
 
   def cuenta_contable_auxiliar
     serialize_parser(object.cuenta_contable_auxiliar, { id: true, descripcion: true, codigo: true })

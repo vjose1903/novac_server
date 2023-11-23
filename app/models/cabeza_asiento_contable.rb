@@ -117,18 +117,19 @@ class CabezaAsientoContable < ApplicationRecord
 
   def self.filtrarAsientos(params, pagination_params)
     res = Response.new(pagination_params)
-    query       = {}
-    arg         = params[:arg]
-    desde       = params[:desde]
-    hasta       = params[:hasta].nil? ? params[:desde] : params[:hasta]
-    puts "desde ".yellow + " #{desde}"
-    puts "hasta ".green + " #{hasta}"
+    query         = {}
+    is_validated  = params[:is_validated]
+    arg           = params[:arg]
+    desde         = params[:desde]
+    hasta         = params[:hasta].nil? ? params[:desde] : params[:hasta]
+
     query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+    query['is_validated'] = is_validated.to_boolean unless is_validated.nil?
 
     asientos = CabezaAsientoContable
-                    .where(query)
-                   .where("lower(cabezas_asientos_contables.comentario ) like lower('%#{arg}%')  AND cabezas_asientos_contables.estado = true")
-                   .order('cabezas_asientos_contables.id ASC').to_a
+                 .where(query)
+                 .where("lower(cabezas_asientos_contables.comentario ) like lower('%#{arg}%')  AND cabezas_asientos_contables.estado = true")
+                 .order('cabezas_asientos_contables.id ASC').to_a
 
     if asientos.length > 0
       res.set_data(asientos, {all: true})
