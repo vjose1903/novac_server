@@ -4,7 +4,6 @@ Rails.application.routes.draw do
   resources :sub_tipo_articulos
 
   resources :cuentas_bancarias
-  resources :bancos
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios
@@ -226,6 +225,12 @@ Rails.application.routes.draw do
   resources :cabezas_asientos_contables do
     collection do
       get "filtro/:arg"                     => "cabezas_asientos_contables#getAsientosFiltrados"
+    end
+
+  end
+  resources :bancos do
+    collection do
+      get "filtro/:arg"                     => "bancos#getBancosFiltrados"
     end
   end
 

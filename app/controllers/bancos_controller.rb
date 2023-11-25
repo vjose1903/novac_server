@@ -11,6 +11,11 @@ class BancosController < ApplicationController
     return Response.new(params, nil, @banco, nil, { all: true }).send_response self
   end
 
+  def getBancosFiltrados
+    resultado = Banco.filtrarBancos(params, set_paginate_options(params))
+    resultado.send_response self
+  end
+
   def crear_actualizar_banco
     resultado = Banco.create_update_banco(params, true)
     resultado.send_response self

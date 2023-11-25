@@ -46,6 +46,28 @@ class Banco < ApplicationRecord
     return res
   end
 
+  # ============================================================================================================================================
+
+  def self.filtrarBancos(params, pagination_params)
+    res = Response.new(pagination_params)
+    arg           = params[:arg]
+
+    bancos = Banco
+                 .where("lower(bancos.nombre || ' ' || bancos.rnc) like lower('%#{arg}%')  AND bancos.estado = true")
+                 .order('bancos.id ASC').to_a
+
+    if bancos.length > 0
+      res.set_data(bancos, {all: true})
+    else
+      res.set_data([])
+      cantidad_registros = Banco.where({ estado: true }).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen bancos registrados.' : 'No existe banco con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
+
 end
 
 # darlymarmolejos@gmail.com
