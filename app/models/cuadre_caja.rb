@@ -13,9 +13,9 @@ class CuadreCaja < ApplicationRecord
       ventas_credito_total_facturado_ = 0
       ventas_contado_total_facturado_ = 0
 
-      ventas_contado_total_facturado_    = CabeceraFactura.where("(forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta') and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado'").sum(:total_factura)
+      ventas_contado_total_facturado_    = CabeceraFactura.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado'").sum(:total_factura)
       ventas_credito_total_facturado_    = CabeceraFactura.where("fecha_equivalente::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='crédito'").sum(:total_factura)
-      recibos_ingresos_                  = RecibosIngreso.where("(forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta') and fecha_equivalente::date='#{fecha}'").sum(:total)
+      recibos_ingresos_                  = RecibosIngreso.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}'").sum(:total)
 
       obj = {
         user_id:              current_user.id,
