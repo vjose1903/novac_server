@@ -40,6 +40,7 @@ class CuentaBancaria < ApplicationRecord
         cuenta_bancaria.balance_inicial_banco      = params[:balance_inicial_banco] if params.has_key?(:balance_inicial_banco) && !params[:balance_inicial_banco].nil?
         cuenta_bancaria.comentario                 = params[:comentario]
         cuenta_bancaria.descripcion                = params[:descripcion]
+        cuenta_bancaria.fecha_primera_conciliacion = params[:fecha_primera_conciliacion]
 
         result_procesos                            = cuenta_bancaria.procesos_crear_cuenta(banco)  if params[:id].nil?
         result_procesos                            = cuenta_bancaria.procesos_update_cuenta(cuenta_bancaria_original, params) unless params[:id].nil?

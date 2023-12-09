@@ -74,9 +74,9 @@ class Paginator
   end
 
   def set_pagination_options(params)
-    @paginate_options[:page]     = params[:page]       if params && !params[:page].nil?
-    @paginate_options[:per_page] = params[:per_page]   if params && !params[:per_page].nil?
-    @paginate_options[:paginado] = params[:paginado]   if params && !params[:paginado].nil?
+    @paginate_options[:page]     = params[:page]                  if params && !params[:page].nil?
+    @paginate_options[:per_page] = params[:per_page]              if params && !params[:per_page].nil?
+    @paginate_options[:paginado] = params[:paginado].to_boolean   if params && !params[:paginado].nil?
   end
 
 
@@ -137,7 +137,7 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
-  pde = { page: params[:page] || 0, per_page: params[:per_page] || 0, paginado: params[:paginado].to_boolean || false }.with_indifferent_access
+  pde = { page: params[:page] || 0, per_page: params[:per_page] || 0, paginado: params[:paginado] || false }.with_indifferent_access
   return pde
 end
 # ---------------------------------------------------------------------------------------------------------

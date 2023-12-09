@@ -49,8 +49,8 @@ class Banco < ApplicationRecord
   # ============================================================================================================================================
 
   def self.filtrarBancos(params, pagination_params)
-    res = Response.new(pagination_params)
-    arg           = params[:arg]
+    res    = Response.new(pagination_params)
+    arg    = params[:arg]
 
     bancos = Banco
                  .where("lower(bancos.nombre || ' ' || bancos.rnc) like lower('%#{arg}%')  AND bancos.estado = true")
