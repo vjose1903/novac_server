@@ -17,6 +17,7 @@ function execCommandInContainer(commandKey) {
 		migrate: 'migrate',
 		seed: 'seed',
 		create: 'create',
+		rollback: 'rollback',
 		'migrate-status': 'migrate:status',
 	};
 	const railsCommands = { console: 'c' };
@@ -159,7 +160,7 @@ while (args.length) {
 
 				console.log('command ==> ', command);
 				if (command != undefined) {
-					if (['migrate', 'seed', 'create', 'migrate-status', 'console'].includes(command)) {
+					if (['migrate', 'seed', 'create', 'migrate-status', 'console', 'rollback'].includes(command)) {
 						execCommandInContainer(command);
 					} else {
 						console.log(`${red('************************************')}`);
