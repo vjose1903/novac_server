@@ -109,7 +109,7 @@ class ArticuloSerializer < ActiveModel::Serializer
 
     existencia = articulo['existencia'].nil? ? 0 : articulo['existencia']
 
-    cantidades = {}
+    cantidades = {}.with_indifferent_access
 
     articulo['medida']                                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? object.tipo_articulo.tipo.titleize : articulo['medida']
     cantidades[articulo['medida']]                         = object.contenido_articulos.length == 0 ? existencia : (existencia / object.contenido_articulos.first['cantidad'])
@@ -134,21 +134,22 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def costos
-		obj = {}
+		obj = {}.with_indifferent_access
 
-    obj["#{object.medida}"]            = {}
+    obj["#{object.medida}"]            = {}.with_indifferent_access
     obj["#{object.medida}"]['costo']   = object.costo_principal
     obj["#{object.medida}"]['precio']  = object.precio_principal
 
-    object.contenido_articulos.each do |conte|
+    object.contenido_articulos.each do | conte |
       obj["#{conte.medida}"]           = {}
       obj["#{conte.medida}"]['costo']  = conte.costo
       obj["#{conte.medida}"]['precio'] = conte.precio
     end
 
-    if object.calcular_saco
+    if object.calcular_saco && ( obj['Quintal'].present? && !obj['Quintal'].nil?)
       [100, 50, 25].each do | peso |
-        obj["Saco_#{peso}"]              = {}
+
+        obj["Saco_#{peso}"]              = {}.with_indifferent_access
         obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * obj['Quintal']['costo']
         obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * obj['Quintal']['precio']
       end

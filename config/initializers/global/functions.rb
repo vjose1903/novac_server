@@ -212,24 +212,6 @@ def decrypt(str)
   cipher.update(decrypted) + cipher.final
 end
 
-
-# def encrypt(str)
-# 	cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').encrypt
-# 	cipher.key = Digest::SHA1.hexdigest ENCRIPT_SECRET
-# 	s = cipher.update(self) + cipher.final
-
-# 	s.unpack('H*')[0].upcase
-# end
-# # ---------------------------------------------------------------------------------------------------------
-
-# def decrypt(str)
-# 	cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
-# 	cipher.key = Digest::SHA1.hexdigest key
-# 	s = [self].pack("H*").unpack("C*").pack("c*")
-
-# 	cipher.update(s) + cipher.final
-# end
-
 # ---------------------------------------------------------------------------------------------------------
 
 def round_to_nearest_multiple_of_5(number)
@@ -342,6 +324,23 @@ class Array
 
     clazz.where(id: self.map(&:id)).order(self.get_order.blank? ? "" : "id #{self.get_order}")
   end
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def roundNumberToDecimal(num)
+
+	num = num.to_s
+	num_split = num.split(".")
+	decimales = num_split.length > 1 ? num_split.last : nil
+
+	if decimales.nil? || decimales.length == 1
+		num = "#{("%.2f" % num)}"
+	elsif decimales.length > 2
+		num = num.to_f.round(2).to_s
+	end
+
+	return "#{num.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
 end
 
 # ---------------------------------------------------------------------------------------------------------

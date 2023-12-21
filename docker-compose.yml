@@ -11,7 +11,7 @@ services:
     ports:
       - 127.0.0.1:9731:5432
 
-  vasquez-prod:
+  agrodemi-dev:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
@@ -31,4 +31,4 @@ services:
     ports:
       - 9092:9092
     depends_on:
-      - vasquez-prod
+      - agrodemi-dev
