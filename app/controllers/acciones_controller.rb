@@ -1,5 +1,5 @@
 class AccionesController < ApplicationController
-	before_action :set_permiso, only: [:show]
+	before_action :set_accion, only: [:show]
 	# GET /accion
 	def index
 		return Response.new(params, nil, Accion.all, nil).send_response self
@@ -12,7 +12,7 @@ class AccionesController < ApplicationController
 
 	private
 
-	def set_permiso
+	def set_accion
 		@accion = Accion.find(params[:id])
 	end
 end
