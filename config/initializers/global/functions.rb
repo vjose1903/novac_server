@@ -389,6 +389,24 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 
+def is_empty?(parametro)
+  return false  if parametro.is_a?(TrueClass) || parametro.is_a?(FalseClass)
+
+  (parametro.nil? || (parametro.is_a?(String) && parametro.strip.empty?) || (parametro.is_a?(Hash) && parametro.empty?) || ( ( parametro.is_a?(Hash) || parametro.is_a?(Array) ) && parametro.empty?)  )
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------------------------
+
+class Object
+  def obj_has?(key)
+    self.has_key?(:"#{key}") && !is_empty?(self[:"#{key}"])
+  end
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
 def roundNumberToDecimal(num)
 
 	num = num.to_s

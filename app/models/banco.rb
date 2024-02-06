@@ -52,9 +52,7 @@ class Banco < ApplicationRecord
     res    = Response.new(pagination_params)
     arg    = params[:arg]
 
-    bancos = Banco
-                 .where("lower(bancos.nombre || ' ' || bancos.rnc) like lower('%#{arg}%')  AND bancos.estado = true")
-                 .order('bancos.id ASC').to_a
+    bancos = Banco.where("lower(bancos.nombre || ' ' || bancos.rnc) like lower('%#{arg}%')  AND bancos.estado = true").order('bancos.id ASC').to_a
 
     if bancos.length > 0
       res.set_data(bancos, {all: true})
@@ -69,7 +67,3 @@ class Banco < ApplicationRecord
   end
 
 end
-
-# darlymarmolejos@gmail.com
-# .PepinoDmar.
-# .PepinoDmar.

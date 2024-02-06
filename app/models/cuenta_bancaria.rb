@@ -36,14 +36,15 @@ class CuentaBancaria < ApplicationRecord
         cuenta_bancaria.divisa_id                  = params[:divisa_id]
         cuenta_bancaria.fecha_apertura             = params[:fecha_apertura]
         cuenta_bancaria.numero_cuenta              = params[:numero_cuenta]
-        cuenta_bancaria.balance_inicial_libro      = params[:balance_inicial_libro] if params.has_key?(:balance_inicial_libro) && !params[:balance_inicial_libro].nil?
-        cuenta_bancaria.balance_inicial_banco      = params[:balance_inicial_banco] if params.has_key?(:balance_inicial_banco) && !params[:balance_inicial_banco].nil?
+        cuenta_bancaria.balance_inicial_libro      = params[:balance_inicial_libro] if params.obj_has?(:balance_inicial_libro) && !params[:balance_inicial_libro].nil?
+        cuenta_bancaria.balance_inicial_banco      = params[:balance_inicial_banco] if params.obj_has?(:balance_inicial_banco) && !params[:balance_inicial_banco].nil?
         cuenta_bancaria.comentario                 = params[:comentario]
         cuenta_bancaria.descripcion                = params[:descripcion]
         cuenta_bancaria.fecha_primera_conciliacion = params[:fecha_primera_conciliacion]
 
-        result_procesos                            = cuenta_bancaria.procesos_crear_cuenta(banco)  if params[:id].nil?
-        result_procesos                            = cuenta_bancaria.procesos_update_cuenta(cuenta_bancaria_original, params) unless params[:id].nil?
+
+        result_procesos                            = cuenta_bancaria.procesos_crear_cuenta(banco)  unless params.obj_has?(:id)
+        result_procesos                            = cuenta_bancaria.procesos_update_cuenta(cuenta_bancaria_original, params) if params.obj_has?(:id)
 
         cuenta_bancaria.valid?
 
@@ -62,7 +63,7 @@ class CuentaBancaria < ApplicationRecord
     else
 
       res.add_msg("El banco que seleccionó para crear esta cuanta, no existe.")         if banco.nil?
-      res.add_msg("El banco que seleccionó para crear esta cuanta, está desabilitado.") if !banco.nil? && !banco.estado
+      res.add_msg("El banco que seleccionó para crear esta cuanta, está destabilisation.") if !banco.nil? && !banco.estado
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -117,7 +118,7 @@ class CuentaBancaria < ApplicationRecord
     self.cuenta_contable.descripcion.gsub!(cuenta_bancaria_original[:numero_cuenta], params[:numero_cuenta])       if cuenta_contable_bool
     self.cuenta_contable_prima.descripcion.gsub!(cuenta_bancaria_original[:numero_cuenta], params[:numero_cuenta]) if cuenta_contable_prima_bool
 
-    unless (cuenta_contable_bool && self.cuenta_contable.save!) || (cuenta_contable_prima_bool && self.cuenta_contable_prima.save!)
+    if (cuenta_contable_bool && !self.cuenta_contable.save!) || (cuenta_contable_prima_bool && !self.cuenta_contable_prima.save!)
       res.add_msgs(self.cuenta_contable.errors.to_a)
       res.add_msgs(self.cuenta_contable_prima.errors.to_a) if !self.cuenta_contable_prima_id.nil?
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -132,7 +133,7 @@ class CuentaBancaria < ApplicationRecord
     array_valid = []
 
     items.each do |item|
-      res_temp  = self.create_update_cuenta_bancaria(item, padre, !item[:id].nil?)
+      res_temp  = self.create_update_cuenta_bancaria(item, padre, item.obj_has?(:id))
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)
