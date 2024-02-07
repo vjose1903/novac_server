@@ -25,11 +25,11 @@ class CuentaBancaria < ApplicationRecord
 
     banco                                          = Banco.find_by_id(params[:banco_id]) if banco.nil?
 
-    unless banco.nil? || !banco.estado
+    if !banco.nil? && banco.estado
       CuentaBancaria.transaction do
 
         cuenta_bancaria                            = CuentaBancaria.where(:id => params[:id]).first_or_create
-        cuenta_bancaria_original                   = cuenta_bancaria.attributes.with_indifferent_access unless params[:id].nil?
+        cuenta_bancaria_original                   = cuenta_bancaria.attributes.with_indifferent_access if params.obj_has?(:id)
 
         cuenta_bancaria.banco_id                   = params[:banco_id]
         cuenta_bancaria.tipo_cuenta_bancaria_id    = params[:tipo_cuenta_bancaria_id]
@@ -120,7 +120,7 @@ class CuentaBancaria < ApplicationRecord
 
     if (cuenta_contable_bool && !self.cuenta_contable.save!) || (cuenta_contable_prima_bool && !self.cuenta_contable_prima.save!)
       res.add_msgs(self.cuenta_contable.errors.to_a)
-      res.add_msgs(self.cuenta_contable_prima.errors.to_a) if !self.cuenta_contable_prima_id.nil?
+      res.add_msgs(self.cuenta_contable_prima.errors.to_a) unless self.cuenta_contable_prima_id.nil?
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

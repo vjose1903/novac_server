@@ -40,6 +40,7 @@ class Banco < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
+
       transaction_rollback if !banco.errors.empty? || !res.status_valid
     end
 

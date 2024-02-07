@@ -63,6 +63,7 @@ class EntidadCuentaContable < ApplicationRecord
 
     # TODO: revisar en articulos como validar el tipo_categoria
     # if ( params[:tipo_categoria] && params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
+    puts "params ==> ".green + " #{params}"
     if ( params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
       categoria_entidad_contable    = @modelo[params[:tipo_categoria]].find_by_id(params[:tipo_categoria_id])
     end
