@@ -591,7 +591,6 @@ class CabeceraFactura < ApplicationRecord
     res                          = Response.new
     factura                      = CabeceraFactura.find_by_id(params[:id])
     CabeceraFactura.transaction do
-      # TODO: validar que los campos necesarios del movimiento lleguen
 
       factura.movimientos_viaje.each do | movimiento |
         movimiento.vehiculo.ajustarCantViaje('-') unless movimiento.vehiculo_id.nil?

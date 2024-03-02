@@ -27,7 +27,6 @@ class EntidadCuentaContable < ApplicationRecord
     resultado            = { has_error: false }.with_indifferent_access
 		configuacion         = self.configuracion_entidad_cuenta
 
-    # TODO: revisar en articulos como validar el tipo_categoria
 		tiposSinComprobacion = [TipoAgrupacionContable.sin_cuenta, TipoAgrupacionContable.individual];
 
     if params[:tipo_categoria_id].nil? && !tiposSinComprobacion.include?(self.tipo_agrupacion_contable)
@@ -61,9 +60,6 @@ class EntidadCuentaContable < ApplicationRecord
     result_procesos                 = Response.new
     categoria_entidad_contable      = nil
 
-    # TODO: revisar en articulos como validar el tipo_categoria
-    # if ( params[:tipo_categoria] && params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
-    puts "params ==> ".green + " #{params}"
     if ( params[:tipo_categoria_id] ) && ( params[:tipo_agrupacion_contable] != TipoAgrupacionContable.individual )
       categoria_entidad_contable    = @modelo[params[:tipo_categoria]].find_by_id(params[:tipo_categoria_id])
     end
@@ -102,7 +98,7 @@ class EntidadCuentaContable < ApplicationRecord
   def procesos_crear_cuenta(has_cuenta_contable, params)
     res                         = Response.new
     if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
-      cuenta_contable_art       = self.origen_categoria.tipo_articulo_cuentas_contables.find_by({ key: self.key })
+      cuenta_contable_art       = self.origen_categoria.tipo_articulo_cuentas_contables.find { | cuenta | cuenta.key == self.key }
     end
 
     if self.is_comun
@@ -118,7 +114,6 @@ class EntidadCuentaContable < ApplicationRecord
 
     if !has_cuenta_contable
       cuenta_control                     = nil
-
       if self.configuracion_entidad_cuenta.entidad == ConfigEntidadCuentaCont.articulo && self.tipo_agrupacion_contable != TipoAgrupacionContable.individual
         cuenta_control                   = cuenta_contable_art.cuenta_contable_control
       else
