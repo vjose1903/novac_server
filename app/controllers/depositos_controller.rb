@@ -11,6 +11,10 @@ class DepositosController < ApplicationController
     return Response.new(params, nil, @deposito, nil, { all: true }).send_response self
   end
 
+  def getDepositosFiltrados
+    resultado = Deposito.filtrarDepositos(params, set_paginate_options(params))
+    resultado.send_response self
+  end
   def crear_actualizar_deposito
     res = Deposito.create_update_deposito(params)
     res.send_response self

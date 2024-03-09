@@ -113,4 +113,24 @@ class Deposito < ApplicationRecord
     return res
   end
 
+  # =========================================================================================================================================================
+  def self.filtrarDepositos(params, pagination_params)
+    res    = Response.new(pagination_params)
+    arg    = params[:arg]
+
+    depositos = Deposito
+               .joins('inner join cuentas_bancarias on depositos.cuenta_bancaria_id = cuentas_bancarias.id')
+               .where("lower(depositos.monto || ' ' || depositos.comentario || ' ' || depositos.numero_referencia || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion ) like lower('%#{arg}%')  AND depositos.estado = true").order('depositos.id ASC').to_a
+
+    if depositos.length > 0
+      res.set_data(depositos, {all: true})
+    else
+      res.set_data([])
+      cantidad_registros = Banco.where({ estado: true }).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen depositos registrados.' : 'No existe deposito con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    return res
+  end
 end

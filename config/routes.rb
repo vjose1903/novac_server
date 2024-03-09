@@ -236,6 +236,7 @@ Rails.application.routes.draw do
 
   resources :depositos do
     collection do
+      get "filtro/:arg"                     => "depositos#getDepositosFiltrados"
       delete "anular/:id"                   => "depositos#anularDeposito"
     end
   end

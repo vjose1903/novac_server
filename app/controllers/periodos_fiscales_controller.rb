@@ -19,7 +19,7 @@ class PeriodosFiscalesController < ApplicationController
   end
 
   def crear_actualizar_periodo_fiscal
-    resultado = PeriodoFiscal.create_update_periodo_fiscal(params, true)
+    resultado = PeriodoFiscal.create_periodo_fiscal(params, true)
     resultado.send_response self
   end
 
