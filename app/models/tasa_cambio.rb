@@ -133,6 +133,22 @@ class TasaCambio < ApplicationRecord
 
   # ============================================================================================================================================
 
+  def self.register_tasas_of_new_year()
+    res             = Response.new
+
+    Divisa.where({ estado: true }).each do | divisa |
+      result_tasa   = TasaCambio.create_year_tasa_cambio(divisa, divisa.current_tasa)
+
+      unless result_tasa.status_valid
+        return res
+      end
+    end
+
+    return res
+  end
+
+  # ============================================================================================================================================
+
   def self.get_history_changes(params)
     res             = Response.new
 

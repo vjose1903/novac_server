@@ -17,7 +17,7 @@ class DepositoSerializer < ActiveModel::Serializer
   attribute :user_anulador,            if: Proc.new { self.get_param('user_anulador')         || self.get_param('all') }
 
   def cuenta_bancaria
-    serialize_parser(object.cuenta_bancaria, { id: true, descripcion: true })
+    serialize_parser(object.cuenta_bancaria, { id: true, descripcion: true, banco: true, numero_cuenta: true })
   end
 
   def divisa

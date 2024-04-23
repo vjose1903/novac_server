@@ -78,16 +78,25 @@ class PeriodoFiscal < ApplicationRecord
       unless lastest_periodo_fiscal.empty?
         last_periodo_fiscal                 = lastest_periodo_fiscal.first
 
-        new_periodo_fiscal                  = PeriodoFiscal.new(last_periodo_fiscal.attributes.except("id", "created_at", "updated_at"))
+        new_periodo_fiscal                  = PeriodoFiscal.new()
 
-        new_periodo_fiscal.fecha_inicio     = new_periodo_fiscal.fecha_inicio.advance(years: 1)
-        new_periodo_fiscal.fecha_cierre     = new_periodo_fiscal.fecha_cierre.advance(years: 1)
+        new_periodo_fiscal.fecha_inicio     = last_periodo_fiscal.fecha_inicio.advance(years: 1)
+        new_periodo_fiscal.fecha_cierre     = last_periodo_fiscal.fecha_cierre.advance(years: 1)
         res                                 = new_periodo_fiscal.add_detalle(params)
 
 
         if res.status_valid && ((new_periodo_fiscal.errors.empty? && new_periodo_fiscal.save!))
-          res.set_data(serialize_parser(new_periodo_fiscal, {all:true}))
-          res.add_msg("Periodo Fiscal: #{formatearFecha(new_periodo_fiscal.fecha_inicio.to_s, TipoFecha.sin_hora)} - #{formatearFecha(new_periodo_fiscal.fecha_cierre.to_s, TipoFecha.sin_hora)} abierto correctamente.")
+
+          result_new_tasas = TasaCambio.register_tasas_of_new_year
+
+          if result_new_tasas.status_valid
+            res.set_data(serialize_parser(new_periodo_fiscal, { all: true }))
+            res.add_msg("Periodo Fiscal: #{formatearFecha(new_periodo_fiscal.fecha_inicio.to_s, TipoFecha.sin_hora)} - #{formatearFecha(new_periodo_fiscal.fecha_cierre.to_s, TipoFecha.sin_hora)} abierto correctamente.")
+          else
+            res.add_msgs(result_new_tasas.get_msgs.to_a)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
+
         else
           res.add_msgs(last_periodo_fiscal.errors.to_a)
           res.add_msgs(new_periodo_fiscal.errors.to_a)
