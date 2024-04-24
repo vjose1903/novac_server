@@ -1,11 +1,22 @@
 const fs = require('fs');
 var path = require('path');
 
-const clientes = ['brendy', 'agrodemi', 'vasquez'];
+const clientes = ['brendy', 'agrodemi', 'vasquez', 'demo'];
 const clienteSelected = process.argv[2];
 const environmentSelected = process.argv[3];
 
 const setup = {
+  demo: {
+    ALMACEN: "DEMO",
+    ENVIRONMENT_NAME_IMG: "demo-",
+    PROD_ENVIRONMENT_NAME_IMG: "demo-",
+    DB_PATH: "db-demo-data",
+    DB_PORT: "3003",
+    CORS_PORT: "5223",
+    FRONT_PORT: "9093",
+    NGINX_SERVER_NAME: "localhost 8n3mw1zq-9093.use2.devtunnels.ms *.8n3mw1zq-9093.use2.devtunnels.ms",
+    MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
+  },
   agrodemi: {
     ALMACEN: "ADM",
     ENVIRONMENT_NAME_IMG: "agrodemi-",
