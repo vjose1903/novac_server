@@ -5,6 +5,7 @@ services:
     image: postgres:13.7
     volumes:
       - ./tmp/$$DB_PATH$$:/var/lib/postgresql/data
+    container_name: db-dev
     environment:
       POSTGRES_PASSWORD: N0v@cgu@rd
       POSTGRES_USER: novacSystem
@@ -15,11 +16,13 @@ services:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
+    container_name: $$ENVIRONMENT_NAME_IMG$$
     environment:
       ALMACEN: "$$ALMACEN$$"
       RAILS_ENV: "development"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
+      MONTU: "$$MONTU$$"
     depends_on:
       - db-dev
     volumes:
@@ -28,6 +31,7 @@ services:
 
   nginx-proxy-dev:
     build: ./docker/services/nginx
+    container_name: nginx-proxy-dev
     ports:
       - $$FRONT_PORT$$:$$FRONT_PORT$$
     depends_on:

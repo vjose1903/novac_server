@@ -1,46 +1,80 @@
+require 'open3'
+
 namespace :db do
   desc "Backup DB and upload to Google Drive"
   task backup: :environment do
-    puts " "
-    puts "|==============================|"
+    puts "\n|==============================|"
     puts "|        CREANDO BACKUP        |"
-    puts "|==============================|"
-    puts " "
+    puts "|==============================|\n"
 
-    rails_env         = ENV.fetch("RAILS_ENV") { "development" }
     tulu              = ENV.fetch("TULU")
-    timestamp         = Time.now.strftime('%Y-%m-%d_%H:%M:%S')
-    archive_path      = "#{Rails.root}/db/ADM_#{rails_env.downcase}_#{timestamp}.sql"
+    fraga             = ENV.fetch("FRAGA")
+    montu             = ENV.fetch("MONTU")
+    rails_env         = ENV.fetch("RAILS_ENV") { "development" }.downcase
+    db_name           = ENV.fetch("ALMACEN")
 
     ENV['PGPASSWORD'] = tulu
+    host              = rails_env == 'development' ? 'db-dev' : 'db-prod'
+    backup_name       = "#{db_name}_#{rails_env}.sql"
+    archive_path      = "#{PROJECT_PATH}/db/#{backup_name}"
+    pg_dump           = "pg_dump --format=c --inserts -U #{fraga} -h #{host} --dbname=#{db_name}_#{rails_env} -f #{archive_path}"
 
-    # pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-dev --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
-    pg_dump           = "pg_dump --verbose --format=c --inserts -U novacSystem -h db-prod --dbname=ADM_#{rails_env.downcase} -f #{archive_path}"
+    stdout, stderr, status = Open3.capture3(pg_dump)
 
-    `cd #{Rails.root}/public && #{pg_dump}`
-
-    require 'google/apis/drive_v2'
-    ENV['GOOGLE_APPLICATION_CREDENTIALS'] = "#{Rails.root}/config/google_api_credentials.json"
-    drive                = Google::Apis::DriveV2::DriveService.new
-    drive.authorization  = Google::Auth.get_application_default([Google::Apis::DriveV2::AUTH_DRIVE_FILE])
-
-    metadata             = {title: File.basename(archive_path, '.sql')}
-    file                 = drive.insert_file(metadata, upload_source: archive_path, content_type: 'application/sql')
-
-    EMAILS               = ['novacagrodemi@gmail.com']
-    EMAILS.each do |email|
-      perm_id   = drive.get_permission_id_for_email(email)
-      perm      = Google::Apis::DriveV2::Permission.new(role: 'writer', id: perm_id.id, type: 'user')
-      drive.insert_permission(file.id, perm, send_notification_emails: false)
+    if status.success?
+      puts "\n============ BACKUP #{rails_env} CREADO ============\n"
+      upload_file(backup_name, montu) if rails_env != "development"
+    else
+      puts "\n|=========================================|"
+      puts "|         ERROR AL REALIZAR BACKUP        |"
+      puts "|=========================================|\n"
+      puts "Error:\n#{stderr}"
     end
 
     FileUtils.remove_file(archive_path)
-
-    puts " "
-    puts "|==============================|"
-    puts "|         BACKUP CREADO        |"
-    puts "|==============================|"
-    puts " "
   end
 
+  def npm_installed?
+    installed = system("npm --version > /dev/null 2>&1")
+
+    if installed
+      puts "\n|===========================================|"
+      puts "|         NPM INSTALADO EN EL SISTEMA       |"
+      puts "|===========================================|\n"
+    else
+      puts "\n|=========================================================|"
+      puts "|         NPM NO INSTALADO PROCEDIENDO A INSTALARLO       |"
+      puts "|=========================================================|\n"
+      success = system("apt-get update && apt-get install -y npm")
+
+      if success
+        installed = true
+      else
+        puts "\n|=========================================|"
+        puts "|         NPM NO PUDO SER INSTALADO       |"
+        puts "|=========================================|\n"
+      end
+    end
+
+    installed
+  end
+
+  def upload_file(file_name, montu)
+    script_path = "#{PROJECT_PATH}/config/initializers/google/upload_backup.js"
+
+    return false unless npm_installed?
+
+    if system("npm list --depth 0 googleapis")
+      puts "\n|===================================================|"
+      puts "|         googleapis INSTALADO en el sistema        |"
+      puts "|===================================================|\n"
+    else
+      puts "\n|===============================================================|"
+      puts "|         googleapis NO INSTALADO procediendo a instalar        |"
+      puts "|===============================================================|\n"
+      system("npm install googleapis")
+    end
+
+    system("node #{script_path} #{file_name} #{montu}")
+  end
 end

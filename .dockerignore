@@ -5,6 +5,8 @@ win_scripts
 .gitignore
 build/*
 /docker/*
+/node_modules/*
+/node_modules
 
 npm-debug.log*
 
