@@ -5,6 +5,7 @@ services:
     image: postgres:13.7
     volumes:
       - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
+    container_name: db-prod
     environment:
       POSTGRES_PASSWORD: N0v@cgu@rd
       POSTGRES_USER: novacSystem
@@ -12,15 +13,17 @@ services:
       - 127.0.0.1:9731:5432
     restart: always
 
-  agrodemi-dev:
+  agrodemi-prod:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
+    container_name: agrodemi-prod
     environment:
       ALMACEN: "ADM"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
+      MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
     depends_on:
@@ -31,8 +34,9 @@ services:
 
   nginx-proxy-prod:
     build: ./docker/services/nginx
+    container_name: nginx-proxy-prod
     ports:
       - 9090:9090
     depends_on:
-      - agrodemi-dev
+      - agrodemi-prod
     restart: always

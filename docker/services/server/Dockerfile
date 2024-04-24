@@ -1,6 +1,9 @@
 FROM ruby:3.0.4
 
-RUN apt-get update -qq && apt-get install -y build-essential apt-utils postgresql-client git nodejs yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron
+RUN apt-get update -qq && apt-get install -y curl
+RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
+
+RUN apt-get install -y build-essential apt-utils postgresql-client git yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron nodejs
 
 RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
@@ -8,7 +11,8 @@ RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
 ENV TZ="America/Santo_Domingo"
 
 WORKDIR /usr/src/novac_server
-COPY ["Gemfile", "Gemfile.lock", "/usr/src/novac_server/"]
+COPY ["Gemfile", "Gemfile.lock", "package.json", "package-lock.json", "/usr/src/novac_server/"]
+RUN npm install
 RUN gem install rails
 RUN gem install nokogiri --platform=ruby
 RUN bundle config build.nokogiri --use-system-libraries
