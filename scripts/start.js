@@ -44,7 +44,7 @@ function setClient(client) {
 
   const environmentSelected = PRODUCTION === 'yes' ? 'prod' : 'dev';
 
-  if (['agrodemi', 'brendy', 'vasquez'].includes(client)) {
+  if (['agrodemi', 'brendy', 'vasquez', 'demo'].includes(client)) {
     execSync(`node ${pathAdd('./setup.js')} ${client} ${environmentSelected}`, { stdio: 'inherit' });
   } else {
     console.log(`${red('*************************************')}`);
