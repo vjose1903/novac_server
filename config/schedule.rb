@@ -13,6 +13,6 @@ every '0 9-18/2 * * 1-5' do
 end
 
 # Para los sábados de 9AM a 12PM cada 2 horas
-every '0 9-12/2 * * 6' do
+every '0 9-13 * * 6' do
 	rake 'db:backup'
 end
