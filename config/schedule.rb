@@ -8,7 +8,7 @@ set :environment, ENV['RAILS_ENV']
 
 
 # Para lunes a viernes de 9AM a 7PM cada 2 horas
-every '0 9-18/2 * * 1-5' do
+every '0 9-19/2 * * 1-5' do
 	rake 'db:backup'
 end
 
