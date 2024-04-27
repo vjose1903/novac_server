@@ -8,38 +8,40 @@ const environmentSelected = process.argv[3];
 const setup = {
   agrodemi: {
     ALMACEN: "ADM",
-    ALMACEN_MAIL: "novacagrodemi@gmail.com",
     ENVIRONMENT_NAME_IMG: "agrodemi-",
+    PROD_ENVIRONMENT_NAME_IMG: "agrodemi-",
     DB_PATH: "db-agrodemi-data",
     DB_PORT: "3000",
     CORS_PORT: "5220",
     FRONT_PORT: "9090",
-    NGINX_SERVER_NAME: "localhost admservidor.ddns.net *.admservidor.ddns.net"
+    NGINX_SERVER_NAME: "localhost admservidor.ddns.net *.admservidor.ddns.net",
+    MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
   },
   brendy: {
     ALMACEN: "panaderia_brendy",
-    ALMACEN_MAIL: "novacbrendy@gmail.com",
     ENVIRONMENT_NAME_IMG: "brendy-",
+    PROD_ENVIRONMENT_NAME_IMG: "brendy-",
     DB_PATH: "db-brendy-data",
     DB_PORT: "3001",
     CORS_PORT: "5221",
     FRONT_PORT: "9091",
-    NGINX_SERVER_NAME: "localhost novac-brendy.ddns.net *.novac-brendy.ddns.net"
+    NGINX_SERVER_NAME: "localhost novac-brendy.ddns.net *.novac-brendy.ddns.net",
+		MONTU: "1C96yS20EDDyX7rgi2Y5OQju_4FQ8G5_C"
   },
   vasquez: {
     ALMACEN: "vasquez_services",
-    ALMACEN_MAIL: "novacvasquez@gmail.com",
     ENVIRONMENT_NAME_IMG: "vasquez-",
+    PROD_ENVIRONMENT_NAME_IMG: "vasquez-",
     DB_PATH: "db-vasquez-data",
     DB_PORT: "3002",
     CORS_PORT: "5222",
     FRONT_PORT: "9092",
-    NGINX_SERVER_NAME: "localhost novac-vasquez.ddns.net *.novac-vasquez.ddns.net"
+    NGINX_SERVER_NAME: "localhost novac-vasquez.ddns.net *.novac-vasquez.ddns.net",
+		MONTU: "17pDTnH139lHpSRj3_xoPWP8jJYHR0roa"
   }
 };
 
 const files = [
-  { tipo: 'move',       file_name: 'google_api_credentials', extension: 'json',     path: 'config/google_api_credentials.json' },
   { tipo: 'move',       file_name: 'seedConstantes',         extension: 'rb',       path: 'config/initializers/global/seedConstantes.rb' },
 
 	{ tipo: 'reemplazo',  file_name: 'docker-compose.prod.yml',                       path: 'docker-compose.prod.yml' },
@@ -48,7 +50,6 @@ const files = [
 	{ tipo: 'reemplazo',  file_name: 'default.conf',                                  path: 'docker/services/nginx/default.conf' },
 	{ tipo: 'reemplazo',  file_name: 'run_server.sh',                                 path: 'run_server.sh' },
 	{ tipo: 'reemplazo',  file_name: 'cors.rb',                                       path: 'config/initializers/cors.rb' },
-	{ tipo: 'reemplazo',  file_name: 'db.rake',                                       path: 'lib/tasks/db.rake' },
 ];
 
 function makeSetup(cliente) {
@@ -89,7 +90,8 @@ function replaceFiles(cliente, objFile) {
   Object.keys(setup[cliente]).forEach(key => {
     let replaceString = setup[cliente][key];
 
-    if (key.includes("ENVIRONMENT_")) replaceString += environmentSelected;
+    if (key.includes("PROD_ENVIRONMENT_")) replaceString += 'prod';
+    else if (key.includes("ENVIRONMENT_")) replaceString += environmentSelected;
 
     fileData = fileData.replaceAll(`$$${key}$$`, replaceString);
   });
