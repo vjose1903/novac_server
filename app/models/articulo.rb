@@ -173,25 +173,29 @@ class Articulo < ApplicationRecord
 
     articulos = []
     historicos = []
-    articulos_.map { |articulo|
+    articulos_.map { | articulo |
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo["updated_at"]).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
+      puts "AQUIIII".yellow
 
       if fecha < fecha_ultima_edicion_articulo
-
+        puts "ENTREEEEE".magenta
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, "<=", "DESC")
 
         if hist.blank?
+          puts "NO HISTORICO".red
           articulos.push(articulo)
           historicos.push(articulo)
         else
+          puts "SI HISTORICO".green
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           historicos.push(historico)
           # TODO: aqui se estan borrando las formulas
           articulos.push(Articulo.new(historico))
         end
       else
+        puts "articulo --> ".green + " #{articulo.to_json}"
         articulos.push(articulo)
         historicos.push(articulo)
       end
@@ -199,13 +203,9 @@ class Articulo < ApplicationRecord
     }
 
     if articulos.length > 0
-      # articulos.sort_by! { |k|
-      # 	k["id"]
-      # }
-
 
       articulos = params['paginado'].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
-      res.set_data(articulos, {all: true, historicos: historicos}, Articulo.models_includes)
+      res.set_data(articulos, { all: true, historicos: historicos }, Articulo.models_includes)
       # res.set_data(articulos)
     else
       cantidad_registros = Articulo.where({estado: true}).count
