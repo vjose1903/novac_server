@@ -1,13 +1,13 @@
 G_usuarios =
 [
   {
-    'nombre': 'Tienda',
-    'usuario': 'demo01',
-    'uid': 'demo01',
-    'apellido': '1',
+    'nombre': 'AGRODEMI',
+    'usuario': 'adm01',
+    'uid': 'adm01',
+    'apellido': '01',
     'sexo': 'i',
-    'telefono': '(000) 000-0000',
-    'email': 'demo@gmail.com',
+    'telefono': '(809) 573-0060',
+    'email': 'adm@gmail.com',
     'fecha_nacimiento': '2022-01-01',
     'role': 'V',
     'password': '1234567',
@@ -16,14 +16,29 @@ G_usuarios =
     'imagen_id': nil,
   },
   {
-    'nombre': 'Persona',
+    'nombre': 'Administrador',
     'usuario': 'ADMIN',
     'uid': 'ADMIN',
-    'apellido': 'Demo',
-    'sexo': 'm',
-    'telefono': '(809) 879-0161',
-    'email': 'inspot.technology@gmail.com',
-    'fecha_nacimiento': '2022-04-01',
+    'apellido': 'sistema',
+    'sexo': 'f',
+    'telefono': '(829) 292-8772',
+    'email': 'admin@hotmail.com',
+    'fecha_nacimiento': '2022-01-01',
+    'role': 'A',
+    'password': '1234567',
+    'password_confirmation': '1234567',
+    'estado': true,
+    'imagen_id': nil,
+  },
+	{
+    'nombre': 'Novac',
+    'usuario': 'novac',
+    'uid': 'novac',
+    'apellido': 'system',
+    'sexo': 'i',
+    'telefono': '(000) 000-0000',
+    'email': 'novacagrodemi@gmail.com',
+    'fecha_nacimiento': '1998-03-19',
     'role': 'A',
     'password': '1234567',
     'password_confirmation': '1234567',
@@ -39,7 +54,7 @@ G_clientes = [
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',
-    'direccion': 'La Vega. R.D.',
+    'direccion': 'Autopista duarte KM 0 el Higuero',
     'sexo': 'i',
     'limite_credito': 0,
     'maximo_credito': 0,
@@ -48,23 +63,30 @@ G_clientes = [
 ]
 
 G_documentos_de_identidad = [
-  {
+	{
     'origen_type': 'User',
-    'origen_entity': 'demo01',
+		'origen_entity': 'adm01',
     'descripcion': 'cedula',
-    'documento': '000-0000000-0',
+    'documento': '047-0099635-0',
     'principal': true,
   },
   {
     'origen_type': 'User',
-    'origen_entity': 'ADMIN',
+		'origen_entity': 'ADMIN',
+    'descripcion': 'cedula',
+    'documento': '047-0099635-0',
+    'principal': true,
+  },
+  {
+    'origen_type': 'User',
+		'origen_entity': 'novac',
     'descripcion': 'cedula',
     'documento': '000-0000000-1',
     'principal': true,
   },
   {
     'origen_type': 'Cliente',
-    'origen_entity': 'Cliente contado',
+		'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
     'principal': true,
@@ -73,8 +95,11 @@ G_documentos_de_identidad = [
 
 
 G_tipos_articulo = [
-  { 'descripcion': 'Tipo Demo 1', 'tipo': 'venta_normal', 'codigo': 'demo1' },
-  { 'descripcion': 'Tipo Demo 2', 'tipo': 'servicio', 'codigo': 'demo2' },
+  { 'descripcion': 'Materia prima',       'tipo': 'venta_normal', 'codigo': 'materia_prima' },
+  { 'descripcion': 'Veterinaria',         'tipo': 'venta_normal', 'codigo': 'veterinaria' },
+  { 'descripcion': 'Producto terminado',  'tipo': 'venta_normal', 'codigo': 'producto_terminado' },
+  { 'descripcion': 'Nucleo',              'tipo': 'venta_normal', 'codigo': 'nucleo' },
+  { 'descripcion': 'Otros',               'tipo': 'venta_normal', 'codigo': 'otros' },
 ]
 
 
@@ -124,10 +149,13 @@ G_PERMISOS = [
   { nombre:'roles',                         mostrar_front: true,     descripcion: 'role',                    controlador: 'Roles',                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getRolesFiltrados'}]}
 ]
 
+# ejemplo de permisos_acciones
+# {permiso_descripcion:'algo', acciones:['descripcion', 'descripcion2']}
 G_ROLES_CUSTOM = [
+  {  nombre: 'Chofer', key: 'chofer', descripcion: 'Persona encargada de realizar los viajes de pedidos a los clientes.', ruta_defecto:'/', estado: true, permisos_acciones: []},
   {  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
 ]
 
 G_CONFIG_ARTICULOS = [
-  { porciento_ganancia: 10 }
+	{ porciento_ganancia: 15}
 ]

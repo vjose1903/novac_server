@@ -4,7 +4,7 @@ services:
   db-dev:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-demo-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     container_name: db-dev
     environment:
       POSTGRES_PASSWORD: N0v@cgu@rd
@@ -12,17 +12,17 @@ services:
     ports:
       - 127.0.0.1:9731:5432
 
-  demo-dev:
+  agrodemi-dev:
     build:
       context: .
       dockerfile: docker/services/server/Dockerfile
-    container_name: demo-dev
+    container_name: agrodemi-dev
     environment:
-      ALMACEN: "DEMO"
+      ALMACEN: "ADM"
       RAILS_ENV: "development"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
-      MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
+      MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
     depends_on:
       - db-dev
     volumes:
@@ -33,6 +33,6 @@ services:
     build: ./docker/services/nginx
     container_name: nginx-proxy-dev
     ports:
-      - 9093:9093
+      - 9090:9090
     depends_on:
-      - demo-dev
+      - agrodemi-dev

@@ -30,5 +30,5 @@ RUN bundle exec wheneverize . &&\
 		chmod +x /usr/src/novac_server/wait-for-it.sh
 
 
-CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3003"]
+CMD ["rails", "server", "-b", "0.0.0.0", "--port", "3000"]
 
