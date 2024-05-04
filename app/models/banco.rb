@@ -18,8 +18,7 @@ class Banco < ApplicationRecord
       banco.ejecutivo_cuenta            = params[:ejecutivo_cuenta]
       banco.telefono_ejecutivo_cuenta   = params[:telefono_ejecutivo_cuenta]
       banco.valid?
-      puts "banco ".green + " #{banco.to_json}"
-      puts "banco.errors ".red + " #{banco.errors.to_a}"
+
       if banco.errors.empty?
 
         dependencias = [{modelo: CuentaBancaria, key_object: "cuentas_bancarias", padre: banco }]
