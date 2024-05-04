@@ -59,18 +59,16 @@ function setClient(client) {
 
 	const environmentSelected = PRODUCTION === 'yes' ? 'prod' : 'dev';
 
-	if (['agrodemi', 'brendy', 'vasquez'].includes(client)) {
-		execSync(`node ${pathAdd('./setup.js')} ${client} ${environmentSelected}`, {
-			stdio: 'inherit',
-		});
-	} else {
-		console.log(`${red('*************************************')}`);
-		console.log(`${red('**                                 **')}`);
-		console.log(`${red('**      CLIENTE NO ENCONTRADO      **')}`);
-		console.log(`${red('**                                 **')}`);
-		console.log(`${red('*************************************')}`);
-		process.exit(2);
-	}
+  if (['agrodemi', 'brendy', 'vasquez', 'demo'].includes(client)) {
+    execSync(`node ${pathAdd('./setup.js')} ${client} ${environmentSelected}`, { stdio: 'inherit' });
+  } else {
+    console.log(`${red('*************************************')}`);
+    console.log(`${red('**                                 **')}`);
+    console.log(`${red('**      CLIENTE NO ENCONTRADO      **')}`);
+    console.log(`${red('**                                 **')}`);
+    console.log(`${red('*************************************')}`);
+    process.exit(2);
+  }
 }
 
 function dockerCommand(command) {

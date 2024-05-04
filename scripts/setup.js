@@ -1,11 +1,23 @@
 const fs = require('fs');
 var path = require('path');
 
-const clientes = ['brendy', 'agrodemi', 'vasquez'];
+const clientes = ['brendy', 'agrodemi', 'vasquez', 'demo'];
 const clienteSelected = process.argv[2];
 const environmentSelected = process.argv[3];
 
 const setup = {
+  demo: {
+    ALMACEN: "DEMO",
+    ENVIRONMENT_NAME_IMG: "demo-",
+    PROD_ENVIRONMENT_NAME_IMG: "demo-",
+    DB_PATH: "db-demo-data",
+    DB_PORT: "3003",
+    CORS_PORT: "5223",
+    FRONT_PORT: "9093",
+    FRONTEND_HOST: "8n3mw1zq-9093.use2.devtunnels.ms",
+    NGINX_SERVER_NAME: "localhost 8n3mw1zq-9093.use2.devtunnels.ms *.8n3mw1zq-9093.use2.devtunnels.ms",
+    MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
+  },
   agrodemi: {
     ALMACEN: "ADM",
     ENVIRONMENT_NAME_IMG: "agrodemi-",
@@ -14,6 +26,7 @@ const setup = {
     DB_PORT: "3000",
     CORS_PORT: "5220",
     FRONT_PORT: "9090",
+    FRONTEND_HOST: "admservidor.ddns.net",
     NGINX_SERVER_NAME: "localhost admservidor.ddns.net *.admservidor.ddns.net",
     MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
   },
@@ -25,6 +38,7 @@ const setup = {
     DB_PORT: "3001",
     CORS_PORT: "5221",
     FRONT_PORT: "9091",
+    FRONTEND_HOST: "novac-brendy.ddns.net",
     NGINX_SERVER_NAME: "localhost novac-brendy.ddns.net *.novac-brendy.ddns.net",
 		MONTU: "1C96yS20EDDyX7rgi2Y5OQju_4FQ8G5_C"
   },
@@ -36,6 +50,7 @@ const setup = {
     DB_PORT: "3002",
     CORS_PORT: "5222",
     FRONT_PORT: "9092",
+    FRONTEND_HOST: "novac-vasquez.ddns.net",
     NGINX_SERVER_NAME: "localhost novac-vasquez.ddns.net *.novac-vasquez.ddns.net",
 		MONTU: "17pDTnH139lHpSRj3_xoPWP8jJYHR0roa"
   }
@@ -50,6 +65,8 @@ const files = [
 	{ tipo: 'reemplazo',  file_name: 'default.conf',                                  path: 'docker/services/nginx/default.conf' },
 	{ tipo: 'reemplazo',  file_name: 'run_server.sh',                                 path: 'run_server.sh' },
 	{ tipo: 'reemplazo',  file_name: 'cors.rb',                                       path: 'config/initializers/cors.rb' },
+	{ tipo: 'reemplazo',  file_name: 'development.rb',                                path: 'config/environments/development.rb' },
+	{ tipo: 'reemplazo',  file_name: 'production.rb',                                 path: 'config/environments/production.rb' },
 ];
 
 function makeSetup(cliente) {

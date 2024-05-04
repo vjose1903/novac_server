@@ -242,21 +242,25 @@ class Articulo < ApplicationRecord
 
       fecha_ultima_edicion_articulo = calculateDateUTC(articulo['updated_at']).slice(0,17)
       fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
+      puts "AQUIIII".yellow
 
       if fecha < fecha_ultima_edicion_articulo
 
         hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, '<=', 'DESC')
 
         if hist.blank?
+          puts "NO HISTORICO".red
           articulos.push(articulo)
           historicos.push(articulo)
         else
+          puts "SI HISTORICO".green
           historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
           historicos.push(historico)
           # TODO: aqui se estan borrando las formulas
           articulos.push(Articulo.new(historico))
         end
       else
+        puts "articulo --> ".green + " #{articulo.to_json}"
         articulos.push(articulo)
         historicos.push(articulo)
       end
