@@ -5,6 +5,12 @@ class Banco < ApplicationRecord
   validates :nombre,  presence: true, uniqueness: { scope: [:estado], case_sensitive: false, :message => "Banco ya está registrado." },              :if => :estado
   validates :rnc,     uniqueness: { scope: [:estado], case_sensitive: false, :message => "RNC ya está registrado, en otro banco." }, if: -> { estado && rnc.present? }
 
+  def otras_validaciones(params)
+    if params.obj_has?(:validate_rnc) && params[:validate_rnc] == true && is_empty?(params[:rnc])
+      self.errors.add(:rnc, :blank)
+    end
+  end
+
   def self.create_update_banco(params, is_save=false)
     res                                 = Response.new
     Banco.transaction do
@@ -18,6 +24,7 @@ class Banco < ApplicationRecord
       banco.ejecutivo_cuenta            = params[:ejecutivo_cuenta]
       banco.telefono_ejecutivo_cuenta   = params[:telefono_ejecutivo_cuenta]
       banco.valid?
+      banco.otras_validaciones(params)
 
       if banco.errors.empty?
 
@@ -53,7 +60,7 @@ class Banco < ApplicationRecord
     res    = Response.new(pagination_params)
     arg    = params[:arg]
 
-    bancos = Banco.where("lower(bancos.nombre || ' ' || bancos.rnc) like lower('%#{arg}%')  AND bancos.estado = true").order('bancos.id ASC').to_a
+    bancos = Banco.where("lower(bancos.nombre || ' ' ||  coalesce(bancos.rnc,'')) like lower('%#{arg}%')  AND bancos.estado = true").order('bancos.id ASC').to_a
 
     if bancos.length > 0
       res.set_data(bancos, {all: true})
