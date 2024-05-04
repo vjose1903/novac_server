@@ -3,7 +3,7 @@ class Banco < ApplicationRecord
   has_many :cuentas_bancarias
 
   validates :nombre,  presence: true, uniqueness: { scope: [:estado], case_sensitive: false, :message => "Banco ya está registrado." },              :if => :estado
-  validates :rnc,     presence: true, uniqueness: { scope: [:estado], case_sensitive: false, :message => "RNC ya está registrado, en otro banco." }, :if => :estado
+  validates :rnc,     uniqueness: { scope: [:estado], case_sensitive: false, :message => "RNC ya está registrado, en otro banco." }, if: -> { estado && rnc.present? }
 
   def self.create_update_banco(params, is_save=false)
     res                                 = Response.new
@@ -18,7 +18,8 @@ class Banco < ApplicationRecord
       banco.ejecutivo_cuenta            = params[:ejecutivo_cuenta]
       banco.telefono_ejecutivo_cuenta   = params[:telefono_ejecutivo_cuenta]
       banco.valid?
-
+      puts "banco ".green + " #{banco.to_json}"
+      puts "banco.errors ".red + " #{banco.errors.to_a}"
       if banco.errors.empty?
 
         dependencias = [{modelo: CuentaBancaria, key_object: "cuentas_bancarias", padre: banco }]

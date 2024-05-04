@@ -228,5 +228,6 @@ rails g model pago_factura_detalle pago_factura:references cabecera_factura:refe
 
 // rails g migration addHasCuentaIndividualToConfingCuenta
 // rails g migration addFechaPrimeraConciliacionToCuentaBancaria
+// rails g migration changeRncBancoToNullable
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
