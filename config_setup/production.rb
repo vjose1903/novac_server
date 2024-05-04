@@ -84,6 +84,6 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.hosts << "8n3mw1zq-9093.use2.devtunnels.ms"
+  config.hosts << "$$FRONTEND_HOST$$"
   config.hosts << "localhost"
 end
