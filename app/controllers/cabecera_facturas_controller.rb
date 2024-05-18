@@ -17,6 +17,7 @@ class CabeceraFacturasController < ApplicationController
   def custom_route
     resultado              = Response.new()
     ruta_complemento       = params[:ruta_complemento]
+    puts "ruta_complemento --> ".yellow + "#{ruta_complemento}"
 
     case ruta_complemento
     when 'get_group'
