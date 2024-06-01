@@ -110,12 +110,13 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.tiene_nota               = params["tiene_nota"]
             cabecera_factura.pre_factura              = params["pre_factura"]
             cabecera_factura.cotizacion               = params["cotizacion"]
+            cabecera_factura.serie                    = params["serie"]
 
             cabecera_factura.otras_validaciones(params, @tipo_de_factura)
 
             dependencias = [
-              {modelo: DetalleFactura,     key_object: "detalle_facturas",   padre: cabecera_factura},
-              {modelo: MovimientoViaje,    key_object: "movimientos_viaje",  padre: cabecera_factura},
+              { modelo: DetalleFactura,     key_object: "detalle_facturas",   padre: cabecera_factura },
+              { modelo: MovimientoViaje,    key_object: "movimientos_viaje",  padre: cabecera_factura },
             ]
 
             res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
@@ -259,12 +260,29 @@ class CabeceraFactura < ApplicationRecord
     data_secuencias[:actual_secuencia_entidad]      = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id)
     data_secuencias[:numero_factura]                = data_secuencias[:actual_secuencia_entidad]['secuencia'] + 1
 
-    numero_comprobante                              = params['tipo'] == TiposFacturasDescripcion.compra.downcase ? params['numero_comprobante'].upcase : params['tipo'] == 'venta' ? "B#{@tipo_de_factura.referencia}#{"%08d" % next_secuencia_comprobante}" : nil
+    numero_comprobante                              = CabeceraFactura.format_comprobante(next_secuencia_comprobante, params)
     data_secuencias[:numero_comprobante]            = numero_comprobante
 
 
     res.set_data(data_secuencias)
     return res
+  end
+
+  # ===================================================================================================================================================
+
+  def self.format_comprobante(next_secuencia_comprobante, params)
+    comprobante = nil
+
+    if params['tipo'] == 'venta'
+      serie_indicator   = params[:serie] == SerieFactura.electronica ? 'E' : 'B'
+      secuencial_length = params[:serie] == SerieFactura.electronica ? '10' : '8'
+      comprobante       = "#{serie_indicator}#{@tipo_de_factura.referencia}#{"%0#{secuencial_length}d" % next_secuencia_comprobante}"
+
+    elsif params['tipo'] == TiposFacturasDescripcion.compra.downcase
+      comprobante = params['numero_comprobante'].upcase
+    end
+
+    comprobante
   end
 
   # ===================================================================================================================================================

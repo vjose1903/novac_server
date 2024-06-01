@@ -295,27 +295,45 @@ PROVINCIAS_MUNICIPIOS=[
 ]
 
 
+module SerieFactura
+  ELECTRONICA = 'electronica'
+  NORMAL = 'normal'
+  NO_ = 0
+
+  def self.electronica
+    return ELECTRONICA
+  end
+
+  def self.normal
+    return NORMAL
+  end
+
+  def self.no
+    return NO_
+  end
+
+end
 module TiposFacturasDescripcion
-  FACTURA_SIN_COMPROBANTE = "Factura sin comprobante"
-  FACTURA_CON_VALOR_FISCAL = "Factura con valor fiscal"
-  FACTURA_DE_CONSUMO = "Factura de consumo"
-  NOTA_DE_DEBITO = "Nota de debito"
-  NOTA_DE_CREDITO = "Nota de credito"
-  COMPROBANTE_DE_COMPRAS = "Comprobante de compras"
-  REGISTRO_DE_UNICO_INGRESO = "Registro de unico ingreso"
-  COMPROBANTE_PARA_GASTOS_MENORES = "Comprobante para gastos menores"
-  COMPROBANTE_DE_REGIMEN_ESPECIALES = "Comprobante de regimen especiales"
-  COMPROBANTE_GUBERNAMENTAL = "Comprobante gubernamental"
-  COMPROBANTE_PARA_EXPORTACIONES = "Comprobante para exportaciones"
-  COMPROBANTES_PARA_PAGO_AL_EXTERIOR = "Comprobantes para pago al exterior"
-  VENTA_CONTADO = "Venta Contado"
-  COMPRA = "Compra"
-  CONDUCE = "Conduce"
-  PRODUCCION = "Produccion"
-  RECIBO_INGRESO = "Recibo_ingreso"
-  VENTA_CREDITO = "Venta Credito"
-  PRE_VENTA = "pre_venta"
-  COTIZACION = "cotizacion"
+  FACTURA_SIN_COMPROBANTE = 'Factura sin comprobante'
+  FACTURA_CON_VALOR_FISCAL = 'Factura con valor fiscal'
+  FACTURA_DE_CONSUMO = 'Factura de consumo'
+  NOTA_DE_DEBITO = 'Nota de debito'
+  NOTA_DE_CREDITO = 'Nota de credito'
+  COMPROBANTE_DE_COMPRAS = 'Comprobante de compras'
+  REGISTRO_DE_UNICO_INGRESO = 'Registro de unico ingreso'
+  COMPROBANTE_PARA_GASTOS_MENORES = 'Comprobante para gastos menores'
+  COMPROBANTE_DE_REGIMEN_ESPECIALES = 'Comprobante de regimen especiales'
+  COMPROBANTE_GUBERNAMENTAL = 'Comprobante gubernamental'
+  COMPROBANTE_PARA_EXPORTACIONES = 'Comprobante para exportaciones'
+  COMPROBANTES_PARA_PAGO_AL_EXTERIOR = 'Comprobantes para pago al exterior'
+  VENTA_CONTADO = 'Venta Contado'
+  COMPRA = 'Compra'
+  CONDUCE = 'Conduce'
+  PRODUCCION = 'Produccion'
+  RECIBO_INGRESO = 'Recibo_ingreso'
+  VENTA_CREDITO = 'Venta Credito'
+  PRE_VENTA = 'pre_venta'
+  COTIZACION = 'cotizacion'
 
   def self.factura_sin_comprobante
     return FACTURA_SIN_COMPROBANTE
