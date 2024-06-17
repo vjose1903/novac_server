@@ -12,7 +12,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   attribute :contenido,                 if: Proc.new { self.get_param('contenido') || self.get_param('all') }
 
   def articulo_combo
-    @articulo_combo = Articulo.find_by_id(object.articulo_combo_id)
+    @articulo_combo = Articulo.find_by_id(object.articulo_combo)
     @articulo_combo
   end
 
