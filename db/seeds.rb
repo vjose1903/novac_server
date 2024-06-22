@@ -47,32 +47,49 @@ G_tipos_articulo.each do |tipo|
 end
 
 tipos_factura = [
-  { "referencia": "00", "descripcion": "Factura sin comprobante", },
-  { "referencia": "01", "descripcion": "Factura con valor fiscal", },
-  { "referencia": "02", "descripcion": "Factura de consumo", },
-  { "referencia": "03", "descripcion": "Nota de debito", },
-  { "referencia": "04", "descripcion": "Nota de credito", },
-  { "referencia": "11", "descripcion": "Comprobante de compras", },
-  { "referencia": "12", "descripcion": "Registro de unico ingreso", },
-  { "referencia": "13", "descripcion": "Comprobante para gastos menores", },
-  { "referencia": "14", "descripcion": "Comprobante de regimen especiales", },
-  { "referencia": "15", "descripcion": "Comprobante gubernamental", },
-  { "referencia": "16", "descripcion": "Comprobante para exportaciones", },
-  { "referencia": "17", "descripcion": "Comprobantes para pago al exterior", },
-  { "referencia": nil, "descripcion": "Venta Contado", },
-  { "referencia": nil, "descripcion": "Compra", },
-  { "referencia": nil, "descripcion": "Conduce", },
-  { "referencia": nil, "descripcion": "Produccion", },
-  { "referencia": nil, "descripcion": "Recibo_ingreso", },
-  { "referencia": nil, "descripcion": "Venta Credito", },
-  { "referencia": nil, "descripcion": "pre_venta", },
-  { "referencia": nil, "descripcion": "cotizacion", },
-  { "referencia": nil, "descripcion": "pago_factura", },
+  { "referencia": "00", "serie": "normal",  "descripcion": "Factura sin comprobante" },
+  { "referencia": "01", "serie": "normal",  "descripcion": "Factura con valor fiscal" },
+  { "referencia": "02", "serie": "normal",  "descripcion": "Factura de consumo" },
+  { "referencia": "03", "serie": "normal",  "descripcion": "Nota de debito" },
+  { "referencia": "04", "serie": "normal",  "descripcion": "Nota de credito" },
+  { "referencia": "11", "serie": "normal",  "descripcion": "Comprobante de compras" },
+  { "referencia": "12", "serie": "normal",  "descripcion": "Registro de unico ingreso" },
+  { "referencia": "13", "serie": "normal",  "descripcion": "Comprobante para gastos menores" },
+  { "referencia": "14", "serie": "normal",  "descripcion": "Comprobante de regimen especiales" },
+  { "referencia": "15", "serie": "normal",  "descripcion": "Comprobante gubernamental" },
+  { "referencia": "16", "serie": "normal",  "descripcion": "Comprobante para exportaciones" },
+  { "referencia": "17", "serie": "normal",  "descripcion": "Comprobantes para pago al exterior" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "Venta Contado" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "Compra" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "Conduce" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "Produccion" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "Recibo_ingreso" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "Venta Credito" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "pre_venta" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "cotizacion" },
+  { "referencia": nil,  "serie": "normal",  "descripcion": "pago_factura" },
+
+  { "referencia": "31", "serie": "electronica",  "descripcion": "Factura con valor fiscal" },
+  { "referencia": "32", "serie": "electronica",  "descripcion": "Factura de consumo" },
+  { "referencia": "33", "serie": "electronica",  "descripcion": "Nota de debito" },
+  { "referencia": "34", "serie": "electronica",  "descripcion": "Nota de credito" },
+  { "referencia": "41", "serie": "electronica",  "descripcion": "Comprobante de compras" },
+  { "referencia": "43", "serie": "electronica",  "descripcion": "Comprobante para gastos menores" },
+  { "referencia": "44", "serie": "electronica",  "descripcion": "Comprobante de regimen especiales" },
+  { "referencia": "45", "serie": "electronica",  "descripcion": "Comprobante gubernamental" },
+  { "referencia": "46", "serie": "electronica",  "descripcion": "Comprobante para exportaciones" },
+  { "referencia": "47", "serie": "electronica",  "descripcion": "Comprobantes para pago al exterior" },
+  { "referencia": nil,  "serie": "electronica",  "descripcion": "Venta Contado" },
+  { "referencia": nil,  "serie": "electronica",  "descripcion": "Compra" },
+  { "referencia": nil,  "serie": "electronica",  "descripcion": "Venta Credito" },
+  { "referencia": nil,  "serie": "electronica",  "descripcion": "pre_venta" },
+  { "referencia": nil,  "serie": "electronica",  "descripcion": "pago_factura" },
 ]
 
 tipos_factura.each do |tipo_fac|
+  tipo_factura = TipoFactura.where({ descripcion: tipo_fac[:descripcion], serie: tipo_fac[:serie] })
 
-  if (TipoFactura.find_by_descripcion(tipo_fac[:descripcion])).nil?
+  if tipo_factura.empty?
     tipo = TipoFactura.create(tipo_fac)
     puts " "
     puts "ERROR- tipo_factura: ".red + "#{tipo.errors.to_json}" if !tipo.errors.empty?

@@ -85,32 +85,33 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.numero_factura           = data_secuencias[:numero_factura]
             cabecera_factura.estado                   = true
 
-            cabecera_factura.tipo_factura_id          = params[:tipo_factura_id]
-            cabecera_factura.suplidor_id              = params[:suplidor_id]
-            cabecera_factura.cliente_id               = params[:cliente_id]
-            cabecera_factura.fecha_viaje              = params[:fecha_viaje]
-            cabecera_factura.fecha_vencimiento        = params[:fecha_vencimiento]
-            cabecera_factura.fecha_valida             = params[:fecha_valida]
-            cabecera_factura.condicion                = params[:condicion]
-            cabecera_factura.forma_pago               = params[:forma_pago]
-            cabecera_factura.total_factura            = params[:total_factura]
-            cabecera_factura.itbis                    = params[:itbis]
-            cabecera_factura.descuento                = params[:descuento]
-            cabecera_factura.Bruto                    = params[:Bruto]
-            cabecera_factura.tipo                     = params[:tipo]
-            cabecera_factura.NoCliente_nombre         = params[:NoCliente_nombre]
-            cabecera_factura.NoCliente_direccion      = params[:NoCliente_direccion]
-            cabecera_factura.costoYgasto              = params[:costoYgasto]
-            cabecera_factura.pagada                   = params[:pagada]
-            cabecera_factura.vendedor_id              = params[:vendedor_id]
-            cabecera_factura.balance                  = params[:balance]
-            cabecera_factura.devuelta                 = params[:devuelta]
-            cabecera_factura.is_adelantada            = params[:is_adelantada]
-            cabecera_factura.is_nota                  = params[:is_nota]
-            cabecera_factura.is_viaje                 = params[:is_viaje]
-            cabecera_factura.tiene_nota               = params[:tiene_nota]
-            cabecera_factura.pre_factura              = params[:pre_factura]
-            cabecera_factura.cotizacion               = params[:cotizacion]
+            cabecera_factura.tipo_factura_id          = params["tipo_factura_id"]
+            cabecera_factura.suplidor_id              = params["suplidor_id"]
+            cabecera_factura.cliente_id               = params["cliente_id"]
+            cabecera_factura.fecha_viaje              = params["fecha_viaje"]
+            cabecera_factura.fecha_vencimiento        = params["fecha_vencimiento"]
+            cabecera_factura.fecha_valida             = params["fecha_valida"]
+            cabecera_factura.condicion                = params["condicion"]
+            cabecera_factura.forma_pago               = params["forma_pago"]
+            cabecera_factura.total_factura            = params["total_factura"]
+            cabecera_factura.itbis                    = params["itbis"]
+            cabecera_factura.descuento                = params["descuento"]
+            cabecera_factura.Bruto                    = params["Bruto"]
+            cabecera_factura.tipo                     = params["tipo"]
+            cabecera_factura.NoCliente_nombre         = params["NoCliente_nombre"]
+            cabecera_factura.NoCliente_direccion      = params["NoCliente_direccion"]
+            cabecera_factura.costoYgasto              = params["costoYgasto"]
+            cabecera_factura.pagada                   = params["pagada"]
+            cabecera_factura.vendedor_id              = params["vendedor_id"]
+            cabecera_factura.balance                  = params["balance"]
+            cabecera_factura.devuelta                 = params["devuelta"]
+            cabecera_factura.is_adelantada            = params["is_adelantada"]
+            cabecera_factura.is_nota                  = params["is_nota"]
+            cabecera_factura.is_viaje                 = params["is_viaje"]
+            cabecera_factura.tiene_nota               = params["tiene_nota"]
+            cabecera_factura.pre_factura              = params["pre_factura"]
+            cabecera_factura.cotizacion               = params["cotizacion"]
+            cabecera_factura.serie                    = params["serie"]
             cabecera_factura.can_pagar                = params[:can_pagar]
 
             cabecera_factura.otras_validaciones(params, @tipo_de_factura)
@@ -261,12 +262,29 @@ class CabeceraFactura < ApplicationRecord
     data_secuencias[:actual_secuencia_entidad]      = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id)
     data_secuencias[:numero_factura]                = data_secuencias[:actual_secuencia_entidad]['secuencia'] + 1
 
-    numero_comprobante                              = params['tipo'] == TiposFacturasDescripcion.compra.downcase ? params['numero_comprobante'].upcase : params['tipo'] == 'venta' ? "B#{@tipo_de_factura.referencia}#{"%08d" % next_secuencia_comprobante}" : nil
+    numero_comprobante                              = CabeceraFactura.format_comprobante(next_secuencia_comprobante, params)
     data_secuencias[:numero_comprobante]            = numero_comprobante
 
 
     res.set_data(data_secuencias)
     return res
+  end
+
+  # ===================================================================================================================================================
+
+  def self.format_comprobante(next_secuencia_comprobante, params)
+    comprobante = nil
+
+    if params['tipo'] == 'venta'
+      serie_indicator   = params[:serie] == SerieFactura.electronica ? 'E' : 'B'
+      secuencial_length = params[:serie] == SerieFactura.electronica ? '10' : '8'
+      comprobante       = "#{serie_indicator}#{@tipo_de_factura.referencia}#{"%0#{secuencial_length}d" % next_secuencia_comprobante}"
+
+    elsif params['tipo'] == TiposFacturasDescripcion.compra.downcase
+      comprobante = params['numero_comprobante'].upcase
+    end
+
+    comprobante
   end
 
   # ===================================================================================================================================================
@@ -367,7 +385,6 @@ class CabeceraFactura < ApplicationRecord
     campo              = FacturasParams.get_campo_by_param(campoNum)
     valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
     limit_             = campo == FacturasParams.last_50 ? 50 : nil
-
 
     valor_where = campo == FacturasParams.cliente_id || campo == FacturasParams.numero_factura ? valor_des : "'#{valor_des}' "
 

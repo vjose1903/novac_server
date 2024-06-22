@@ -163,20 +163,8 @@ rails g migration addEstadoToCabeceraConduces
 rails g migration addCamposToDetallesFacturasNotas
 rails g migration addMoreCamposToDetallesFacturasNotas
 rails g migration addCamposToFacturasAplicadas
-rails g migration addCamposToTipoArticulos
-rails g migration addCamposToArticulos
-rails g migration addCamposToConfiguracionEntidadCuenta
-rails g migration addCamposToEntidades
-rails g migration addCamposToSuplidor
-rails g migration addMoreCamposToConfiguracionEntidadCuenta
-rails g migration addCamposCuentasBancarias
-rails g migration changeCuentaControlToReference
-rails g migration addCurrentTasaToDivisa
-rails g migration addHasCuentaIndividualToConfingCuenta
-rails g migration addCanCobrarToCabeceraFactura
-rails g migration AddisValidatedToCabezaAsientoContable
-
-
+rails g migration addSerieToTipoFacturas
+rails g migration addSerieToCabeceraFactura
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 

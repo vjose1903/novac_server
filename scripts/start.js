@@ -59,16 +59,16 @@ function setClient(client) {
 
 	const environmentSelected = PRODUCTION === 'yes' ? 'prod' : 'dev';
 
-  if (['agrodemi', 'brendy', 'vasquez', 'demo'].includes(client)) {
-    execSync(`node ${pathAdd('./setup.js')} ${client} ${environmentSelected}`, { stdio: 'inherit' });
-  } else {
-    console.log(`${red('*************************************')}`);
-    console.log(`${red('**                                 **')}`);
-    console.log(`${red('**      CLIENTE NO ENCONTRADO      **')}`);
-    console.log(`${red('**                                 **')}`);
-    console.log(`${red('*************************************')}`);
-    process.exit(2);
-  }
+	if (['agrodemi', 'brendy', 'vasquez', 'demo'].includes(client)) {
+		execSync(`node ${pathAdd('./setup.js')} ${client} ${environmentSelected}`, { stdio: 'inherit' });
+	} else {
+		console.log(`${red('*************************************')}`);
+		console.log(`${red('**                                 **')}`);
+		console.log(`${red('**      CLIENTE NO ENCONTRADO      **')}`);
+		console.log(`${red('**                                 **')}`);
+		console.log(`${red('*************************************')}`);
+		process.exit(2);
+	}
 }
 
 function dockerCommand(command) {
@@ -99,110 +99,104 @@ function pathAdd(str_path) {
 	return path_resolved;
 }
 
-const args = process.argv.slice(2);
+async function processArgs() {
+	const args = process.argv.slice(2);
 
-while (args.length) {
-	console.log(' ');
-	const opt = args[0];
+	while (args.length) {
+		console.log(' ');
+		const opt = args[0];
 
-	if (opt.startsWith('-')) {
-		switch (opt) {
-			case '-w':
-				console.log('la opcion -w');
-				execSync('docker system prune -f', { stdio: 'inherit' });
-				break;
-			case '-r':
-				console.log('la opcion -r');
-				dockerCommand('restart');
-				break;
-			case '-sh':
-				console.log('la opcion -sh');
-				execDockerContainer('sh');
-				break;
-			case '-a':
-				console.log('la opcion -a');
-				getActualClient();
-				break;
-			case '-p':
-				console.log('la opcion -p');
-				PRODUCTION = 'yes';
-				console.log(`${white(' ')}`);
-				console.log(`${yellow(' -=-=-=- EJECUTANDO EN PRODUCCION -=-=-=-')}${white(' ')}`);
-				console.log(`${white(' ')}`);
-				break;
-			case '-t':
-				console.log('la opcion -t');
-				BACKGROUND = 'yes';
-				break;
-			case '-c':
-				console.log('la opcion -c');
-				const clientIndex = 1;
-				const client = args[clientIndex];
+		if (opt.startsWith('-')) {
+			switch (opt) {
+				case '-w':
+					console.log('la opcion -w');
+					execSync('docker system prune -f', { stdio: 'inherit' });
+					break;
+				case '-r':
+					console.log('la opcion -r');
+					dockerCommand('restart');
+					break;
+				case '-sh':
+					console.log('la opcion -sh');
+					execDockerContainer('sh');
+					break;
+				case '-e':
+					console.log('la opcion -e');
+					const commandIndex = 1;
+					const command = args[commandIndex];
 
-				if (client != undefined) {
-					setClient(client);
-				} else {
-					console.log(`${red('**********************************************')}`);
-					console.log(`${red('**                                          **')}`);
-					console.log(`${red('**      DEBE DE ESPECIFICAR UN CLIENTE      **')}`);
-					console.log(`${red('**                                          **')}`);
-					console.log(`${red('**********************************************')}`);
-					process.exit(2);
-				}
-
-				break;
-			case '-e':
-				console.log('la opcion -e');
-				const commandIndex = 1;
-				const command = args[commandIndex];
-
-				console.log('command ==> ', command);
-				if (command != undefined) {
-					if (['migrate', 'seed', 'create', 'migrate-status', 'console', 'rollback'].includes(command)) {
-						execCommandInContainer(command);
+					console.log('command ==> ', command);
+					if (command !== undefined) {
+						if (['migrate', 'seed', 'create', 'migrate-status', 'drop', 'console', 'rollback'].includes(command)) {
+							execCommandInContainer(command);
+						} else {
+							console.log(`${red('************************************')}`);
+							console.log(`${red('**                                **')}`);
+							console.log(`${red('**      COMANDO NO PERMITIDO      **')}`);
+							console.log(`${red('**                                **')}`);
+							console.log(`${red('************************************')}`);
+							process.exit(2);
+						}
 					} else {
-						console.log(`${red('************************************')}`);
-						console.log(`${red('**                                **')}`);
-						console.log(`${red('**      COMANDO NO PERMITIDO      **')}`);
-						console.log(`${red('**                                **')}`);
-						console.log(`${red('************************************')}`);
+						console.log(`${red('**********************************************')}`);
+						console.log(`${red('**                                          **')}`);
+						console.log(`${red('**      DEBE DE ESPECIFICAR UN COMANDO      **')}`);
+						console.log(`${red('**                                          **')}`);
+						console.log(`${red('**********************************************')}`);
 						process.exit(2);
 					}
-				} else {
-					console.log(`${red('**********************************************')}`);
-					console.log(`${red('**                                          **')}`);
-					console.log(`${red('**      DEBE DE ESPECIFICAR UN COMANDO      **')}`);
-					console.log(`${red('**                                          **')}`);
-					console.log(`${red('**********************************************')}`);
+					break;
+				case '-a':
+					console.log('la opcion -a');
+					getActualClient();
+					break;
+				case '-p':
+					console.log('la opcion -p');
+					PRODUCTION = 'yes';
+					console.log(`${white(' ')}`);
+					console.log(`${yellow(' -=-=-=- EJECUTANDO EN PRODUCCION -=-=-=-')}${white(' ')}`);
+					console.log(`${white(' ')}`);
+					break;
+				case '-t':
+					console.log('la opcion -t');
+					BACKGROUND = 'yes';
+					break;
+				case '-c':
+					console.log('la opcion -c');
+					const clientIndex = args.indexOf('-c') + 1;
+					if (clientIndex < args.length) {
+						setClient(args[clientIndex]);
+						removeItemAtIndex(args, clientIndex);
+					}
+
+					break;
+				case '-b':
+					console.log('la opcion -b');
+					dockerCommand('build');
+					break;
+				case '-u':
+					console.log('la opcion -u');
+					dockerCommand('up');
+					break;
+				case '-d':
+					console.log('la opcion -d');
+					dockerCommand('down');
+					break;
+				case '-s':
+					console.log('la opcion -s');
+					dockerCommand('stop');
+					break;
+				default:
+					console.log(`${red('*************************************')}`);
+					console.log(`${red('**                                 **')}`);
+					console.log(`${red('**        FLAG NO PERMITIDO        **')}`);
+					console.log(`${red('**                                 **')}`);
+					console.log(`${red('*************************************')}`);
 					process.exit(2);
-				}
-
-				break;
-			case '-b':
-				console.log('la opcion -b');
-				dockerCommand('build');
-				break;
-			case '-u':
-				console.log('la opcion -u');
-				dockerCommand('up');
-				break;
-			case '-d':
-				console.log('la opcion -d');
-				dockerCommand('down');
-				break;
-			case '-s':
-				console.log('la opcion -s');
-				dockerCommand('stop');
-				break;
-			default:
-				console.log(`${red('*************************************')}`);
-				console.log(`${red('**                                 **')}`);
-				console.log(`${red('**        FLAG NO PERMITIDO        **')}`);
-				console.log(`${red('**                                 **')}`);
-				console.log(`${red('*************************************')}`);
-				process.exit(2);
+			}
 		}
+		args.splice(0, 1);
 	}
-
-	args.splice(0, 1);
 }
+
+processArgs();
