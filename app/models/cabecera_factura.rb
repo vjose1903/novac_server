@@ -117,8 +117,8 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.otras_validaciones(params, @tipo_de_factura)
 
             dependencias = [
-              {modelo: DetalleFactura,     key_object: 'detalle_facturas',   padre: cabecera_factura},
-              {modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: cabecera_factura},
+              { modelo: DetalleFactura,     key_object: 'detalle_facturas',   padre: cabecera_factura },
+              { modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: cabecera_factura },
             ]
 
             res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|

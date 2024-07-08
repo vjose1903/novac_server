@@ -32,6 +32,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :tiene_nota,                                     if: Proc.new { self.get_param('tiene_nota') || self.get_param('all') }
   attribute :aplicada_a,                                     if: Proc.new { self.get_param('aplicada_a') || self.get_param('all') }
   attribute :identificador,                                  if: Proc.new { self.get_param('identificador') || self.get_param('all') }
+  attribute :can_pagar,                                      if: Proc.new { self.get_param('can_pagar') || self.get_param('all') }
   attribute :movimientos_viaje,                              if: Proc.new { self.get_param('movimientos_viaje') }
 
   attribute :tipo_factura,                                   if: Proc.new { self.get_param('tipo_factura') || self.get_param('all') }
