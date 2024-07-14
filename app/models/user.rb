@@ -40,6 +40,7 @@ class User < ApplicationRecord
   def self.models_includes
     includes = [
       :documentos_de_identidad,
+      :imagenes,
       { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
       { roles_permisos_acciones: [:role, :permiso_accion] }
     ]

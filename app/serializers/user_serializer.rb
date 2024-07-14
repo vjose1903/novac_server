@@ -20,6 +20,10 @@ class UserSerializer < ActiveModel::Serializer
   attribute :roles,                         if: Proc.new { self.get_param('roles')  }
   attribute :permisos,                      if: Proc.new { self.get_param('permisos')  }
 
+  def sexo
+     object.sexo.upcase unless object.sexo.nil?
+  end
+
   def fecha_nacimiento
     formatearFecha(object.fecha_nacimiento.to_s, TipoFecha.sin_hora)
   end
