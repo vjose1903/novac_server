@@ -243,6 +243,7 @@ Rails.application.routes.draw do
 
 	resources :transferencias do
     collection do
+      get "filtro/:arg"                     => "transferencias#getTransferenciasFiltradas"
       delete "anular/:id"                   => "transferencias#anularTransferencia"
     end
   end

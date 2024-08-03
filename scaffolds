@@ -166,6 +166,7 @@ rails g migration addCamposToFacturasAplicadas
 rails g migration addSerieToTipoFacturas
 rails g migration addSerieToCabeceraFactura
 
+
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 
 rails g migration changeTipoFacturaToAceptNullNotas
@@ -217,5 +218,6 @@ rails g model pago_factura_detalle pago_factura:references cabecera_factura:refe
 // rails g migration addHasCuentaIndividualToConfingCuenta
 // rails g migration addFechaPrimeraConciliacionToCuentaBancaria
 // rails g migration changeRncBancoToNullable
+// rails g migration change_fecha_equivalente_type_pago_facturas
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------

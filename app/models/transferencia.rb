@@ -24,8 +24,8 @@ class Transferencia < ApplicationRecord
     if !params[:cuenta_bancaria_destino_id].nil?
       cuenta_bancaria_destino   = CuentaBancaria.find_by_id(params[:cuenta_bancaria_destino_id])
 
-      self.errors.add(:base, 'La cuenta bancaria de destino que selecciono, no existe.')         if cuenta_bancaria_destino.nil?
-      self.errors.add(:base, 'La cuenta bancaria de destino que selecciono, está desabilitada.') if !cuenta_bancaria_destino.nil? && !cuenta_bancaria_destino.estado
+      self.errors.add(:base, 'La cuenta bancaria de destino que seleccionó, no existe.')          if cuenta_bancaria_destino.nil?
+      self.errors.add(:base, 'La cuenta bancaria de destino que seleccionó, está deshabilitada.') if !cuenta_bancaria_destino.nil? && !cuenta_bancaria_destino.estado
     end
 
   end
@@ -90,11 +90,34 @@ class Transferencia < ApplicationRecord
 
       else
 
-        res.add_msg('La cuenta bancaria de origen que selecciono, no existe.')         if cuenta_bancaria_origen.nil?
-        res.add_msg('La cuenta bancaria de origen que selecciono, está desabilitada.') if !cuenta_bancaria_origen.nil? && !cuenta_bancaria_origen.estado
+        res.add_msg('La cuenta bancaria de origen que seleccionó, no existe.')         if cuenta_bancaria_origen.nil?
+        res.add_msg('La cuenta bancaria de origen que seleccionó, está deshabilitada.') if !cuenta_bancaria_origen.nil? && !cuenta_bancaria_origen.estado
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
+    end
+
+    return res
+  end
+
+  # =========================================================================================================================================================
+
+  def self.filtrarTransferencias(params, pagination_params)
+    res    = Response.new(pagination_params)
+    arg    = params[:arg]
+
+    transferencias = Transferencia
+                  .joins('inner join cuentas_bancarias on transferencias.cuenta_bancaria_origen_id = cuentas_bancarias.id')
+                  .where("lower(transferencias.monto || ' ' || transferencias.comentario || ' ' || transferencias.numero_referencia || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion || ' ' || transferencias.cuenta_bancaria_origen_id || ' ' || transferencias.nombre_banco_tercero ) like lower('%#{arg}%')  AND transferencias.estado = true").order('transferencias.id ASC').to_a
+
+    puts "transferencias ".red + " #{transferencias.to_json}"
+    if transferencias.length > 0
+      res.set_data(transferencias, {all: true})
+    else
+      res.set_data([])
+      cantidad_registros = Transferencia.where({ estado: true }).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen transferencias registradas.' : 'No existe transferencia con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
     return res

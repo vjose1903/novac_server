@@ -66,7 +66,7 @@ class Deposito < ApplicationRecord
       else
 
         res.add_msg("La cuenta bancaria que seleccionó para crear este depósito, no existe")          if cuenta_bancaria.nil?
-        res.add_msg("La cuenta bancaria que seleccionó para crear este depósito, está desabilitada.") if !cuenta_bancaria.nil? && !cuenta_bancaria.estado
+        res.add_msg("La cuenta bancaria que seleccionó para crear este depósito, está deshabilitada.") if !cuenta_bancaria.nil? && !cuenta_bancaria.estado
 
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
@@ -126,7 +126,7 @@ class Deposito < ApplicationRecord
       res.set_data(depositos, {all: true})
     else
       res.set_data([])
-      cantidad_registros = Banco.where({ estado: true }).count
+      cantidad_registros = Deposito.where({ estado: true }).count
       res.add_msg(cantidad_registros == 0 ? 'No existen depositos registrados.' : 'No existe deposito con las especificaciones introducidas')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_01_184816) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -737,13 +737,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.bigint "user_id", null: false
     t.bigint "suplidor_id", null: false
     t.bigint "tipo_factura_id", null: false
-    t.date "fecha_equivalente"
     t.integer "numero"
     t.string "forma_pago"
     t.boolean "estado", default: true
     t.float "total"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "fecha_equivalente"
     t.index ["suplidor_id"], name: "index_pago_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_pago_facturas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_pago_facturas_on_user_id"

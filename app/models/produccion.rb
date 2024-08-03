@@ -11,7 +11,7 @@ class Produccion < ApplicationRecord
 		res                                   = Response.new
     Produccion.transaction do
 
-			produccion                          = Produccion{}.where(:id => params["id"]).first_or_create
+			produccion                          = Produccion.where(:id => params["id"]).first_or_create
 
       produccion.user_id                  = get_current_user['id']
       produccion.numero                   = SecuenciaFactura.find_secuencia(16)
