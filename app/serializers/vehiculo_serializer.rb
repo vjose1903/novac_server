@@ -16,11 +16,8 @@ class VehiculoSerializer < ActiveModel::Serializer
 
   def propietario
     @propietario = nil
-    Console.log( "\n\n\n")
-    Console.log( "----- ANDO AQUII PROPIETARIO ----".red)
     if !object.user_id.nil?
       usuario = serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
-      Console.log( "usuario".green + " #{usuario.to_json}")
 
       @propietario = usuario
     else
@@ -37,14 +34,11 @@ class VehiculoSerializer < ActiveModel::Serializer
 
   def info_vehiculo
     object.info_vehiculo
-    Console.log( "object.info_vehiculo".yellow + " #{object.info_vehiculo.to_json}")
   end
 
   def nombre_completo_propietario
     unless object.user_id.nil?
-      Console.log( "object.user.nombre_completo".yellow + " #{object.user.nombre_completo}")
       object.user.nombre_completo
-
     else
       nombre    = @propietario[:nombre].capitalize
       nombre    += " #{@propietario[:apellido].capitalize}" unless @propietario[:apellido].blank?

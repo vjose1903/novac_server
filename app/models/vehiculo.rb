@@ -35,8 +35,6 @@ class Vehiculo < ApplicationRecord
     .where("lower(coalesce(users.nombre, '') || ' ' || coalesce(users.apellido, '') || ' ' || vehiculos.marca || ' ' || vehiculos.modelo || ' ' || coalesce(vehiculos.nombre_no_empleado, '') || ' ' || coalesce(vehiculos.apellido_no_empleado, '')) like lower('%#{arg}%') AND vehiculos.estado = true")
     .order("vehiculos.id DESC").to_a
 
-    puts "vehiculos ".yellow + " #{vehiculos.to_json}"
-
     if vehiculos.length > 0
       res.set_data(vehiculos, {all: true, **parametros_opcionales})
     else
