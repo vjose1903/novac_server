@@ -16,10 +16,12 @@ class VehiculoSerializer < ActiveModel::Serializer
 
   def propietario
     @propietario = nil
+    puts "\n\n----- ANDO AQUII PROPIETARIO ----\n\n".red
     if !object.user_id.nil?
       @propietario = serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
+      puts "@propietario".yellow + " #{@propietario.to_json}"
     else
-      if !object.nombre_no_empleado.nil?
+      unless object.nombre_no_empleado.nil?
         usuario             = {}
         usuario[:nombre]   = object.nombre_no_empleado
         usuario[:apellido] = object.apellido_no_empleado
@@ -32,13 +34,15 @@ class VehiculoSerializer < ActiveModel::Serializer
 
   def info_vehiculo
     object.info_vehiculo
+    puts "object.info_vehiculo".yellow + " #{object.info_vehiculo.to_json}"
   end
 
   def nombre_completo_propietario
-    if !object.user_id.nil?
+    unless object.user_id.nil?
       object.user.nombre_completo
+
+      puts "object.user.nombre_completo".yellow + " #{object.user.nombre_completo}"
     else
-			puts "@propietario ==> ".red + " #{@propietario.to_json}"
       nombre    = @propietario[:nombre].capitalize
       nombre    += " #{@propietario[:apellido].capitalize}" unless @propietario[:apellido].blank?
       nombre    = nombre.gsub("  ", " ").strip
