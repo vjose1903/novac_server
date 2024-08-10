@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   resources :acciones
   resources :config_articulos
   resources :grupos_de_cuentas
+  resources :nombre_bancos
 
   resources :configuraciones_entidades_cuentas
 
@@ -226,8 +227,8 @@ Rails.application.routes.draw do
     collection do
       get "filtro/:arg"                     => "cabezas_asientos_contables#getAsientosFiltrados"
     end
-
   end
+
   resources :bancos do
     collection do
       get "filtro/:arg"                     => "bancos#getBancosFiltrados"

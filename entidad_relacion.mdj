@@ -21575,6 +21575,89 @@
 							"headNameLabel": {
 								"$ref": "AAAAAAGP3e+Zed3PIFg="
 							}
+						},
+						{
+							"_type": "ERDEntityView",
+							"_id": "AAAAAAGRPHHxYeqIfog=",
+							"_parent": {
+								"$ref": "AAAAAAF7W35/3UgaQqA="
+							},
+							"model": {
+								"$ref": "AAAAAAGRPHHxYeqGTe0="
+							},
+							"subViews": [
+								{
+									"_type": "LabelView",
+									"_id": "AAAAAAGRPHHxYeqJ0NU=",
+									"_parent": {
+										"$ref": "AAAAAAGRPHHxYeqIfog="
+									},
+									"font": "Arial;13;1",
+									"left": 5384,
+									"top": 885,
+									"width": 109.68994140625,
+									"height": 13,
+									"text": "nombre_banco"
+								},
+								{
+									"_type": "ERDColumnCompartmentView",
+									"_id": "AAAAAAGRPHHxYuqK2rc=",
+									"_parent": {
+										"$ref": "AAAAAAGRPHHxYeqIfog="
+									},
+									"model": {
+										"$ref": "AAAAAAGRPHHxYeqGTe0="
+									},
+									"subViews": [
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAGRPHJNVOqYblA=",
+											"_parent": {
+												"$ref": "AAAAAAGRPHHxYuqK2rc="
+											},
+											"model": {
+												"$ref": "AAAAAAGRPHJNGuqV5W4="
+											},
+											"font": "Arial;13;0",
+											"left": 5389,
+											"top": 908,
+											"width": 99.68994140625,
+											"height": 13
+										},
+										{
+											"_type": "ERDColumnView",
+											"_id": "AAAAAAGRPHJYKOqfvbw=",
+											"_parent": {
+												"$ref": "AAAAAAGRPHHxYuqK2rc="
+											},
+											"model": {
+												"$ref": "AAAAAAGRPHJYBuqcCPE="
+											},
+											"font": "Arial;13;0",
+											"left": 5389,
+											"top": 923,
+											"width": 99.68994140625,
+											"height": 13
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 5384,
+									"top": 903,
+									"width": 109.68994140625,
+									"height": 38
+								}
+							],
+							"font": "Arial;13;0",
+							"left": 5384,
+							"top": 880,
+							"width": 109.68994140625,
+							"height": 61,
+							"nameLabel": {
+								"$ref": "AAAAAAGRPHHxYeqJ0NU="
+							},
+							"columnCompartment": {
+								"$ref": "AAAAAAGRPHHxYuqK2rc="
+							}
 						}
 					]
 				},
@@ -32007,6 +32090,34 @@
 								"$ref": "AAAAAAGP1RK4Fd1Gdiw="
 							},
 							"name": "cantidad",
+							"length": 0
+						}
+					]
+				},
+				{
+					"_type": "ERDEntity",
+					"_id": "AAAAAAGRPHHxYeqGTe0=",
+					"_parent": {
+						"$ref": "AAAAAAF7W35/3UgZYpU="
+					},
+					"name": "nombre_banco",
+					"columns": [
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAGRPHJNGuqV5W4=",
+							"_parent": {
+								"$ref": "AAAAAAGRPHHxYeqGTe0="
+							},
+							"name": "nombre",
+							"length": 0
+						},
+						{
+							"_type": "ERDColumn",
+							"_id": "AAAAAAGRPHJYBuqcCPE=",
+							"_parent": {
+								"$ref": "AAAAAAGRPHHxYeqGTe0="
+							},
+							"name": "id",
 							"length": 0
 						}
 					]
