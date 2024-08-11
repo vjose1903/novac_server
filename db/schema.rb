@@ -700,6 +700,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_10_132157) do
 
   create_table "nombre_bancos", force: :cascade do |t|
     t.string "nombre"
+    t.string "identificador"
   end
 
   create_table "notas", force: :cascade do |t|

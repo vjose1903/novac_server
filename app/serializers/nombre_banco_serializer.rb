@@ -1,3 +1,3 @@
 class NombreBancoSerializer < ActiveModel::Serializer
-  attributes :id, :nombre
+  attributes :id, :nombre, :identificador
 end
