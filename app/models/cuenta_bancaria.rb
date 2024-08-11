@@ -82,7 +82,7 @@ class CuentaBancaria < ApplicationRecord
     configuraciones_cuentas_contables.each do | config |
       is_prima               = !is_cuenta_nacional && config.is_nacional
 
-      descripcion_cuenta     = "Banco: #{banco.nombre} - CTA: #{self.numero_cuenta}"
+      descripcion_cuenta     = "#{banco.nombre} - CTA: #{self.numero_cuenta}"
       descripcion_cuenta    += " PRIMA" if is_prima
 
       cuenta_contable        = ConfiguracionEntidadCuenta.molde_cuenta(config.cuenta_contable, descripcion_cuenta)
