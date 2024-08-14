@@ -15,6 +15,7 @@ const setup = {
     CORS_PORT: "5223",
     FRONT_PORT: "9093",
     FRONTEND_HOST: "8n3mw1zq-9093.use2.devtunnels.ms",
+    FRONTEND_HOST_SECONDARY: "8n3mw1zq-9093.use2.devtunnels.ms",
     NGINX_SERVER_NAME: "localhost 8n3mw1zq-9093.use2.devtunnels.ms *.8n3mw1zq-9093.use2.devtunnels.ms",
     MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
   },
@@ -26,8 +27,9 @@ const setup = {
     DB_PORT: "3000",
     CORS_PORT: "5220",
     FRONT_PORT: "9090",
-    FRONTEND_HOST: "admservidor.ddns.net",
-    NGINX_SERVER_NAME: "localhost admservidor.ddns.net *.admservidor.ddns.net",
+    FRONTEND_HOST: "agrodemi.inspot-technology.com",
+    FRONTEND_HOST_SECONDARY: "admservidor.ddns.net",
+    NGINX_SERVER_NAME: "localhost admservidor.ddns.net *.admservidor.ddns.net agrodemi.inspot-technology.com *.agrodemi.inspot-technology.com",
     MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
   },
   brendy: {
@@ -39,6 +41,7 @@ const setup = {
     CORS_PORT: "5221",
     FRONT_PORT: "9091",
     FRONTEND_HOST: "novac-brendy.ddns.net",
+    FRONTEND_HOST_SECONDARY: "novac-brendy.ddns.net",
     NGINX_SERVER_NAME: "localhost novac-brendy.ddns.net *.novac-brendy.ddns.net",
 		MONTU: "1C96yS20EDDyX7rgi2Y5OQju_4FQ8G5_C"
   },
@@ -51,6 +54,7 @@ const setup = {
     CORS_PORT: "5222",
     FRONT_PORT: "9092",
     FRONTEND_HOST: "novac-vasquez.ddns.net",
+    FRONTEND_HOST_SECONDARY: "novac-vasquez.ddns.net",
     NGINX_SERVER_NAME: "localhost novac-vasquez.ddns.net *.novac-vasquez.ddns.net",
 		MONTU: "17pDTnH139lHpSRj3_xoPWP8jJYHR0roa"
   }
