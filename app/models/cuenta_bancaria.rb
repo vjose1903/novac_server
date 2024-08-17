@@ -20,6 +20,15 @@ class CuentaBancaria < ApplicationRecord
 
   # ============================================================================================================================================
 
+  def info_completa
+    info    = self.banco.nombre
+    info    += ": #{self.numero_cuenta}"
+    info    = info.gsub('  ',' ').strip
+    info
+  end
+
+  # ============================================================================================================================================
+
   def self.create_update_cuenta_bancaria(params, banco, is_save=false)
     res                                            = Response.new
 

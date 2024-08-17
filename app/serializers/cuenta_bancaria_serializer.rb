@@ -15,8 +15,9 @@ class CuentaBancariaSerializer < ActiveModel::Serializer
   attribute :cuenta_contable,               if: Proc.new {  self.get_param('cuenta_contable')             || self.get_param('all') }
   attribute :cuenta_contable_prima,         if: Proc.new { (self.get_param('cuenta_contable_prima')       || self.get_param('all')) && !object.cuenta_contable_prima.nil? }
   attribute :divisa,                        if: Proc.new { (self.get_param('divisa')                      || self.get_param('all')) }
-  attribute :banco,                         if: Proc.new { (self.get_param('banco')                      || self.get_param('all')) }
+  attribute :banco,                         if: Proc.new { (self.get_param('banco')                       || self.get_param('all')) }
   attribute :tipo_cuenta_bancaria,          if: Proc.new { (self.get_param('tipo_cuenta_bancaria')        || self.get_param('all')) }
+  attribute :info_completa,                 if: Proc.new { (self.get_param('info_completa')               || self.get_param('all')) }
 
   def cuenta_contable
     serialize_parser(object.cuenta_contable, {id: true, descripcion: true, codigo: true})
@@ -36,6 +37,10 @@ class CuentaBancariaSerializer < ActiveModel::Serializer
 
   def tipo_cuenta_bancaria
     object.tipo_cuenta_bancaria.descripcion
+  end
+
+  def info_completa
+    object.info_completa
   end
 
   def get_param(col)

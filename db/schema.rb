@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_08_10_132157) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_17_134708) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -951,11 +951,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_10_132157) do
     t.string "nombre_banco_tercero"
     t.string "cuenta_bancaria_tercero"
     t.string "numero_referencia"
-    t.date "fecha_equivalente"
-    t.date "fecha_anulacion"
     t.boolean "estado", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "fecha_equivalente"
+    t.datetime "fecha_anulacion"
     t.index ["cuenta_bancaria_destino_id"], name: "index_transferencias_on_cuenta_bancaria_destino_id"
     t.index ["cuenta_bancaria_origen_id"], name: "index_transferencias_on_cuenta_bancaria_origen_id"
     t.index ["divisa_id"], name: "index_transferencias_on_divisa_id"

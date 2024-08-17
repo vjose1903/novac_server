@@ -108,7 +108,7 @@ class Transferencia < ApplicationRecord
 
     transferencias = Transferencia
                   .joins('inner join cuentas_bancarias on transferencias.cuenta_bancaria_origen_id = cuentas_bancarias.id')
-                  .where("lower(transferencias.monto || ' ' || transferencias.comentario || ' ' || transferencias.numero_referencia || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion || ' ' || transferencias.cuenta_bancaria_origen_id || ' ' || transferencias.nombre_banco_tercero ) like lower('%#{arg}%')  AND transferencias.estado = true").order('transferencias.id ASC').to_a
+                  .where("lower(transferencias.monto || ' ' || transferencias.comentario || ' ' || coalesce(transferencias.numero_referencia, '') || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion || ' ' || coalesce(transferencias.nombre_banco_tercero, '') ) like lower('%#{arg}%') AND transferencias.estado = true").order('transferencias.id ASC').to_a
 
     puts "transferencias ".red + " #{transferencias.to_json}"
     if transferencias.length > 0

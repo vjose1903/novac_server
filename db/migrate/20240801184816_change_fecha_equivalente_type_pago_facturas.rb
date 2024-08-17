@@ -23,7 +23,7 @@ class ChangeFechaEquivalenteTypePagoFacturas < ActiveRecord::Migration[7.0]
     # Transferir los datos de la nueva columna a la antigua
     PagoFactura.reset_column_information
     PagoFactura.find_each do |pago_factura|
-      pago_factura.update_column(:fecha_equivalente_old, pago_factura.fecha_equivalente.to_date)
+      pago_factura.update_column(:fecha_equivalente_old, pago_factura.fecha_equivalente)
     end
 
     # Eliminar la nueva columna

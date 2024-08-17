@@ -120,7 +120,7 @@ class Deposito < ApplicationRecord
 
     depositos = Deposito
                .joins('inner join cuentas_bancarias on depositos.cuenta_bancaria_id = cuentas_bancarias.id')
-               .where("lower(depositos.monto || ' ' || depositos.comentario || ' ' || depositos.numero_referencia || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion ) like lower('%#{arg}%')  AND depositos.estado = true").order('depositos.id ASC').to_a
+               .where("lower(depositos.monto || ' ' || depositos.comentario || ' ' || coalesce(depositos.numero_referencia, '') || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion ) like lower('%#{arg}%')  AND depositos.estado = true").order('depositos.id ASC').to_a
 
     if depositos.length > 0
       res.set_data(depositos, {all: true})
