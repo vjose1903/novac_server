@@ -17,9 +17,11 @@ class VehiculoSerializer < ActiveModel::Serializer
   def propietario
     @propietario = nil
     if !object.user_id.nil?
-      @propietario = serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
+      usuario = serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
+
+      @propietario = usuario
     else
-      if !object.nombre_no_empleado.nil?
+      unless object.nombre_no_empleado.nil?
         usuario             = {}
         usuario[:nombre]   = object.nombre_no_empleado
         usuario[:apellido] = object.apellido_no_empleado
@@ -35,7 +37,7 @@ class VehiculoSerializer < ActiveModel::Serializer
   end
 
   def nombre_completo_propietario
-    if !object.user_id.nil?
+    unless object.user_id.nil?
       object.user.nombre_completo
     else
       nombre    = @propietario[:nombre].capitalize

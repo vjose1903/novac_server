@@ -6,7 +6,7 @@ class Vehiculo < ApplicationRecord
   end
 
   def info_vehiculo
-    return "#{self.marca} #{self.modelo} - #{self.anio} (#{get_propietario()})"
+    return "#{self.marca} #{self.modelo} - #{self.anio} (#{get_propietario})"
   end
 
 	def get_propietario
@@ -15,7 +15,11 @@ class Vehiculo < ApplicationRecord
     if !self.user_id.nil?
       propietario =  self.user.nombre_completo
     else
-      propietario =  "#{self.nombre_no_empleado} #{self.apellido_no_empleado}"
+      nombre    = self.nombre_no_empleado.capitalize
+      nombre    += " #{self.apellido_no_empleado.capitalize}" unless self.apellido_no_empleado.blank?
+      nombre    = nombre.gsub("  ", " ").strip
+
+      propietario =  nombre
     end
 
     return propietario
@@ -40,29 +44,6 @@ class Vehiculo < ApplicationRecord
     end
 
     return res
-  end
-
-  def self.parsear(vehiculos)
-    vehiculos.each do |vehiculo|
-
-      usuario={}
-      if !vehiculo["user_id"].nil?
-        user = User.find_by_id(vehiculo["user_id"])
-        usuario["nombre"] = "#{user["nombre"]}".titleize
-        usuario["apellido"] =  "#{user["apellido"]}".titleize
-        usuario["telefono"] = user["telefono"]
-
-      else
-        if !vehiculo["nombre_no_empleado"].nil?
-          usuario["nombre"]   = vehiculo["nombre_no_empleado"]
-          usuario["apellido"] = vehiculo["apellido_no_empleado"]
-          usuario["telefono"] = vehiculo["telefono_no_empleado"]
-        end
-      end
-      vehiculo['propietario'] = usuario
-    end
-
-    return vehiculos
   end
   # ==========================================================================================
 
