@@ -222,5 +222,6 @@ rails g model pago_factura_detalle pago_factura:references cabecera_factura:refe
 // rails g migration changeRncBancoToNullable
 // rails g migration change_fecha_equivalente_type_pago_facturas
 // rails g migration change_fecha_equivalente_type_transferencias
+// rails g migration addCodigoToCabezaAsientoContable
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------

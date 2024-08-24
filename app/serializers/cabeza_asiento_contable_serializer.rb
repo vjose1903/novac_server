@@ -5,8 +5,9 @@ class CabezaAsientoContableSerializer < ActiveModel::Serializer
   attribute :tipo,                           if: Proc.new { self.get_param('tipo')                           || self.get_param('all') }
   attribute :fecha_equivalente,              if: Proc.new { self.get_param('fecha_equivalente')              || self.get_param('all') }
   attribute :fecha_anulacion,                if: Proc.new { self.get_param('fecha_anulacion')                || self.get_param('all') }
-  attribute :is_validated,                   if: Proc.new { self.get_param('is_validated')                         || self.get_param('all') }
+  attribute :is_validated,                   if: Proc.new { self.get_param('is_validated')                   || self.get_param('all') }
   attribute :estado,                         if: Proc.new { self.get_param('estado')                         || self.get_param('all') }
+  attribute :codigo,                         if: Proc.new { self.get_param('codigo')                         || self.get_param('all') }
 
   attribute :usuario_creador,                if: Proc.new { self.get_param('usuario_creador')                || self.get_param('all') }
   attribute :usuario_anulador,               if: Proc.new { self.get_param('usuario_anulador')               || self.get_param('all') }

@@ -66,6 +66,7 @@ class CabezaAsientoContable < ApplicationRecord
         cabeza_asiento_contable.comentario             = params[:comentario]
         cabeza_asiento_contable.tipo                   = params.has_key?(:tipo) && !params[:tipo].nil? ? params[:tipo] : AsientoContable.manual
         cabeza_asiento_contable.fecha_equivalente      = params[:fecha_equivalente]
+        cabeza_asiento_contable.get_sequence
 
         cabeza_asiento_contable.valid?
 
@@ -102,6 +103,22 @@ class CabezaAsientoContable < ApplicationRecord
   end
 
   # ============================================================================================================================================
+  def get_sequence
+    fecha_equivalente = self.fecha_equivalente
+    start_date = fecha_equivalente.beginning_of_month
+    end_date   = fecha_equivalente.end_of_month
+
+    next_secuence = CabezaAsientoContable.where(fecha_equivalente: start_date..end_date).count + 1
+
+    year          = self.fecha_equivalente.year
+    month         = self.fecha_equivalente.month
+
+
+
+    self.codigo = "ED-#{year}-#{"%02d" % month}-#{"%03d" % next_secuence}"
+  end
+
+  # ============================================================================================================================================
   def validate_detalles_amount
     detalles_debito  = self.detalles_asientos_contables.filter { | detalle | detalle.valor_credito.nil? && detalle.valor_debito.is_number? }
     detalles_credito = self.detalles_asientos_contables.filter { | detalle | detalle.valor_debito.nil? && detalle.valor_credito.is_number? }
@@ -128,7 +145,7 @@ class CabezaAsientoContable < ApplicationRecord
 
     asientos = CabezaAsientoContable
                  .where(query)
-                 .where("lower(cabezas_asientos_contables.comentario ) like lower('%#{arg}%')  AND cabezas_asientos_contables.estado = true")
+                 .where("lower(cabezas_asientos_contables.comentario || ' ' || cabezas_asientos_contables.codigo) like lower('%#{arg}%')  AND cabezas_asientos_contables.estado = true")
                  .order('cabezas_asientos_contables.id ASC').to_a
 
     if asientos.length > 0

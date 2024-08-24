@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_08_17_134708) do
+ActiveRecord::Schema[7.0].define(version: 2024_08_24_121232) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -129,11 +129,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_17_134708) do
     t.string "comentario"
     t.string "tipo"
     t.date "fecha_equivalente"
-    t.date "fecha_anulacion"
     t.boolean "estado", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_validated"
+    t.string "codigo"
+    t.datetime "fecha_anulacion"
     t.index ["periodo_fiscal_id"], name: "index_cabezas_asientos_contables_on_periodo_fiscal_id"
     t.index ["usuario_anulador_id"], name: "index_cabezas_asientos_contables_on_usuario_anulador_id"
     t.index ["usuario_creador_id"], name: "index_cabezas_asientos_contables_on_usuario_creador_id"
