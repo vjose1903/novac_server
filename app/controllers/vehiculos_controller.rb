@@ -52,8 +52,8 @@ class VehiculosController < ApplicationController
   def get_parametros_opcionales
     return {
       all:                          true,
-      info_vehiculo:                params['info_vehiculo'] || false,
-      nombre_completo_propietario:  params['nombre_completo_propietario'] || false,
+      info_vehiculo:                validate_optional_param(params, 'info_vehiculo') ?               params['info_vehiculo'].to_boolean :               false,
+      nombre_completo_propietario:  validate_optional_param(params, 'nombre_completo_propietario') ? params['nombre_completo_propietario'].to_boolean : false,
     }
   end
 

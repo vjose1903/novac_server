@@ -416,7 +416,7 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ===================================================================================================================================================
-  def self.get_viajes_by_completar(params, paginate_options)
+  def self.get_viajes_by_completar(params, paginate_options, parametros_opcionales)
     res                  = Response.new(paginate_options)
 
     palabra_a_buscar     = params['palabra_a_buscar']
@@ -429,7 +429,7 @@ class CabeceraFactura < ApplicationRecord
     .order('cabecera_facturas.id DESC').group('cabecera_facturas.id')
 
     if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true, movimientos_viaje: true}, CabeceraFactura.models_includes)
+      res.set_data(cabeceras, {all: true, **parametros_opcionales}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? 'No existen facturas registradas.' : 'No existen facturas con las especificaciones introducidas')

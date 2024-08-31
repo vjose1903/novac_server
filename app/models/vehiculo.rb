@@ -6,7 +6,10 @@ class Vehiculo < ApplicationRecord
   end
 
   def info_vehiculo
-    return "#{self.marca} #{self.modelo} - #{self.anio} (#{get_propietario})"
+    "#{self.marca} #{self.modelo} - #{self.anio} (#{get_propietario})"
+  end
+  def marca_modelo_anio
+    "#{self.marca} #{self.modelo} - #{self.anio}"
   end
 
 	def get_propietario
