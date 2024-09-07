@@ -133,7 +133,7 @@ class CabeceraFactura < ApplicationRecord
                 res_valid                         = cabecera_factura.procesos_cabecera() if res_valid.status_valid
 
                 if res_valid.status_valid
-                  res.set_data(cabecera_factura, {all: true})
+                  res.set_data(cabecera_factura, {all: true, movimientos_viaje: true})
 
                   documento =  @tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : @tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
@@ -369,7 +369,7 @@ class CabeceraFactura < ApplicationRecord
   # end
   # ===================================================================================================================================================
 
-  def self.get_facturas_by_params(params, paginate_options)
+  def self.get_facturas_by_params(params, paginate_options, parametros_opcionales)
     res                  = Response.new(paginate_options)
 
     campoNum           = params[:campo]
@@ -402,7 +402,7 @@ class CabeceraFactura < ApplicationRecord
     facturas = CabeceraFactura.joins(joins_).where(where_).order('cabecera_facturas.id DESC').group('cabecera_facturas.id').limit(limit_)
 
     if facturas.length > 0
-      res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
+      res.set_data(facturas, {all: true, **parametros_opcionales}, CabeceraFactura.models_includes)
     else
       cantidad_registros = CabeceraFactura.all.count
 
@@ -510,10 +510,10 @@ class CabeceraFactura < ApplicationRecord
 
         # ver si la factura tiene alguna nota de credito.
         res_notas        = factura.verificateFacturaHasNotas
-        has_hotas        = res_notas.get_data
-        msg_             = 'La factura no puede ser editada, por que ha sido modificada por una nota.' if has_hotas
+        has_notas        = res_notas.get_data
+        msg_             = 'La factura no puede ser editada, por que ha sido modificada por una nota.' if has_notas
 
-        if has_hotas || (has_pagos && !factura.is_contado)
+        if has_notas || (has_pagos && !factura.is_contado)
           res.add_msg(msg_)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
@@ -578,7 +578,7 @@ class CabeceraFactura < ApplicationRecord
 
           if factura_original.save!
             factura_editada                = CabeceraFactura.find_by_id(params[:id])
-            res.set_data(factura_editada, {all: true})
+            res.set_data(factura_editada, {all: true, movimientos_viaje: true})
             res.add_msg('Factura editada correctamente.')
           else
             res.add_msgs(factura_original.errors.to_a)

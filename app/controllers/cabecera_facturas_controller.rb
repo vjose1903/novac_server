@@ -23,7 +23,7 @@ class CabeceraFacturasController < ApplicationController
     when 'get_group'
       resultado = CabeceraFactura.get_group_facturas_by_id(params)
     when 'get_documentos'
-      resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params))
+      resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params), get_parametros_opcionales)
     when 'viajes'
       resultado = CabeceraFactura.get_viajes_by_completar(params, set_paginate_options(params), get_parametros_opcionales)
     when 'comprobar_serial'
