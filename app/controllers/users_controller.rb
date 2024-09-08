@@ -41,22 +41,22 @@ class UsersController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      all:                     params['all']                     || false,
-      nombre_completo:         params['nombre_completo']         || false,
-      id:                      params['id']                      || false,
-      nombre:                  params['nombre']                  || false,
-      usuario:                 params['usuario']                 || false,
-      estado:                  params['estado']                  || false,
-      cedula:                  params['cedula']                  || false,
-      apellido:                params['apellido']                || false,
-      sexo:                    params['sexo']                    || false,
-      fotoPerfil:              params['fotoPerfil']              || false,
-      telefono:                params['telefono']                || false,
-      email:                   params['email']                   || false,
-      fecha_nacimiento:        params['fecha_nacimiento']        || false,
-      role:                    params['role']                    || false,
-      imagenes:                params['imagenes']                || false,
-      documentos_de_identidad: params['documentos_de_identidad'] || false,
+      nombre_completo:         validate_optional_param(params, 'nombre_completo') ?         params['nombre_completo'].to_boolean :         false,
+      all:                     validate_optional_param(params, 'all') ?                     params['all'].to_boolean :                     false,
+      id:                      validate_optional_param(params, 'id') ?                      params['id'].to_boolean :                      false,
+      nombre:                  validate_optional_param(params, 'nombre') ?                  params['nombre'].to_boolean :                  false,
+      usuario:                 validate_optional_param(params, 'usuario') ?                 params['usuario'].to_boolean :                 false,
+      estado:                  validate_optional_param(params, 'estado') ?                  params['estado'].to_boolean :                  false,
+      cedula:                  validate_optional_param(params, 'cedula') ?                  params['cedula'].to_boolean :                  false,
+      apellido:                validate_optional_param(params, 'apellido') ?                params['apellido'].to_boolean :                false,
+      sexo:                    validate_optional_param(params, 'sexo') ?                    params['sexo'].to_boolean :                    false,
+      fotoPerfil:              validate_optional_param(params, 'fotoPerfil') ?              params['fotoPerfil'].to_boolean :              false,
+      telefono:                validate_optional_param(params, 'telefono') ?                params['telefono'].to_boolean :                false,
+      email:                   validate_optional_param(params, 'email') ?                   params['email'].to_boolean :                   false,
+      fecha_nacimiento:        validate_optional_param(params, 'fecha_nacimiento') ?        params['fecha_nacimiento'].to_boolean :        false,
+      role:                    validate_optional_param(params, 'role') ?                    params['role'].to_boolean :                    false,
+      imagenes:                validate_optional_param(params, 'imagenes') ?                params['imagenes'].to_boolean :                false,
+      documentos_de_identidad: validate_optional_param(params, 'documentos_de_identidad') ? params['documentos_de_identidad'].to_boolean : false,
     }
   end
 

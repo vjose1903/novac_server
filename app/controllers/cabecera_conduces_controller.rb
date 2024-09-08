@@ -59,14 +59,14 @@ class CabeceraConducesController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      all:                params['all'] || false,
-      id:                 params['id'] || false,
-      user_id:            params['user_id'] || false,
-      cliente_id:         params['cliente_id'] || false,
-      numero_conduce:     params['numero_conduce'] || false,
-      fecha_equivalente:  params['fecha_equivalente'] || false,
-      cliente:            params['cliente'] || false,
-      detalle_conduces:   params['detalle_conduces'] || false,
+      all:               validate_optional_param(params, 'all') ?               params['all'].to_boolean :               false,
+      id:                validate_optional_param(params, 'id') ?                params['id'].to_boolean :                false,
+      user_id:           validate_optional_param(params, 'user_id') ?           params['user_id'].to_boolean :           false,
+      cliente_id:        validate_optional_param(params, 'cliente_id') ?        params['cliente_id'].to_boolean :        false,
+      numero_conduce:    validate_optional_param(params, 'numero_conduce') ?    params['numero_conduce'].to_boolean :    false,
+      fecha_equivalente: validate_optional_param(params, 'fecha_equivalente') ? params['fecha_equivalente'].to_boolean : false,
+      cliente:           validate_optional_param(params, 'cliente') ?           params['cliente'].to_boolean :           false,
+      detalle_conduces:  validate_optional_param(params, 'detalle_conduces') ?  params['detalle_conduces'].to_boolean :  false,
     }
   end
 

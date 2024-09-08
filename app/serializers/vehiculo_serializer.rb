@@ -12,6 +12,7 @@ class VehiculoSerializer < ActiveModel::Serializer
   attribute :telefono_no_empleado,          if: Proc.new { self.get_param('telefono_no_empleado') || self.get_param('all') }
 
   attribute :info_vehiculo,                 if: Proc.new { self.get_param('info_vehiculo')  }
+  attribute :marca_modelo_anio,             if: Proc.new { self.get_param('marca_modelo_anio')  }
   attribute :nombre_completo_propietario,   if: Proc.new { self.get_param('nombre_completo_propietario')  }
 
   def propietario
@@ -36,6 +37,10 @@ class VehiculoSerializer < ActiveModel::Serializer
     object.info_vehiculo
   end
 
+  def marca_modelo_anio
+    object.marca_modelo_anio
+  end
+
   def nombre_completo_propietario
     unless object.user_id.nil?
       object.user.nombre_completo
@@ -49,6 +54,6 @@ class VehiculoSerializer < ActiveModel::Serializer
   end
 
   def get_param(col)
-    return @instance_options[:"#{col}"]
+    @instance_options[:"#{col}"]
   end
 end
