@@ -160,26 +160,6 @@ module TipoReporteVentas
 
 end
 
-module TipoCxC
-  CLIENTE                     = '1'
-  ANTIGUEDAD_SALDO_DETALLADO  = '2'
-  ANTIGUEDAD_SALDO_AGRUPADO   = '3'
-
-
-  def self.cliente
-    return CLIENTE
-  end
-
-  def self.antiguedad_saldo_detallado
-    return ANTIGUEDAD_SALDO_DETALLADO
-  end
-
-  def self.antiguedad_saldo_agrupado
-    return ANTIGUEDAD_SALDO_AGRUPADO
-  end
-
-end
-
 module TipoFecha
   SIN_HORA = 'sin_hora'
   CON_HORA = 'con_hora'

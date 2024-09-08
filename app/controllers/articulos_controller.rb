@@ -56,7 +56,7 @@ class ArticulosController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      all:                            validate_optional_param(params, 'all') ?                           params['all'].to_boolean :                           false,
+      all:                            validate_optional_param(params, 'all') ?                           params['all'].to_boolean :                           true,
       tipo_articulo_id:               validate_optional_param(params, 'tipo_articulo_id') ?              params['tipo_articulo_id'].to_boolean :              false,
       nombre:                         validate_optional_param(params, 'nombre') ?                        params['nombre'].to_boolean :                        false,
       costo_principal:                validate_optional_param(params, 'costo_principal') ?               params['costo_principal'].to_boolean :               false,

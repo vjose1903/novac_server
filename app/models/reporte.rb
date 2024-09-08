@@ -86,8 +86,8 @@ class Reporte < ApplicationRecord
 
         tipo                         = params[:tipo]
         cliente_id                   = params[:cliente_id]
-        desde         = params["desde"]
-        hasta         = params["hasta"].nil? ? params["desde"] : params["hasta"]
+        desde                        = params[:desde]
+        hasta                        = params[:hasta].nil? ? params[:desde] : params[:hasta]
 
         longitud                     = tipo == Report::CxC.por_cliente ? 60 : tipo == Report::CxC.detallado ? 58 : 78
         longitud                     = tipo == Report::CxC.por_cliente ? 49 : tipo == Report::CxC.detallado ? 44 : 58 if result_has_permiso_pre_venta.status_valid
@@ -98,8 +98,8 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.tipo'] = ['venta']
         query['cabecera_facturas.tipo'].push('pre_venta')  if has_permiso_pre_venta
         query['cabecera_facturas.estado'] = true
-        query['cabecera_facturas.cliente_id'] = cliente_id if tipo == TipoCxC.cliente
-        query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if tipo == TipoCxC.antiguedad_saldo_detallado || tipo == TipoCxC.antiguedad_saldo_agrupado
+        query['cabecera_facturas.cliente_id'] = cliente_id if tipo == Report::CxC.por_cliente
+        query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if tipo == Report::CxC.detallado || tipo == Report::CxC.agrupado
 
         total_cuentas      = 0
         cuentas            = []
@@ -107,7 +107,7 @@ class Reporte < ApplicationRecord
                                 THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
                               ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre, "
 
-        inicio_select     += "clientes.id, #{tipo == TipoCxC.antiguedad_saldo_agrupado ? '' : 'cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
+        inicio_select     += "clientes.id, #{tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
         if tipo == Report::CxC.por_cliente
           select_ = "#{inicio_select} cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
         else
