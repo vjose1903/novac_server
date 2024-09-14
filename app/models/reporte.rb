@@ -81,13 +81,13 @@ class Reporte < ApplicationRecord
         current_user                 = get_current_user
         result_has_permiso_pre_venta = current_user.verificateHasPermiso('pre_venta')
 
-        tipo          = params["tipo"]
-        cliente_id    = params["cliente_id"]
-        desde         = params["desde"]
-        hasta         = params["hasta"].nil? ? params["desde"] : params["hasta"]
+        tipo                         = params[:tipo]
+        cliente_id                   = params[:cliente_id]
+        desde                        = params[:desde]
+        hasta                        = params[:hasta].nil? ? params[:desde] : params[:hasta]
 
-        longitud                     = tipo == TipoCxC.cliente ? 60 : tipo == TipoCxC.antiguedad_saldo_detallado ? 58 : 78
-        longitud                     = tipo == TipoCxC.cliente ? 49 : tipo == TipoCxC.antiguedad_saldo_detallado ? 44 : 58 if result_has_permiso_pre_venta.status_valid
+        longitud                     = tipo == Report::CxC.por_cliente ? 60 : tipo == Report::CxC.detallado ? 58 : 78
+        longitud                     = tipo == Report::CxC.por_cliente ? 49 : tipo == Report::CxC.detallado ? 44 : 58 if result_has_permiso_pre_venta.status_valid
 
         has_permiso_pre_venta = result_has_permiso_pre_venta.status_valid
 
@@ -95,43 +95,43 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.tipo'] = ['venta']
         query['cabecera_facturas.tipo'].push('pre_venta')  if has_permiso_pre_venta
         query['cabecera_facturas.estado'] = true
-        query['cabecera_facturas.cliente_id'] = cliente_id if tipo == TipoCxC.cliente
-        query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if tipo == TipoCxC.antiguedad_saldo_detallado || tipo == TipoCxC.antiguedad_saldo_agrupado
-        
+        query['cabecera_facturas.cliente_id'] = cliente_id if tipo == Report::CxC.por_cliente
+        query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if tipo == Report::CxC.detallado || tipo == Report::CxC.agrupado
+
         total_cuentas      = 0
         cuentas            = []
         inicio_select      = "CASE WHEN LENGTH(clientes.nombre || ' ' || clientes.apellido) > #{longitud}
-                                THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
-                              ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre, "
+                                  THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
+                                ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre, "
 
-        inicio_select     += "clientes.id, #{tipo == TipoCxC.antiguedad_saldo_agrupado ? '' : 'cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
-        if tipo == TipoCxC.cliente
-          select_ = "#{inicio_select} cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
+        inicio_select     += "clientes.id #{tipo == Report::CxC.agrupado ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
+        if tipo == Report::CxC.por_cliente
+          select_ = "#{inicio_select}, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
         else
-          select_ = "#{inicio_select} #{tipo == TipoCxC.antiguedad_saldo_agrupado ? 'sum (' : ''} cabecera_facturas.balance#{tipo == TipoCxC.antiguedad_saldo_agrupado ? ')' : ''} as total_pendiente,
-          #{tipo == TipoCxC.antiguedad_saldo_agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
-          #{tipo == TipoCxC.antiguedad_saldo_agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
-          #{tipo == TipoCxC.antiguedad_saldo_agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
-          #{tipo == TipoCxC.antiguedad_saldo_agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
+          select_ = "#{inicio_select}, #{tipo == Report::CxC.agrupado ? 'sum (' : ''} cabecera_facturas.balance#{tipo == Report::CxC.agrupado ? ')' : ''} as total_pendiente,
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
         end
 
-        group_by = tipo == TipoCxC.cliente ? "" : tipo == TipoCxC.antiguedad_saldo_detallado ? "cabecera_facturas.id, clientes.id" : "clientes.id"
+        group_by = tipo == Report::CxC.por_cliente ? '' : tipo == Report::CxC.detallado ? 'cabecera_facturas.id, clientes.id' : 'clientes.id'
 
-        CabeceraFactura.joins("inner join clientes on cabecera_facturas.cliente_id = clientes.id")
-        .select(select_).where(query).where("cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false").group(group_by)
-        .order("#{tipo == TipoCxC.antiguedad_saldo_agrupado ? 'noventa_uno_to_more DESC, sesenta_uno_to_noventa DESC, treinta_uno_to_sesenta DESC, cero_to_treinta DESC' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
-            cabeza                      = cf.attributes
+        CabeceraFactura.joins('inner join clientes on cabecera_facturas.cliente_id = clientes.id')
+                       .select(select_).where(query).where('cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false').group(group_by)
+                       .order("#{tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
+          cabeza                      = cf.attributes
 
-            total_cuentas              += cabeza['total_pendiente']
-            cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
-            cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != "3"
-            cabeza                      = sustituirMonto(cabeza) if tipo == TipoCxC.antiguedad_saldo_detallado
-            cuentas.push(cabeza)
+          total_cuentas              += cabeza['total_pendiente']
+          cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
+          cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
+          cabeza                      = sustituirMonto(cabeza ) if tipo == Report::CxC.detallado
+          cuentas.push(cabeza)
         end
 
-        cuentas = cuentas.sort_by! { |item| item["total_pendiente"]}.reverse if tipo == TipoCxC.antiguedad_saldo_agrupado
+        cuentas = cuentas.sort_by! { |item| item['total_pendiente']}.reverse if tipo == Report::CxC.agrupado
 
-        obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: "Cliente: #{ buscar_cliente({cliente_id: cliente_id}.with_indifferent_access , 125, ['nombre'])["nombre"] }"}
+        obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: "Cliente: #{ buscar_cliente({ cliente_id: cliente_id }.with_indifferent_access , 125, ['nombre'])['nombre'] }"}
         return obj
 
     end
