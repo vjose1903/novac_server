@@ -23,6 +23,7 @@ class ReportesController < ApplicationController
       # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
       body   = Reporte.get_cuentas_cobrar(params)
       titulo = "Reporte de cuentas por cobrar #{ params[:tipo] == Report::CxC.por_cliente ? 'por cliente' : '' } #{ params[:tipo] == Report::CxC.por_cliente ? '' : params[:tipo] == Report::CxC.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+      titulo += "  desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}"
 
       tipo_reporte   = 'cxc'               if params[:tipo] == Report::CxC.por_cliente
       tipo_reporte   = 'cxc_ant_detallado' if params[:tipo] == Report::CxC.detallado

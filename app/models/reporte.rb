@@ -107,11 +107,11 @@ class Reporte < ApplicationRecord
                                 THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
                               ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre, "
 
-        inicio_select     += "clientes.id, #{tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
+        inicio_select     += "clientes.id #{tipo == Report::CxC.agrupado ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
         if tipo == Report::CxC.por_cliente
-          select_ = "#{inicio_select} cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
+          select_ = "#{inicio_select}, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
         else
-          select_ = "#{inicio_select} #{tipo == Report::CxC.agrupado ? 'sum (' : ''} cabecera_facturas.balance#{tipo == Report::CxC.agrupado ? ')' : ''} as total_pendiente,
+          select_ = "#{inicio_select}, #{tipo == Report::CxC.agrupado ? 'sum (' : ''} cabecera_facturas.balance#{tipo == Report::CxC.agrupado ? ')' : ''} as total_pendiente,
           #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
           #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
           #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
