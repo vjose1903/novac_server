@@ -104,32 +104,32 @@ class Reporte < ApplicationRecord
         total_cuentas      = 0
         cuentas            = []
         inicio_select      = "CASE WHEN LENGTH(clientes.nombre || ' ' || clientes.apellido) > #{longitud}
-                                THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
-                              ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre, "
+                                  THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
+                                ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre, "
 
         inicio_select     += "clientes.id #{tipo == Report::CxC.agrupado ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
         if tipo == Report::CxC.por_cliente
           select_ = "#{inicio_select}, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
         else
           select_ = "#{inicio_select}, #{tipo == Report::CxC.agrupado ? 'sum (' : ''} cabecera_facturas.balance#{tipo == Report::CxC.agrupado ? ')' : ''} as total_pendiente,
-          #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
-          #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
-          #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
-          #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 0  then cabecera_facturas.balance else 0 end  )  as cero_to_treinta,
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 1  then cabecera_facturas.balance else 0 end  )  as treinta_uno_to_sesenta,
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) = 2  then cabecera_facturas.balance else 0 end  )  as sesenta_uno_to_noventa,
+            #{tipo == Report::CxC.agrupado ? 'sum' : ''}( case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end  )  as noventa_uno_to_more"
         end
 
         group_by = tipo == Report::CxC.por_cliente ? '' : tipo == Report::CxC.detallado ? 'cabecera_facturas.id, clientes.id' : 'clientes.id'
 
         CabeceraFactura.joins('inner join clientes on cabecera_facturas.cliente_id = clientes.id')
-        .select(select_).where(query).where('cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false').group(group_by)
-        .order("#{tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
-            cabeza                      = cf.attributes
+                       .select(select_).where(query).where('cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false').group(group_by)
+                       .order("#{tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
 
-            total_cuentas              += cabeza['total_pendiente']
-            cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
-            cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
-            cabeza                      = sustituirMonto(cabeza ) if tipo == Report::CxC.detallado
-            cuentas.push(cabeza)
+          cabeza                      = cf.attributes
+          total_cuentas              += cabeza['total_pendiente']
+          cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
+          cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
+          cabeza                      = sustituirMonto(cabeza ) if tipo == Report::CxC.detallado
+          cuentas.push(cabeza)
         end
 
         cuentas = cuentas.sort_by! { |item| item['total_pendiente']}.reverse if tipo == Report::CxC.agrupado
