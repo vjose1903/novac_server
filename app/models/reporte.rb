@@ -120,8 +120,8 @@ class Reporte < ApplicationRecord
         CabeceraFactura.joins('inner join clientes on cabecera_facturas.cliente_id = clientes.id')
                        .select(select_).where(query).where('cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false').group(group_by)
                        .order("#{tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
-          cabeza                      = cf.attributes
 
+          cabeza                      = cf.attributes
           total_cuentas              += cabeza['total_pendiente']
           cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
           cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
