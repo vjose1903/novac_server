@@ -6,7 +6,7 @@ class ReportesController < ApplicationController
     tipo         = params[:tipo]
     tipo_tabla   = 'normal'
 
-    muestra_sub_titulo = ['inventario', 'ventas_productos', 'suplidor_prod', 'cuentas_con_pagos', 'notas', 'ventas_cliente', 'movimientos_vehiculo', 'recibos', 'recibos_agrupado', 'cxc', 'cxc_ant_detallado', 'cxc_ant_agrupado' ]
+    muestra_sub_titulo = ['inventario', 'ventas_productos', 'suplidor_prod', 'cuentas_con_pagos', 'notas', 'ventas_cliente', 'movimientos_vehiculo', 'recibos', 'recibos_agrupado', 'cxc', 'cxc_ant_detallado', 'cxc_ant_agrupado', 'cxp', 'cxp_ant_detallado', 'cxp_ant_agrupado', 'pago_facturas', 'pago_facturas_agrupado' ]
 
 
     if  tipo_reporte == 'ventas_rango' || tipo_reporte == 'ventas_diarias' || tipo_reporte == 'ventas_cliente'
