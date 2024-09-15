@@ -55,4 +55,19 @@ module Report
       return TIPOS[:agrupado]
     end
   end
+
+  module ReciboIngreso
+    TIPOS = {
+      detallado:    'detallado',
+      agrupado:     'agrupado',
+    }
+
+    def self.detallado
+      return TIPOS[:detallado]
+    end
+
+    def self.agrupado
+      return TIPOS[:agrupado]
+    end
+  end
 end
