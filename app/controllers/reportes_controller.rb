@@ -14,8 +14,8 @@ class ReportesController < ApplicationController
       # ------------------- REPORTE DE VENTAS --------------------
       body           = Reporte.get_ventas(params)
 
-      titulo         = "Reporte de ventas #{ params[:tipo] == TipoReporteVentas.ventas_hoy ? 'diarias' : "desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}" }"
-      titulo         = "Reporte de ventas por cliente" if tipo_reporte == 'ventas_cliente'
+      titulo         = "Ventas #{ params[:tipo] == TipoReporteVentas.ventas_hoy ? 'diarias' : "desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}" }"
+      titulo         = "Ventas por cliente" if tipo_reporte == 'ventas_cliente'
 
       tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
 
@@ -32,7 +32,7 @@ class ReportesController < ApplicationController
     elsif tipo_reporte == 'cuentas_pagar'
       # ------------------- REPORTE DE CUENTAS POR PAGAR --------------------
       body   = Reporte.get_cuentas_pagar(params)
-      titulo = "Reporte de cuentas por pagar #{ params[:tipo] == Report::CxP.por_suplidor ? 'por suplidor' : '' } #{ params[:tipo] == Report::CxP.por_suplidor ? '' : params[:tipo] == Report::CxP.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+      titulo = "Cuentas por pagar #{ params[:tipo] == Report::CxP.por_suplidor ? 'por suplidor' : '' } #{ params[:tipo] == Report::CxP.por_suplidor ? '' : params[:tipo] == Report::CxP.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
 
       tipo_reporte   = 'cxp'               if params[:tipo] == Report::CxP.por_suplidor
       tipo_reporte   = 'cxp_ant_detallado' if params[:tipo] == Report::CxP.detallado
@@ -41,42 +41,42 @@ class ReportesController < ApplicationController
     elsif tipo_reporte == 'movimientos_vehiculo'
       # ------------------- REPORTE DE MOVIMIENTOS POR VEHICULO --------------------
       body       = Reporte.get_movimientos_vehiculo(params)
-      titulo     = 'Reporte de Movimientos por camión'
+      titulo     = 'Movimientos por camión'
 
     elsif tipo_reporte == 'inventario'
       # ------------------- REPORTE DE INVENTARIO --------------------
       body   = Reporte.get_inventario(params)
-      titulo = 'Reporte de inventario'
+        titulo = 'Reporte Inventario'
 
     elsif tipo_reporte == 'recibos'
       # ------------------- REPORTE DE RECIBOS --------------------
       body   = Reporte.get_recibos(params)
-      titulo = 'Reporte de Recibos de ingreso'
+      titulo = "Recibos de ingreso - desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}"
 
       tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
 
     elsif tipo_reporte == 'pago_facturas'
       # ------------------- REPORTE DE PAGO DE FACTURAS --------------------
       body   = Reporte.get_pagos(params)
-      titulo = 'Reporte de Pago de Facturas'
+      titulo = "Pago de Facturas - desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}"
 
       tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
 
     elsif tipo_reporte == 'ventas_productos'
       # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
       body               = Reporte.get_ventas_por_producto(params)
-      titulo             = 'Reporte de ventas por producto'
+      titulo             = 'Ventas por producto'
       tipo_tabla         = 'agrupado'
 
     elsif tipo_reporte == 'suplidor_prod'
       # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
       body     = Reporte.get_suplidores_por_producto(params)
-      titulo   = 'Reporte de suplidores por producto'
+      titulo   = 'Suplidores por producto'
 
     elsif tipo_reporte == 'cuentas_con_pagos'
       # ------------------- REPORTE DE CUENTAS POR COBRAR CLIENTES CON SUS PAGOS --------------------
       body       = Reporte.get_cuentas_con_pagos(params)
-      titulo     = 'Reporte de facturas a crédito con sus pagos'
+      titulo     = 'Facturas a crédito con sus pagos'
       tipo_tabla = 'agrupado'
 
     elsif tipo_reporte == 'notas'
@@ -85,7 +85,7 @@ class ReportesController < ApplicationController
       tipo_de_factura = TipoFactura.find_by_id(params['tipo_factura_id'])
 
       tipo_nota       = tipo_de_factura.nil? ? 'Crédito y Débito' : tipo_de_factura.descripcion == TiposFacturasDescripcion.nota_de_credito  ? 'Crédito' : 'Débito'
-      titulo          = "Reporte de notas de #{tipo_nota}"
+      titulo          = "Notas de #{tipo_nota} - desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}"
 
     end
 

@@ -95,10 +95,10 @@ class Reporte < ApplicationRecord
         has_permiso_pre_venta = result_has_permiso_pre_venta.status_valid
 
         query = {}
-        query['cabecera_facturas.tipo'] = ['venta']
+        query['cabecera_facturas.tipo']              = ['venta']
         query['cabecera_facturas.tipo'].push('pre_venta')  if has_permiso_pre_venta
-        query['cabecera_facturas.estado'] = true
-        query['cabecera_facturas.cliente_id'] = cliente_id if tipo == Report::CxC.por_cliente
+        query['cabecera_facturas.estado']            = true
+        query['cabecera_facturas.cliente_id']        = cliente_id if tipo == Report::CxC.por_cliente
         query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day if tipo == Report::CxC.detallado || tipo == Report::CxC.agrupado
 
         total_cuentas      = 0
@@ -142,16 +142,20 @@ class Reporte < ApplicationRecord
     # ---------------------------------------------------------------------------------------------------------
 
     def self.get_cuentas_pagar(params)
-        current_user                 = get_current_user
 
-        cuentas_temp                 = []
         tipo                         = params[:tipo]
         suplidor_id                  = params[:suplidor_id]
+        desde                        = params[:desde]
+        hasta                        = params[:hasta].nil? ? params[:desde] : params[:hasta]
 
         longitud                     = tipo == Report::CxP.por_suplidor ? 60 : tipo == Report::CxP.detallado ? 58 : 78
+        query = {}
+        query['cabecera_facturas.tipo']              = ['compra']
+        query['cabecera_facturas.estado']            = true
+        query['cabecera_facturas.can_pagar']         = true
+        query['cabecera_facturas.suplidor_id']       = suplidor_id if tipo == Report::CxP.por_suplidor
+        query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
 
-        query  = "cabecera_facturas.tipo = 'compra' AND cabecera_facturas.estado = true AND cabecera_facturas.can_pagar"
-        query += " AND cabecera_facturas.suplidor_id = #{suplidor_id}" if tipo == Report::CxP.por_suplidor
 
         total_cuentas      = 0
         cuentas            = []
@@ -241,6 +245,8 @@ class Reporte < ApplicationRecord
 
       query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
       query['tipo_factura_id']   = tipo_nota unless tipo_nota == 0
+      query['tipo_factura_id']   = tipo_nota unless tipo_nota == 0
+      query['estado']      = true
 
       temp = FacturaAplicada
       .joins('inner join notas on notas.id = facturas_aplicadas.nota_id')
