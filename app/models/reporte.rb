@@ -493,7 +493,7 @@ class Reporte < ApplicationRecord
 
         cliente = Cliente.find_by_id(params[:cliente_id]) if cliente == nil
 
-        sub_titulo = "Cliente: #{ cliente.nombre_completo }, Facturas entre las fechas: #{formatearFecha(params["desde"], TipoFecha.sin_hora)} y #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
+        sub_titulo = "Cliente: #{ cliente.nombre_completo }, Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
         obj = { body: facturas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: sub_titulo}
         return obj
     end
