@@ -11,6 +11,7 @@ class CuentaBancariaSerializer < ActiveModel::Serializer
   attribute :banco_id,                      if: Proc.new { self.get_param('banco_id')                     || self.get_param('all') }
   attribute :divisa_id,                     if: Proc.new { self.get_param('divisa_id')                    || self.get_param('all') }
   attribute :tipo_cuenta_bancaria_id,       if: Proc.new { self.get_param('tipo_cuenta_bancaria_id')      || self.get_param('all') }
+  attribute :has_chequera,                  if: Proc.new { self.get_param('has_chequera')                 || self.get_param('all') }
 
   attribute :cuenta_contable,               if: Proc.new {  self.get_param('cuenta_contable')             || self.get_param('all') }
   attribute :cuenta_contable_prima,         if: Proc.new { (self.get_param('cuenta_contable_prima')       || self.get_param('all')) && !object.cuenta_contable_prima.nil? }

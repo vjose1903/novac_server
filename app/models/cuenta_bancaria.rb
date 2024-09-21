@@ -49,6 +49,7 @@ class CuentaBancaria < ApplicationRecord
         cuenta_bancaria.balance_inicial_banco      = params[:balance_inicial_banco] if params.obj_has?(:balance_inicial_banco) && !params[:balance_inicial_banco].nil?
         cuenta_bancaria.comentario                 = params[:comentario]
         cuenta_bancaria.descripcion                = params[:descripcion]
+        cuenta_bancaria.has_chequera               = params[:has_chequera]
         cuenta_bancaria.fecha_primera_conciliacion = params[:fecha_primera_conciliacion]
 
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_08_24_121232) do
+ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -323,6 +323,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_24_121232) do
     t.float "balance_inicial_banco", default: 0.0
     t.float "balance_inicial_libro", default: 0.0
     t.date "fecha_primera_conciliacion"
+    t.boolean "has_chequera", default: false
     t.index ["banco_id"], name: "index_cuentas_bancarias_on_banco_id"
     t.index ["cuenta_contable_id"], name: "index_cuentas_bancarias_on_cuenta_contable_id"
     t.index ["cuenta_contable_prima_id"], name: "index_cuentas_bancarias_on_cuenta_contable_prima_id"
