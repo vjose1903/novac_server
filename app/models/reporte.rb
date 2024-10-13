@@ -24,6 +24,7 @@ class Reporte < ApplicationRecord
             descuento:              totalizacion[:descuento].round(2),
             devuelto:               totalizacion[:devuelto].round(2),
             total:                  totalizacion[:total].round(2),
+            facturado:              totalizacion[:facturado].round(2),
             mostrar_sub_titulo:     sub_titulo[:bool],
             sub_titulo:             sub_titulo[:sub_t],
             tipo_tabla:             tipo_tabla,
@@ -83,11 +84,12 @@ class Reporte < ApplicationRecord
 
         tipo                         = params[:tipo]
         cliente_id                   = params[:cliente_id]
+        include_pagadas              = params[:include_pagadas].nil? ? false : params[:include_pagadas].to_boolean
         desde                        = params[:desde]
         hasta                        = params[:hasta].nil? ? params[:desde] : params[:hasta]
 
-        longitud                     = tipo == Report::CxC.por_cliente ? 60 : tipo == Report::CxC.detallado ? 58 : 78
-        longitud                     = tipo == Report::CxC.por_cliente ? 49 : tipo == Report::CxC.detallado ? 44 : 58 if result_has_permiso_pre_venta.status_valid
+        longitud                     = tipo == Report::CxC.por_cliente ? 60 : tipo == Report::CxC.detallado ? 38 : 47
+        longitud                     = tipo == Report::CxC.por_cliente ? 49 : tipo == Report::CxC.detallado ? 30 : 40 if result_has_permiso_pre_venta.status_valid
 
         has_permiso_pre_venta = result_has_permiso_pre_venta.status_valid
 
@@ -98,13 +100,14 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.cliente_id']        = cliente_id if tipo == Report::CxC.por_cliente
         query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
 
-        total_cuentas      = 0
+        total_pendiente    = 0
+        total_facturado    = 0
         cuentas            = []
         inicio_select      = "CASE WHEN LENGTH(clientes.nombre || ' ' || clientes.apellido) > #{longitud}
                                   THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
                                 ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre, "
 
-        inicio_select     += "clientes.id #{tipo == Report::CxC.agrupado ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
+        inicio_select     += "clientes.id #{tipo == Report::CxC.agrupado ? ', sum(cabecera_facturas.total_factura) as total_factura' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura, cabecera_facturas.total_factura'}"
         if tipo == Report::CxC.por_cliente
           select_ = "#{inicio_select}, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
         else
@@ -116,13 +119,14 @@ class Reporte < ApplicationRecord
         end
 
         group_by = tipo == Report::CxC.por_cliente ? '' : tipo == Report::CxC.detallado ? 'cabecera_facturas.id, clientes.id' : 'clientes.id'
+        facturas_pagadas_where = include_pagadas ? '' :'cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false'
 
         CabeceraFactura.joins('inner join clientes on cabecera_facturas.cliente_id = clientes.id')
-                       .select(select_).where(query).where('cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false').group(group_by)
+                       .select(select_).where(query).where(facturas_pagadas_where).group(group_by)
                        .order("#{tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
-
           cabeza                      = cf.attributes
-          total_cuentas              += cabeza['total_pendiente']
+          total_facturado             += cabeza['total_factura']
+          total_pendiente             += cabeza['total_pendiente']
           cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
           cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
           cabeza                      = sustituirMonto(cabeza ) if tipo == Report::CxC.detallado
@@ -134,7 +138,7 @@ class Reporte < ApplicationRecord
         sub_titulo = tipo == Report::CxC.por_cliente ? "Cliente: #{ buscar_cliente({ cliente_id: cliente_id }.with_indifferent_access , 125, ['nombre'])['nombre'] }, " : ''
         sub_titulo += "Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
 
-        obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: sub_titulo}
+        obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_pendiente, devuelto: 0, facturado: total_facturado }, sub_t: sub_titulo}
         return obj
 
     end
@@ -173,7 +177,7 @@ class Reporte < ApplicationRecord
         cantidad_articulos = inventario_temp.length
         inventario         = inventario_temp.sort_by! { |item| item["nombre"]}
 
-        obj = { body: inventario, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0 }, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
+        obj = { body: inventario, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0, facturado: 0 }, sub_t: "Cantidad de productos en inventario: #{ cantidad_articulos }"}
         return obj
     end
 
@@ -209,7 +213,7 @@ class Reporte < ApplicationRecord
       end
 
       sub_titulo = "Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
-      obj  = { body: notas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0 }, sub_t: sub_titulo}
+      obj  = { body: notas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
     end
 
     # ---------------------------------------------------------------------------------------------------------
@@ -240,7 +244,7 @@ class Reporte < ApplicationRecord
         recibos = sum_by_day_recibos(recibos) if tipo == Report::ReciboIngreso.agrupado
 
         sub_titulo = "Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
-        obj = { body: recibos, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_recibido, devuelto: 0 }, sub_t: sub_titulo}
+        obj = { body: recibos, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_recibido, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
 
         return obj
       end
@@ -286,7 +290,7 @@ class Reporte < ApplicationRecord
         articulo = Articulo.find_by_id(articulo_id)
         sub_titulo = "Producto: #{articulo.nombre}"
 
-        obj = { body: contenido, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0 }, sub_t: sub_titulo}
+        obj = { body: contenido, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
 
     end
 
@@ -330,7 +334,7 @@ class Reporte < ApplicationRecord
 
       sub_titulo = "Viajes realizados en el camión: << #{vehiculo.info_vehiculo} >> entre las fechas: #{formatearFecha(params["desde"], TipoFecha.sin_hora)} y #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
 
-      obj = { body: viajes_por_vehiculo, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_fletes, devuelto: 0 } , sub_t: sub_titulo}
+      obj = { body: viajes_por_vehiculo, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_fletes, devuelto: 0, facturado: 0 } , sub_t: sub_titulo}
 
       return obj
     end
@@ -401,7 +405,7 @@ class Reporte < ApplicationRecord
         cliente = Cliente.find_by_id(params['cliente_id']) if cliente == nil
 
         sub_titulo = "Cliente: #{ cliente.nombre_completo }, Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
-        obj = { body: facturas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: sub_titulo}
+        obj = { body: facturas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
         return obj
     end
     # ---------------------------------------------------------------------------------------------------------
@@ -494,7 +498,7 @@ class Reporte < ApplicationRecord
           contenido_grupo: nil
         })
 
-        obj = { body: ventas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_venta, devuelto: 0 }, sub_t: sub_titulo }
+        obj = { body: ventas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_venta, devuelto: 0, facturado: 0 }, sub_t: sub_titulo }
 
     end
 
@@ -606,7 +610,7 @@ class Reporte < ApplicationRecord
 
         ventas       = sum_by_day_ventas(ventas) if tipo == 'agrupado'
 
-        obj = { body: ventas, totalizacion: { bruto: bruto, descuento: descuento, itbis: itbis, total: total_ventas, devuelto: total_devuelto } , sub_t: sub_titulo}
+        obj = { body: ventas, totalizacion: { bruto: bruto, descuento: descuento, itbis: itbis, total: total_ventas, devuelto: total_devuelto, facturado: 0 } , sub_t: sub_titulo}
 
         return obj
     end
