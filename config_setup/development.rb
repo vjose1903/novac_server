@@ -52,5 +52,6 @@ Rails.application.configure do
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   config.hosts << "$$FRONTEND_HOST$$"
+  config.hosts << "$$FRONTEND_HOST_SECONDARY$$"
   config.hosts << "localhost"
 end

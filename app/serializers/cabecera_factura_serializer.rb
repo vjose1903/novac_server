@@ -145,7 +145,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
 
   def get_param(col)
-    return @instance_options[:"#{col}"]
+    @instance_options[:"#{col}"]
   end
 
 end

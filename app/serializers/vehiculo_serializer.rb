@@ -12,14 +12,17 @@ class VehiculoSerializer < ActiveModel::Serializer
   attribute :telefono_no_empleado,          if: Proc.new { self.get_param('telefono_no_empleado') || self.get_param('all') }
 
   attribute :info_vehiculo,                 if: Proc.new { self.get_param('info_vehiculo')  }
+  attribute :marca_modelo_anio,             if: Proc.new { self.get_param('marca_modelo_anio')  }
   attribute :nombre_completo_propietario,   if: Proc.new { self.get_param('nombre_completo_propietario')  }
 
   def propietario
     @propietario = nil
     if !object.user_id.nil?
-      @propietario = serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
+      usuario = serialize_parser(object.user, {nombre: true, apellido: true, telefono: true})
+
+      @propietario = usuario
     else
-      if !object.nombre_no_empleado.nil?
+      unless object.nombre_no_empleado.nil?
         usuario             = {}
         usuario[:nombre]   = object.nombre_no_empleado
         usuario[:apellido] = object.apellido_no_empleado
@@ -34,11 +37,14 @@ class VehiculoSerializer < ActiveModel::Serializer
     object.info_vehiculo
   end
 
+  def marca_modelo_anio
+    object.marca_modelo_anio
+  end
+
   def nombre_completo_propietario
-    if !object.user_id.nil?
+    unless object.user_id.nil?
       object.user.nombre_completo
     else
-			puts "@propietario ==> ".red + " #{@propietario.to_json}"
       nombre    = @propietario[:nombre].capitalize
       nombre    += " #{@propietario[:apellido].capitalize}" unless @propietario[:apellido].blank?
       nombre    = nombre.gsub("  ", " ").strip
@@ -48,6 +54,6 @@ class VehiculoSerializer < ActiveModel::Serializer
   end
 
   def get_param(col)
-    return @instance_options[:"#{col}"]
+    @instance_options[:"#{col}"]
   end
 end

@@ -152,7 +152,7 @@ class Cliente < ApplicationRecord
     paginate_class.paginate_data(facturas)
 
     data['facturas']         = paginate_class.data_paginated
-    data['facturas']['data'] = serialize_parser(paginate_class.get_data, {all: true})
+    data['facturas']['data'] = serialize_parser(paginate_class.get_data, { all: true, movimientos_viaje: true })
 
     res.set_data(data)
     return res

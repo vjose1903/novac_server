@@ -36,7 +36,7 @@ class ProvinciasController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      municipios: params['municipios'] || false,
+      municipios: validate_optional_param(params, 'municipios') ? params['municipios'].to_boolean : false
     }
   end
 

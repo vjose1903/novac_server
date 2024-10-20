@@ -85,5 +85,6 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   config.hosts << "$$FRONTEND_HOST$$"
+  config.hosts << "$$FRONTEND_HOST_SECONDARY$$"
   config.hosts << "localhost"
 end
