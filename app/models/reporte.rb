@@ -122,7 +122,7 @@ class Reporte < ApplicationRecord
         end
 
         group_by = tipo == Report::CxC.por_cliente ? '' : tipo == Report::CxC.detallado ? 'cabecera_facturas.id, clientes.id' : 'clientes.id'
-        facturas_pagadas_where = include_pagadas ? '' :'cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false'
+        facturas_pagadas_where = include_pagadas ? '' : 'cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false'
 
         CabeceraFactura.joins('inner join clientes on cabecera_facturas.cliente_id = clientes.id')
                        .select(select_).where(query).where(facturas_pagadas_where).group(group_by)
@@ -131,7 +131,7 @@ class Reporte < ApplicationRecord
           total_facturado             += cabeza['total_factura']
           total_pendiente             += cabeza['total_pendiente']
           cabeza['tipo_documento']    = cabeza['tipo'] == 'venta' ? 'Factura' : 'Pre-venta'
-          cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
+          cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante'] : ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
           cabeza                      = sustituirMonto(cabeza ) if tipo == Report::CxC.detallado
           cuentas.push(cabeza)
         end
@@ -152,6 +152,7 @@ class Reporte < ApplicationRecord
 
         tipo                         = params[:tipo]
         suplidor_id                  = params[:suplidor_id]
+        include_pagadas              = params[:include_pagadas].nil? ? false : params[:include_pagadas].to_boolean
         desde                        = params[:desde]
         hasta                        = params[:hasta].nil? ? params[:desde] : params[:hasta]
 
@@ -166,12 +167,13 @@ class Reporte < ApplicationRecord
 
 
         total_cuentas      = 0
+        total_facturado    = 0
         cuentas            = []
         inicio_select      = "CASE WHEN LENGTH(suplidores.nombre) > #{longitud}
                                 THEN CONCAT(SUBSTRING(suplidores.nombre, 1, #{longitud}), '...')
                               ELSE suplidores.nombre END AS suplidor_nombre,"
 
-        inicio_select     += "suplidores.id #{tipo == Report::CxP.agrupado ? '' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura'}"
+        inicio_select     += "suplidores.id #{tipo == Report::CxP.agrupado ? ', sum(cabecera_facturas.total_factura) as total_factura' : ', cabecera_facturas.fecha_equivalente, cabecera_facturas.id, cabecera_facturas.numero_comprobante, cabecera_facturas.tipo, cabecera_facturas.numero_factura, cabecera_facturas.total_factura'}"
 
         if tipo == Report::CxP.por_suplidor
           select_ = "#{inicio_select}, cabecera_facturas.condicion, cabecera_facturas.balance as total_pendiente"
@@ -184,12 +186,14 @@ class Reporte < ApplicationRecord
         end
 
         group_by = tipo == Report::CxP.por_suplidor ? '' : tipo == Report::CxP.detallado ? 'cabecera_facturas.id, suplidores.id' : 'suplidores.id'
+        facturas_pagadas_where = include_pagadas ? '' : 'cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false'
 
         CabeceraFactura.joins('inner join suplidores on cabecera_facturas.suplidor_id = suplidores.id')
-                       .select(select_).where(query).where('cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false').group(group_by)
+                       .select(select_).where(query).where(facturas_pagadas_where).group(group_by)
                        .order("#{tipo == Report::CxP.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'}").each do |cf|
 
             cabeza                      = cf.attributes
+            total_facturado            += cabeza['total_factura']
             total_cuentas              += cabeza['total_pendiente']
             cabeza['tipo_documento']    = 'Compra'
             cabeza['numero_documento']  = cabeza['numero_comprobante'] if tipo != Report::CxP.agrupado
@@ -202,7 +206,7 @@ class Reporte < ApplicationRecord
         sub_titulo = tipo == Report::CxP.por_suplidor ? "Suplidor: #{ buscar_suplidor(suplidor_id , 125, ['nombre'])['nombre'] }, " : ''
         sub_titulo += "Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
 
-        obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0 }, sub_t: sub_titulo}
+        obj = { body: cuentas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0, facturado: total_facturado }, sub_t: sub_titulo}
         return obj
 
     end
@@ -341,7 +345,7 @@ class Reporte < ApplicationRecord
         pagos = sum_by_day_recibos(pagos) if tipo == Report::PagoFactura.agrupado
 
         sub_titulo = "Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
-        obj = { body: pagos, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_pagado, devuelto: 0 }, sub_t: sub_titulo}
+        obj = { body: pagos, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_pagado, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
 
         return obj
       end
