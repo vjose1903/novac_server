@@ -68,8 +68,8 @@ class CabeceraFactura < ApplicationRecord
 
           res_valid                        = Response.new
 
-          if params["condicion"] == "Crédito" && params["tipo"] != TiposFacturasDescripcion.compra.downcase
-          res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
+          if params["condicion"] == "Crédito" && ( params["tipo"].downcase != TiposFacturasDescripcion.compra.downcase  && params["tipo"].downcase != TiposFacturasDescripcion.cotizacion.downcase )
+            res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
           end
 
           if res_valid.status_valid
