@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
+ActiveRecord::Schema[7.0].define(version: 2024_11_04_182129) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -162,6 +162,31 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
     t.index ["configuracion_entidad_cuenta_id"], name: "idx_cat_ent_cont_cuenta_cont_config_ent"
     t.index ["cuenta_contable_auxiliar_id"], name: "idx_cat_ent_cont_cuenta_cont_aux"
     t.index ["cuenta_contable_control_id"], name: "idx_cat_ent_cont_cuenta_cont_cont"
+  end
+
+  create_table "cheques", force: :cascade do |t|
+    t.bigint "cuenta_bancaria_id", null: false
+    t.bigint "divisa_id", null: false
+    t.float "tasa"
+    t.float "monto"
+    t.float "monto_local"
+    t.float "balance"
+    t.string "comentario"
+    t.datetime "fecha_equivalente"
+    t.bigint "user_creador_id", null: false
+    t.bigint "last_user_update_id"
+    t.date "fecha_update"
+    t.bigint "user_anulador_id"
+    t.date "fecha_anulacion"
+    t.integer "secuencia"
+    t.string "estado", default: "active"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuenta_bancaria_id"], name: "index_cheques_on_cuenta_bancaria_id"
+    t.index ["divisa_id"], name: "index_cheques_on_divisa_id"
+    t.index ["last_user_update_id"], name: "index_cheques_on_last_user_update_id"
+    t.index ["user_anulador_id"], name: "index_cheques_on_user_anulador_id"
+    t.index ["user_creador_id"], name: "index_cheques_on_user_creador_id"
   end
 
   create_table "choferes_viajes", force: :cascade do |t|
@@ -367,6 +392,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
     t.index ["last_user_update_id"], name: "index_depositos_on_last_user_update_id"
     t.index ["user_anulador_id"], name: "index_depositos_on_user_anulador_id"
     t.index ["user_creador_id"], name: "index_depositos_on_user_creador_id"
+  end
+
+  create_table "detalle_cheques", force: :cascade do |t|
+    t.bigint "cheque_id", null: false
+    t.string "comentario"
+    t.float "tasa"
+    t.float "monto"
+    t.float "monto_local"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cheque_id"], name: "index_detalle_cheques_on_cheque_id"
   end
 
   create_table "detalle_conduces", force: :cascade do |t|
@@ -858,6 +894,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
     t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
   end
 
+  create_table "secuencia_documentos", force: :cascade do |t|
+    t.string "origen_secuencia_type", null: false
+    t.bigint "origen_secuencia_id", null: false
+    t.integer "secuencia", default: 1
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["origen_secuencia_type", "origen_secuencia_id"], name: "index_secuencia_documentos_on_origen_secuencia"
+  end
+
   create_table "secuencia_facturas", force: :cascade do |t|
     t.bigint "tipo_factura_id"
     t.integer "secuencia"
@@ -958,6 +1003,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
     t.datetime "updated_at", null: false
     t.date "fecha_equivalente"
     t.datetime "fecha_anulacion"
+    t.date "fecha_update"
     t.index ["cuenta_bancaria_destino_id"], name: "index_transferencias_on_cuenta_bancaria_destino_id"
     t.index ["cuenta_bancaria_origen_id"], name: "index_transferencias_on_cuenta_bancaria_origen_id"
     t.index ["divisa_id"], name: "index_transferencias_on_divisa_id"
@@ -1041,6 +1087,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
   add_foreign_key "categorias_entidades_contables", "configuraciones_entidades_cuentas"
   add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
   add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_control_id"
+  add_foreign_key "cheques", "cuentas_bancarias"
+  add_foreign_key "cheques", "divisas"
+  add_foreign_key "cheques", "users", column: "last_user_update_id"
+  add_foreign_key "cheques", "users", column: "user_anulador_id"
+  add_foreign_key "cheques", "users", column: "user_creador_id"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
   add_foreign_key "cierre_cuentas", "cuentas_contables"
@@ -1064,6 +1115,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_21_130114) do
   add_foreign_key "depositos", "users", column: "last_user_update_id"
   add_foreign_key "depositos", "users", column: "user_anulador_id"
   add_foreign_key "depositos", "users", column: "user_creador_id"
+  add_foreign_key "detalle_cheques", "cheques"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"

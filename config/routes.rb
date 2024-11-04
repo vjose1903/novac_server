@@ -31,6 +31,7 @@ Rails.application.routes.draw do
   resources :configuraciones_entidades_cuentas
 
   resources :tipo_cuentas_bancarias
+  resources :cheques
 
 	get "ruta/test"              => "application#testFunction"
 

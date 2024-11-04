@@ -135,7 +135,7 @@ class Transferencia < ApplicationRecord
     self.monto_local    = self.monto.to_f * current_tasa.valor
 
     if ( self.tasa.nil? || !self.tasa.present? ) || ( self.monto_local.nil? || !self.monto_local.present? )
-      res.add_msg("Error agregando la tasa de cambio de la divisa para esta transferencia, favor llamar a Victor J. Vásquez")
+      res.add_msg("Error agregando la tasa de cambio de la divisa para esta transferencia, Por favor comunicarse con el soporte de Novac System.")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

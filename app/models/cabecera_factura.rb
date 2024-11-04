@@ -534,7 +534,7 @@ class CabeceraFactura < ApplicationRecord
       res.set_data({canUpdate: true}) unless msg_.nil?
       res.add_msg(msg_) unless msg_.nil?
     else
-      res.add_msg('No se encuentra la factura a editar, contactar a Victor José Vásquez.')
+      res.add_msg('No se encuentra la factura a editar, Por favor comunicarse con el soporte de Novac System.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

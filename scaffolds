@@ -217,7 +217,9 @@ rails g model pago_factura_detalle pago_factura:references cabecera_factura:refe
 
 ✅ rails g scaffold nombre_banco nombre:string
 
-rails g scaffold secuencia_documento origen_secuencia:references{polymorphic} secuencia:integer
+✅ rails g scaffold secuencia_documento origen_secuencia:references{polymorphic} secuencia:integer
+rails g scaffold cheque cuenta_bancaria:references tasa:float monto:float monto_local:float balance:float comentario:string fecha_equivalente:datetime user_creador:references last_user_update:references fecha_update:date user_anulador:references fecha_anulacion:date secuencia:integer estado:string
+rails g model detalle_cheque cheque:references comentario:string tasa:float monto:float monto_local:float
 
 // rails g migration addHasCuentaIndividualToConfingCuenta
 // rails g migration addFechaPrimeraConciliacionToCuentaBancaria

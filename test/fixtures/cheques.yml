@@ -1,0 +1,33 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cuenta_bancaria: one
+  tasa: 1.5
+  monto: 1.5
+  monto_local: 1.5
+  balance: 1.5
+  comentario: MyString
+  fecha_equivalente: 2024-11-04 14:21:16
+  user_creador: one
+  last_user_update: one
+  fecha_update: 2024-11-04
+  user_anulador: one
+  fecha_anulacion: 2024-11-04
+  secuencia: 1
+  estado: MyString
+
+two:
+  cuenta_bancaria: two
+  tasa: 1.5
+  monto: 1.5
+  monto_local: 1.5
+  balance: 1.5
+  comentario: MyString
+  fecha_equivalente: 2024-11-04 14:21:16
+  user_creador: two
+  last_user_update: two
+  fecha_update: 2024-11-04
+  user_anulador: two
+  fecha_anulacion: 2024-11-04
+  secuencia: 1
+  estado: MyString
