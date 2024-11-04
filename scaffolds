@@ -217,6 +217,8 @@ rails g model pago_factura_detalle pago_factura:references cabecera_factura:refe
 
 ✅ rails g scaffold nombre_banco nombre:string
 
+rails g scaffold secuencia_documento origen_secuencia:references{polymorphic} secuencia:integer
+
 // rails g migration addHasCuentaIndividualToConfingCuenta
 // rails g migration addFechaPrimeraConciliacionToCuentaBancaria
 // rails g migration changeRncBancoToNullable
@@ -224,5 +226,7 @@ rails g model pago_factura_detalle pago_factura:references cabecera_factura:refe
 // rails g migration change_fecha_equivalente_type_transferencias
 // rails g migration addCodigoToCabezaAsientoContable
 // rails g migration addHasChequeaToCuentaBancaria
+// rails g migration addFechaUpdateToTransferencia
+
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------

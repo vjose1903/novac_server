@@ -5,7 +5,7 @@ require 'json'
 
 class Response
 
-  def initialize(pagination_options=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil)
+  def initialize(pagination_options=nil, status_=HTTP_STATUS.ok, data=nil,  msg_=[], parametros_opcionales=nil)
 
     @paginate_class          = Paginator.new(pagination_options)
     @res                     = { status: status_, data: data,  msg: msg_ }
@@ -19,7 +19,7 @@ class Response
   end
 
   def status_valid
-    @res[:status]            == HTTP_STATUS_CODE[:ok]
+    @res[:status]            == HTTP_STATUS.ok
   end
 
   def set_data(data, parametros_opcionales=nil, models_includes=nil)
@@ -57,6 +57,15 @@ class Response
 
   def get_msgs
     @res[:msg]
+  end
+
+  def manage_error_transaction(entity, http_status=HTTP_STATUS.conflict)
+    if !entity.errors.empty? || !self.status_valid
+      self.add_msgs(entity.errors.to_a)
+      self.set_status(http_status)
+
+      transaction_rollback
+    end
   end
 
   def send_response(controller)
@@ -164,7 +173,7 @@ def set_entidad(modelo, params, models_includes= nil, key='id')
   unless entidad.empty?
     res.set_data(entidad.first)
   else
-    res.set_status(HTTP_STATUS_CODE[:not_found])
+    res.set_status(HTTP_STATUS.not_found)
     res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", otro_valor:""))
   end
 
@@ -202,18 +211,28 @@ def traducir(key, others=nil)
   return texto_traducido.join(" ")
 end
 
+
+
 # ---------------------------------------------------------------------------------------------------------
 
 def borrar_entidad(obj)
   res  = Response.new
   data = { deleted: false, disabled: false }.with_indifferent_access
+
+  tipo       = get_typeof(obj, :estado)
+  is_boolean = tipo == :boolean
+  is_string  = tipo == :string
+
+
   begin
     obj.destroy
     data[:deleted] = true
   rescue => exception
-    obj.estado = false
+    obj.estado = false         if is_boolean
+    obj.estado = STATUS.delete if is_string
+
     unless obj.save!
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
       res.add_msg("Error borrando #{obj.model_name.element}.")
       return res
     end
@@ -222,6 +241,21 @@ def borrar_entidad(obj)
   res.set_data(data)
   res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
   return res
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def get_typeof(model_or_instance, attribute_name)
+  # Si es una instancia de ActiveRecord, obtén la clase
+  model = model_or_instance.is_a?(Class) ? model_or_instance : model_or_instance.class
+
+  # Verifica si el modelo responde al atributo solicitado
+  if model.column_names.include?(attribute_name.to_s)
+    # Obtiene el tipo de dato del atributo
+    model.type_for_attribute(attribute_name.to_s).type
+  else
+    raise ArgumentError, "El atributo '#{attribute_name}' no existe en el modelo '#{model.name}'"
+  end
 end
 
 # ---------------------------------------------------------------------------------------------------------
@@ -314,7 +348,7 @@ def updateSecuencias(tipo_secuencia_id)
 
     unless secuenciaBackend.save!
       res.add_msg('Error actualizando la secuencia.')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
     end
 
     return res
@@ -331,7 +365,7 @@ end
 def crear_actualizar_dependencias(dependencias, parametros, save)
   dependencias.each do | dependencia |
 		unless parametros[dependencia[:key_object]].nil?
-			items = parametros[dependencia[:key_object]].kind_of?(Array) ? parametros[dependencia[:key_object]] : [**parametros[dependencia[:key_object]]]
+			items = parametros[dependencia[:key_object]].kind_of?(Array) ? parametros[dependencia[:key_object]] : [ **parametros[ dependencia[:key_object] ] ]
 
 			if !items.nil? && !items.empty?
 				res_dependencia = dependencia[:modelo].validar_e_inicializar(items, dependencia[:padre], save)
@@ -348,6 +382,21 @@ def crear_actualizar_dependencias(dependencias, parametros, save)
   end
 
   return Response.new
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def fetch_related_object(record, prefix)
+  key_type = "#{prefix}_type"
+  key_id   = "#{prefix}_id"
+
+  # Verificar que el registro contenga los campos polimórficos especificados
+  unless record.respond_to?(key_type) && record.respond_to?(key_id)
+    raise ArgumentError, "The record does not have the specified polymorphic association keys with prefix '#{prefix}'"
+  end
+
+  # Obtener el tipo y el ID y devolver el objeto relacionado
+  record.send(key_type).constantize.find(record.send(key_id))
 end
 
 # ---------------------------------------------------------------------------------------------------------

@@ -51,12 +51,12 @@ class CabeceraConduce < ApplicationRecord
 
         else
           res.add_msgs(result.get_msgs.to_a)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
+          res.set_status(HTTP_STATUS.conflict)
         end
 
       else
         res.add_msgs(conduce.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
 
       transaction_rollback if !conduce.errors.empty? || !res.status_valid
@@ -78,7 +78,7 @@ class CabeceraConduce < ApplicationRecord
 		else
 			cantidad_registros = CabeceraConduce.where({estado: true}).count
 			res.add_msg(cantidad_registros == 0 ? "No existen conduces de mercancías registrados." : "No existen conduces con las especificaciones introducidas.")
-			res.set_status(HTTP_STATUS_CODE[:conflict])
+			res.set_status(HTTP_STATUS.conflict)
 		end
 
 		return res
@@ -99,11 +99,11 @@ class CabeceraConduce < ApplicationRecord
 					res.add_msg(msg)
 				else
 					res.add_msgs(conduce_a_anular.errors.to_a)
-					res.set_status(HTTP_STATUS_CODE[:conflict])
+					res.set_status(HTTP_STATUS.conflict)
 				end
 			else
 				res.add_msgs(res_valid.get_msgs.to_a)
-				res.set_status(HTTP_STATUS_CODE[:conflict])
+				res.set_status(HTTP_STATUS.conflict)
 			end
 
 			transaction_rollback unless res.status_valid

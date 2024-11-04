@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  origen_secuencia: one
+  origen_secuencia_type: Origen secuencia
+  secuencia: 1
+
+two:
+  origen_secuencia: two
+  origen_secuencia_type: Origen secuencia
+  secuencia: 1

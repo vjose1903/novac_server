@@ -61,6 +61,7 @@ class Transferencia < ApplicationRecord
         transferencia.divisa_id                   = params[:divisa_id]
         transferencia.user_creador_id             = get_current_user[:id] if (params[:id].nil?  || !params.has_key?(:id)) && transferencia.id.nil?
         transferencia.last_user_update_id         = get_current_user[:id] if (!params[:id].nil? || params.has_key?(:id)) && !transferencia.id.nil?
+        transferencia.fecha_update                = DateTime.now if (!params[:id].nil? || params.has_key?(:id)) && !transferencia.id.nil? && !transferencia.last_user_update_id.nil?
         transferencia.monto                       = params[:monto]
         transferencia.comentario                  = params[:comentario]
         transferencia.nombre_banco_tercero        = params[:nombre_banco_tercero]

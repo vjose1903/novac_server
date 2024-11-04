@@ -6,6 +6,40 @@ IMAGES_PATH      = File.join Rails.root, "public/img"
 ENCRIPT_SECRET   = "1234567890ABCDEF"
 HTTP_STATUS_CODE = Rack::Utils::SYMBOL_TO_STATUS_CODE
 
+module HTTP_STATUS
+  CONFLICT        = HTTP_STATUS_CODE[:conflict]
+  NOT_FOUND       = HTTP_STATUS_CODE[:not_found]
+  OK              = HTTP_STATUS_CODE[:ok]
+  INTERNAL_ERROR  = HTTP_STATUS_CODE[:internal_server_error]
+  UNAUTHORIZED    = HTTP_STATUS_CODE[:unauthorized]
+  M_NOT_ALLOWED   = HTTP_STATUS_CODE[:method_not_allowed]
+
+
+  def self.conflict
+    return CONFLICT
+  end
+
+  def self.not_found
+    return NOT_FOUND
+  end
+
+  def self.ok
+    return OK
+  end
+
+  def self.internal_error
+    return INTERNAL_ERROR
+  end
+
+  def self.unauthorized
+    return UNAUTHORIZED
+  end
+
+  def self.method_not_allowed
+    return M_NOT_ALLOWED
+  end
+
+end
 
 DIAS             = ["Lunes", "Martes", "Miercoles", "Jueves",  "Viernes", "Sabado", "Domingo"]
 
@@ -254,10 +288,57 @@ module OperadoresMovimiento
   def self.return_tipo(tipo)
     return tipo == ENTRADA_OPERADOR ? ENTRADA : SALIDA
   end
+end
 
+# modulo status ==========================================
+module STATUS
+  ACTIVE        = 'active'
+  DISABLE       = 'disable'
+  DELETE        = 'delete'
+  PENDING       = 'pending'
+  COMPLETE      = 'complete'
+  APPROVED      = 'approved'
+  DISAPPROVED   = 'disapproved'
 
+  def self.active
+    return ACTIVE
+  end
+
+  def self.disable
+    return DISABLE
+  end
+
+  def self.delete
+    return DELETE
+  end
+
+  def self.pending
+    return PENDING
+  end
+
+  def self.complete
+    return COMPLETE
+  end
+
+  def self.approved
+    return APPROVED
+  end
+
+  def self.disapproved
+    return DISAPPROVED
+  end
+
+  def self.is_active(status)
+    return status == self.active
+  end
+
+  def self.is_delete(status)
+    return status == self.delete
+  end
 
 end
+
+STATUS_VALIDOS = [ STATUS.active, STATUS.disable, STATUS.delete, STATUS.pending, STATUS.complete, STATUS.approved, STATUS.disapproved ]
 
 
 
