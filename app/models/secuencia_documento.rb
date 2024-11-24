@@ -2,10 +2,16 @@ class SecuenciaDocumento < ApplicationRecord
   belongs_to :origen_secuencia, polymorphic: true
 
 
+  def next_secuencia
+    object = self.dup
+    object.secuencia += 1
+  end
+  # =========================================================================================================================================================
+
   def self.manage_secuencia(params, origin, is_save = false)
     res       = Response.new
-    Shared::IdentityDocument.transaction do
-      secuencia_documento                           = Shared::IdentityDocument.find_or_create_by(id: params[:id])
+    SecuenciaDocumento.transaction do
+      secuencia_documento                           = SecuenciaDocumento.find_or_create_by(id: params[:id])
 
       secuencia_documento.secuencia                  = params[:secuencia]                 if params.obj_has?(:secuencia)
       secuencia_documento.origen_secuencia           = origin                             unless is_empty?(origin)
@@ -17,6 +23,21 @@ class SecuenciaDocumento < ApplicationRecord
       end
 
       res.manage_error_transaction(secuencia_documento)
+    end
+
+    return res
+  end
+
+  # =========================================================================================================================================================
+
+  def aumentar_secuencia
+    res               = Response.new
+
+    SecuenciaDocumento.transaction do
+      self.secuencia = self.next_secuencia
+      self.valid?
+
+      res.manage_error_transaction(self)
     end
 
     return res

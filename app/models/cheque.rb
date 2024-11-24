@@ -26,23 +26,24 @@ class Cheque < ApplicationRecord
     Cheque.transaction do
 
       cuenta_bancaria   = CuentaBancaria.find_by_id(params[:cuenta_bancaria_id])
-      # TODO: agregar funcion para buscar la secuencia, y agregar la secuencia en las cuentas bancarias que tienen chequera
 
+      puts "params ".red + " #{params}"
       unless cuenta_bancaria.nil? || !cuenta_bancaria.estado
 
-        cheque          = Cheque.find_or_create_by(id: params[:id])
+        cheque                          = Cheque.find_or_create_by(id: params[:id])
 
-        cheque.user_creador_id          = get_current_user[:id] if (params[:id].nil?  || !params.has_key?(:id)) && cheque.id.nil?
-        cheque.last_user_update_id      = get_current_user[:id] if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil?
-        cheque.fecha_update             = DateTime.now if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil? && !cheque.last_user_update_id.nil?
-        cheque.cuenta_bancaria_id       = params[:cuenta_bancaria_id]
-        cheque.divisa_id                = params[:divisa_id]
-        cheque.monto                    = params[:monto]
-        cheque.balance                  = params[:balance]
-        cheque.comentario               = params[:comentario]
-        cheque.fecha_equivalente        = params[:fecha_equivalente]
+        cheque.user_creador_id          = get_current_user[:id]                              if (params[:id].nil?  || !params.has_key?(:id)) && cheque.id.nil?
+        cheque.last_user_update_id      = get_current_user[:id]                              if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil?
+        cheque.fecha_update             = DateTime.now                                       if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil? && !cheque.last_user_update_id.nil?
+        cheque.cuenta_bancaria_id       = params[:cuenta_bancaria_id]                        if params.obj_has?(:cuenta_bancaria_id)
+        cheque.divisa_id                = params[:divisa_id]                                 if params.obj_has?(:divisa_id)
+        cheque.monto                    = params[:monto]                                     if params.obj_has?(:monto)
+        cheque.balance                  = params[:balance]                                   if params.obj_has?(:balance)
+        cheque.comentario               = params[:comentario]                                if params.obj_has?(:comentario)
+        cheque.fecha_equivalente        = params[:fecha_equivalente]                         if params.obj_has?(:fecha_equivalente)
+        cheque.secuencia                = cuenta_bancaria.secuencia_documento.next_secuencia if params[:id].nil? && cheque.id.nil?
         cheque.valid?
-        result_tasa                       = cheque.calculate_and_set_tasa
+        result_tasa                     = cheque.calculate_and_set_tasa
 
         # cheque.otras_validaciones(params)
 
@@ -53,20 +54,21 @@ class Cheque < ApplicationRecord
           res.add_msg("Depósito #{action} correctamente.")
         end
 
-        if !cheque.errors.empty? || !result_tasa.status_valid
+
+        unless result_tasa.status_valid
           res.add_msgs(result_tasa.get_msgs.to_a)
-          res.add_msgs(cheque.errors.to_a)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
+          res.set_status(HTTP_STATUS.conflict)
         end
 
-        transaction_rollback if !cheque.errors.empty? || !res.status_valid
+        res.manage_error_transaction(cheque)
 
+        transaction_rollback
       else
 
         res.add_msg("La cuenta bancaria que seleccionó para crear este depósito, no existe")          if cuenta_bancaria.nil?
         res.add_msg("La cuenta bancaria que seleccionó para crear este depósito, está deshabilitada.") if !cuenta_bancaria.nil? && !cuenta_bancaria.estado
 
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
 
     end
@@ -86,7 +88,7 @@ class Cheque < ApplicationRecord
 
     if ( self.tasa.nil? || !self.tasa.present? ) || ( self.monto_local.nil? || !self.monto_local.present? )
       res.add_msg("Error agregando la tasa de cambio de la divisa para este cheque, Por favor comunicarse con el soporte de Novac System.")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
     end
 
     return res

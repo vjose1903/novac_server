@@ -5,6 +5,8 @@ class CuentaBancaria < ApplicationRecord
   belongs_to :cuenta_contable,           dependent: :destroy
   belongs_to :cuenta_contable_prima,     dependent: :destroy, class_name: 'CuentaContable', optional: true
 
+  has_one    :secuencia_documento,       dependent: :destroy, class_name: 'SecuenciaDocumento', :as => :origen_secuencia
+
   validates :banco,                  presence: { :message => "Debe de seleccionar el banco al cual agregar la cuenta." }
   validates :tipo_cuenta_bancaria,   presence: { :message => "Debe de seleccionar el tipo de cuenta de la cuenta." }
   validates :divisa,                 presence: { :message => "Debe de seleccionar la divisa de la cuenta." }
@@ -40,17 +42,18 @@ class CuentaBancaria < ApplicationRecord
         cuenta_bancaria                            = CuentaBancaria.where(:id => params[:id]).first_or_create
         cuenta_bancaria_original                   = cuenta_bancaria.attributes.with_indifferent_access if params.obj_has?(:id)
 
-        cuenta_bancaria.banco_id                   = params[:banco_id]
-        cuenta_bancaria.tipo_cuenta_bancaria_id    = params[:tipo_cuenta_bancaria_id]
-        cuenta_bancaria.divisa_id                  = params[:divisa_id]
-        cuenta_bancaria.fecha_apertura             = params[:fecha_apertura]
-        cuenta_bancaria.numero_cuenta              = params[:numero_cuenta]
-        cuenta_bancaria.balance_inicial_libro      = params[:balance_inicial_libro] if params.obj_has?(:balance_inicial_libro) && !params[:balance_inicial_libro].nil?
-        cuenta_bancaria.balance_inicial_banco      = params[:balance_inicial_banco] if params.obj_has?(:balance_inicial_banco) && !params[:balance_inicial_banco].nil?
-        cuenta_bancaria.comentario                 = params[:comentario]
-        cuenta_bancaria.descripcion                = params[:descripcion]
-        cuenta_bancaria.has_chequera               = params[:has_chequera]
-        cuenta_bancaria.fecha_primera_conciliacion = params[:fecha_primera_conciliacion]
+        cuenta_bancaria.banco_id                   = params[:banco_id]                    if params.obj_has?(:banco_id)
+        cuenta_bancaria.tipo_cuenta_bancaria_id    = params[:tipo_cuenta_bancaria_id]     if params.obj_has?(:tipo_cuenta_bancaria_id)
+        cuenta_bancaria.divisa_id                  = params[:divisa_id]                   if params.obj_has?(:divisa_id)
+        cuenta_bancaria.fecha_apertura             = params[:fecha_apertura]              if params.obj_has?(:fecha_apertura)
+        cuenta_bancaria.numero_cuenta              = params[:numero_cuenta]               if params.obj_has?(:numero_cuenta)
+        cuenta_bancaria.balance_inicial_libro      = params[:balance_inicial_libro]       if params.obj_has?(:balance_inicial_libro)
+        cuenta_bancaria.balance_inicial_banco      = params[:balance_inicial_banco]       if params.obj_has?(:balance_inicial_banco)
+        cuenta_bancaria.comentario                 = params[:comentario]                  if params.obj_has?(:comentario)
+        cuenta_bancaria.descripcion                = params[:descripcion]                 if params.obj_has?(:descripcion)
+        cuenta_bancaria.has_chequera               = params[:has_chequera]                if params.obj_has?(:has_chequera)
+        # TODO: agregar la secuencia en las cuentas bancarias que tienen chequera         if params.obj_has?(:divisa_id)
+        cuenta_bancaria.fecha_primera_conciliacion = params[:fecha_primera_conciliacion]  if params.obj_has?(:fecha_primera_conciliacion)
 
 
         result_procesos                            = cuenta_bancaria.procesos_crear_cuenta(banco)  unless params.obj_has?(:id)
@@ -60,13 +63,26 @@ class CuentaBancaria < ApplicationRecord
 
         cuenta_bancaria.errors.delete(:banco) if !is_save
 
-        if result_procesos.status_valid && cuenta_bancaria.errors.empty? && (!is_save || (is_save && cuenta_bancaria.save!))
-          res.set_data(cuenta_bancaria)
-        else
-          res.add_msgs(result_procesos.get_msgs.to_a)
-          res.add_msgs(cuenta_bancaria.errors.to_a)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
+        if result_procesos.status_valid && cuenta_bancaria.errors.empty?
+
+          # TODO: continuar aquii...
+          dependencies = [
+            { model: SecuenciaDocumento,         key_object: "secuencia_documento",           origin: cuenta_bancaria },
+          ]
+
+          res = manage_entity_dependency(dependencies, params) { | key_object, dependency_data |
+            user.secuencia_documento             = dependency_data if key_object == 'secuencia_documento'
+          }
+
+          if res.status_valid && (!is_save || (is_save && cuenta_bancaria.save!))
+            res.set_data(cuenta_bancaria)
+          else
+            res.add_msgs(result_procesos.get_msgs.to_a)
+            res.add_msgs(cuenta_bancaria.errors.to_a)
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+          end
         end
+
 
       end
 

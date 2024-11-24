@@ -1,7 +1,7 @@
 class Cliente < ApplicationRecord
-  has_many    :documentos_de_identidad,    :as => :origen,         dependent: :destroy, class_name: 'DocumentoDeIdentidad'
-  has_many    :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
-  has_many    :imagenes,                   :as => :origen_img,     dependent: :destroy, class_name: 'Imagen'
+  has_many    :documentos_de_identidad,    :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
+  has_many    :entidad_cuentas_contables,  :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
+  has_many    :imagenes,                   :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
 
   validates :nombre,              presence: { :message => 'Nombre del cliente no puede estar vacio.' },         uniqueness: { scope: [:estado, :apellido], case_sensitive: false, :message => 'Cliente ya está registrado' }, :if => :estado
   validates :apellido,            presence: { :message => 'Apellido del cliente no puede estar vacio.' }

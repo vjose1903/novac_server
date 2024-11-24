@@ -1,5 +1,5 @@
 class SecuenciaDocumentosController < ApplicationController
-  before_action :set_secuencia_documento, only: %i[ show update ]
+  before_action :set_secuencia_documento, only: %i[ show update aumentar_secuencia ]
   before_action :get_origin_secuencia, only: %i[ update ]
 
   # GET /secuencia_documentos
