@@ -53,7 +53,7 @@ class RecibosIngreso < ApplicationRecord
 
       devoluciones = []
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
         recibo.detalle_recibos   = dependencia_data[:detalles]      if key_object == 'detalle_recibos'
         devoluciones             = dependencia_data[:devoluciones]  if key_object == 'detalle_recibos'
         recibo.incidencias       = dependencia_data                 if key_object == 'incidencias'

@@ -110,7 +110,7 @@ class User < ApplicationRecord
         dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }) if @has_contabilidad
 
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
+        res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
           user.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
           user.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
         }

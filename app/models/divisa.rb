@@ -31,7 +31,7 @@ class Divisa < ApplicationRecord
       if divisa.errors.empty?
         dependencias              = [{ modelo: Imagen, key_object: 'imagenes', padre: divisa }]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+        res = crear_actualizar_dependencias(dependencias, params) { | key_object, dependencia_data |
           divisa.imagenes         = dependencia_data if key_object == 'imagenes'
         }
 

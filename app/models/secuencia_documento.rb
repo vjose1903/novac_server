@@ -17,6 +17,7 @@ class SecuenciaDocumento < ApplicationRecord
       secuencia_documento.origen_secuencia           = origin                             unless is_empty?(origin)
 
       secuencia_documento.valid?
+      secuencia_documento.errors.delete(:origen_secuencia) if !is_save
 
       if secuencia_documento.errors.empty? && (!is_save || (is_save && secuencia_documento.save!))
         res.set_data(secuencia_documento)
@@ -52,18 +53,8 @@ class SecuenciaDocumento < ApplicationRecord
 
   # =========================================================================================================================================================
   def self.validar_e_inicializar(items, origin)
-    res_valid = Response.new
-    array_valid=[]
-
-    items.each do |item|
-      res_temp = self.manage_secuencia(item, origin, !item[:id].nil?)
-      if res_temp.status_valid
-        array_valid.push(res_temp.get_data)
-      else
-        return res_temp
-      end
-      res_valid.set_data array_valid
-    end
-    return res_valid
+    item = items[0]
+    res  = manage_secuencia(item, origin, !item[:id].nil?)
+    return res
   end
 end

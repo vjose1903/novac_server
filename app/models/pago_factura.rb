@@ -41,7 +41,7 @@ class PagoFactura < ApplicationRecord
 
       dependencias = [ {modelo: PagoFacturaDetalle,  key_object: 'pago_factura_detalles',  padre: pago} ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
         pago.pago_factura_detalles = dependencia_data      if key_object == 'pago_factura_detalles'
       }
 

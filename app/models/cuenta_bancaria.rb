@@ -52,7 +52,6 @@ class CuentaBancaria < ApplicationRecord
         cuenta_bancaria.comentario                 = params[:comentario]                  if params.obj_has?(:comentario)
         cuenta_bancaria.descripcion                = params[:descripcion]                 if params.obj_has?(:descripcion)
         cuenta_bancaria.has_chequera               = params[:has_chequera]                if params.obj_has?(:has_chequera)
-        # TODO: agregar la secuencia en las cuentas bancarias que tienen chequera         if params.obj_has?(:divisa_id)
         cuenta_bancaria.fecha_primera_conciliacion = params[:fecha_primera_conciliacion]  if params.obj_has?(:fecha_primera_conciliacion)
 
 
@@ -65,25 +64,27 @@ class CuentaBancaria < ApplicationRecord
 
         if result_procesos.status_valid && cuenta_bancaria.errors.empty?
 
-          # TODO: continuar aquii...
+          params[:secuencia_documento] = {} if cuenta_bancaria.has_chequera && cuenta_bancaria.secuencia_documento.nil?
+
           dependencies = [
-            { model: SecuenciaDocumento,         key_object: "secuencia_documento",           origin: cuenta_bancaria },
+            { modelo: SecuenciaDocumento,         key_object: "secuencia_documento",           origin: cuenta_bancaria }
           ]
 
-          res = manage_entity_dependency(dependencies, params) { | key_object, dependency_data |
-            user.secuencia_documento             = dependency_data if key_object == 'secuencia_documento'
+          res = crear_actualizar_dependencias(dependencies, params) { | key_object, dependency_data |
+            cuenta_bancaria.secuencia_documento    = dependency_data if key_object == 'secuencia_documento'
           }
 
           if res.status_valid && (!is_save || (is_save && cuenta_bancaria.save!))
             res.set_data(cuenta_bancaria)
-          else
-            res.add_msgs(result_procesos.get_msgs.to_a)
-            res.add_msgs(cuenta_bancaria.errors.to_a)
-            res.set_status(HTTP_STATUS_CODE[:conflict])
           end
         end
 
+        unless result_procesos.status_valid
+          res.add_msgs(result_procesos.get_msgs.to_a)
+          res.set_status(HTTP_STATUS.conflict)
+        end
 
+        res.manage_error_transaction(cuenta_bancaria)
       end
 
     else
@@ -154,7 +155,7 @@ class CuentaBancaria < ApplicationRecord
   end
   # ============================================================================================================================================
 
-  def self.validar_e_inicializar(items, padre, save)
+  def self.validar_e_inicializar(items, padre)
     res_valid   = Response.new
     array_valid = []
 

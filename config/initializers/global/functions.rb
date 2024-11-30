@@ -59,7 +59,7 @@ class Response
     @res[:msg]
   end
 
-  def manage_error_transaction(entities, http_status=HTTP_STATUS.conflict)
+  def manage_error_transaction(entity, http_status=HTTP_STATUS.conflict)
     if !entity.errors.empty? || !self.status_valid
       self.set_status(http_status)
       self.add_msgs(entity.errors.to_a)
@@ -362,13 +362,13 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 
-def crear_actualizar_dependencias(dependencias, parametros, save)
+def crear_actualizar_dependencias(dependencias, parametros)
   dependencias.each do | dependencia |
 		unless parametros[dependencia[:key_object]].nil?
 			items = parametros[dependencia[:key_object]].kind_of?(Array) ? parametros[dependencia[:key_object]] : [ parametros[dependencia[:key_object]] ]
 
-			if !items.nil? && !items.empty?
-				res_dependencia = dependencia[:modelo].validar_e_inicializar(items, dependencia[:padre], save)
+      unless isEmpty?(items)
+				res_dependencia = dependencia[:modelo].validar_e_inicializar(items, dependencia[:padre])
 
 				if res_dependencia.status_valid
 					yield dependencia[:key_object], res_dependencia.get_data if block_given?

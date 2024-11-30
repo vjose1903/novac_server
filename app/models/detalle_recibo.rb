@@ -93,7 +93,7 @@ class DetalleRecibo < ApplicationRecord
 
   #  --------------------------------------------------------------------------------------------------------------------------------
 
-  def self.validar_e_inicializar(items, padre, save)
+  def self.validar_e_inicializar(items, padre)
     res_valid       = Response.new
     object_valid    = {:detalles => [], :devoluciones => []}
 

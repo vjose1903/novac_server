@@ -110,7 +110,7 @@ class Articulo < ApplicationRecord
           { modelo: Imagen,                     key_object: 'imagenes',                      padre: articulo }
         ]
 
-        res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+        res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
           articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
           articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
           articulo.entidad_cuentas_contables       = dependencia_data if key_object == 'entidad_cuentas_contables'

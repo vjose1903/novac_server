@@ -121,7 +121,7 @@ class CabeceraFactura < ApplicationRecord
               { modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: cabecera_factura },
             ]
 
-            res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+            res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
               cabecera_factura.detalle_facturas   = dependencia_data if key_object == 'detalle_facturas'
               cabecera_factura.movimientos_viaje  = dependencia_data if key_object == 'movimientos_viaje'
             }
@@ -616,7 +616,7 @@ class CabeceraFactura < ApplicationRecord
 
       dependencias                 = [ { modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: factura } ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
         factura.movimientos_viaje  = dependencia_data if key_object == 'movimientos_viaje'
       }
 

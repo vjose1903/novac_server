@@ -56,7 +56,7 @@ end
 
 # ============================================================================================================================================
 
-def self.validar_e_inicializar(items, grupo_cuenta, save)
+def self.validar_e_inicializar(items, grupo_cuenta)
   res_valid   = Response.new
   array_valid = []
 

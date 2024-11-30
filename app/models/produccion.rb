@@ -20,7 +20,7 @@ class Produccion < ApplicationRecord
 
       dependencias = [ {modelo: DetalleProduccion, key_object: "detalles_produccion", padre: produccion} ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
         produccion.detalles_produccion    = dependencia_data if key_object == "detalles_produccion"
       }
 

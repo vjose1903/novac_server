@@ -36,7 +36,7 @@ class CabeceraConduce < ApplicationRecord
         {modelo: DetalleConduce, key_object: "detalle_conduces", padre: conduce},
       ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
         conduce.detalle_conduces   = dependencia_data if key_object == 'detalle_conduces'
       }
 

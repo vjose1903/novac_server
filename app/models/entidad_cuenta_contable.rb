@@ -134,12 +134,12 @@ class EntidadCuentaContable < ApplicationRecord
 
   # ============================================================================================================================================
 
-  def self.validar_e_inicializar(items, padre, save)
+  def self.validar_e_inicializar(items, padre)
     res_valid   = Response.new
     array_valid = []
 
     items.each do |item|
-      res_temp  = self.crear_actualizar_entidad_cuenta_contable(item, padre, save)
+      res_temp  = self.crear_actualizar_entidad_cuenta_contable(item, padre, !item[:id].nil?)
 
       if res_temp.status_valid
         array_valid.push(res_temp.get_data)

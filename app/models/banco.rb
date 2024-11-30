@@ -30,7 +30,7 @@ class Banco < ApplicationRecord
 
         dependencias = [{modelo: CuentaBancaria, key_object: "cuentas_bancarias", padre: banco }]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+        res = crear_actualizar_dependencias(dependencias, params) { | key_object, dependencia_data |
           banco.cuentas_bancarias = dependencia_data if key_object == 'cuentas_bancarias'
         }
 

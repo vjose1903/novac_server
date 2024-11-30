@@ -42,7 +42,7 @@ class Role < ApplicationRecord
       {modelo: RolPermisoAccion, key_object: "roles_permisos_acciones", padre: role},
     ]
 
-    res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+    res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
       role.roles_permisos_acciones   = dependencia_data if key_object == 'roles_permisos_acciones'
     }
 

@@ -65,7 +65,7 @@ class Nota < ApplicationRecord
 
               dependencias                  = [ {modelo: FacturaAplicada, key_object: 'facturas_aplicadas', padre: nota} ]
 
-              res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+              res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
                 nota.facturas_aplicadas     = dependencia_data if key_object == 'facturas_aplicadas'
               }
 

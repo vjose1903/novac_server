@@ -74,7 +74,7 @@ class CabezaAsientoContable < ApplicationRecord
 
           dependencias = [{modelo: DetalleAsientoContable, key_object: "detalles_asientos_contables", padre: cabeza_asiento_contable }]
 
-          res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+          res = crear_actualizar_dependencias(dependencias, params) { | key_object, dependencia_data |
             cabeza_asiento_contable.detalles_asientos_contables = dependencia_data if key_object == 'detalles_asientos_contables'
           }
 

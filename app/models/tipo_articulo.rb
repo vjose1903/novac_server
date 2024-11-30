@@ -58,7 +58,7 @@ class TipoArticulo < ApplicationRecord
 
         dependencias = [ { modelo: TipoArticuloCuentaContable,  key_object: 'tipo_articulo_cuentas_contables',   padre: tipo_articulo } ]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { | key_object, dependencia_data |
+        res = crear_actualizar_dependencias(dependencias, params) { | key_object, dependencia_data |
           tipo_articulo.tipo_articulo_cuentas_contables  = dependencia_data if key_object == 'tipo_articulo_cuentas_contables'
         }
 

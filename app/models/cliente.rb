@@ -86,7 +86,7 @@ class Cliente < ApplicationRecord
 
         dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: cliente }) if @has_contabilidad
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
+        res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
           cliente.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
           cliente.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
           cliente.imagenes                   = dependencia_data if key_object == 'imagenes'

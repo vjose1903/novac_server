@@ -32,7 +32,7 @@ class GrupoCuenta < ApplicationRecord
 
         dependencias = [{modelo: CuentaContable, key_object: "cuentas_contables", padre: grupo_cuenta }]
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
+        res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
           grupo_cuenta.cuentas_contables = dependencia_data if key_object == 'cuentas_contables'
         }
 
