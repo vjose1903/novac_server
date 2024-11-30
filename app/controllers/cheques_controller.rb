@@ -18,12 +18,12 @@ class ChequesController < ApplicationController
 
   # POST /cheques
   def create
-    manageCheques
+    manage_cheques
   end
 
   # PATCH/PUT /cheques/1
   def update
-    manageCheques
+    manage_cheques
   end
 
   # DELETE /cheques/1

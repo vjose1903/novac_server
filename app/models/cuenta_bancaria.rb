@@ -91,7 +91,7 @@ class CuentaBancaria < ApplicationRecord
 
       res.add_msg("El banco que seleccionó para crear esta cuanta, no existe.")         if banco.nil?
       res.add_msg("El banco que seleccionó para crear esta cuanta, está destabilisation.") if !banco.nil? && !banco.estado
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
     end
 
     return res

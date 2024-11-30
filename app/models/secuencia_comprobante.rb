@@ -23,7 +23,7 @@ class SecuenciaComprobante < ApplicationRecord
 
       if ncf.estado && params[:desde] != ncf.desde
         res.add_msg("Este paquete ya está en uso no puede cambiar el inicio del paquete.")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
 
       ncf.tipo_factura_id      = params[:tipo_factura_id]
@@ -52,7 +52,7 @@ class SecuenciaComprobante < ApplicationRecord
       if !ncf.errors.empty? || !res.status_valid || !res_valid.status_valid
         res.add_msgs(res_valid.get_msgs.to_a)
         res.add_msgs(ncf.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
 
       transaction_rollback if !ncf.errors.empty? || !res.status_valid
@@ -77,7 +77,7 @@ class SecuenciaComprobante < ApplicationRecord
         res.set_data([])
         cantidad_registros = SecuenciaComprobante.all.count
         res.add_msg(cantidad_registros == 0 ? "No existen paquetes de comprobantes registrados." : "No existe paquetes de comprobantes con las especificaciones introducidas")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
 
       return res
@@ -110,7 +110,7 @@ class SecuenciaComprobante < ApplicationRecord
         res.add_msg("No se han solicitado paquetes de comprobantes para #{tipoFac["descripcion"]}.")
       end
 
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
       return res
     else
       res.set_data(paquete.first)
@@ -131,7 +131,7 @@ class SecuenciaComprobante < ApplicationRecord
     unless paquete.blank?
       res.set_data(paquete.first)
     else
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
     end
 
     return res
@@ -151,7 +151,7 @@ class SecuenciaComprobante < ApplicationRecord
 
         unless newPac.update({ estado: true })
           res.add_msg("Error activando nuevo paquete de comprobantes.")
-          res.set_status(HTTP_STATUS_CODE[:conflict])
+          res.set_status(HTTP_STATUS.conflict)
         end
       end
 
@@ -159,7 +159,7 @@ class SecuenciaComprobante < ApplicationRecord
     else
       unless paquete.update({ secuencia: paquete[:secuencia] + 1 })
         res.add_msg("Error aumentando el paquete de comprobantes.")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
     end
 
@@ -180,7 +180,7 @@ class SecuenciaComprobante < ApplicationRecord
         res.set_data(newPac)
       else
         res.add_msg("Error activando el siguiente paquete de comprobantes registrado.")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
     end
 
@@ -193,7 +193,7 @@ class SecuenciaComprobante < ApplicationRecord
 
     paquete = SecuenciaComprobante.where("estado = false AND usado = true AND tipo_factura_id = #{tipo_factura_id}")
 
-    res.set_status(HTTP_STATUS_CODE[:conflict]) if paquete.blank?
+    res.set_status(HTTP_STATUS.conflict) if paquete.blank?
 
     return res
   end
@@ -209,7 +209,7 @@ class SecuenciaComprobante < ApplicationRecord
     unless paquete.blank?
       res.set_data(paquete.first)
     else
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
     end
 
     return res
@@ -232,7 +232,7 @@ class SecuenciaComprobante < ApplicationRecord
 
       if comparations[tipo]
         res.add_msg("Numeros introducidos existen en el paquete con el codigo ##{("%05d" % paquete.id)}.")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
         break
       end
     end

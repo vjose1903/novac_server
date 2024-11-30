@@ -2,6 +2,8 @@ class Cheque < ApplicationRecord
   belongs_to :cuenta_bancaria
   belongs_to :divisa
 
+  has_many   :detalle_cheques
+
   belongs_to :user_creador,       class_name: 'User', optional: false
   belongs_to :last_user_update,   class_name: 'User', optional: true
   belongs_to :user_anulador,      class_name: 'User', optional: true
@@ -27,33 +29,49 @@ class Cheque < ApplicationRecord
 
       cuenta_bancaria   = CuentaBancaria.find_by_id(params[:cuenta_bancaria_id])
 
-      puts "params ".red + " #{params}"
       unless cuenta_bancaria.nil? || !cuenta_bancaria.estado
 
         cheque                          = Cheque.find_or_create_by(id: params[:id])
 
-        cheque.user_creador_id          = get_current_user[:id]                              if (params[:id].nil?  || !params.has_key?(:id)) && cheque.id.nil?
-        cheque.last_user_update_id      = get_current_user[:id]                              if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil?
-        cheque.fecha_update             = DateTime.now                                       if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil? && !cheque.last_user_update_id.nil?
-        cheque.cuenta_bancaria_id       = params[:cuenta_bancaria_id]                        if params.obj_has?(:cuenta_bancaria_id)
-        cheque.divisa_id                = params[:divisa_id]                                 if params.obj_has?(:divisa_id)
-        cheque.monto                    = params[:monto]                                     if params.obj_has?(:monto)
-        cheque.balance                  = params[:balance]                                   if params.obj_has?(:balance)
-        cheque.comentario               = params[:comentario]                                if params.obj_has?(:comentario)
-        cheque.fecha_equivalente        = params[:fecha_equivalente]                         if params.obj_has?(:fecha_equivalente)
-        cheque.secuencia                = cuenta_bancaria.secuencia_documento.next_secuencia if params[:id].nil? && cheque.id.nil?
-        cheque.valid?
+        cheque.user_creador_id          = get_current_user[:id]                          if (params[:id].nil?  || !params.has_key?(:id)) && cheque.id.nil?
+        cheque.last_user_update_id      = get_current_user[:id]                          if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil?
+        cheque.fecha_update             = DateTime.now                                   if (!params[:id].nil? || params.has_key?(:id)) && !cheque.id.nil? && !cheque.last_user_update_id.nil?
+        cheque.cuenta_bancaria_id       = params[:cuenta_bancaria_id]                    if params.obj_has?(:cuenta_bancaria_id)
+        cheque.divisa_id                = params[:divisa_id]                             if params.obj_has?(:divisa_id)
+        cheque.monto                    = params[:monto]                                 if params.obj_has?(:monto)
+        cheque.balance                  = params[:balance]                               if params.obj_has?(:balance)
+        cheque.comentario               = params[:comentario]                            if params.obj_has?(:comentario)
+        cheque.fecha_equivalente        = params[:fecha_equivalente]                     if params.obj_has?(:fecha_equivalente)
+        cheque.secuencia                = cuenta_bancaria.secuencia_documento.secuencia  if params[:id].nil? && cheque.id.nil?
         result_tasa                     = cheque.calculate_and_set_tasa
 
-        # cheque.otras_validaciones(params)
+        cheque.valid?
 
-        if result_tasa.status_valid && cheque.errors.empty? && cheque.save!
-          res.set_data( cheque )
 
-          action = params[:id] ? 'actualizado' : 'creado'
-          res.add_msg("Depósito #{action} correctamente.")
+        if result_tasa.status_valid && cheque.errors.empty?
+
+          dependencies = [
+            { modelo: DetalleCheque,         key_object: "detalle_cheques",           origin: cheque }
+          ]
+
+          res = crear_actualizar_dependencias(dependencies, params) { | key_object, dependency_data |
+            cheque.detalle_cheques      = dependency_data if key_object == 'detalle_cheques'
+          }
+
+          if res.status_valid && cheque.save!
+
+            result_procesos                        = cheque.procesos
+
+            if result_procesos.status_valid
+              res.set_data( cheque )
+              action = params[:id] ? 'actualizado' : 'creado'
+              res.add_msg("Cheque #{action} correctamente.")
+            else
+              res.add_msgs(result_procesos.get_msgs.to_a)
+              res.set_status(HTTP_STATUS.conflict)
+            end
+          end
         end
-
 
         unless result_tasa.status_valid
           res.add_msgs(result_tasa.get_msgs.to_a)
@@ -72,6 +90,14 @@ class Cheque < ApplicationRecord
       end
 
     end
+
+    return res
+  end
+
+  # =========================================================================================================================================================
+
+  def procesos
+    res = self.cuenta_bancaria.secuencia_documento.aumentar_secuencia
 
     return res
   end

@@ -38,7 +38,10 @@ class SecuenciaDocumento < ApplicationRecord
       self.secuencia = self.next_secuencia
       self.valid?
 
-      res.manage_error_transaction(self)
+      unless self.save!
+        res.manage_error_transaction(self)
+      end
+
     end
 
     return res
