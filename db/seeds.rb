@@ -182,7 +182,12 @@ G_PERMISOS.each do | permiso |
   end
 
   permiso[:acciones].each do | accion |
-    accion_db = Accion.find_by_descripcion(accion[:descripcion])
+
+    if accion[:metodo].nil?
+      accion_db = Accion.find_by(descripcion: accion[:descripcion].to_s)
+    else
+      accion_db = Accion.find_by(descripcion: accion[:descripcion].to_s, metodo: accion[:metodo].to_s)
+    end
 
     if accion_db.nil?
       puts " "

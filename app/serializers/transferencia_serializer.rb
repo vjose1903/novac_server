@@ -49,7 +49,7 @@ class TransferenciaSerializer < ActiveModel::Serializer
     banco = { nombre: '', id: nil }
 
     banco[:nombre] = object.cuenta_bancaria_destino.nil? ? object.nombre_banco_tercero : object.cuenta_bancaria_destino.banco.nombre
-    banco[:id] = object.cuenta_bancaria_destino.banco.id unless object.cuenta_bancaria_destino.nil?
+    banco[:id]     = object.cuenta_bancaria_destino.banco.id unless object.cuenta_bancaria_destino.nil?
     banco
   end
 

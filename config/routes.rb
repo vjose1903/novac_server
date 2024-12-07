@@ -31,7 +31,7 @@ Rails.application.routes.draw do
   resources :configuraciones_entidades_cuentas
 
   resources :tipo_cuentas_bancarias
-  resources :cheques
+
 
 	get "ruta/test"              => "application#testFunction"
 
@@ -247,6 +247,14 @@ Rails.application.routes.draw do
     collection do
       get "filtro/:arg"                     => "transferencias#getTransferenciasFiltradas"
       delete "anular/:id"                   => "transferencias#anularTransferencia"
+    end
+  end
+
+
+  resources :cheques do
+    collection do
+      get "filtro/:arg"                     => "cheques#getChequesFiltrados"
+      delete "anular/:id"                   => "cheques#anularCheque"
     end
   end
 

@@ -16,7 +16,6 @@ class Cheque < ApplicationRecord
       :user_creador,
       :last_user_update,
       :user_anulador,
-      { divisa: Divisa.models_includes },
       { cuenta_bancaria: CuentaBancaria.models_includes },
     ]
     return includes
@@ -39,6 +38,7 @@ class Cheque < ApplicationRecord
         cheque.cuenta_bancaria_id       = params[:cuenta_bancaria_id]                    if params.obj_has?(:cuenta_bancaria_id)
         cheque.divisa_id                = params[:divisa_id]                             if params.obj_has?(:divisa_id)
         cheque.monto                    = params[:monto]                                 if params.obj_has?(:monto)
+        # TODO: ver que se hara para el balance desde el front
         cheque.balance                  = params[:balance]                               if params.obj_has?(:balance)
         cheque.comentario               = params[:comentario]                            if params.obj_has?(:comentario)
         cheque.fecha_equivalente        = params[:fecha_equivalente]                     if params.obj_has?(:fecha_equivalente)
@@ -79,8 +79,6 @@ class Cheque < ApplicationRecord
         end
 
         res.manage_error_transaction(cheque)
-
-        transaction_rollback
       else
 
         res.add_msg("La cuenta bancaria que seleccionó para crear este depósito, no existe")          if cuenta_bancaria.nil?
@@ -98,6 +96,27 @@ class Cheque < ApplicationRecord
 
   def procesos
     res = self.cuenta_bancaria.secuencia_documento.aumentar_secuencia
+
+    return res
+  end
+
+  # =========================================================================================================================================================
+
+  def self.filtrarCheques(params, pagination_params)
+    res    = Response.new(pagination_params)
+    arg    = params[:arg]
+
+    cheques = Cheque.joins('inner join cuentas_bancarias on cheques.cuenta_bancaria_id = cuentas_bancarias.id')
+                    .where("lower( CONCAT(cheques.monto, ' ', cheques.comentario, ' ', cuentas_bancarias.numero_cuenta, ' ', cuentas_bancarias.descripcion) ) like lower('%#{arg}%') AND cheques.estado = '#{STATUS.active}'").order('cheques.id ASC').to_a
+
+    if cheques.length > 0
+      res.set_data(cheques, { all: true })
+    else
+      res.set_data([])
+      cantidad_registros = Cheque.where({ estado: true }).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen cheques registrados.' : 'No existen cheques con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
 
     return res
   end

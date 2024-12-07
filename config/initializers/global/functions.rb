@@ -85,7 +85,10 @@ class Paginator
   def set_pagination_options(params)
     @paginate_options[:page]     = params[:page]                  if params && !params[:page].nil?
     @paginate_options[:per_page] = params[:per_page]              if params && !params[:per_page].nil?
-    @paginate_options[:paginado] = params[:paginado].to_boolean   if params && !params[:paginado].nil?
+
+    if params && !params[:paginado].nil?
+      @paginate_options[:paginado] = params[:paginado].is_a?(String) ? params[:paginado].to_boolean : params[:paginado]
+    end
   end
 
 

@@ -11,6 +11,11 @@ class ChequesController < ApplicationController
     return Response.new(params, nil, @cheque, nil, { all: true }).send_response self
   end
 
+  def getChequesFiltrados
+    resultado = Cheque.filtrarCheques(params, set_paginate_options(params))
+    resultado.send_response self
+  end
+
   def manage_cheques
     resultado = Cheque.manage_cheque( params )
     resultado.send_response self
@@ -24,6 +29,9 @@ class ChequesController < ApplicationController
   # PATCH/PUT /cheques/1
   def update
     manage_cheques
+  end
+
+  def anularCheque
   end
 
   # DELETE /cheques/1

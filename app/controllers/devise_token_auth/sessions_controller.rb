@@ -3,6 +3,11 @@
 # see http://www.emilsoman.com/blog/2013/05/18/building-a-tested/
 module DeviseTokenAuth
   class SessionsController < DeviseTokenAuth::ApplicationController
+    include ActionController::RequestForgeryProtection
+
+    protect_from_forgery with: :null_session, if: -> { Rails.env.development? && postman_request? }
+    skip_before_action :verify_authenticity_token, if: -> { Rails.env.development? && postman_request? }
+
     before_action :set_user_by_token, only: [:destroy]
     after_action :reset_session, only: [:destroy]
 
@@ -11,56 +16,52 @@ module DeviseTokenAuth
     end
 
     def create
-      @res = Response.new
-      @user_en_turno = User.find_by_usuario(params[:usuario])
+      begin
+        @res = Response.new
 
-      unless @user_en_turno.nil?
+        # Reset de sesión al inicio
+        reset_session
+
+        @user_en_turno = User.find_by_usuario(params[:usuario])
+
+        return render_create_error_bad_credentials if @user_en_turno.nil?
+
         @resource = @user_en_turno
-      else
-        return render_create_error_bad_credentials
-      end
 
-
-
-      field = (params.keys.map(&:to_sym) & resource_class.authentication_keys).first
-
-
-      if field
-        q_value = get_case_insensitive_field_from_resource_params(field)
-      end
-
-
-      if !@resource.nil? and @resource[:estado] == "I"
-        @res.set_status(HTTP_STATUS_CODE[:locked])
-        @res.add_msg("Usuario desactivado, favor de comunicarse con el administrador del sistema.")
-        @res.send_response self
-      end
-
-
-
-
-      if @resource && valid_params?(field, q_value) && (!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
-
-        valid_password = @resource.valid_password?(resource_params[:password])
-
-        if (@resource.respond_to?(:valid_for_authentication?) && !@resource.valid_for_authentication? { valid_password }) || !valid_password
-          return render_create_error_bad_credentials
+        # Validar estado antes de continuar
+        if @resource[:estado] == "I"
+          @res.set_status(HTTP_STATUS_CODE[:locked])
+          @res.add_msg("Usuario desactivado, favor de comunicarse con el administrador del sistema.")
+          return @res.send_response self
         end
 
+        field = (params.keys.map(&:to_sym) & resource_class.authentication_keys).first
 
-        @token = @resource.create_token
+        if field
+          q_value = get_case_insensitive_field_from_resource_params(field)
+        end
 
-        @resource.save
+        if @resource && valid_params?(field, q_value) && (!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
+          valid_password = @resource.valid_password?(resource_params[:password])
 
-        sign_in(:user, @resource, store: false, bypass: false)
+          if valid_password
+            @token = @resource.create_token
+            @resource.save
 
-        yield @resource if block_given?
+            sign_in(:user, @resource, store: false, bypass: false)
 
-        render_create_success
-      elsif @resource && !(!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
-        # aqui no se que va
-      else
-        render_create_error_bad_credentials
+            render_create_success
+          else
+            return render_create_error_bad_credentials
+          end
+        else
+          render_create_error_bad_credentials
+        end
+
+      rescue => e
+        @res.set_status(HTTP_STATUS_CODE[:unauthorized])
+        @res.add_msg("Error en la autenticación: #{e.message}")
+        @res.send_response self
       end
     end
 
@@ -147,6 +148,10 @@ module DeviseTokenAuth
 
     def resource_params
       params.permit(*params_for_resource(:sign_in))
+    end
+
+    def postman_request?
+      request.headers['HTTP_USER_AGENT']&.include?('PostmanRuntime')
     end
   end
 end
