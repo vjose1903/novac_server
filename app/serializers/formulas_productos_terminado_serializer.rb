@@ -14,7 +14,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
 
   def articulo_combo
     begin
-      @articulo_combo = Articulo.find_by_id(object.articulo_combo)
+      @articulo_combo = object.articulo_combo
     rescue
       @articulo_combo = Articulo.find_by_id(object.articulo_combo_id)
     end
