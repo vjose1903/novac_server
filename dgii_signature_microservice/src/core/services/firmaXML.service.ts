@@ -28,8 +28,8 @@ export class FirmaXMLService {
 		// Se prepara la encriptacion del contenido del xml
 		let md = forge.md.sha256.create();
 		var xmlData2 = new xmldom.DOMParser().parseFromString(xml);
-		// Canolizacion del tag SignedInfo para poder generar correctamente la firma del documento.
 
+		// Canolizacion del tag SignedInfo para poder generar correctamente la firma del documento.
 		var xmlCanolizadoData2 = this.c14nCanonicalization(xmlData2.firstChild, null);
 		md.update(xmlCanolizadoData2.toString(), 'utf8');
 		//------------------------------------------------------------
@@ -56,8 +56,11 @@ export class FirmaXMLService {
 
 		//Agregando firma a el xml generado con el formato de firma.
 		let signatureValue = `<SignatureValue>${forge.util.encode64(signature)}</SignatureValue>`;
-		let indiceFirma = xmlSinFirmado.search('</SignedInfo>');
-		let xmlFirmado = xmlSinFirmado.substring(0, indiceFirma) + signatureValue + xmlSinFirmado.substring(indiceFirma);
+
+		const closeTagSignedInfo = '</SignedInfo>'
+		let indiceFirma = xmlSinFirmado.search(closeTagSignedInfo);
+		const signatureWriteIndex =  indiceFirma + closeTagSignedInfo.length
+		let xmlFirmado = xmlSinFirmado.substring(0, signatureWriteIndex) + signatureValue + xmlSinFirmado.substring(signatureWriteIndex);
 
 		let resultadoFirma = {
 			xmlFirmadoString: xmlFirmado,
@@ -81,7 +84,7 @@ export class FirmaXMLService {
 	}
 
 	//Permite generar la estructura del area de la firma en formato de la estructura del xml
-	private agregarEstructuraFirma(xml: string, PEM: any, digestValue: any) {
+	private agregarEstructuraFirma(xml: string, PEM: any, digestValue: string) {
 		const firmaStructure = `<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
         <SignedInfo>
             <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315" />
@@ -101,14 +104,10 @@ export class FirmaXMLService {
         </KeyInfo>
     </Signature>`;
 
-	console.log("xml ", xml);
-
 		let indice = xml.search('</ECF>');
 
-        if(!indice || indice == -1) indice = xml.search('</fecha>')
+		if(!indice || indice == -1) indice = xml.search('</SemillaModel>')
 
-			console.log("indice ", indice);
-			
 
 		let xmlSinFirmado = xml.substring(0, indice) + firmaStructure + xml.substring(indice);
 
@@ -117,13 +116,13 @@ export class FirmaXMLService {
 
 	//Permite convertir a Pem
 	private convertToPem(p12ArrayBuffer: ArrayBuffer, password: string) {
-		// Convierte el ArrayBuffer en un Uint8Array
-		const byteArray = new Uint8Array(p12ArrayBuffer);
+		// // Convierte el ArrayBuffer en un Uint8Array
+		// const byteArray = new Uint8Array(p12ArrayBuffer);
 
-		// Convierte el Uint8Array a una cadena binaria
-		const binaryString = Array.from(byteArray).map(byte => String.fromCharCode(byte)).join('');
+		// // Convierte el Uint8Array a una cadena binaria
+		// const binaryString = Array.from(byteArray).map(byte => String.fromCharCode(byte)).join('');
 
-		let p12Asn1 = forge.asn1.fromDer(binaryString);
+		let p12Asn1 = forge.asn1.fromDer(p12ArrayBuffer);
 		let p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, password);
 		let pemKey = this.getKeyFromP12(p12, password);
 		let _a = this.getCertificateFromP12(p12);
@@ -164,6 +163,7 @@ export class FirmaXMLService {
 		let defaultNs = options.defaultNs || '';
 		let defaultNsForPrefix = options.defaultNsForPrefix || {};
 		let ancestorNamespaces = options.ancestorNamespaces || [];
+
 		let res = this.c14nCanonicalizationInterno(node, [], defaultNs, defaultNsForPrefix, ancestorNamespaces);
 		return res;
 	};

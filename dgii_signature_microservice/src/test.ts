@@ -10,22 +10,22 @@ function leerArchivo(ruta: string): string {
 // Función principal para ejecutar la prueba
 async function ejecutarPrueba() {
 	console.log("------ EJECUTANDO PRUEBA ------");
-	
+
 	// Leer el archivo XML
-	// const xml = leerArchivo(path.join(__dirname, 'utils/test.xml'));
-	const xml = leerArchivo(path.join(__dirname, 'utils/ecf.xml'));
-	
+	const xml = leerArchivo(path.join(__dirname, 'utils/test.xml'));
+	// const xml = leerArchivo(path.join(__dirname, 'utils/ecf.xml'));
+
 	// Leer el archivo de certificado
 	const certificadoBuffer = fs.readFileSync(path.join(__dirname, 'utils/firma-digital.p12'));
 
 	const password = 'VICVAS01'; // Reemplaza con la contraseña de tu certificado
-	
+
 	// Crear una instancia del servicio de firma
 	const firmaService = new FirmaXMLService();
-	
+
 	// Firmar el XML
 	const resultado = firmaService.Firmar(xml, certificadoBuffer, password);
-	
+
 	// Mostrar el resultado
 	console.log('XML Firmado:', resultado.xmlFirmadoString);
 	console.log("------ PRUEBA FINALIZADA ------");
