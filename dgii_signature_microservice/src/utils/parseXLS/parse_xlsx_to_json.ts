@@ -1,6 +1,8 @@
 import * as XLSX from "xlsx";
 import * as fs from "fs";
 import * as path from "path";
+import  { Transformer } from 'dgii-ecf';
+
 
 interface JSONData {
 	[key: string]: any;
@@ -31,8 +33,7 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 
 			// Ignorar el primer encabezado y obtener los datos relevantes
 			const headers = (rawJson[0] as string[]).slice(1); // Ignorar el primer header
-			// const rows = rawJson.slice(1); // Obtener todas las filas de datos
-			const rows = [rawJson[15]]; // Obtener todas las filas de datos
+			const rows = rawJson.slice(1); // Obtener todas las filas de datos
 
 			const result: JSONData[] = [];
 
@@ -53,7 +54,7 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 
 					mapeoResult(template, header, value); // Mapea el valor a la estructura del template
 				});
-
+				addFechaHoraFirma(template)
 				result.push(template); // Agregar el template mapeado al arreglo
 			});
 
@@ -67,6 +68,26 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 	});
 }
 
+function addFechaHoraFirma(template) {
+	const date = new Date();
+
+	// Restar 2 horas
+	date.setHours(date.getHours() - 2);
+
+	// Formatear la fecha al formato deseado
+	const day = String(date.getDate()).padStart(2, '0');
+	const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+	const year = date.getFullYear();
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	const seconds = String(date.getSeconds()).padStart(2, '0');
+
+	const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+
+	// Asignar el valor formateado al objeto
+	template.ECF.FechaHoraFirma = formattedDate;
+}
+
 function mapeoResult(template, header, value) {
 	// Mapeo dinámico de datos según la estructura
 	const headerMatch = header.match(/(.*?)\[(\d+)\](?:\[(\d+)\])?/);
@@ -77,9 +98,7 @@ function mapeoResult(template, header, value) {
     	let key = headerMatch[1].trim();
 		const index1 = parseInt(headerMatch[2], 10) - 1; // Índices ajustados (base 1 -> base 0)
 		const index2 = headerMatch[3] ? parseInt(headerMatch[3], 10) - 1 : null;
-    console.log("\n key ", key, "| value ",  value);
-
-
+    
 		// Arreglos
 		if (["FormaPago", "MontoPago"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index1)) {
 			if (isEmpty(template.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago[index1])) template.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago[index1] = {};
@@ -431,11 +450,6 @@ function mapeoResult(template, header, value) {
 		} else if (header === "CodigoModificacion") {
 			template.ECF.InformacionReferencia.CodigoModificacion = value;
 		} 
-
-		// FechaHoraFirma
-		else if (header === "FechaHoraFirma") {
-			template.ECF.FechaHoraFirma = value;
-		} 
 	}
 }
 
@@ -634,13 +648,37 @@ function isEmpty(value: any): boolean {
 	return false;
 }
 
+
+function crearArchivoXML(content: string, fileName: string): void {
+	fs.writeFile(fileName, content, (err) => {
+	  if (err) {
+		console.error('Error al escribir el archivo:', err);
+	  } else {
+		console.log(`El archivo ${fileName} ha sido creado exitosamente.`);
+	  }
+	});
+  }
+
 // Ejemplo de uso
 const filePath = path.join(__dirname, "datos.xlsx"); // Cambia esta ruta según tu directorio
 
-parseExcelToCustomJson(filePath)
-	.then((json) => {
-		console.log("Datos convertidos:", JSON.stringify(json, null, 2));
+parseExcelToCustomJson(filePath).then((arrayConverted) => {
+	arrayConverted.forEach((json, index) => {
+		const RNCEmisor = json.ECF.Encabezado.Emisor.RNCEmisor;
+		const eNCF = json.ECF.Encabezado.IdDoc.eNCF;
+		
+		const transformer = new Transformer();
+		const xml = transformer.json2xml(json);
+
+		const fileName = `${index+1}_${RNCEmisor}${eNCF}.xml`;
+		const filePath = path.join(__dirname, `../paso-2/${fileName}`)
+
+		crearArchivoXML(xml, filePath);
+
 	})
-	.catch((error) => {
-		console.error("Error al procesar el archivo:", error.message);
-	});
+
+
+})
+.catch((error) => {
+	console.error("Error al procesar el archivo:", error.message);
+});
