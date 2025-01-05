@@ -106,7 +106,8 @@ function mapeoResult(template, header, value) {
 			if ( isEmpty(template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda.ImpuestoAdicionalOtraMoneda[index1]) ) template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda.ImpuestoAdicionalOtraMoneda[index1] = {}; 
 
 			template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda.ImpuestoAdicionalOtraMoneda[index1][key] = value
-		} else if (["NumeroLinea", "TipoCodigo", "CodigoItem", "IndicadorFacturacion", "IndicadorAgenteRetencionoPercepcion", "MontoITBISRetenido", "MontoISRRetenido", "NombreItem", "IndicadorBienoServicio", "DescripcionItem", "CantidadItem", "UnidadMedida", "CantidadReferencia", "UnidadReferencia", "Subcantidad", "CodigoSubcantidad", "GradosAlcohol", "PrecioUnitarioReferencia", "FechaElaboracion", "FechaVencimientoItem", "PrecioUnitarioItem", "DescuentoMonto", "TipoSubDescuento", "SubDescuentoPorcentaje", "MontoSubDescuento", "RecargoMonto", "TipoSubRecargo", "SubRecargoPorcentaje", "MontoSubRecargo", "TipoImpuesto", "PrecioOtraMoneda", "DescuentoOtraMoneda", "RecargoOtraMoneda", "MontoItemOtraMoneda", "MontoItem"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index1) ) {
+
+		} else if (["NumeroLinea", "TipoCodigo", "CodigoItem", "IndicadorFacturacion", "IndicadorAgenteRetencionoPercepcion", "MontoITBISRetenido", "MontoISRRetenido", "NombreItem", "IndicadorBienoServicio", "DescripcionItem", "CantidadItem", "UnidadMedida", "CantidadReferencia", "UnidadReferencia", "Subcantidad", "CodigoSubcantidad", "GradosAlcohol", "PrecioUnitarioReferencia", "FechaElaboracion", "FechaVencimientoItem", "PrecioUnitarioItem", "DescuentoMonto", "TipoSubDescuento", "SubDescuentoPorcentaje", "MontoSubDescuento", "RecargoMonto", "TipoSubRecargo", "SubRecargoPorcentaje", "MontoSubRecargo", "TipoImpuesto", "PrecioOtraMoneda", "DescuentoOtraMoneda", "RecargoOtraMoneda", "MontoItemOtraMoneda", "MontoItem",].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index1) ) {
 
 			if ( isEmpty(template.ECF.DetallesItems) ) template.ECF.DetallesItems = {}
 			if ( isEmpty(template.ECF.DetallesItems.Item) ) template.ECF.DetallesItems.Item = []
@@ -154,35 +155,38 @@ function mapeoResult(template, header, value) {
 				template.ECF.DetallesItems.Item[index1][key] = value;
 			}
 
-		} else if ( key === "SubRecargo" && !isEmpty(index1) && !isEmpty(index2) ) {
-			if ( !template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo[ index2 ] ) {
-				template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo[ index2 ] = {};
-			}
+		} else if ( ["NumeroLineaDoR", "TipoAjuste", "IndicadorNorma1007", "DescripcionDescuentooRecargo", "TipoValor", "ValorDescuentooRecargo", "MontoDescuentooRecargo", "MontoDescuentooRecargoOtraMoneda", "IndicadorFacturacionDescuentooRecargo",].map((item)=>(item.toLowerCase())).includes(key.toLowerCase())  && !isEmpty(index1)) {
+			if ( !template.ECF.DescuentosORecargos ) template.ECF.DescuentosORecargos = {};
+			if ( !template.ECF.DescuentosORecargos.DescuentoORecargo ) template.ECF.DescuentosORecargos.DescuentoORecargo = [];
+			if ( !template.ECF.DescuentosORecargos.DescuentoORecargo[index1] ) template.ECF.DescuentosORecargos.DescuentoORecargo[index1] = {};
 
-			template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo[ index2 ].MontoSubRecargo = value;
-		} else if ( key === "ImpuestoAdicional" && !isEmpty(index1) && index2 === null ) {
-			if ( !template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional .ImpuestoAdicional[index2] ) {
-				template.ECF.DetallesItems.Item[ index1 ].TablaImpuestoAdicional.ImpuestoAdicional[index2] = {};
-			}
+			template.ECF.DescuentosORecargos.DescuentoORecargo[index1][key] = value;
 
-			template.ECF.DetallesItems.Item[ index1 ].TablaImpuestoAdicional.ImpuestoAdicional[index2].TipoImpuesto = value;
-		} else if (key === "DescuentoORecargo" && !isEmpty(index1)) {
-			if (!template.ECF.DescuentosORecargos.DescuentoORecargo[index1]) {
-				template.ECF.DescuentosORecargos.DescuentoORecargo[index1] = {};
+		} else if ( ["PaginaNo", "NoLineaDesde", "NoLineaHasta", "SubtotalMontoGravadoPagina", "SubtotalMontoGravado1Pagina", "SubtotalMontoGravado2Pagina", "SubtotalMontoGravado3Pagina", "SubtotalExentoPagina", "SubtotalItbisPagina", "SubtotalItbis1Pagina", "SubtotalItbis2Pagina", "SubtotalItbis3Pagina", "SubtotalImpuestoAdicionalPagina", "SubtotalImpuestoSelectivoConsumoEspecificoPagina", "SubtotalOtrosImpuesto", "MontoSubtotalPagina", "SubtotalMontoNoFacturablePagina"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase())  && !isEmpty(index1)) {
+			if ( !template.ECF.Paginacion ) template.ECF.Paginacion = {};
+			if ( !template.ECF.Paginacion.Pagina ) template.ECF.Paginacion.Pagina = [];
+			if ( !template.ECF.Paginacion.Pagina[index1] ) template.ECF.Paginacion.Pagina[index1] = {};
+			
+			if (["SubtotalImpuestoSelectivoConsumoEspecificoPagina", "SubtotalOtrosImpuesto"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) ) {
+				if ( !template.ECF.Paginacion.Pagina[index1].SubtotalImpuestoAdicional ) template.ECF.Paginacion.Pagina[index1].SubtotalImpuestoAdicional = {};
+				template.ECF.Paginacion.Pagina[index1].SubtotalImpuestoAdicional[key] = value;	
+			} else {
+				template.ECF.Paginacion.Pagina[index1][key] = value;
 			}
-			template.ECF.DescuentosORecargos.DescuentoORecargo[ index1 ].DescripcionDescuentooRecargo = value;
-		} else if (key === "Pagina" && !isEmpty(index1)) {
-			if (!template.ECF.Paginacion.Pagina[index1]) { template.ECF.Paginacion.Pagina[index1] = {}; 
-    }
-
-			template.ECF.Paginacion.Pagina[index1].PaginaNo = value;
-		}
+		} 
 
 		// Asignaciones directas
 	} else {
-		if (header === "TipoeCF") {
+
+		// Encabezado
+		if (header === "Version") {
+			template.ECF.Encabezado.Version = 1;	
+		}
+
+		// IdDoc
+		else if (header === "TipoeCF") {
 			template.ECF.Encabezado.IdDoc.TipoeCF = value;
-		} else if (header === "ENCF") {
+		} else if (header === "ENCF" || header === "eNCF") {
 			template.ECF.Encabezado.IdDoc.eNCF = value;
 		} else if (header === "FechaVencimientoSecuencia") {
 			template.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = value;
@@ -213,16 +217,6 @@ function mapeoResult(template, header, value) {
 		} else if (header === "TotalPaginas") {
 			template.ECF.Encabezado.IdDoc.TotalPaginas = value;
 		}
-
-		// SubTotales
-		else if (["NumeroSubTotal", "DescripcionSubtotal", "Orden", "SubTotalMontoGravadoTotal", "SubTotalMontoGravadoI1", "SubTotalMontoGravadoI2", "SubTotalMontoGravadoI3", "SubTotaITBIS", "SubTotaITBIS1", "SubTotaITBIS2", "SubTotaITBIS3", "SubTotalImpuestoAdicional", "SubTotalExento", "MontoSubTotal", "Lineas"].map((item)=>(item.toLowerCase())).includes(header.toLowerCase())) {
-			if ( !template.ECF.Subtotales ) template.ECF.Subtotales = {};
-			if ( !template.ECF.Subtotales.Subtotal ) template.ECF.Subtotales.Subtotal = []
-			if ( !template.ECF.Subtotales.Subtotal[0] ) template.ECF.Subtotales.Subtotal[0] = {}
-
-			template.ECF.Subtotales.Subtotal[0][header] = value
-		}
-
 
 		// Emisor
 		else if (header === "RNCEmisor") {
@@ -261,27 +255,187 @@ function mapeoResult(template, header, value) {
 			template.ECF.Encabezado.Emisor.FechaEmision = value;
 		}
 
+		// Comprador
+		else if (header === "RNCComprador") {
+			template.ECF.Encabezado.Comprador.RNCComprador = value;
+		} else if (header === "RazonSocialComprador") {
+			template.ECF.Encabezado.Comprador.RazonSocialComprador = value;
+		} else if (header === "ContactoComprador") {
+			template.ECF.Encabezado.Comprador.ContactoComprador = value;
+		} else if (header === "CorreoComprador") {
+			template.ECF.Encabezado.Comprador.CorreoComprador = value;
+		} else if (header === "DireccionComprador") {
+			template.ECF.Encabezado.Comprador.DireccionComprador = value;
+		} else if (header === "MunicipioComprador") {
+			template.ECF.Encabezado.Comprador.MunicipioComprador = value;
+		} else if (header === "ProvinciaComprador") {
+			template.ECF.Encabezado.Comprador.ProvinciaComprador = value;
+		} else if (header === "FechaEntrega") {
+			template.ECF.Encabezado.Comprador.FechaEntrega = value;
+		} else if (header === "ContactoEntrega") {
+			template.ECF.Encabezado.Comprador.ContactoEntrega = value;
+		} else if (header === "DireccionEntrega") {
+			template.ECF.Encabezado.Comprador.DireccionEntrega = value;
+		} else if (header === "TelefonoAdicional") {
+			template.ECF.Encabezado.Comprador.TelefonoAdicional = value;
+		} else if (header === "FechaOrdenCompra") {
+			template.ECF.Encabezado.Comprador.FechaOrdenCompra = value;
+		} else if (header === "NumeroOrdenCompra") {
+			template.ECF.Encabezado.Comprador.NumeroOrdenCompra = value;
+		} else if (header === "CodigoInternoComprador") {
+			template.ECF.Encabezado.Comprador.CodigoInternoComprador = value;
+		} else if (header === "ResponsablePago") {
+			template.ECF.Encabezado.Comprador.ResponsablePago = value;
+		} else if (header === "InformacionAdicionalComprador") {
+			template.ECF.Encabezado.Comprador.InformacionAdicionalComprador = value;
+		} 
+
+		// InformacionesAdicionales
+		else if (header === "FechaEmbarque") {
+			template.ECF.Encabezado.InformacionesAdicionales.FechaEmbarque = value;
+		} else if (header === "NumeroEmbarque") {
+			template.ECF.Encabezado.InformacionesAdicionales.NumeroEmbarque = value;
+		} else if (header === "NumeroContenedor") {
+			template.ECF.Encabezado.InformacionesAdicionales.NumeroContenedor = value;
+		} else if (header === "NumeroReferencia") {
+			template.ECF.Encabezado.InformacionesAdicionales.NumeroReferencia = value;
+		} else if (header === "PesoBruto") {
+			template.ECF.Encabezado.InformacionesAdicionales.PesoBruto = value;
+		} else if (header === "PesoNeto") {
+			template.ECF.Encabezado.InformacionesAdicionales.PesoNeto = value;
+		} else if (header === "UnidadPesoBruto") {
+			template.ECF.Encabezado.InformacionesAdicionales.UnidadPesoBruto = value;
+		} else if (header === "UnidadPesoNeto") {
+			template.ECF.Encabezado.InformacionesAdicionales.UnidadPesoNeto = value;
+		} else if (header === "CantidadBulto") {
+			template.ECF.Encabezado.InformacionesAdicionales.CantidadBulto = value;
+		} else if (header === "UnidadBulto") {
+			template.ECF.Encabezado.InformacionesAdicionales.UnidadBulto = value;
+		} else if (header === "VolumenBulto") {
+			template.ECF.Encabezado.InformacionesAdicionales.VolumenBulto = value;
+		} else if (header === "UnidadVolumen") {
+			template.ECF.Encabezado.InformacionesAdicionales.UnidadVolumen = value;
+		} 
+
+		// Transporte
+		else if (header === "Conductor") {
+			template.ECF.Encabezado.Transporte.Conductor = value;
+		} else if (header === "DocumentoTransporte") {
+			template.ECF.Encabezado.Transporte.DocumentoTransporte = value;
+		} else if (header === "Ficha") {
+			template.ECF.Encabezado.Transporte.Ficha = value;
+		} else if (header === "Placa") {
+			template.ECF.Encabezado.Transporte.Placa = value;
+		} else if (header === "RutaTransporte") {
+			template.ECF.Encabezado.Transporte.RutaTransporte = value;
+		} else if (header === "ZonaTransporte") {
+			template.ECF.Encabezado.Transporte.ZonaTransporte = value;
+		} else if (header === "NumeroAlbaran") {
+			template.ECF.Encabezado.Transporte.NumeroAlbaran = value;
+		} 
+
 		// Totales
-		else if (header === "TotalImpuestos") {
-			template.ECF.Totales.TotalImpuestos = value;
-		} else if (header === "TotalDescuentos") {
-			template.ECF.Totales.TotalDescuentos = value;
-		} else if (header === "TotalRecargos") {
-			template.ECF.Totales.TotalRecargos = value;
-		} else if (header === "TotalItem") {
-			template.ECF.Totales.TotalItem = value;
+		else if (header === "MontoGravadoTotal") {
+			template.ECF.Encabezado.Totales.MontoGravadoTotal = value;
+		} else if (header === "MontoGravadoI1") {
+			template.ECF.Encabezado.Totales.MontoGravadoI1 = value;
+		} else if (header === "MontoGravadoI2") {
+			template.ECF.Encabezado.Totales.MontoGravadoI2 = value;
+		} else if (header === "MontoGravadoI3") {
+			template.ECF.Encabezado.Totales.MontoGravadoI3 = value;
+		} else if (header === "MontoExento") {
+			template.ECF.Encabezado.Totales.MontoExento = value;
+		} else if (header === "ITBIS1") {
+			template.ECF.Encabezado.Totales.ITBIS1 = value;
+		} else if (header === "ITBIS2") {
+			template.ECF.Encabezado.Totales.ITBIS2 = value;
+		} else if (header === "ITBIS3") {
+			template.ECF.Encabezado.Totales.ITBIS3 = value;
+		} else if (header === "TotalITBIS") {
+			template.ECF.Encabezado.Totales.TotalITBIS = value;
+		} else if (header === "TotalITBIS1") {
+			template.ECF.Encabezado.Totales.TotalITBIS1 = value;
+		} else if (header === "TotalITBIS2") {
+			template.ECF.Encabezado.Totales.TotalITBIS2 = value;
+		} else if (header === "TotalITBIS3") {
+			template.ECF.Encabezado.Totales.TotalITBIS3 = value;
+		} else if (header === "MontoImpuestoAdicional") {
+			template.ECF.Encabezado.Totales.MontoImpuestoAdicional = value;
+		} else if (header === "MontoTotal") {
+			template.ECF.Encabezado.Totales.MontoTotal = value;
+		} else if (header === "MontoNoFacturable") {
+			template.ECF.Encabezado.Totales.MontoNoFacturable = value;
+		} else if (header === "MontoPeriodo") {
+			template.ECF.Encabezado.Totales.MontoPeriodo = value;
+		} else if (header === "SaldoAnterior") {
+			template.ECF.Encabezado.Totales.SaldoAnterior = value;
+		} else if (header === "MontoAvancePago") {
+			template.ECF.Encabezado.Totales.MontoAvancePago = value;
+		} else if (header === "ValorPagar") {
+			template.ECF.Encabezado.Totales.ValorPagar = value;
+		} else if (header === "TotalITBISRetenido") {
+			template.ECF.Encabezado.Totales.TotalITBISRetenido = value;
+		} else if (header === "TotalISRRetencion") {
+			template.ECF.Encabezado.Totales.TotalISRRetencion = value;
+		} else if (header === "TotalITBISPercepcion") {
+			template.ECF.Encabezado.Totales.TotalITBISPercepcion = value;
+		} else if (header === "TotalISRPercepcion") {
+			template.ECF.Encabezado.Totales.TotalISRPercepcion = value;
 		}
 
-		// Otros
-		else if (header === "DescripcionPago") {
-			template.ECF.Pagos.DescripcionPago = value;
-		} else if (header === "NumeroPago") {
-			template.ECF.Pagos.NumeroPago = value;
-		} else if (header === "MetodoPago") {
-			template.ECF.Pagos.MetodoPago = value;
-		} else if (header === "TotalPago") {
-			template.ECF.Pagos.TotalPago = value;
+		// OtraMoneda
+		else if (header === "TipoMoneda") {
+			template.ECF.Encabezado.OtraMoneda.TipoMoneda = value;
+		} else if (header === "TipoCambio") {
+			template.ECF.Encabezado.OtraMoneda.TipoCambio = value;
+		} else if (header === "MontoGravadoTotalOtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.MontoGravadoTotalOtraMoneda = value;
+		} else if (header === "MontoGravado1OtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.MontoGravado1OtraMoneda = value;
+		} else if (header === "MontoGravado2OtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.MontoGravado2OtraMoneda = value;
+		} else if (header === "MontoGravado3OtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.MontoGravado3OtraMoneda = value;
+		} else if (header === "MontoExentoOtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.MontoExentoOtraMoneda = value;
+		} else if (header === "TotalITBISOtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.TotalITBISOtraMoneda = value;
+		} else if (header === "TotalITBIS1OtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.TotalITBIS1OtraMoneda = value;
+		} else if (header === "TotalITBIS2OtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.TotalITBIS2OtraMoneda = value;
+		} else if (header === "TotalITBIS3OtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.TotalITBIS3OtraMoneda = value;
+		} else if (header === "MontoImpuestoAdicionalOtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.MontoImpuestoAdicionalOtraMoneda = value;
+		} else if (header === "MontoTotalOtraMoneda") {
+			template.ECF.Encabezado.OtraMoneda.MontoTotalOtraMoneda = value;
 		}
+
+		// SubTotales
+		else if (["NumeroSubTotal", "DescripcionSubtotal", "Orden", "SubTotalMontoGravadoTotal", "SubTotalMontoGravadoI1", "SubTotalMontoGravadoI2", "SubTotalMontoGravadoI3", "SubTotaITBIS", "SubTotaITBIS1", "SubTotaITBIS2", "SubTotaITBIS3", "SubTotalImpuestoAdicional", "SubTotalExento", "MontoSubTotal", "Lineas",].map((item)=>(item.toLowerCase())).includes(header.toLowerCase())) {
+			if ( !template.ECF.Subtotales ) template.ECF.Subtotales = {};
+			if ( !template.ECF.Subtotales.Subtotal ) template.ECF.Subtotales.Subtotal = []
+			if ( !template.ECF.Subtotales.Subtotal[0] ) template.ECF.Subtotales.Subtotal[0] = {}
+
+			template.ECF.Subtotales.Subtotal[0][header] = value
+		}
+
+		// InformacionReferencia
+		else if (header === "NCFModificado") {
+			template.ECF.InformacionReferencia.NCFModificado = value;
+		} else if (header === "RNCOtroContribuyente") {
+			template.ECF.InformacionReferencia.RNCOtroContribuyente = value;
+		} else if (header === "FechaNCFModificado") {
+			template.ECF.InformacionReferencia.FechaNCFModificado = value;
+		} else if (header === "CodigoModificacion") {
+			template.ECF.InformacionReferencia.CodigoModificacion = value;
+		} 
+
+		// FechaHoraFirma
+		else if (header === "FechaHoraFirma") {
+			template.ECF.FechaHoraFirma = value;
+		} 
 	}
 }
 
