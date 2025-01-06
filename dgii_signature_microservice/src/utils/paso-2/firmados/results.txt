@@ -1,0 +1,97 @@
+
+
+(1): 1_131996035E310000000001.xml
+{
+  "envio": {
+    "trackId": "beb2f70d-784f-4fe3-9d7a-42dbb5e88369",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "beb2f70d-784f-4fe3-9d7a-42dbb5e88369",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/6/2025 11:47:27 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(2): 2_131996035E310000000002.xml
+{
+  "envio": {
+    "trackId": "1bc9fcb8-d947-43a4-8e4e-4055fe96b732",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "1bc9fcb8-d947-43a4-8e4e-4055fe96b732",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000002",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/6/2025 11:47:30 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(3): 3_131996035E310000000003.xml
+{
+  "envio": {
+    "trackId": "ad7629a6-612b-4e07-a305-23cb4ae4926c",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "ad7629a6-612b-4e07-a305-23cb4ae4926c",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000003",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/6/2025 11:47:32 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(4): 4_131996035E310000000004.xml
+{
+  "envio": {
+    "trackId": "62c98541-866d-4214-8cd6-26199d096105",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "62c98541-866d-4214-8cd6-26199d096105",
+    "codigo": "2",
+    "estado": "Rechazado",
+    "rnc": "131996035",
+    "encf": "E310000000004",
+    "secuenciaUtilizada": false,
+    "fechaRecepcion": "1/6/2025 11:47:35 AM",
+    "mensajes": [
+      {
+        "valor": "\n-The element 'DescuentoORecargo' has invalid child element 'TipoAjuste'. List of possible elements expected: 'NumeroLinea'.\n-The element 'DescuentoORecargo' has invalid child element 'TipoAjuste'. List of possible elements expected: 'NumeroLinea'.La propiedad NumeroLinea no es válida debido a que el valor enviado () no coincide con el valor (1) del conjunto de datos entregados.",
+        "codigo": 3
+      }
+    ]
+  }
+}

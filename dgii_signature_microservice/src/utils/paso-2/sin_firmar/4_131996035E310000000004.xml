@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ECF>
   <Encabezado>
-    <Version>1</Version>
+    <Version>1.0</Version>
     <IdDoc>
       <TipoeCF>31</TipoeCF>
       <eNCF>E310000000004</eNCF>
@@ -92,7 +92,6 @@
   </DetallesItems>
   <DescuentosORecargos>
     <DescuentoORecargo>
-      <NumeroLineaDoR>1</NumeroLineaDoR>
       <TipoAjuste>D</TipoAjuste>
       <DescripcionDescuentooRecargo>N</DescripcionDescuentooRecargo>
       <TipoValor>$</TipoValor>
@@ -100,7 +99,6 @@
       <IndicadorFacturacionDescuentooRecargo>1</IndicadorFacturacionDescuentooRecargo>
     </DescuentoORecargo>
     <DescuentoORecargo>
-      <NumeroLineaDoR>2</NumeroLineaDoR>
       <TipoAjuste>D</TipoAjuste>
       <DescripcionDescuentooRecargo>D</DescripcionDescuentooRecargo>
       <TipoValor>$</TipoValor>
@@ -108,5 +106,5 @@
       <IndicadorFacturacionDescuentooRecargo>2</IndicadorFacturacionDescuentooRecargo>
     </DescuentoORecargo>
   </DescuentosORecargos>
-  <FechaHoraFirma>05-01-2025 09:37:37</FechaHoraFirma>
+  <FechaHoraFirma>06-01-2025 09:44:55</FechaHoraFirma>
 </ECF>

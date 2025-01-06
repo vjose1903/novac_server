@@ -253,7 +253,7 @@ export const result = {
 		DescuentosORecargos: {
 			DescuentoORecargo: [
 				{
-					NumeroLineaDoR: "",
+					NumeroLinea: "",
 					TipoAjuste: "",
 					IndicadorNorma1007: "",
 					DescripcionDescuentooRecargo: "",

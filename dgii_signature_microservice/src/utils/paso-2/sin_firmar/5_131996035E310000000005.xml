@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ECF>
   <Encabezado>
-    <Version>1</Version>
+    <Version>1.0</Version>
     <IdDoc>
       <TipoeCF>31</TipoeCF>
-      <eNCF>E310000000002</eNCF>
+      <eNCF>E310000000005</eNCF>
       <FechaVencimientoSecuencia>31-12-2025</FechaVencimientoSecuencia>
       <IndicadorMontoGravado>0</IndicadorMontoGravado>
       <TipoIngresos>01</TipoIngresos>
       <TipoPago>1</TipoPago>
+      <TablaFormasPago>
+        <FormaDePago>
+          <FormaPago>1</FormaPago>
+          <MontoPago>45253.00</MontoPago>
+        </FormaDePago>
+      </TablaFormasPago>
     </IdDoc>
     <Emisor>
       <RNCEmisor>131996035</RNCEmisor>
@@ -43,48 +49,60 @@
       <CodigoInternoComprador>10633440</CodigoInternoComprador>
     </Comprador>
     <Totales>
-      <MontoGravadoTotal>3230.00</MontoGravadoTotal>
-      <MontoGravadoI1>3230.00</MontoGravadoI1>
+      <MontoGravadoTotal>38350.00</MontoGravadoTotal>
+      <MontoGravadoI1>38350.00</MontoGravadoI1>
       <ITBIS1>18</ITBIS1>
-      <TotalITBIS>713.04</TotalITBIS>
-      <TotalITBIS1>713.04</TotalITBIS1>
-      <MontoImpuestoAdicional>731.32</MontoImpuestoAdicional>
-      <ImpuestosAdicionales>
-        <ImpuestoAdicional>
-          <TipoImpuesto>006</TipoImpuesto>
-          <TasaImpuestoAdicional>633.85</TasaImpuestoAdicional>
-          <MontoImpuestoSelectivoConsumoEspecifico>540.04</MontoImpuestoSelectivoConsumoEspecifico>
-        </ImpuestoAdicional>
-        <ImpuestoAdicional>
-          <TipoImpuesto>023</TipoImpuesto>
-          <TasaImpuestoAdicional>10</TasaImpuestoAdicional>
-          <MontoImpuestoSelectivoConsumoAdvalorem>191.28</MontoImpuestoSelectivoConsumoAdvalorem>
-        </ImpuestoAdicional>
-      </ImpuestosAdicionales>
-      <MontoTotal>4674.35</MontoTotal>
+      <TotalITBIS>6903.00</TotalITBIS>
+      <TotalITBIS1>6903.00</TotalITBIS1>
+      <MontoTotal>45253.00</MontoTotal>
     </Totales>
   </Encabezado>
   <DetallesItems>
     <Item>
       <NumeroLinea>1</NumeroLinea>
       <IndicadorFacturacion>1</IndicadorFacturacion>
-      <NombreItem>PTE. CJ 24/12OZ</NombreItem>
-      <IndicadorBienoServicio>1</IndicadorBienoServicio>
-      <CantidadItem>2.00</CantidadItem>
-      <UnidadMedida>6</UnidadMedida>
-      <CantidadReferencia>24</CantidadReferencia>
-      <UnidadReferencia>5</UnidadReferencia>
-      <TablaSubcantidad>
-        <SubcantidadItem>
-          <Subcantidad>0.355</Subcantidad>
-          <CodigoSubcantidad>24</CodigoSubcantidad>
-        </SubcantidadItem>
-      </TablaSubcantidad>
-      <GradosAlcohol>5.00</GradosAlcohol>
-      <PrecioUnitarioReferencia>65.00</PrecioUnitarioReferencia>
-      <PrecioUnitarioItem>1615.00</PrecioUnitarioItem>
-      <MontoItem>3230.00</MontoItem>
+      <NombreItem>Servicio domiciliario</NombreItem>
+      <IndicadorBienoServicio>2</IndicadorBienoServicio>
+      <CantidadItem>5.00</CantidadItem>
+      <UnidadMedida>43</UnidadMedida>
+      <PrecioUnitarioItem>2000.00</PrecioUnitarioItem>
+      <DescuentoMonto>1000.00</DescuentoMonto>
+      <TablaSubDescuento>
+        <SubDescuento>
+          <TipoSubDescuento>$</TipoSubDescuento>
+          <MontoSubDescuento>500.00</MontoSubDescuento>
+        </SubDescuento>
+        <SubDescuento>
+          <TipoSubDescuento>$</TipoSubDescuento>
+          <MontoSubDescuento>500.00</MontoSubDescuento>
+        </SubDescuento>
+      </TablaSubDescuento>
+      <MontoItem>9000.00</MontoItem>
+    </Item>
+    <Item>
+      <NumeroLinea>2</NumeroLinea>
+      <IndicadorFacturacion>1</IndicadorFacturacion>
+      <NombreItem>Servicio presencial</NombreItem>
+      <IndicadorBienoServicio>2</IndicadorBienoServicio>
+      <CantidadItem>10.00</CantidadItem>
+      <UnidadMedida>43</UnidadMedida>
+      <PrecioUnitarioItem>3000.00</PrecioUnitarioItem>
+      <DescuentoMonto>700.00</DescuentoMonto>
+      <TablaSubDescuento>
+        <SubDescuento>
+          <TipoSubDescuento>$</TipoSubDescuento>
+          <MontoSubDescuento>700.00</MontoSubDescuento>
+        </SubDescuento>
+      </TablaSubDescuento>
+      <RecargoMonto>50.00</RecargoMonto>
+      <TablaSubRecargo>
+        <SubRecargo>
+          <TipoSubRecargo>$</TipoSubRecargo>
+          <MontoSubRecargo>50.00</MontoSubRecargo>
+        </SubRecargo>
+      </TablaSubRecargo>
+      <MontoItem>29350.00</MontoItem>
     </Item>
   </DetallesItems>
-  <FechaHoraFirma>05-01-2025 09:37:37</FechaHoraFirma>
+  <FechaHoraFirma>06-01-2025 09:44:55</FechaHoraFirma>
 </ECF>
