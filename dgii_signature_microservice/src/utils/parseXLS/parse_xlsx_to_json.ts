@@ -31,7 +31,7 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 			const rawJson: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, });
 
 			// Ignorar el primer encabezado y obtener los datos relevantes
-			const headers = (rawJson[0] as string[]).slice(1); // Ignorar el primer header
+			const headers = rawJson[0] as string[]; // Ignorar el primer header
 			const rows = rawJson.slice(1); // Obtener todas las filas de datos
 			// const rows = [rawJson[2]]; 
 
@@ -41,22 +41,30 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 			rows.forEach((row) => {
 				const template: JSONData = createTemplate(); // Crear una copia del template base
 
-				headers.forEach((header, colIndex) => {
-					if (!header) return;
-
+				console.log(" ");
+				console.log(" ");
+				console.log(" ");
+				
+				for (let colIndex = 0; colIndex < headers.length; colIndex++) {
+					let header = headers[colIndex];
+					let nextHeader = headers[colIndex + 1];
+					
+					if (!header) break;
+					
 					header = header.trim(); // Limpieza del encabezado
-					const value = row[colIndex + 1]; // Ajusta el índice para ignorar la primera columna
+					nextHeader = nextHeader ?  nextHeader.trim() : ''; // Limpieza del encabezado
+					const value = row[colIndex]; // Ajusta el índice para ignorar la primera columna
+					
 
 					// Ignorar los campos con el valor "#e"
-					if (value === "#e") {
-						return;
+					if (value !== "#e") {
+						mapeoResult(template, header, value,  nextHeader); // Mapea el valor a la estructura del template
 					}
 
-					mapeoResult(template, header, value); // Mapea el valor a la estructura del template
-				});
+				}
+				
 				
 				addFechaHoraFirma(template)
-				// console.log("template ", JSON.stringify(template, null, 2));
 				result.push(template); // Agregar el template mapeado al arreglo
 			});
 
@@ -65,6 +73,7 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 
 			resolve(result); // Resolver la promesa con el arreglo de templates mapeados
 		} catch (error) {
+			console.error("Error", error);
 			reject(error);
 		}
 	});
@@ -90,20 +99,21 @@ function addFechaHoraFirma(template) {
 	template.ECF.FechaHoraFirma = formattedDate;
 }
 
-function mapeoResult(template, header, value) {
+function mapeoResult(template, header, value, nextHeader) {
 	// Mapeo dinámico de datos según la estructura
 	const headerMatch = header.match(/(.*?)\[(\d+)\](?:\[(\d+)\])?/);
 //   console.log("\n header ", header, "| value ",  value);
-  
-  
 	if (headerMatch) {
 		
 		let key = headerMatch[1].trim();
 		const index1 = parseInt(headerMatch[2], 10) - 1; // Índices ajustados (base 1 -> base 0)
 		const index2 = headerMatch[3] ? parseInt(headerMatch[3], 10) - 1 : null;
-    
+
+		const lowerCaseKey = key.toLowerCase();
+		const lowerCaseNextHeader = nextHeader.toLowerCase();
+		
 		// Arreglos
-		if (["FormaPago", "MontoPago"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index1)) {
+		if (["FormaPago", "MontoPago"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) && !isEmpty(index1)) {
 			if (isEmpty(template.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago[index1])) template.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago[index1] = {};
 			
 			template.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago[ index1 ][key] = value;
@@ -111,7 +121,7 @@ function mapeoResult(template, header, value) {
 		} else if (key === "TelefonoEmisor" && !isEmpty(index1)) {
 			template.ECF.Encabezado.Emisor.TablaTelefonoEmisor.TelefonoEmisor[ index1 ] = value;
 
-		} else if (["TipoImpuesto", "TasaImpuestoAdicional", "MontoImpuestoSelectivoConsumoEspecifico", "MontoImpuestoSelectivoConsumoAdvalorem", "OtrosImpuestosAdicionales"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index1) && isEmpty(index2)) {
+		} else if (["TipoImpuesto", "TasaImpuestoAdicional", "MontoImpuestoSelectivoConsumoEspecifico", "MontoImpuestoSelectivoConsumoAdvalorem", "OtrosImpuestosAdicionales"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) && !isEmpty(index1) && isEmpty(index2)) {
 			if (isEmpty(index2)) {
 				if ( isEmpty(template.ECF.Encabezado.Totales) ) template.ECF.Encabezado.Totales = {}; 
 				if ( isEmpty(template.ECF.Encabezado.Totales.ImpuestosAdicionales) ) template.ECF.Encabezado.Totales.ImpuestosAdicionales = {}; 
@@ -120,7 +130,7 @@ function mapeoResult(template, header, value) {
 
 				template.ECF.Encabezado.Totales.ImpuestosAdicionales.ImpuestoAdicional[index1][key] = value
 			} 
-		} else if (["TipoImpuestoOtraMoneda", "TasaImpuestoAdicionalOtraMoneda", "MontoImpuestoSelectivoConsumoEspecificoOtraMoneda", "MontoImpuestoSelectivoConsumoAdvaloremOtraMoneda", "OtrosImpuestosAdicionalesOtraMoneda"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index1)) {
+		} else if (["TipoImpuestoOtraMoneda", "TasaImpuestoAdicionalOtraMoneda", "MontoImpuestoSelectivoConsumoEspecificoOtraMoneda", "MontoImpuestoSelectivoConsumoAdvaloremOtraMoneda", "OtrosImpuestosAdicionalesOtraMoneda"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) && !isEmpty(index1)) {
 			if ( isEmpty(template.ECF.Encabezado.OtraMoneda) ) template.ECF.Encabezado.OtraMoneda = {}; 
 			if ( isEmpty(template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda) ) template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda = {}; 
 			if ( isEmpty(template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda.ImpuestoAdicionalOtraMoneda) ) template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda.ImpuestoAdicionalOtraMoneda = {}; 
@@ -128,47 +138,47 @@ function mapeoResult(template, header, value) {
 
 			template.ECF.Encabezado.OtraMoneda.ImpuestosAdicionalesOtraMoneda.ImpuestoAdicionalOtraMoneda[index1][key] = value
 
-		} else if (["NumeroLinea", "TipoCodigo", "CodigoItem", "IndicadorFacturacion", "IndicadorAgenteRetencionoPercepcion", "MontoITBISRetenido", "MontoISRRetenido", "NombreItem", "IndicadorBienoServicio", "DescripcionItem", "CantidadItem", "UnidadMedida", "CantidadReferencia", "UnidadReferencia", "Subcantidad", "CodigoSubcantidad", "GradosAlcohol", "PrecioUnitarioReferencia", "FechaElaboracion", "FechaVencimientoItem", "PrecioUnitarioItem", "DescuentoMonto", "TipoSubDescuento", "SubDescuentoPorcentaje", "MontoSubDescuento", "RecargoMonto", "TipoSubRecargo", "SubRecargoPorcentaje", "MontoSubRecargo", "TipoImpuesto", "PrecioOtraMoneda", "DescuentoOtraMoneda", "RecargoOtraMoneda", "MontoItemOtraMoneda", "MontoItem",].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index1) ) {
+		} else if (((lowerCaseKey == "NumeroLinea".toLowerCase()) && (lowerCaseNextHeader.includes('TipoCodigo'.toLowerCase()))) || ["TipoCodigo", "CodigoItem", "IndicadorFacturacion", "IndicadorAgenteRetencionoPercepcion", "MontoITBISRetenido", "MontoISRRetenido", "NombreItem", "IndicadorBienoServicio", "DescripcionItem", "CantidadItem", "UnidadMedida", "CantidadReferencia", "UnidadReferencia", "Subcantidad", "CodigoSubcantidad", "GradosAlcohol", "PrecioUnitarioReferencia", "FechaElaboracion", "FechaVencimientoItem", "PrecioUnitarioItem", "DescuentoMonto", "TipoSubDescuento", "SubDescuentoPorcentaje", "MontoSubDescuento", "RecargoMonto", "TipoSubRecargo", "SubRecargoPorcentaje", "MontoSubRecargo", "TipoImpuesto", "PrecioOtraMoneda", "DescuentoOtraMoneda", "RecargoOtraMoneda", "MontoItemOtraMoneda", "MontoItem",].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) && !isEmpty(index1) ) {
 
 			if ( isEmpty(template.ECF.DetallesItems) ) template.ECF.DetallesItems = {}
 			if ( isEmpty(template.ECF.DetallesItems.Item) ) template.ECF.DetallesItems.Item = []
 			if ( isEmpty(template.ECF.DetallesItems.Item[index1]) ) template.ECF.DetallesItems.Item[index1] = {}
 			
-			if ( ["TipoCodigo", "CodigoItem"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index2) ) {
+			if ( ["TipoCodigo", "CodigoItem"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) && !isEmpty(index2) ) {
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaCodigosItem) ) template.ECF.DetallesItems.Item[index1].TablaCodigosItem = {};
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaCodigosItem.CodigosItem) ) template.ECF.DetallesItems.Item[index1].TablaCodigosItem.CodigosItem = [];
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaCodigosItem.CodigosItem[index2]) ) template.ECF.DetallesItems.Item[index1].TablaCodigosItem.CodigosItem[index2] = {};
 				template.ECF.DetallesItems.Item[index1].TablaCodigosItem.CodigosItem[index2][key] = value;
-			} else if ( ["IndicadorAgenteRetencionoPercepcion", "MontoITBISRetenido", "MontoISRRetenido"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) ) {
+			} else if ( ["IndicadorAgenteRetencionoPercepcion", "MontoITBISRetenido", "MontoISRRetenido"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) ) {
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].Retencion) ) template.ECF.DetallesItems.Item[index1].Retencion = {};
 				template.ECF.DetallesItems.Item[index1].Retencion[key] = value;
 
-			} else if ( ["Subcantidad", "CodigoSubcantidad"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase())  && !isEmpty(index2) ) {
+			} else if ( ["Subcantidad", "CodigoSubcantidad"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey)  && !isEmpty(index2) ) {
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubcantidad) ) template.ECF.DetallesItems.Item[index1].TablaSubcantidad = {};
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubcantidad.SubcantidadItem) ) template.ECF.DetallesItems.Item[index1].TablaSubcantidad.SubcantidadItem = []
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubcantidad.SubcantidadItem[index2]) ) template.ECF.DetallesItems.Item[index1].TablaSubcantidad.SubcantidadItem[index2] = {}
 				template.ECF.DetallesItems.Item[index1].TablaSubcantidad.SubcantidadItem[index2][key] = value;
 
-			} else if ( ["TipoSubDescuento", "SubDescuentoPorcentaje", "MontoSubDescuento"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase())  && !isEmpty(index2) ) {
+			} else if ( ["TipoSubDescuento", "SubDescuentoPorcentaje", "MontoSubDescuento"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey)  && !isEmpty(index2) ) {
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubDescuento) ) template.ECF.DetallesItems.Item[index1].TablaSubDescuento = {};
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubDescuento.SubDescuento) ) template.ECF.DetallesItems.Item[index1].TablaSubDescuento.SubDescuento = []
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubDescuento.SubDescuento[index2]) ) template.ECF.DetallesItems.Item[index1].TablaSubDescuento.SubDescuento[index2] = {}
 				template.ECF.DetallesItems.Item[index1].TablaSubDescuento.SubDescuento[index2][key] = value;
 
-			} else if ( ["TipoSubRecargo", "SubRecargoPorcentaje", "MontoSubRecargo"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase())  && !isEmpty(index2) ) {
-				if (key.toLowerCase() == "montosubrecargo") key = "MontoSubRecargo"
+			} else if ( ["TipoSubRecargo", "SubRecargoPorcentaje", "MontoSubRecargo"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey)  && !isEmpty(index2) ) {
+				if (lowerCaseKey == "montosubrecargo") key = "MontoSubRecargo"
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubRecargo) ) template.ECF.DetallesItems.Item[index1].TablaSubRecargo = {};
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo) ) template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo = []
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo[index2]) ) template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo[index2] = {}
 				template.ECF.DetallesItems.Item[index1].TablaSubRecargo.SubRecargo[index2][key] = value;
 
-			} else if ( ["TipoImpuesto"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) && !isEmpty(index2) ) {
+			} else if ( ["TipoImpuesto"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) && !isEmpty(index2) ) {
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional) ) template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional = {};
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional.ImpuestoAdicional) ) template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional.ImpuestoAdicional = []
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional.ImpuestoAdicional[index2]) ) template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional.ImpuestoAdicional[index2] = {}
 				template.ECF.DetallesItems.Item[index1].TablaImpuestoAdicional.ImpuestoAdicional[index2][key] = value;
 
-			} else if ( ["PrecioOtraMoneda", "DescuentoOtraMoneda", "RecargoOtraMoneda", "MontoItemOtraMoneda"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) ) {
+			} else if ( ["PrecioOtraMoneda", "DescuentoOtraMoneda", "RecargoOtraMoneda", "MontoItemOtraMoneda"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) ) {
 				if ( isEmpty(template.ECF.DetallesItems.Item[index1].OtraMonedaDetalle) ) template.ECF.DetallesItems.Item[index1].OtraMonedaDetalle = {};
 				template.ECF.DetallesItems.Item[index1].OtraMonedaDetalle[key] = value;
 
@@ -176,19 +186,19 @@ function mapeoResult(template, header, value) {
 				template.ECF.DetallesItems.Item[index1][key] = value;
 			}
 
-		} else if ( ["NumeroLinea", "TipoAjuste", "IndicadorNorma1007", "DescripcionDescuentooRecargo", "TipoValor", "ValorDescuentooRecargo", "MontoDescuentooRecargo", "MontoDescuentooRecargoOtraMoneda", "IndicadorFacturacionDescuentooRecargo",].map((item)=>(item.toLowerCase())).includes(key.toLowerCase())  && !isEmpty(index1)) {
+		} else if ( (lowerCaseKey == "NumeroLinea".toLowerCase() && lowerCaseNextHeader.includes('TipoAjuste'.toLowerCase())) || ["TipoAjuste", "IndicadorNorma1007", "DescripcionDescuentooRecargo", "TipoValor", "ValorDescuentooRecargo", "MontoDescuentooRecargo", "MontoDescuentooRecargoOtraMoneda", "IndicadorFacturacionDescuentooRecargo",].map((item)=>(item.toLowerCase())).includes(lowerCaseKey)  && !isEmpty(index1)) {
 			if ( !template.ECF.DescuentosORecargos ) template.ECF.DescuentosORecargos = {};
 			if ( !template.ECF.DescuentosORecargos.DescuentoORecargo ) template.ECF.DescuentosORecargos.DescuentoORecargo = [];
 			if ( !template.ECF.DescuentosORecargos.DescuentoORecargo[index1] ) template.ECF.DescuentosORecargos.DescuentoORecargo[index1] = {};
 
 			template.ECF.DescuentosORecargos.DescuentoORecargo[index1][key] = value;
 
-		} else if ( ["PaginaNo", "NoLineaDesde", "NoLineaHasta", "SubtotalMontoGravadoPagina", "SubtotalMontoGravado1Pagina", "SubtotalMontoGravado2Pagina", "SubtotalMontoGravado3Pagina", "SubtotalExentoPagina", "SubtotalItbisPagina", "SubtotalItbis1Pagina", "SubtotalItbis2Pagina", "SubtotalItbis3Pagina", "SubtotalImpuestoAdicionalPagina", "SubtotalImpuestoSelectivoConsumoEspecificoPagina", "SubtotalOtrosImpuesto", "MontoSubtotalPagina", "SubtotalMontoNoFacturablePagina"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase())  && !isEmpty(index1)) {
+		} else if ( ["PaginaNo", "NoLineaDesde", "NoLineaHasta", "SubtotalMontoGravadoPagina", "SubtotalMontoGravado1Pagina", "SubtotalMontoGravado2Pagina", "SubtotalMontoGravado3Pagina", "SubtotalExentoPagina", "SubtotalItbisPagina", "SubtotalItbis1Pagina", "SubtotalItbis2Pagina", "SubtotalItbis3Pagina", "SubtotalImpuestoAdicionalPagina", "SubtotalImpuestoSelectivoConsumoEspecificoPagina", "SubtotalOtrosImpuesto", "MontoSubtotalPagina", "SubtotalMontoNoFacturablePagina"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey)  && !isEmpty(index1)) {
 			if ( !template.ECF.Paginacion ) template.ECF.Paginacion = {};
 			if ( !template.ECF.Paginacion.Pagina ) template.ECF.Paginacion.Pagina = [];
 			if ( !template.ECF.Paginacion.Pagina[index1] ) template.ECF.Paginacion.Pagina[index1] = {};
 			
-			if (["SubtotalImpuestoSelectivoConsumoEspecificoPagina", "SubtotalOtrosImpuesto"].map((item)=>(item.toLowerCase())).includes(key.toLowerCase()) ) {
+			if (["SubtotalImpuestoSelectivoConsumoEspecificoPagina", "SubtotalOtrosImpuesto"].map((item)=>(item.toLowerCase())).includes(lowerCaseKey) ) {
 				if ( !template.ECF.Paginacion.Pagina[index1].SubtotalImpuestoAdicional ) template.ECF.Paginacion.Pagina[index1].SubtotalImpuestoAdicional = {};
 				template.ECF.Paginacion.Pagina[index1].SubtotalImpuestoAdicional[key] = value;	
 			} else {

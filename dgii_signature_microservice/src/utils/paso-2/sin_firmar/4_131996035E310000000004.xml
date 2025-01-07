@@ -92,6 +92,7 @@
   </DetallesItems>
   <DescuentosORecargos>
     <DescuentoORecargo>
+      <NumeroLinea>1</NumeroLinea>
       <TipoAjuste>D</TipoAjuste>
       <DescripcionDescuentooRecargo>N</DescripcionDescuentooRecargo>
       <TipoValor>$</TipoValor>
@@ -99,6 +100,7 @@
       <IndicadorFacturacionDescuentooRecargo>1</IndicadorFacturacionDescuentooRecargo>
     </DescuentoORecargo>
     <DescuentoORecargo>
+      <NumeroLinea>2</NumeroLinea>
       <TipoAjuste>D</TipoAjuste>
       <DescripcionDescuentooRecargo>D</DescripcionDescuentooRecargo>
       <TipoValor>$</TipoValor>
@@ -106,5 +108,5 @@
       <IndicadorFacturacionDescuentooRecargo>2</IndicadorFacturacionDescuentooRecargo>
     </DescuentoORecargo>
   </DescuentosORecargos>
-  <FechaHoraFirma>06-01-2025 09:44:55</FechaHoraFirma>
+  <FechaHoraFirma>07-01-2025 05:57:47</FechaHoraFirma>
 </ECF>

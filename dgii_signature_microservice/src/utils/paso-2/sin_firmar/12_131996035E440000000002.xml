@@ -630,6 +630,7 @@
   </DetallesItems>
   <DescuentosORecargos>
     <DescuentoORecargo>
+      <NumeroLinea>1</NumeroLinea>
       <TipoAjuste>D</TipoAjuste>
       <DescripcionDescuentooRecargo>DESCUENTO ADMINISTRATIVO</DescripcionDescuentooRecargo>
       <TipoValor>%</TipoValor>
@@ -638,5 +639,5 @@
       <IndicadorFacturacionDescuentooRecargo>4</IndicadorFacturacionDescuentooRecargo>
     </DescuentoORecargo>
   </DescuentosORecargos>
-  <FechaHoraFirma>06-01-2025 09:44:55</FechaHoraFirma>
+  <FechaHoraFirma>07-01-2025 05:57:47</FechaHoraFirma>
 </ECF>

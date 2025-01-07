@@ -95,3 +95,195 @@
     ]
   }
 }
+
+(1): 1_131996035E310000000001.xml
+{
+  "envio": {
+    "trackId": "40844d3f-3e5a-46f5-b82d-abf9b0c44178",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "40844d3f-3e5a-46f5-b82d-abf9b0c44178",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:29 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(2): 2_131996035E310000000002.xml
+{
+  "envio": {
+    "trackId": "9c862bcc-04bd-4bb0-ad22-84032bbf8c84",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "9c862bcc-04bd-4bb0-ad22-84032bbf8c84",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000002",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:32 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(3): 3_131996035E310000000003.xml
+{
+  "envio": {
+    "trackId": "6bc10a6a-fef2-47b7-8942-9091b7496395",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "6bc10a6a-fef2-47b7-8942-9091b7496395",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000003",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:34 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(4): 4_131996035E310000000004.xml
+{
+  "envio": {
+    "trackId": "6d7c0573-23be-448f-ac0a-2a2b262dec32",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "6d7c0573-23be-448f-ac0a-2a2b262dec32",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000004",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:37 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(5): 5_131996035E310000000005.xml
+{
+  "envio": {
+    "trackId": "8b919770-dd41-4de3-8ab7-ae30c8e21bec",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "8b919770-dd41-4de3-8ab7-ae30c8e21bec",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E310000000005",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:40 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(6): 6_131996035E320000000001.xml
+{
+  "envio": {
+    "trackId": "6f3a8735-a402-4475-8e84-8daefc8c3715",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "6f3a8735-a402-4475-8e84-8daefc8c3715",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E320000000001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:43 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(7): 7_131996035E320000000002.xml
+{
+  "envio": {
+    "trackId": "010fb441-d481-445f-a237-e9fbe90bbe3e",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "010fb441-d481-445f-a237-e9fbe90bbe3e",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E320000000002",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:45 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
+
+(8): 8_131996035E330000000001.xml
+{
+  "envio": {
+    "trackId": "bb464a1e-2367-48bd-839e-3b47857533e0",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "bb464a1e-2367-48bd-839e-3b47857533e0",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E330000000001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "1/7/2025 7:58:48 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  }
+}
