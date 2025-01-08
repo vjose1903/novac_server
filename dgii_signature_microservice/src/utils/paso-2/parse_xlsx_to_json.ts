@@ -323,6 +323,9 @@ function mapeoResult(template, header, value, nextHeader) {
 		else if (header === "RNCComprador") {
 			template.ECF.Encabezado.Comprador.RNCComprador = value;
 			
+		} else if (header === "IdentificadorExtranjero") {
+			template.ECF.Encabezado.Comprador.IdentificadorExtranjero = value;
+			
 		} else if (header === "RazonSocialComprador") {
 			template.ECF.Encabezado.Comprador.RazonSocialComprador = value;
 			
@@ -565,6 +568,8 @@ function mapeoResult(template, header, value, nextHeader) {
 			template.ECF.InformacionReferencia.FechaNCFModificado = value;
 		} else if (header === "CodigoModificacion") {
 			template.ECF.InformacionReferencia.CodigoModificacion = value;
+		} else if (header === "RazonModificacion") {
+			template.ECF.InformacionReferencia.RazonModificacion = value;
 		} 
 	}
 }
@@ -634,6 +639,7 @@ function createTemplate(): JSONData {
 					CodigoInternoComprador: "",
 					ResponsablePago: "",
 					InformacionAdicionalComprador: "",
+					IdentificadorExtranjero: "",
 				},
 				InformacionesAdicionales: {
 					FechaEmbarque: "",

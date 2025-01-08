@@ -5,10 +5,10 @@
     <IdDoc>
       <TipoeCF>34</TipoeCF>
       <eNCF>E340000000001</eNCF>
+      <IndicadorNotaCredito>0</IndicadorNotaCredito>
       <IndicadorMontoGravado>0</IndicadorMontoGravado>
       <TipoIngresos>01</TipoIngresos>
       <TipoPago>1</TipoPago>
-      <IndicadorNotaCredito>0</IndicadorNotaCredito>
     </IdDoc>
     <Emisor>
       <RNCEmisor>131996035</RNCEmisor>
@@ -71,6 +71,7 @@
     <NCFModificado>E310000000001</NCFModificado>
     <FechaNCFModificado>01-04-2020</FechaNCFModificado>
     <CodigoModificacion>2</CodigoModificacion>
+    <RazonModificacion>Error en datos</RazonModificacion>
   </InformacionReferencia>
   <FechaHoraFirma>07-01-2025 05:57:47</FechaHoraFirma>
 </ECF>

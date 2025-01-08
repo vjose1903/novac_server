@@ -27,6 +27,7 @@
       <FechaEmision>01-04-2020</FechaEmision>
     </Emisor>
     <Comprador>
+      <IdentificadorExtranjero>533445888</IdentificadorExtranjero>
       <RazonSocialComprador>ALEJA FERMIN SANTOS</RazonSocialComprador>
     </Comprador>
     <Totales>
