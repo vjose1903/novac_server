@@ -11,6 +11,7 @@ Estas librerias fueron probadas en Note.js v.14.16.0
 */
 
 export class FirmaXMLService {
+	env: string;
 	constructor() {}
 	/* El parametro xml:un string formateado en xml:
     ("<ECF><eNCF>E310000000001</eNCF></ECF>").
