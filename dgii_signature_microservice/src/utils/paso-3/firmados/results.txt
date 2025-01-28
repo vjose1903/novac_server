@@ -1,0 +1,82 @@
+
+
+(1): 1_131996035E310000000001.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(2): 2_131996035E310000000002.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(3): 3_131996035E310000000003.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(4): 4_131996035E310000000004.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(5): 5_131996035E310000000005.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(6): 6_131996035E330000000001.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(7): 7_131996035E340000000001.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(8): 8_131996035E440000000002.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}
+
+(9): 9_131996035E450000000001.xml
+{
+  "envio": {
+    "codigo": "01",
+    "estado": "Aprobacion Comercial Aprobada.",
+    "mensaje": []
+  }
+}

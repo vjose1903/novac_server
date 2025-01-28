@@ -1,9 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import ECF, { P12Reader, ENVIRONMENT, Signature } from "dgii-ecf";
-import { P12ReaderData } from "../types/readerData.types";
+import { P12ReaderData, CommercialApprovalEnum } from "../types/readerData.types";
 import { crearArchivoXML, leerArchivo, sleep } from "../functions";
-import { TrackStatusEnum } from "dgii-ecf/dist/networking/types";
 const xmlFormatter = require('xml-formatter');
 
 
@@ -26,16 +25,15 @@ async function getDgiiUtils(env: ENVIRONMENT = ENVIRONMENT.CERT): Promise<{ cert
 
 async function getAuthToken(ecf: ECF) {
 	const tokenData = await ecf.authenticate();
-	// console.log("tokenData ", tokenData);
 	return tokenData;
 }
 
-async function firmarXML(fileObj: { RNCEmisor: string; noEcf: string; file: string }, index: number) {
+async function firmarXML(fileObj: { RNCComprador: string; noEcf: string; file: string }, index: number) {
 	try {
 		const xmlPath = path.resolve( __dirname, `./sin_firmar/${fileObj.file}` );
 		const xml = leerArchivo(xmlPath);
 
-		const { certs, ecf } = await getDgiiUtils(ENVIRONMENT.DEV);
+		const { certs, ecf } = await getDgiiUtils();
 
 		await getAuthToken(ecf);
 
@@ -46,27 +44,26 @@ async function firmarXML(fileObj: { RNCEmisor: string; noEcf: string; file: stri
 		// const xml = transformer.json2xml(JsonECF31Invoice);
 		//------------------------------------------------
 
-		//Create the name convention RNCEmisor + eCF.xml
-		const fileName = `${fileObj.RNCEmisor}${fileObj.noEcf}.xml`;
+		//Create the name convention RNCComprador + eCF.xml
+		const fileName = `${fileObj.RNCComprador}${fileObj.noEcf}.xml`;
 
 		//Add the signature to the XML targetting the main wrapper in this case `ECF` (credito fiscal) it can be | ECF | ARECF | ACECF | ANECF | RFCE
-		const signedXml = signature.signXml(xml, "ECF");
+		const signedXml = signature.signXml(xml, "ACECF");
+		const formattedXml = xmlFormatter(signedXml, { collapseContent: true, indentation: '  ', lineSeparator: '\n', prettyPrint: true, });
 
 		//SEND the document to the DGII
-		const response = await ecf.sendElectronicDocument(signedXml, fileName); //Optional third parameter is buyerHost?:string to send the invoice to the buyer
+		const response = await ecf.sendCommercialApproval(signedXml, fileName);
 		await sleep(2000);
-		const responseConsult = await ecf.statusTrackId(response.trackId);
 
-
-		saveResponse(fileObj.file, {envio: response, consulta: responseConsult}, index)
+		saveResponse(fileObj.file, { envio: response }, index)
 
 		// Save the signedXml to a file
-		const formattedXml = xmlFormatter(signedXml, { collapseContent: true, indentation: '  ', lineSeparator: '\n', prettyPrint: true, });
 		crearArchivoXML(formattedXml, path.resolve( __dirname, `./firmados/${fileName}` ));
 
-		return responseConsult.estado == TrackStatusEnum.ACCEPTED
+		return response.codigo == CommercialApprovalEnum.code_accepted
 	} catch (error) {
 		console.error(error);
+		return false
 	}
 
 
@@ -85,7 +82,7 @@ function saveResponse(filename: string, response: any, index: number) {
 	crearArchivoXML(results, resultsPath);
 }
 
-function getXMLS(): Promise< { RNCEmisor: string; noEcf: string; file: string }[] > {
+function getXMLS(): Promise< { RNCComprador: string; noEcf: string; file: string }[] > {
 	return new Promise((resolve, reject) => {
 		const directoryPath = path.resolve(__dirname, "./sin_firmar/");
 		const regex = /^\d+_(\d+)(E\d{12})\.xml$/;
@@ -107,10 +104,10 @@ function getXMLS(): Promise< { RNCEmisor: string; noEcf: string; file: string }[
 			const match = file.match(regex);
 
 			if (match) {
-				const RNCEmisor = match[1];
+				const RNCComprador = match[1];
 				const noEcf = match[2];
 
-				result.push({ RNCEmisor, noEcf, file });
+				result.push({ RNCComprador, noEcf, file });
 			} else {
 				console.log(`Archivo: ${file} no cumple con el patrón esperado.`);
 			}

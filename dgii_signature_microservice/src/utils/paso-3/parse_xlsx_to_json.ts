@@ -57,7 +57,12 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 					const value = row[colIndex]; // Ajusta el índice para ignorar la primera columna
 
 					// Ignorar los campos con el valor "#e"
-					if (value !== "#e" && value !== null && value !== undefined && value !== '')	 {
+					if (
+						value !== "#e" &&
+						value !== null &&
+						value !== undefined &&
+						value !== ""
+					) {
 						mapeoResult(template, header, value, nextHeader); // Mapea el valor a la estructura del template
 					}
 				}
@@ -79,38 +84,40 @@ function parseExcelToCustomJson(filePath: string): Promise<JSONData[]> {
 function mapeoResult(template, header, value, nextHeader) {
 	// InformacionReferencia
 	if (header === "Version") {
-		template.DetalleAprobacionComercial.Version = value;
+		template.ACECF.DetalleAprobacionComercial.Version = value;
 	} else if (header === "RNCEmisor") {
-		template.DetalleAprobacionComercial.RNCEmisor = value;
+		template.ACECF.DetalleAprobacionComercial.RNCEmisor = value;
 	} else if (header === "eNCF") {
-		template.DetalleAprobacionComercial.eNCF = value;
+		template.ACECF.DetalleAprobacionComercial.eNCF = value;
 	} else if (header === "FechaEmision") {
-		template.DetalleAprobacionComercial.FechaEmision = value;
+		template.ACECF.DetalleAprobacionComercial.FechaEmision = value;
 	} else if (header === "MontoTotal") {
-		template.DetalleAprobacionComercial.MontoTotal = value;
+		template.ACECF.DetalleAprobacionComercial.MontoTotal = value;
 	} else if (header === "RNCComprador") {
-		template.DetalleAprobacionComercial.RNCComprador = value;
+		template.ACECF.DetalleAprobacionComercial.RNCComprador = value;
 	} else if (header === "Estado") {
-		template.DetalleAprobacionComercial.Estado = value;
+		template.ACECF.DetalleAprobacionComercial.Estado = value;
 	} else if (header === "DetalleMotivoRechazo") {
-		template.DetalleAprobacionComercial.DetalleMotivoRechazo = value;
+		template.ACECF.DetalleAprobacionComercial.DetalleMotivoRechazo = value;
 	} else if (header === "FechaHoraAprobacionComercial") {
-		template.DetalleAprobacionComercial.FechaHoraAprobacionComercial = value;
+		template.ACECF.DetalleAprobacionComercial.FechaHoraAprobacionComercial = value;
 	}
 }
 
 function createTemplate(): JSONData {
 	return {
-		DetalleAprobacionComercial: {
-			Version: "",
-			RNCEmisor: "",
-			eNCF: "",
-			FechaEmision: "",
-			MontoTotal: "",
-			RNCComprador: "",
-			Estado: "",
-			DetalleMotivoRechazo: "",
-			FechaHoraAprobacionComercial: "",
+		ACECF: {
+			DetalleAprobacionComercial: {
+				Version: "",
+				RNCEmisor: "",
+				eNCF: "",
+				FechaEmision: "",
+				MontoTotal: "",
+				RNCComprador: "",
+				Estado: "",
+				DetalleMotivoRechazo: "",
+				FechaHoraAprobacionComercial: "",
+			},
 		},
 	};
 }
@@ -143,13 +150,13 @@ const filePath = path.join(__dirname, "datos.xlsx"); // Cambia esta ruta según 
 parseExcelToCustomJson(filePath)
 	.then((arrayConverted) => {
 		arrayConverted.forEach((json, index) => {
-			const RNCEmisor = json.DetalleAprobacionComercial.RNCComprador;
-			const eNCF = json.DetalleAprobacionComercial.eNCF;
+			const RNCComprador = json.ACECF.DetalleAprobacionComercial.RNCComprador;
+			const eNCF = json.ACECF.DetalleAprobacionComercial.eNCF;
 
 			const transformer = new Transformer();
 			const xml = transformer.json2xml(json);
 
-			const fileName = `${index + 1}_${RNCEmisor}${eNCF}.xml`;
+			const fileName = `${index + 1}_${RNCComprador}${eNCF}.xml`;
 			const filePath = path.join(__dirname, `sin_firmar/${fileName}`);
 
 			crearArchivoXML(xml, filePath);
