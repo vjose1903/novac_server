@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { FirmaXMLService } from "../../core/services/firmaXML.service"; // Ajusta la ruta según tu estructura de proyecto
+import { FirmaXMLService } from "../../core/services/DgiiService.service"; // Ajusta la ruta según tu estructura de proyecto
 import ECF, { P12Reader, ENVIRONMENT, Signature } from "dgii-ecf";
 import { P12ReaderData } from "../types/readerData.types";
 import { crearArchivoXML, leerArchivo, sleep } from "../functions";

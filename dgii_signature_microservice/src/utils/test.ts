@@ -1,23 +1,47 @@
-import * as path from "path";
+import { DgiiService } from "../core/services/DgiiService.service"
+import { sleep } from "./functions";
 
-import ECF, { P12Reader, ENVIRONMENT, Signature } from "dgii-ecf";
 
 async function prueba() {
-	const secret = "VICVAS01";
+	const dgiiService = DgiiService.getInstance();
 
-	const reader = new P12Reader(secret);
-	const certs = reader.getKeyFromFile(
-		path.resolve(__dirname, "./firma-digital.p12")
-	);
+	await sleep(1000);
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	console.log(" ");
+	
+	dgiiService.addToQueue({
+		RNCComprador: "1234567890",
+		noEcf: "1",
+	});
 
-	// const ecf = new ECF(certs, ENVIRONMENT.DEV);
-	const ecf = new ECF(certs, ENVIRONMENT.CERT);
+	dgiiService.addToQueue({
+		RNCComprador: "1234567890",
+		noEcf: "2",
+	});
 
-	const tokenData = await ecf.authenticate();
+	dgiiService.addToQueue({
+		RNCComprador: "1234567890",
+		noEcf: "3",
+	});
 
-	console.log(tokenData);
+	dgiiService.addToQueue({
+		RNCComprador: "1234567890",
+		noEcf: "4",
+	});
 
-    console.log(new Date())
+	dgiiService.addToQueue({
+		RNCComprador: "1234567890",
+		noEcf: "5",
+	});
 }
 
 prueba()

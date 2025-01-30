@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import ECF, { P12Reader, ENVIRONMENT, Signature } from 'dgii-ecf';
 import { P12ReaderData, CommercialApprovalEnum } from '../../utils/types/readerData.types';
-import { crearArchivoXML, sleep } from '../../utils/functions';
+import { crearArchivoXML, isEmpty, sleep } from '../../utils/functions';
 const xmlFormatter = require('xml-formatter');
 import Queue from 'queue';
 import { TokenData } from '../../utils/types/token.types';
@@ -26,16 +26,16 @@ export class DgiiService {
   }
 
   private async initialize() {
-    this.queue = new Queue({ concurrency: 1, autostart: true });
+    this.queue = new Queue({ concurrency: 3, autostart: true });
     await this.loadCertificates();
-    await this.authenticate();
+    // await this.authenticate();
   }
 
   private async loadCertificates() {
     try {
       const secret = 'VICVAS01';
       const reader = new P12Reader(secret);
-      const certs = reader.getKeyFromFile(path.resolve(__dirname, '../firma-digital.p12'));
+      const certs = reader.getKeyFromFile(path.resolve(__dirname, '../../utils/firma-digital.p12'));
 
       this.ecf = new ECF(certs, ENVIRONMENT.CERT);
       this.signature = new Signature(certs.key, certs.cert);
@@ -46,6 +46,10 @@ export class DgiiService {
   }
 
   private async authenticate() {
+    console.log(' ');
+    console.log('----- authenticate -----', new Date());
+    console.log('this.isAuthenticating ', this.isAuthenticating);
+
     if (this.isAuthenticating) {
       return new Promise<void>((resolve, reject) => this.authQueue.push({ resolve, reject }));
     }
@@ -54,7 +58,12 @@ export class DgiiService {
 
     try {
       this.authToken = await this.ecf.authenticate();
-      this.authQueue.forEach(task => task.resolve());
+
+      this.authQueue.forEach(task => {
+        console.log("===== RETORNAR PROMESA =====");
+        
+        task.resolve();
+      });
       this.authQueue = [];
     } catch (error) {
       this.authQueue.forEach(task => task.reject(error));
@@ -64,48 +73,75 @@ export class DgiiService {
       throw new Error('Error autenticando con la DGII.');
     } finally {
       this.isAuthenticating = false;
+      console.log('--- FINALIZAR ---');
     }
   }
 
   private isTokenExpired(): boolean {
-    if (!this.authToken) return true;
+    if (isEmpty(this.authToken)) return true;
     return new Date(this.authToken.expira) <= new Date();
   }
 
-  private validateToken() {
-    const tokenIsValid = this.authToken && typeof this.authToken.token === 'string' && typeof this.authToken.expira === 'string' && typeof this.authToken.expedido === 'string';
+  private tokenIsValid() {
+    console.log(' ');
+    console.log(' ');
+    console.log(' ');
+    console.log(' ');
+    console.log('----- tokenIsValid -----', new Date());
 
-    return !this.authToken || !tokenIsValid || this.isTokenExpired();
+    if (isEmpty(this.authToken)) {
+      console.log('Token inválido: authToken es null o vacío');
+      return true;
+    }
+
+    const tokenIsValid = typeof this.authToken.token === 'string' && typeof this.authToken.expira === 'string' && typeof this.authToken.expedido === 'string';
+
+    if (!tokenIsValid) {
+      console.log('Token inválido: estructura incorrecta');
+      return true;
+    }
+
+    const expired = this.isTokenExpired();
+    console.log('Token expirado:', expired);
+    console.log('TOKEN VALIDO');
+
+    return expired;
   }
 
   public async firmarYEnviarXML(jsonData: any) {
     try {
-      if (!this.validateToken()) {
+      if (this.tokenIsValid()) {
         await this.authenticate();
 
-        if (!this.validateToken()) {
+        if (this.tokenIsValid()) {
           return { success: false, error: 'Error de autenticación. No se pudo obtener un token válido.' };
         }
       }
 
-      const xml = '';
+      console.log('>>> this.authToken ', this.authToken);
+      console.log('index ', jsonData.noEcf);
+      console.log(' ');
+      console.log(' ');
 
-      const fileName = `${jsonData.RNCComprador}${jsonData.noEcf}.xml`;
+      // const xml = '';
 
-      const signedXml = this.signature.signXml(xml, 'ACECF');
-      const formattedXml = xmlFormatter(signedXml, {
-        collapseContent: true,
-        indentation: '  ',
-        lineSeparator: '\n',
-        prettyPrint: true,
-      });
+      // const fileName = `${jsonData.RNCComprador}${jsonData.noEcf}.xml`;
 
-      const response = await this.ecf.sendCommercialApproval(signedXml, fileName);
-      await sleep(2000);
+      // const signedXml = this.signature.signXml(xml, 'ACECF');
+      // const formattedXml = xmlFormatter(signedXml, {
+      //   collapseContent: true,
+      //   indentation: '  ',
+      //   lineSeparator: '\n',
+      //   prettyPrint: true,
+      // });
 
-      crearArchivoXML(formattedXml, path.resolve(__dirname, `./firmados/${fileName}`));
+      // const response = await this.ecf.sendCommercialApproval(signedXml, fileName);
+      // await sleep(2000);
 
-      return { success: true, response };
+      // crearArchivoXML(formattedXml, path.resolve(__dirname, `./firmados/${fileName}`));
+
+      // return { success: true, response };
+      return { success: true };
     } catch (error) {
       console.error(error);
       return { success: false, error: 'Error en el proceso de firma y envío.' };
