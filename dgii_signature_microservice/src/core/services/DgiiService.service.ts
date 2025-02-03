@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import ECF, { P12Reader, ENVIRONMENT, Signature } from 'dgii-ecf';
 import { P12ReaderData, CommercialApprovalEnum } from '../../utils/types/readerData.types';
-import { crearArchivoXML, isEmpty, sleep } from '../../utils/functions';
-const xmlFormatter = require('xml-formatter');
+import { crearArchivoXML, isEmpty, sleep } from '../../utils/typescript/functions';
+// const xmlFormatter = require('xml-formatter');
 import Queue from 'queue';
 import { TokenData } from '../../utils/types/token.types';
 
@@ -13,7 +13,7 @@ export class DgiiService {
   private signature!: Signature;
   private authToken: TokenData | null = null;
   private isAuthenticating: boolean = false;
-  private authQueue: { resolve: () => void; reject: (error: any) => void }[] = [];
+  private authQueue: { resolve: (result: { success: boolean; message?: string }) => void; reject: (error: any) => void }[] = [];
   private queue: Queue;
 
   private constructor() {
@@ -46,35 +46,32 @@ export class DgiiService {
   }
 
   private async authenticate() {
-    console.log(' ');
-    console.log('----- authenticate -----', new Date());
-    console.log('this.isAuthenticating ', this.isAuthenticating);
+    return new Promise<{ success: boolean; message?: string }>((resolvePrincipal, rejectPrincipal) => {
+      if (this.isAuthenticating) {
+        return this.authQueue.push({ resolve: resolvePrincipal, reject: rejectPrincipal });
+      }
 
-    if (this.isAuthenticating) {
-      return new Promise<void>((resolve, reject) => this.authQueue.push({ resolve, reject }));
-    }
+      this.isAuthenticating = true;
 
-    this.isAuthenticating = true;
+      this.ecf
+        .authenticate()
+        .then(authToken => {
+          this.authToken = authToken;
 
-    try {
-      this.authToken = await this.ecf.authenticate();
-
-      this.authQueue.forEach(task => {
-        console.log("===== RETORNAR PROMESA =====");
-        
-        task.resolve();
-      });
-      this.authQueue = [];
-    } catch (error) {
-      this.authQueue.forEach(task => task.reject(error));
-      this.authQueue = [];
-
-      console.error('Error en la autenticación:', error);
-      throw new Error('Error autenticando con la DGII.');
-    } finally {
-      this.isAuthenticating = false;
-      console.log('--- FINALIZAR ---');
-    }
+          this.authQueue.forEach(task => task.resolve({ success: true }));
+          this.authQueue = [];
+          resolvePrincipal({ success: true });
+        })
+        .catch(error => {
+          const result = { success: false, message: error?.message || 'Error de autenticación. Servicio de la DGII no disponible.' };
+          this.authQueue.forEach(task => task.reject(result));
+          this.authQueue = [];
+          rejectPrincipal(result);
+        })
+        .finally(() => {
+          this.isAuthenticating = false;
+        });
+    });
   }
 
   private isTokenExpired(): boolean {
@@ -83,86 +80,80 @@ export class DgiiService {
   }
 
   private tokenIsValid() {
-    console.log(' ');
-    console.log(' ');
-    console.log(' ');
-    console.log(' ');
-    console.log('----- tokenIsValid -----', new Date());
-
-    if (isEmpty(this.authToken)) {
-      console.log('Token inválido: authToken es null o vacío');
-      return true;
-    }
+    if (isEmpty(this.authToken)) return true;
 
     const tokenIsValid = typeof this.authToken.token === 'string' && typeof this.authToken.expira === 'string' && typeof this.authToken.expedido === 'string';
 
-    if (!tokenIsValid) {
-      console.log('Token inválido: estructura incorrecta');
-      return true;
-    }
+    if (!tokenIsValid) return true;
 
     const expired = this.isTokenExpired();
-    console.log('Token expirado:', expired);
-    console.log('TOKEN VALIDO');
 
     return expired;
   }
 
-  public async firmarYEnviarXML(jsonData: any) {
-    try {
+  private async validateTokenBeforeSend() {
+    return new Promise<{ success: boolean; message?: any; data?: any }>(async (resolve, reject) => {
       if (this.tokenIsValid()) {
-        await this.authenticate();
-
-        if (this.tokenIsValid()) {
-          return { success: false, error: 'Error de autenticación. No se pudo obtener un token válido.' };
-        }
+        this.authenticate()
+          .then(result => {
+            if (this.tokenIsValid()) {
+              reject({ success: false, message: 'Error de autenticación. No se pudo obtener un token válido.' });
+            }
+          })
+          .catch(error => {
+            reject(error);
+          });
+      } else {
+        resolve({ success: true });
       }
+    });
+  }
 
-      console.log('>>> this.authToken ', this.authToken);
-      console.log('index ', jsonData.noEcf);
-      console.log(' ');
-      console.log(' ');
+  public async firmarYEnviarXML(jsonData: any) {
+    return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
+      this.validateTokenBeforeSend()
+        .then(() => {
+          // const xml = '';
 
-      // const xml = '';
+          // const fileName = `${jsonData.RNCComprador}${jsonData.noEcf}.xml`;
 
-      // const fileName = `${jsonData.RNCComprador}${jsonData.noEcf}.xml`;
+          // const signedXml = this.signature.signXml(xml, 'ACECF');
+          // const formattedXml = xmlFormatter(signedXml, {
+          //   collapseContent: true,
+          //   indentation: '  ',
+          //   lineSeparator: '\n',
+          //   prettyPrint: true,
+          // });
 
-      // const signedXml = this.signature.signXml(xml, 'ACECF');
-      // const formattedXml = xmlFormatter(signedXml, {
-      //   collapseContent: true,
-      //   indentation: '  ',
-      //   lineSeparator: '\n',
-      //   prettyPrint: true,
-      // });
+          // const response = await this.ecf.sendCommercialApproval(signedXml, fileName);
+          // await sleep(2000);
 
-      // const response = await this.ecf.sendCommercialApproval(signedXml, fileName);
-      // await sleep(2000);
+          // crearArchivoXML(formattedXml, path.resolve(__dirname, `./firmados/${fileName}`));
 
-      // crearArchivoXML(formattedXml, path.resolve(__dirname, `./firmados/${fileName}`));
-
-      // return { success: true, response };
-      return { success: true };
-    } catch (error) {
-      console.error(error);
-      return { success: false, error: 'Error en el proceso de firma y envío.' };
-    }
+          // return { success: true, response };
+          resolve({ success: true });
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
   }
 
   public async addToQueue(jsonData: any) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<{ success: boolean; message?: any; data?: any }>(async (resolve, reject) => {
       try {
         this.queue.push(async () => {
-          try {
-            const result = await this.firmarYEnviarXML(jsonData);
-
-            if (result.success) resolve(result);
-            else reject(result);
-          } catch (error) {
-            reject({ success: false, error: error.message || 'Error procesando la solicitud.' });
-          }
+          this.firmarYEnviarXML(jsonData)
+            .then(result => {
+              if (result && result.success) resolve(result);
+              else reject(result);
+            })
+            .catch(error => {
+              reject({ success: false, message: error.message || 'Error procesando la solicitud.' });
+            });
         });
       } catch (error) {
-        reject({ success: false, error: error.message || 'Error al agregar a la cola.' });
+        reject({ success: false, message: error.message || 'Error al agregar a la cola.' });
       }
     });
   }

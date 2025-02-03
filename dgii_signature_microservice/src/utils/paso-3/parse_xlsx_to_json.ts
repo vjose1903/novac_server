@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import * as fs from "fs";
 import * as path from "path";
 import { Transformer } from "dgii-ecf";
-import { crearArchivoXML, isEmpty } from "../functions";
+import { crearArchivoXML, isEmpty } from "../typescript/functions";
 
 interface JSONData {
 	[key: string]: any;

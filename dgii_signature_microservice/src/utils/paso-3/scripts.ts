@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import ECF, { P12Reader, ENVIRONMENT, Signature } from "dgii-ecf";
 import { P12ReaderData, CommercialApprovalEnum } from "../types/readerData.types";
-import { crearArchivoXML, leerArchivo, sleep } from "../functions";
+import { crearArchivoXML, leerArchivo, sleep } from "../typescript/functions";
 const xmlFormatter = require('xml-formatter');
 
 

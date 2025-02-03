@@ -1,5 +1,5 @@
 import { DgiiService } from "../core/services/DgiiService.service"
-import { sleep } from "./functions";
+import { sleep } from "./typescript/functions";
 
 
 async function prueba() {
@@ -10,38 +10,16 @@ async function prueba() {
 	console.log(" ");
 	console.log(" ");
 	console.log(" ");
-	console.log(" ");
-	console.log(" ");
-	console.log(" ");
-	console.log(" ");
-	console.log(" ");
-	console.log(" ");
-	console.log(" ");
 	
 	dgiiService.addToQueue({
 		RNCComprador: "1234567890",
 		noEcf: "1",
+	}).then(result => {
+		console.log("@@@@@ result ", result);
+	}).catch(error => {
+		console.log("@@@@@ 1 error ", error);
 	});
 
-	dgiiService.addToQueue({
-		RNCComprador: "1234567890",
-		noEcf: "2",
-	});
-
-	dgiiService.addToQueue({
-		RNCComprador: "1234567890",
-		noEcf: "3",
-	});
-
-	dgiiService.addToQueue({
-		RNCComprador: "1234567890",
-		noEcf: "4",
-	});
-
-	dgiiService.addToQueue({
-		RNCComprador: "1234567890",
-		noEcf: "5",
-	});
 }
 
 prueba()
