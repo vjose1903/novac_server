@@ -57,7 +57,7 @@ export class DgiiService {
         .authenticate()
         .then(authToken => {
           this.authToken = authToken;
-
+          
           this.authQueue.forEach(task => task.resolve({ success: true }));
           this.authQueue = [];
           resolvePrincipal({ success: true });
@@ -99,6 +99,7 @@ export class DgiiService {
             if (this.tokenIsValid()) {
               reject({ success: false, message: 'Error de autenticación. No se pudo obtener un token válido.' });
             }
+            resolve(result);
           })
           .catch(error => {
             reject(error);
@@ -113,6 +114,8 @@ export class DgiiService {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.validateTokenBeforeSend()
         .then(() => {
+          console.log("this.authToken ", this.authToken);
+          
           // const xml = '';
 
           // const fileName = `${jsonData.RNCComprador}${jsonData.noEcf}.xml`;
