@@ -14,8 +14,5 @@
 	},
 	"devDependencies": {
 		"@types/mime-types": "^2.1.4"
-	},
-	"engines": {
-		"node": "20.18.0"
 	}
 }

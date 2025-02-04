@@ -1,8 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { FirmaXMLService } from "../../core/services/DgiiService.service"; // Ajusta la ruta según tu estructura de proyecto
 import ECF, { P12Reader, ENVIRONMENT, Signature } from "dgii-ecf";
-import { P12ReaderData } from "../types/readerData.types";
+import { P12ReaderData } from "../../core/types/readerData.types";
 import { crearArchivoXML, leerArchivo, sleep } from "../typescript/functions";
 import { TrackStatusEnum } from "dgii-ecf/dist/networking/types";
 const xmlFormatter = require('xml-formatter');

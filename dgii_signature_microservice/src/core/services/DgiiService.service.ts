@@ -1,11 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import ECF, { P12Reader, ENVIRONMENT, Signature } from 'dgii-ecf';
-import { P12ReaderData, CommercialApprovalEnum } from '../../utils/types/readerData.types';
+import { P12ReaderData, CommercialApprovalEnum } from '../types/readerData.types';
 import { crearArchivoXML, isEmpty, sleep } from '../../utils/typescript/functions';
 // const xmlFormatter = require('xml-formatter');
 import Queue from 'queue';
-import { TokenData } from '../../utils/types/token.types';
+import { TokenData } from '../types/token.types';
 
 export class DgiiService {
   private static instance: DgiiService;
@@ -57,7 +57,7 @@ export class DgiiService {
         .authenticate()
         .then(authToken => {
           this.authToken = authToken;
-          
+
           this.authQueue.forEach(task => task.resolve({ success: true }));
           this.authQueue = [];
           resolvePrincipal({ success: true });
@@ -114,8 +114,8 @@ export class DgiiService {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.validateTokenBeforeSend()
         .then(() => {
-          console.log("this.authToken ", this.authToken);
-          
+          console.log('this.authToken ', this.authToken);
+
           // const xml = '';
 
           // const fileName = `${jsonData.RNCComprador}${jsonData.noEcf}.xml`;
