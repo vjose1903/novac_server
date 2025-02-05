@@ -585,7 +585,6 @@ function createTemplate(): JSONData {
 					FechaVencimientoSecuencia: "",
 					IndicadorEnvioDiferido: "",
 					IndicadorMontoGravado: "",
-					IndicadorServicioTodoIncluido: "",
 					TipoIngresos: "",
 					TipoPago: "",
 					FechaLimitePago: "",
@@ -759,7 +758,7 @@ function removeEmptyValues(obj: any) {
 
 
 // Ejemplo de uso
-const filePath = path.join(__dirname, "../paso-2/datos.xlsx"); // Cambia esta ruta según tu directorio
+const filePath = path.join(__dirname, "datos.xlsx"); // Cambia esta ruta según tu directorio
 
 parseExcelToCustomJson(filePath).then((arrayConverted) => {
 	arrayConverted.forEach((json, index) => {
@@ -770,7 +769,7 @@ parseExcelToCustomJson(filePath).then((arrayConverted) => {
 		const xml = transformer.json2xml(json);
 
 		const fileName = `${index+1}_${RNCEmisor}${eNCF}.xml`;
-		const filePath = path.join(__dirname, `../paso-2/sin_firmar/${fileName}`)
+		const filePath = path.join(__dirname, `.sin_firmar/${fileName}`)
 
 		crearArchivoXML(xml, filePath);
 	})

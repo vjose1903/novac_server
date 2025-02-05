@@ -114,7 +114,14 @@ export class DgiiService {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.validateTokenBeforeSend()
         .then(() => {
-          console.log('this.authToken ', this.authToken);
+
+          // TODO: colocar en el servidor un key para identificar el tipo de documento
+          // switch (document.tipo) {
+          //     case "factura":
+          //         return this.parseFactura(document);
+          //     default:
+          //         throw new Error(`Tipo de documento no soportado: ${document.tipo}`);
+          // }
 
           // const xml = '';
 
@@ -134,7 +141,7 @@ export class DgiiService {
           // crearArchivoXML(formattedXml, path.resolve(__dirname, `./firmados/${fileName}`));
 
           // return { success: true, response };
-          resolve({ success: true });
+          resolve({ success: true , data: this.authToken});
         })
         .catch(error => {
           reject(error);

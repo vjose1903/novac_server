@@ -1,5 +1,9 @@
-export const factura_32 = {
+import { FacturaI } from '../core/types/factura.types';
+
+export const factura_32: FacturaI = {
   id_documento: '0',
+  eNCF: 'testing', // AGREGAR EN EL BACKEND 
+  fecha_limite_pago: '30-03-2025', // AGREGAR EN EL BACKEND 
   condicion: 'Contado',
   forma_pago: 'Efectivo',
   fecha_viaje: null,
@@ -27,6 +31,15 @@ export const factura_32 = {
   cliente_id: null,
   NoCliente_nombre: 'Cliente contado',
   NoCliente_direccion: 'Autopista Duarte Km0 El Higüero, La Vega',
+  cliente: {
+    id: 1,
+    nombre: 'cliente',
+    apellido: 'preba',
+    direccion: 'Autopista Duarte Km0 El Higüero, La Vega',
+    telefono: '809-555-1234',
+    limite_credito: 30,
+  },
+
   detalle_facturas: [
     {
       key: '17386657026810',
@@ -40,7 +53,7 @@ export const factura_32 = {
         existencia: 142567,
         aviso_existencia: 1,
         codigo: '00822',
-        fecha_ingreso: '2023-04-26',
+        fecha_ingreso: new Date('2023-04-26'),
         medida: 'Saco',
         is_detallable: false,
         medida_alerta: 'Libra',
@@ -99,7 +112,7 @@ export const factura_32 = {
         existencia: 162974.37200000102,
         aviso_existencia: 100,
         codigo: '00208',
-        fecha_ingreso: '2020-11-19',
+        fecha_ingreso: new Date('2020-11-19'),
         medida: 'Quintal',
         is_detallable: true,
         medida_alerta: 'Quintal',
@@ -163,7 +176,7 @@ export const factura_32 = {
         existencia: 345059.65,
         aviso_existencia: 30,
         codigo: '00166',
-        fecha_ingreso: '2020-11-17',
+        fecha_ingreso: new Date('2020-11-17'),
         medida: 'Quintal',
         is_detallable: true,
         medida_alerta: 'Quintal',

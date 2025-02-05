@@ -5,6 +5,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build:ts": "tsc",
+    "test-function": "ts-node src/utils/test.ts",
     "copy:assets": "cpx \"src/utils/*.{p12,xml}\" dist/utils",
     "build": "npm run clean && npm run build:ts && npm run copy:assets",
     "test": "echo \"Error: no test specified\" && exit 1"

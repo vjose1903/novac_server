@@ -33,3 +33,12 @@ export function sleep(time: number) {
 		setTimeout(() => resolve(), time);
 	});
 }
+
+export function normalizarTexto(texto: string): string {
+    const textoMinusculas = texto.toLowerCase();
+    
+    const textoSinAcentos = textoMinusculas.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    return textoSinAcentos;
+}
+

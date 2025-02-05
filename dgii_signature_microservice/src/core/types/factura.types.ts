@@ -1,17 +1,20 @@
+import { condicionT, forma_pagoT } from '../constants/factura.utils';
+
 export interface FacturaI {
   id_documento: string;
-  condicion: string;
-  forma_pago: string;
-  fecha_viaje: null;
-  fecha_equivalente: null;
+  condicion: condicionT;
+  forma_pago: forma_pagoT;
+  fecha_viaje: any;
+  fecha_equivalente: any;
+  fecha_limite_pago?: string;
   pagada: boolean;
   balance: number;
   devuelta: number;
-  fecha_valida: null;
+  fecha_valida: any;
   tipo_factura_id: number;
-  numero_comprobante: null;
-  costoYgasto: null;
-  numero_factura: null;
+  numero_comprobante: any;
+  costoYgasto: any;
+  numero_factura: any;
   total_factura: number;
   Bruto: number;
   itbis: number;
@@ -22,15 +25,17 @@ export interface FacturaI {
   is_nota: boolean;
   movimientos_viaje: any[];
   serie: string;
-  pre_factura: null;
-  cotizacion: null;
-  cliente_id: null;
+  pre_factura: any;
+  cotizacion: any;
+  cliente_id: any;
   NoCliente_nombre: string;
   NoCliente_direccion: string;
   detalle_facturas: DetalleFactura[];
   FACTURA_DE: number;
   tipo: string;
   tiene_nota: boolean;
+  eNCF: string;
+  cliente?: ClienteI;
   [key: string]: any;
 }
 
@@ -38,7 +43,7 @@ export interface DetalleFactura {
   key: string;
   articulo: Articulo;
   unidades: UnidadesI[];
-  detalle_id: null;
+  detalle_id: any;
   codigo: string;
   cantidad: number;
   cantidad_initial: number;
@@ -58,19 +63,29 @@ export interface DetalleFactura {
   from_pre_factura: boolean;
   vende_sin_inventario: boolean;
   is_bad_price: boolean;
-  actual_price: null;
-  actual_price_value: null;
-  key_initial: null;
-  producto_initial: null;
+  actual_price: any;
+  actual_price_value: any;
+  key_initial: any;
+  producto_initial: any;
   articulo_id: number;
   retirado: number;
   retirado_en_venta: number;
   [key: string]: any;
 }
 
+export interface ClienteI {
+  id: number;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  direccion: string;
+  limite_credito: number;
+  [key: string]: any;
+}
+
 export interface Articulo {
   id: number;
-  imagen_id: null;
+  imagen_id: any;
   tipo_articulo_id: number;
   nombre: string;
   costo_principal: number;
@@ -116,7 +131,7 @@ export interface ContenidoI {
 export interface ContenidoArticuloI {
   id: number;
   articulo_id: number;
-  referencia: null;
+  referencia: any;
   costo: number;
   precio: number;
   cantidad: number;
@@ -143,8 +158,6 @@ export interface LibraI {
 export interface TipoArticuloI {
   id: number;
   descripcion: string;
-  created_at: Date;
-  updated_at: Date;
   tipo: string;
   codigo: string;
   [key: string]: any;
