@@ -8,12 +8,16 @@ export class ParseDocument {
   private version: string;
   private rnc_emisor: string;
   private cleaner: Clean;
+  private environment: any
 
   constructor() {
-    this.version = process.env.XML_VERSION || '1.0';
-    this.rnc_emisor = process.env.RNC_EMISOR || '';
+    this.environment = process.env;
+    this.version = this.environment.XML_VERSION || '1.0';
+    this.rnc_emisor = this.environment.RNC_EMISOR || '';
     this.cleaner = new Clean();
   }
+
+
 
   parse(document: FacturaI) {
     const document_parsed = {
@@ -22,7 +26,7 @@ export class ParseDocument {
           Version: this.version,
           IdDoc: {
             TipoeCF: document.FACTURA_DE,
-            // agregar en el backend la secuencia a utilizar
+            // TODO: agregar en el backend la secuencia a utilizar
             eNCF: document.eNCF,
             FechaVencimientoSecuencia: null,
             // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
@@ -34,37 +38,42 @@ export class ParseDocument {
             TipoIngresos: '01',
             // Las facturas por entrega gratuita (código 3), no son válidas para crédito fiscal.
             TipoPago: null,
-            // agregar en el backend la fecha limite de pago
+            // TODO:agregar en el backend la fecha limite de pago
             FechaLimitePago: null,
             TerminoPago: null,
             TablaFormasPago: {
               FormaDePago: [],
             },
-
+            // CT: Cta. Corriente AH: Ahorro OT: Otra TODO: agregar en el backend
             TipoCuentaPago: null,
+            // Número de la cuenta si la forma de pago es por cheque o transferencia bancaria. 
             NumeroCuentaPago: null,
+            // Banco de la Cuenta
             BancoPago: null,
+            // Período de facturación para Servicios Periódicos Ej. Energía eléctrica, telefónica, otros. Fecha desde (Fecha inicial del servicio facturado).
             FechaDesde: null,
+            // Período de facturación para Servicios Periódicos. Fecha hasta (Fecha final del servicio facturado).
             FechaHasta: null,
+            // TODO: agregar un mecanismo para poder saber cuantos items por pagina tendra dependiendo del cliente
             TotalPaginas: null,
           },
           Emisor: {
             RNCEmisor: this.rnc_emisor,
-            RazonSocialEmisor: null,
-            NombreComercial: null,
+            RazonSocialEmisor: this.environment.RAZON_SOCIAL_EMISOR,
+            NombreComercial: this.environment.NOMBRE_COMERCIAL_EMISOR,
             Sucursal: null,
-            DireccionEmisor: null,
-            Municipio: null,
-            Provincia: null,
-
+            DireccionEmisor: this.environment.DIRECCION_EMISOR,
+            Municipio: this.environment.MUNICIPIO_EMISOR,
+            Provincia: this.environment.PROVINCIA_EMISOR,
             TablaTelefonoEmisor: {
-              TelefonoEmisor: [],
+              TelefonoEmisor: [this.environment.TELEFONO_EMISOR],
             },
-            CorreoEmisor: null,
+            CorreoEmisor: this.environment.CORREO_EMISOR,
             WebSite: null,
             ActividadEconomica: null,
             CodigoVendedor: null,
-            NumeroFacturaInterna: null,
+            // TODO: agregar en el backend el numero de factura interna
+            NumeroFacturaInterna: document.numero_factura,
             NumeroPedidoInterno: null,
             ZonaVenta: null,
             RutaVenta: null,

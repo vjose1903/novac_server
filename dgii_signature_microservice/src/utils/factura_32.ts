@@ -4,6 +4,7 @@ export const factura_32: FacturaI = {
   id_documento: '0',
   eNCF: 'testing', // AGREGAR EN EL BACKEND 
   fecha_limite_pago: '30-03-2025', // AGREGAR EN EL BACKEND 
+  numero_factura: null, // AGREGAR EN EL BACKEND 
   condicion: 'Contado',
   forma_pago: 'Efectivo',
   fecha_viaje: null,
@@ -15,7 +16,6 @@ export const factura_32: FacturaI = {
   tipo_factura_id: 23,
   numero_comprobante: null,
   costoYgasto: null,
-  numero_factura: null,
   total_factura: 8700,
   Bruto: 9260,
   itbis: 0,
