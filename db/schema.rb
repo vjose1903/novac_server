@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_02_08_113103) do
+ActiveRecord::Schema[7.0].define(version: 2025_02_08_121554) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -258,7 +258,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_02_08_113103) do
     t.float "balance"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "municipio_id"
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
+    t.index ["municipio_id"], name: "index_clientes_on_municipio_id"
   end
 
   create_table "config_articulos", force: :cascade do |t|
@@ -1099,6 +1101,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_02_08_113103) do
   add_foreign_key "cierre_cuentas", "cuentas_contables", column: "cuenta_contable_id"
   add_foreign_key "cierre_cuentas", "periodos_fiscales", column: "periodo_fiscal_id"
   add_foreign_key "clientes", "imagenes"
+  add_foreign_key "clientes", "municipios"
   add_foreign_key "configuraciones_entidades_cuentas", "cuentas_contables", column: "cuenta_contable_id"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
