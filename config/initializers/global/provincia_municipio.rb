@@ -2,7 +2,7 @@
 PROVINCIAS_MUNICIPIOS=[
   { 
     nombre: 'DISTRITO NACIONAL', 
-    codigo: '010000'
+    codigo: '010000',
     municipios: [
         { codigo: '010100', nombre: 'MUNICIPIO SANTO DOMINGO DE GUZMÁN' },
         { codigo: '010101', nombre: 'SANTO DOMINGO DE GUZMÁN' }
@@ -54,26 +54,32 @@ PROVINCIAS_MUNICIPIOS=[
         { codigo: '020901', nombre: 'GUAYABAL' },
         { codigo: '021000', nombre: 'MUNICIPIO ESTEBANÍA' },
         { codigo: '021001', nombre: 'ESTEBANÍA' },
-        { codigo: '030001', nombre: 'MUNICIPIO NEIBA' },
-        { codigo: '030101', nombre: 'NEIBA' },
-        { codigo: '030102', nombre: 'EL PALMAR' },
-        { codigo: '030200', nombre: 'MUNICIPIO GALVÁN' },
-        { codigo: '030201', nombre: 'GALVÁN' },
-        { codigo: '030202', nombre: 'EL SALADO' },
-        { codigo: '030300', nombre: 'MUNICIPIO TAMAYO' },
-        { codigo: '030301', nombre: 'TAMAYO' },
-        { codigo: '030302', nombre: 'UVILLA' },
-        { codigo: '030303', nombre: 'SANTANA' },
-        { codigo: '030304', nombre: 'MONSERRATE (MONTSERRAT)' },
-        { codigo: '030305', nombre: 'CABEZA DE TORO' },
-        { codigo: '030306', nombre: 'MENA' },
-        { codigo: '030307', nombre: 'SANTA BÁRBARA EL 6' },
-        { codigo: '030400', nombre: 'MUNICIPIO VILLA JARAGUA' },
-        { codigo: '030401', nombre: 'VILLA JARAGUA' },
-        { codigo: '030500', nombre: 'MUNICIPIO LOS RÍOS' },
-        { codigo: '030501', nombre: 'LOS RÍOS' },
-        { codigo: '030502', nombre: 'LAS CLAVELLINAS' },
     ] 
+  },
+  { 
+    nombre: 'BAHORUCO', 
+    codigo: '030000',
+    municipios: [
+      { codigo: '030001', nombre: 'MUNICIPIO NEIBA' },
+      { codigo: '030101', nombre: 'NEIBA' },
+      { codigo: '030102', nombre: 'EL PALMAR' },
+      { codigo: '030200', nombre: 'MUNICIPIO GALVÁN' },
+      { codigo: '030201', nombre: 'GALVÁN' },
+      { codigo: '030202', nombre: 'EL SALADO' },
+      { codigo: '030300', nombre: 'MUNICIPIO TAMAYO' },
+      { codigo: '030301', nombre: 'TAMAYO' },
+      { codigo: '030302', nombre: 'UVILLA' },
+      { codigo: '030303', nombre: 'SANTANA' },
+      { codigo: '030304', nombre: 'MONSERRATE (MONTSERRAT)' },
+      { codigo: '030305', nombre: 'CABEZA DE TORO' },
+      { codigo: '030306', nombre: 'MENA' },
+      { codigo: '030307', nombre: 'SANTA BÁRBARA EL 6' },
+      { codigo: '030400', nombre: 'MUNICIPIO VILLA JARAGUA' },
+      { codigo: '030401', nombre: 'VILLA JARAGUA' },
+      { codigo: '030500', nombre: 'MUNICIPIO LOS RÍOS' },
+      { codigo: '030501', nombre: 'LOS RÍOS' },
+      { codigo: '030502', nombre: 'LAS CLAVELLINAS' },
+    ]
   },
   { 
     nombre: 'BARAHONA', 

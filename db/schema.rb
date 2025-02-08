@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
+ActiveRecord::Schema[7.0].define(version: 2025_02_08_113103) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -129,11 +129,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.string "comentario"
     t.string "tipo"
     t.date "fecha_equivalente"
-    t.date "fecha_anulacion"
     t.boolean "estado", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_validated"
+    t.string "codigo"
+    t.datetime "fecha_anulacion"
     t.index ["periodo_fiscal_id"], name: "index_cabezas_asientos_contables_on_periodo_fiscal_id"
     t.index ["usuario_anulador_id"], name: "index_cabezas_asientos_contables_on_usuario_anulador_id"
     t.index ["usuario_creador_id"], name: "index_cabezas_asientos_contables_on_usuario_creador_id"
@@ -161,6 +162,31 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.index ["configuracion_entidad_cuenta_id"], name: "idx_cat_ent_cont_cuenta_cont_config_ent"
     t.index ["cuenta_contable_auxiliar_id"], name: "idx_cat_ent_cont_cuenta_cont_aux"
     t.index ["cuenta_contable_control_id"], name: "idx_cat_ent_cont_cuenta_cont_cont"
+  end
+
+  create_table "cheques", force: :cascade do |t|
+    t.bigint "cuenta_bancaria_id", null: false
+    t.bigint "divisa_id", null: false
+    t.float "tasa"
+    t.float "monto"
+    t.float "monto_local"
+    t.float "balance"
+    t.string "comentario"
+    t.datetime "fecha_equivalente"
+    t.bigint "user_creador_id", null: false
+    t.bigint "last_user_update_id"
+    t.date "fecha_update"
+    t.bigint "user_anulador_id"
+    t.date "fecha_anulacion"
+    t.integer "secuencia"
+    t.string "estado", default: "active"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuenta_bancaria_id"], name: "index_cheques_on_cuenta_bancaria_id"
+    t.index ["divisa_id"], name: "index_cheques_on_divisa_id"
+    t.index ["last_user_update_id"], name: "index_cheques_on_last_user_update_id"
+    t.index ["user_anulador_id"], name: "index_cheques_on_user_anulador_id"
+    t.index ["user_creador_id"], name: "index_cheques_on_user_creador_id"
   end
 
   create_table "choferes_viajes", force: :cascade do |t|
@@ -322,6 +348,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.float "balance_inicial_banco", default: 0.0
     t.float "balance_inicial_libro", default: 0.0
     t.date "fecha_primera_conciliacion"
+    t.boolean "has_chequera", default: false
     t.index ["banco_id"], name: "index_cuentas_bancarias_on_banco_id"
     t.index ["cuenta_contable_id"], name: "index_cuentas_bancarias_on_cuenta_contable_id"
     t.index ["cuenta_contable_prima_id"], name: "index_cuentas_bancarias_on_cuenta_contable_prima_id"
@@ -365,6 +392,17 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.index ["last_user_update_id"], name: "index_depositos_on_last_user_update_id"
     t.index ["user_anulador_id"], name: "index_depositos_on_user_anulador_id"
     t.index ["user_creador_id"], name: "index_depositos_on_user_creador_id"
+  end
+
+  create_table "detalle_cheques", force: :cascade do |t|
+    t.bigint "cheque_id", null: false
+    t.string "comentario"
+    t.float "tasa"
+    t.float "monto"
+    t.float "monto_local"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cheque_id"], name: "index_detalle_cheques_on_cheque_id"
   end
 
   create_table "detalle_conduces", force: :cascade do |t|
@@ -695,7 +733,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.string "nombre"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "codigo"
     t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
+  end
+
+  create_table "nombre_bancos", force: :cascade do |t|
+    t.string "nombre"
+    t.string "identificador"
   end
 
   create_table "notas", force: :cascade do |t|
@@ -737,13 +781,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.bigint "user_id", null: false
     t.bigint "suplidor_id", null: false
     t.bigint "tipo_factura_id", null: false
-    t.date "fecha_equivalente"
     t.integer "numero"
     t.string "forma_pago"
     t.boolean "estado", default: true
     t.float "total"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "fecha_equivalente"
     t.index ["suplidor_id"], name: "index_pago_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_pago_facturas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_pago_facturas_on_user_id"
@@ -793,6 +837,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.string "nombre"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "codigo"
   end
 
   create_table "recibos_ingresos", force: :cascade do |t|
@@ -849,6 +894,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "referencia"
     t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
+  end
+
+  create_table "secuencia_documentos", force: :cascade do |t|
+    t.string "origen_secuencia_type", null: false
+    t.bigint "origen_secuencia_id", null: false
+    t.integer "secuencia", default: 1
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["origen_secuencia_type", "origen_secuencia_id"], name: "index_secuencia_documentos_on_origen_secuencia"
   end
 
   create_table "secuencia_facturas", force: :cascade do |t|
@@ -946,11 +1000,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
     t.string "nombre_banco_tercero"
     t.string "cuenta_bancaria_tercero"
     t.string "numero_referencia"
-    t.date "fecha_equivalente"
-    t.date "fecha_anulacion"
     t.boolean "estado", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "fecha_equivalente"
+    t.datetime "fecha_anulacion"
+    t.date "fecha_update"
     t.index ["cuenta_bancaria_destino_id"], name: "index_transferencias_on_cuenta_bancaria_destino_id"
     t.index ["cuenta_bancaria_origen_id"], name: "index_transferencias_on_cuenta_bancaria_origen_id"
     t.index ["divisa_id"], name: "index_transferencias_on_divisa_id"
@@ -1027,36 +1082,42 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
   add_foreign_key "cabecera_facturas", "suplidores"
   add_foreign_key "cabecera_facturas", "tipo_facturas"
   add_foreign_key "cabecera_facturas", "users"
-  add_foreign_key "cabezas_asientos_contables", "periodos_fiscales"
+  add_foreign_key "cabezas_asientos_contables", "periodos_fiscales", column: "periodo_fiscal_id"
   add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_anulador_id"
   add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_creador_id"
   add_foreign_key "camiones_viajes", "vehiculos"
-  add_foreign_key "categorias_entidades_contables", "configuraciones_entidades_cuentas"
+  add_foreign_key "categorias_entidades_contables", "configuraciones_entidades_cuentas", column: "configuracion_entidad_cuenta_id"
   add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
   add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_control_id"
+  add_foreign_key "cheques", "cuentas_bancarias", column: "cuenta_bancaria_id"
+  add_foreign_key "cheques", "divisas"
+  add_foreign_key "cheques", "users", column: "last_user_update_id"
+  add_foreign_key "cheques", "users", column: "user_anulador_id"
+  add_foreign_key "cheques", "users", column: "user_creador_id"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
-  add_foreign_key "cierre_cuentas", "cuentas_contables"
-  add_foreign_key "cierre_cuentas", "periodos_fiscales"
+  add_foreign_key "cierre_cuentas", "cuentas_contables", column: "cuenta_contable_id"
+  add_foreign_key "cierre_cuentas", "periodos_fiscales", column: "periodo_fiscal_id"
   add_foreign_key "clientes", "imagenes"
-  add_foreign_key "configuraciones_entidades_cuentas", "cuentas_contables"
+  add_foreign_key "configuraciones_entidades_cuentas", "cuentas_contables", column: "cuenta_contable_id"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"
   add_foreign_key "costos_fletes_historiales", "users"
   add_foreign_key "cuadre_cajas", "users"
   add_foreign_key "cuentas_bancarias", "bancos"
-  add_foreign_key "cuentas_bancarias", "cuentas_contables"
+  add_foreign_key "cuentas_bancarias", "cuentas_contables", column: "cuenta_contable_id"
   add_foreign_key "cuentas_bancarias", "cuentas_contables", column: "cuenta_contable_prima_id"
   add_foreign_key "cuentas_bancarias", "divisas"
-  add_foreign_key "cuentas_bancarias", "tipo_cuentas_bancarias"
+  add_foreign_key "cuentas_bancarias", "tipo_cuentas_bancarias", column: "tipo_cuenta_bancaria_id"
   add_foreign_key "cuentas_contables", "cuentas_contables", column: "cuenta_control_id"
-  add_foreign_key "cuentas_contables", "grupos_de_cuentas"
-  add_foreign_key "depositos", "cuentas_bancarias"
+  add_foreign_key "cuentas_contables", "grupos_de_cuentas", column: "grupo_cuenta_id"
+  add_foreign_key "depositos", "cuentas_bancarias", column: "cuenta_bancaria_id"
   add_foreign_key "depositos", "divisas"
   add_foreign_key "depositos", "users", column: "last_user_update_id"
   add_foreign_key "depositos", "users", column: "user_anulador_id"
   add_foreign_key "depositos", "users", column: "user_creador_id"
+  add_foreign_key "detalle_cheques", "cheques"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"
@@ -1064,20 +1125,20 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
   add_foreign_key "detalle_facturas", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "recibos_ingresos"
-  add_foreign_key "detalles_asientos_contables", "cabezas_asientos_contables"
+  add_foreign_key "detalles_asientos_contables", "cabezas_asientos_contables", column: "cabeza_asiento_contable_id"
   add_foreign_key "detalles_asientos_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
   add_foreign_key "detalles_asientos_contables", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "detalles_facturas_notas", "articulos"
   add_foreign_key "detalles_facturas_notas", "detalle_facturas"
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"
-  add_foreign_key "detalles_periodos_fiscales", "periodos_fiscales"
+  add_foreign_key "detalles_periodos_fiscales", "periodos_fiscales", column: "periodo_fiscal_id"
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
-  add_foreign_key "entidad_cuentas_contables", "configuraciones_entidades_cuentas"
-  add_foreign_key "entidad_cuentas_contables", "cuentas_contables"
+  add_foreign_key "entidad_cuentas_contables", "configuraciones_entidades_cuentas", column: "configuracion_entidad_cuenta_id"
+  add_foreign_key "entidad_cuentas_contables", "cuentas_contables", column: "cuenta_contable_id"
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"
@@ -1117,7 +1178,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_05_25_162922) do
   add_foreign_key "tasas_de_cambio", "divisas"
   add_foreign_key "tasas_de_cambio", "users"
   add_foreign_key "tasas_de_cambio", "users", column: "last_user_update_id"
-  add_foreign_key "tipo_articulo_cuentas_contables", "configuraciones_entidades_cuentas"
+  add_foreign_key "tipo_articulo_cuentas_contables", "configuraciones_entidades_cuentas", column: "configuracion_entidad_cuenta_id"
   add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
   add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "transferencias", "cuentas_bancarias", column: "cuenta_bancaria_destino_id"

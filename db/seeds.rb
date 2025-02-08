@@ -153,16 +153,32 @@ PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
 
   provincia_db = Provincia.find_by_nombre(provincia_seed[:nombre])
 
-  provincia_db = Provincia.create({nombre: provincia_seed[:nombre]}) if provincia_db.nil?
+  if provincia_db.nil?
+    provincia_db = Provincia.create({nombre: provincia_seed[:nombre], codigo: provincia_seed[:codigo]}) 
+  else
+    provincia_db.codigo = provincia_seed[:codigo]
+    provincia_db.save!
+  end
+
+
   puts " "
   puts "ERROR- provincia: ".red + "#{provincia_db.errors.to_json}" if !provincia_db.errors.empty?
 
+
   provincia_seed[:municipios].each do |municipio_seed|
-    if Municipio.find_by_nombre(municipio_seed).nil?
-      muni = Municipio.create({nombre: municipio_seed, provincia_id: provincia_db[:id]})
-      puts " "
-      puts "ERROR- municipio: ".red + "#{muni.errors.to_json}" if !muni.errors.empty?
+    municipio_db = Municipio.find_by(:nombre => municipio_seed[:nombre], :provincia_id => provincia_db[:id])
+
+
+    if municipio_db.nil?
+      municipio_db = Municipio.create({nombre: municipio_seed[:nombre], provincia_id: provincia_db[:id], codigo: municipio_seed[:codigo]})
+    else
+      municipio_db.codigo = municipio_seed[:codigo]
+      municipio_db.save!
     end
+
+    puts " "
+    puts "ERROR- municipio: ".red + "#{municipio_db.errors.to_json}" if !municipio_db.errors.empty?
+
   end
 end
 

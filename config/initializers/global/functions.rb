@@ -120,7 +120,6 @@ class Paginator
   end
 
   def get_per_page
-    puts " @paginate_options ==> " + " #{@paginate_options.to_json}"
     @paginate_options['per_page']
   end
 
@@ -297,18 +296,35 @@ def crear_actualizar_dependencias(dependencias, parametros, save)
   return Response.new
 end
 
+def is_empty?(parametro)
+	# Verifica si el parámetro es nil, un arreglo vacío, una cadena vacía o un hash vacío
+	# Pero devuelve false si el parámetro es un valor booleano
+	return false if parametro.is_a?(TrueClass) || parametro.is_a?(FalseClass)
+	
+	(parametro.nil? || (parametro.is_a?(String) && parametro.strip.empty?) || (parametro.is_a?(Hash) && parametro.empty?) || ( ( parametro.is_a?(Hash) || parametro.is_a?(Array) ) && parametro.empty?)  )
+end
+
 # ---------------------------------------------------------------------------------------------------------
-def isEmpty?(parametro)
-  # Verifica si el parámetro es nil, un arreglo vacío, una cadena vacía o un hash vacío
-  # Pero devuelve false si el parámetro es un valor booleano
-  return false  if parametro.is_a?(TrueClass) || parametro.is_a?(FalseClass)
-  (parametro.nil? || (parametro.is_a?(String) && parametro.strip.empty?) || (parametro.is_a?(Hash) && parametro.empty?) || ( ( parametro.is_a?(Hash) || parametro.is_a?(Array) ) && parametro.empty?)  )
+
+def is_boolean?(param)
+	param.is_a?(TrueClass) || param.is_a?(FalseClass)
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+
+class String
+	def is_number?
+		!!(self =~ /\A\d+\z/)
+	end
 end
 # ---------------------------------------------------------------------------------------------------------
+
+
 class Object
-  def obj_has?(key)
-    self.has_key?(:"#{key}") && !isEmpty?(self[:"#{key}"])
-  end
+	def obj_has?(key)
+		self.has_key?(:"#{key}") && !is_empty?(self[:"#{key}"])
+	end
 end
 
 # ---------------------------------------------------------------------------------------------------------
