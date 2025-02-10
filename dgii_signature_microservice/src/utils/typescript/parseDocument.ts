@@ -1,6 +1,6 @@
 import { FacturaI } from '../../core/types/factura.types';
 import { Clean } from './clean';
-import { normalizarTexto } from './functions';
+import { isEmpty, normalizarTexto } from './functions';
 import { condicionE, forma_pago_codeE, tipo_pago_codeE } from '../../core/constants/factura.utils';
 import { FormaDePagoE } from '../../core/types/xml_json';
 
@@ -78,32 +78,46 @@ export class ParseDocument {
             ZonaVenta: null,
             RutaVenta: null,
             InformacionAdicionalEmisor: null,
-            FechaEmision: null,
+            FechaEmision: document.fecha_equivalente,
           },
           Comprador: {
+            // TODO: agregar en el backend antes de pasarlo por el microservicio
             RNCComprador: null,
-            RazonSocialComprador: null,
+            IdentificadorExtranjero: null,
+            RazonSocialComprador: document.cliente?.nombre,
+            // TODO: agregar propiedad en la tabla cliente en el backend
             ContactoComprador: null,
+            // TODO: agregar propiedad en la tabla cliente en el backend
             CorreoComprador: null,
-            DireccionComprador: null,
-            MunicipioComprador: null,
-            ProvinciaComprador: null,
+            DireccionComprador: document.cliente?.direccion,
+            MunicipioComprador: document.cliente?.municipio?.codigo || null,
+            ProvinciaComprador: document.cliente?.provincia?.codigo || null,
+            PaisComprador: null,
             FechaEntrega: null,
             ContactoEntrega: null,
             DireccionEntrega: null,
             TelefonoAdicional: null,
             FechaOrdenCompra: null,
             NumeroOrdenCompra: null,
-            CodigoInternoComprador: null,
+            CodigoInternoComprador: document.cliente?.id?.toString()?.padStart(5, '0') || null,
             ResponsablePago: null,
             InformacionAdicionalComprador: null,
-            IdentificadorExtranjero: null,
           },
           InformacionesAdicionales: {
             FechaEmbarque: null,
             NumeroEmbarque: null,
             NumeroContenedor: null,
             NumeroReferencia: null,
+            NombrePuertoEmbarque: null,
+            CondicionesEntrega: null,
+            TotalFob: null,
+            Seguro: null,
+            Flete: null,
+            OtrosGastos: null,
+            TotalCif: null,
+            RegimenAduanero: null,
+            NombrePuertoSalida: null,
+            NombrePuertoDesembarque: null,
             PesoBruto: null,
             PesoNeto: null,
             UnidadPesoBruto: null,
@@ -114,6 +128,13 @@ export class ParseDocument {
             UnidadVolumen: null,
           },
           Transporte: {
+            ViaTransporte: null, // 01: Terrestre 02: Marítimo 03: Aérea
+            PaisOrigen: null,
+            DireccionDestino: null,
+            PaisDestino: null,
+            RNCIdentificacionCompaniaTransportista: null,
+            NombreCompaniaTransportista: null,
+            NumeroViaje: null,
             Conductor: null,
             DocumentoTransporte: null,
             Ficha: null,
@@ -124,6 +145,7 @@ export class ParseDocument {
           },
           Totales: {
             MontoGravadoTotal: null,
+            // TODO: hacer un metodo que sume los totales de cada item que tenga identificadorFacturacion = 1
             MontoGravadoI1: null,
             MontoGravadoI2: null,
             MontoGravadoI3: null,
@@ -191,6 +213,7 @@ export class ParseDocument {
       },
     };
 
+    // ENCABEZADO IDDOC
     document_parsed.ECF.Encabezado.IdDoc.IndicadorMontoGravado = document.itbis > 0 ? 1 : 0;
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = document.condicion === condicionE.contado ? tipo_pago_codeE.contado : document.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
@@ -205,6 +228,12 @@ export class ParseDocument {
     if (document.condicion != condicionE.credito) forma_pago.MontoPago = document.total_factura;
 
     document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago.push(forma_pago);
+
+
+    // ENCABEZADO COMPRADOR
+
+    const documento_identidad = document.cliente?.documentos_de_identidad?.find(documento => documento.principal);
+    if(!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = document.cliente?.documentos_de_identidad[0].documento;
 
     this.cleaner.clean(document_parsed);
 
