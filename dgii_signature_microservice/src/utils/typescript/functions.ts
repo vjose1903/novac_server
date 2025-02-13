@@ -1,44 +1,49 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from 'fs';
+import * as path from 'path';
 
 export function crearArchivoXML(content: string, fileName: string): void {
-	fs.writeFile(fileName, content, (err) => {
-		if (err) {
-			console.error("Error al escribir el archivo:", err);
-		} else {
-			console.log(`El archivo ${fileName} ha sido creado exitosamente.`);
-		}
-	});
+  fs.writeFile(fileName, content, err => {
+    if (err) {
+      console.error('Error al escribir el archivo:', err);
+    } else {
+      console.log(`El archivo ${fileName} ha sido creado exitosamente.`);
+    }
+  });
 }
 
 export function leerArchivo(ruta: string): string {
-	return fs.readFileSync(ruta, "utf-8");
+  return fs.readFileSync(ruta, 'utf-8');
 }
 
 export function isEmpty(value: any): boolean {
-	if (value === "" || value === null || value === undefined) {
-		return true;
-	}
-	if (Array.isArray(value) && value.length === 0) {
-		return true;
-	}
-	if (typeof value === "object" && Object.keys(value).length === 0) {
-		return true;
-	}
-	return false;
+  if (value === '' || value === null || value === undefined) {
+    return true;
+  }
+  if (Array.isArray(value) && value.length === 0) {
+    return true;
+  }
+  if (typeof value === 'object' && Object.keys(value).length === 0) {
+    return true;
+  }
+  return false;
 }
 
 export function sleep(time: number) {
-	return new Promise<void>((resolve, reject) => {
-		setTimeout(() => resolve(), time);
-	});
+  return new Promise<void>((resolve, reject) => {
+    setTimeout(() => resolve(), time);
+  });
 }
 
 export function normalizarTexto(texto: string): string {
-    const textoMinusculas = texto.toLowerCase();
-    
-    const textoSinAcentos = textoMinusculas.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    
-    return textoSinAcentos;
+  const textoMinusculas = texto.toLowerCase();
+
+  const textoSinAcentos = textoMinusculas.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  return textoSinAcentos;
 }
 
+export function redondearNum(numero: number, decimales: number = 2): string {
+  const factor = Math.pow(10, decimales);
+  const numberRounded = Math.round((numero + Number.EPSILON) * factor) / factor;
+  return numberRounded.toFixed(decimales);
+}

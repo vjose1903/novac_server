@@ -1,14 +1,15 @@
-import { FacturaI } from '../../core/types/factura.types';
+import { DetalleFactura, FacturaI } from '../../core/types/factura.types';
 import { Clean } from './clean';
-import { isEmpty, normalizarTexto } from './functions';
-import { condicionE, forma_pago_codeE, tipo_pago_codeE } from '../../core/constants/factura.utils';
+import { isEmpty, normalizarTexto, redondearNum } from './functions';
+import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, tipo_pago_codeE, unidad_codeE } from '../../core/constants/factura.utils';
 import { FormaDePagoE } from '../../core/types/xml_json';
+import { CodigosItem, ItemI } from '../../core/types/xml_detallesItem_json';
 
 export class ParseDocument {
   private version: string;
   private rnc_emisor: string;
   private cleaner: Clean;
-  private environment: any
+  private environment: any;
 
   constructor() {
     this.environment = process.env;
@@ -16,8 +17,6 @@ export class ParseDocument {
     this.rnc_emisor = this.environment.RNC_EMISOR || '';
     this.cleaner = new Clean();
   }
-
-
 
   parse(document: FacturaI) {
     const document_parsed = {
@@ -46,7 +45,7 @@ export class ParseDocument {
             },
             // CT: Cta. Corriente AH: Ahorro OT: Otra TODO: agregar en el backend
             TipoCuentaPago: null,
-            // Número de la cuenta si la forma de pago es por cheque o transferencia bancaria. 
+            // Número de la cuenta si la forma de pago es por cheque o transferencia bancaria.
             NumeroCuentaPago: null,
             // Banco de la Cuenta
             BancoPago: null,
@@ -229,14 +228,108 @@ export class ParseDocument {
 
     document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago.push(forma_pago);
 
-
     // ENCABEZADO COMPRADOR
 
     const documento_identidad = document.cliente?.documentos_de_identidad?.find(documento => documento.principal);
-    if(!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = document.cliente?.documentos_de_identidad[0].documento;
+    if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = document.cliente?.documentos_de_identidad[0].documento;
+
+    // ENCABEZADO TOTALES
+    const totales = this.calcular_totales(document);
+    document_parsed.ECF.Encabezado.Totales = totales as any;
+
+    // DETALLESITEMS
+    document_parsed.ECF.DetallesItems = this.parseDetalles(document);
+
+    // DESCUENTOS O RECARGOS  pag: 48  item: 1
 
     this.cleaner.clean(document_parsed);
 
     return document_parsed;
+  }
+
+  calcular_totales(document: FacturaI) {
+    const totales = {
+      MontoGravadoTotal: null,
+      MontoGravadoI1: null,
+      MontoGravadoI3: null,
+      MontoExento: null,
+      ITBIS1: null,
+      ITBIS3: null,
+      TotalITBIS: null,
+      TotalITBIS1: null,
+      TotalITBIS3: null,
+      MontoTotal: null,
+      ValorPagar: null,
+    };
+
+    const items_itbis = document.detalle_facturas.filter(prod => prod.articulo.calcular_itbis);
+    const items_no_itbis = document.detalle_facturas.filter(prod => !prod.articulo.calcular_itbis);
+
+    if (items_itbis.length > 0) {
+      totales.MontoGravadoI1 = items_itbis.reduce((acc, item) => acc + (item.precio * item.cantidad - item.descuento_valor), 0);
+
+      totales.ITBIS1 = 18;
+      totales.TotalITBIS1 = totales.MontoGravadoI1 * 0.18;
+    }
+
+    if (items_no_itbis.length > 0) {
+      totales.MontoGravadoI3 = items_no_itbis.reduce((acc, item) => acc + (item.precio * item.cantidad - item.descuento_valor), 0);
+
+      totales.ITBIS3 = 0;
+      totales.TotalITBIS3 = totales.MontoGravadoI3 * 0;
+    }
+
+    totales.MontoGravadoTotal = totales.MontoGravadoI1 + totales.MontoGravadoI3;
+    totales.TotalITBIS = totales.TotalITBIS1 + totales.TotalITBIS3;
+
+    totales.MontoTotal = totales.MontoGravadoTotal || 0 + totales.TotalITBIS || 0;
+    totales.ValorPagar = totales.MontoTotal;
+
+    return totales;
+  }
+
+  parseDetalles(document: FacturaI) {
+    const detallesItems = { Item: [] };
+
+    document.detalle_facturas.forEach((item: DetalleFactura, index: number) => {
+      const itemParsed = {} as ItemI;
+      itemParsed.NumeroLinea = `${index + 1}`;
+
+      itemParsed.TablaCodigosItem = { CodigosItem: [] };
+      const codigo: CodigosItem = { TipoCodigo: 'Interna', CodigoItem: item.codigo };
+      itemParsed.TablaCodigosItem.CodigosItem.push(codigo);
+
+      // TODO: revisar
+      itemParsed.IndicadorFacturacion = item.articulo.calcular_itbis ? indicadorFacturacionE.itbis_18 : indicadorFacturacionE.itbis_0;
+
+      itemParsed.NombreItem = item.descripcion;
+      itemParsed.IndicadorBienoServicio = item.articulo.tipo_articulo.descripcion.toLowerCase().includes('servicio') ? indicadorBienoServicioE.servicio : indicadorBienoServicioE.bien;
+      itemParsed.CantidadItem = redondearNum(item.cantidad);
+
+      let key_unidad = item.unidad.replace(' ', '_').toLowerCase();
+      if (key_unidad.match(/saco_de_(\d+)?_libras/)) key_unidad = 'saco';
+      if (key_unidad == 'funda') key_unidad = 'bolsa';
+
+      itemParsed.UnidadMedida = unidad_codeE[item.articulo.unidad_medida] || null;
+      itemParsed.PrecioUnitarioItem = redondearNum(item.precio);
+
+
+      if (item.descuento_valor) {
+        itemParsed.DescuentoMonto = redondearNum(item.descuento_valor);
+
+        itemParsed.TablaSubDescuento = {
+          SubDescuento: [{
+            TipoSubDescuento: '$',
+            MontoSubDescuento: redondearNum(item.descuento_valor),
+          }],
+        };
+      }
+
+
+      itemParsed.MontoItem = redondearNum(Number(itemParsed.PrecioUnitarioItem) * item.cantidad - Number(itemParsed.DescuentoMonto || 0));
+      detallesItems.Item.push(itemParsed);
+    });
+
+    return detallesItems;
   }
 }

@@ -38,6 +38,7 @@ export const factura_32: FacturaI = {
     direccion: 'Autopista Duarte Km0 El Higüero, La Vega',
     telefono: '809-555-1234',
     limite_credito: 30,
+    
   },
 
   detalle_facturas: [

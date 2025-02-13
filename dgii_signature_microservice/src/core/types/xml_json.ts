@@ -1,4 +1,5 @@
 import { forma_pago_codeE } from "../constants/factura.utils";
+import { ItemI } from "./xml_detallesItem_json";
 
 export interface EcfXmlJson {
   ECF: Ecf;
@@ -19,7 +20,7 @@ export interface DescuentosORecargos {
 }
 
 export interface DetallesItems {
-  Item: any[];
+  Item: ItemI[];
 }
 
 export interface Encabezado {

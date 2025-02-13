@@ -765,13 +765,18 @@ parseExcelToCustomJson(filePath).then((arrayConverted) => {
 		const RNCEmisor = json.ECF.Encabezado.Emisor.RNCEmisor;
 		const eNCF = json.ECF.Encabezado.IdDoc.eNCF;
 		
+		console.log(' ')
+		console.log(' ---------------------------------------')
+		console.log(' ')
+		console.log(JSON.stringify(json, null, 2))
 		const transformer = new Transformer();
 		const xml = transformer.json2xml(json);
 
 		const fileName = `${index+1}_${RNCEmisor}${eNCF}.xml`;
 		const filePath = path.join(__dirname, `.sin_firmar/${fileName}`)
 
-		crearArchivoXML(xml, filePath);
+
+		// crearArchivoXML(xml, filePath);
 	})
 })
 .catch((error) => {

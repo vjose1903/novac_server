@@ -80,7 +80,7 @@ export interface ClienteI {
   telefono: string;
   direccion: string;
   limite_credito: number;
-  documentos_de_identidad: DocumentoIdentidadI[];
+  documentos_de_identidad?: DocumentoIdentidadI[];
   provincia?: DireccionI;
   municipio?: DireccionI;
   [key: string]: any;
