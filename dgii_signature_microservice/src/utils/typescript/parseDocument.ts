@@ -2,8 +2,8 @@ import { DetalleFactura, FacturaI } from '../../core/types/factura.types';
 import { Clean } from './clean';
 import { isEmpty, normalizarTexto, redondearNum } from './functions';
 import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, tipo_pago_codeE, unidad_codeE } from '../../core/constants/factura.utils';
-import { FormaDePagoE } from '../../core/types/xml_json';
-import { CodigosItem, ItemI } from '../../core/types/xml_detallesItem_json';
+import { FormaDePagoE, DescuentoORecargoI } from '../../core/types/xml/xml_json';
+import { CodigosItem, ItemI } from '../../core/types/xml/xml_detallesItem_json';
 
 export class ParseDocument {
   private version: string;
@@ -240,7 +240,9 @@ export class ParseDocument {
     // DETALLESITEMS
     document_parsed.ECF.DetallesItems = this.parseDetalles(document);
 
-    // DESCUENTOS O RECARGOS  pag: 48  item: 1
+    // Paginacion
+    document_parsed.ECF.Paginacion = this.parsePaginacion(document);
+
 
     this.cleaner.clean(document_parsed);
 
@@ -331,5 +333,11 @@ export class ParseDocument {
     });
 
     return detallesItems;
+  }
+
+  parsePaginacion(document: FacturaI) {
+    const paginacion = { Pagina: [] };
+
+    return paginacion;
   }
 }

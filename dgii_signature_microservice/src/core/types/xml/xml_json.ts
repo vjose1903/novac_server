@@ -1,4 +1,4 @@
-import { forma_pago_codeE } from "../constants/factura.utils";
+import { forma_pago_codeE } from "../../constants/factura.utils";
 import { ItemI } from "./xml_detallesItem_json";
 
 export interface EcfXmlJson {
@@ -16,7 +16,17 @@ export interface Ecf {
 }
 
 export interface DescuentosORecargos {
-  DescuentoORecargo: any[];
+  DescuentoORecargo: DescuentoORecargoI[];
+}
+
+export interface DescuentoORecargoI {
+  NumeroLinea: string;
+  TipoAjuste: string;
+  DescripcionDescuentooRecargo: string;
+  TipoValor: string;
+  ValorDescuentooRecargo: string;
+  MontoDescuentooRecargo: string;
+  IndicadorFacturacionDescuentooRecargo: string;
 }
 
 export interface DetallesItems {
