@@ -1,21 +1,34 @@
-import { DetalleFactura, FacturaI } from '../../core/types/factura.types';
+import { DetalleFacturaI, FacturaI } from '../../core/types/factura.types';
 import { Clean } from './clean';
 import { isEmpty, normalizarTexto, redondearNum } from './functions';
-import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, tipo_pago_codeE, unidad_codeE } from '../../core/constants/factura.utils';
+import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '../../core/constants/factura.utils';
 import { FormaDePagoE, DescuentoORecargoI } from '../../core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '../../core/types/xml/xml_detallesItem_json';
+import { Totalizacion } from './totalizacion';
+import { agruparArticulosPorPagina } from './paginacion';
+import { PaginacionI } from '../../core/types/xml/xml_paginacion_json';
 
 export class ParseDocument {
   private version: string;
   private rnc_emisor: string;
-  private cleaner: Clean;
   private environment: any;
+  private sheet_type: sheet_typeE;
+  private items_per_page: number;
+  private items_per_page_credit: number;
+
+  private cleaner: Clean;
+  private totalizacion: Totalizacion;
 
   constructor() {
     this.environment = process.env;
     this.version = this.environment.XML_VERSION || '1.0';
     this.rnc_emisor = this.environment.RNC_EMISOR || '';
+    this.sheet_type = sheet_typeE[this.environment.SHEET_TYPE] || sheet_typeE.paper;
+    this.items_per_page = this.environment.ITEMS_PER_PAGE || 9;
+    this.items_per_page_credit = this.environment.ITEMS_PER_PAGE_CREDIT || 18;
+
     this.cleaner = new Clean();
+    this.totalizacion = new Totalizacion();
   }
 
   parse(document: FacturaI) {
@@ -234,7 +247,7 @@ export class ParseDocument {
     if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = document.cliente?.documentos_de_identidad[0].documento;
 
     // ENCABEZADO TOTALES
-    const totales = this.calcular_totales(document);
+    const totales = this.totalizacion.run(document.detalle_facturas);
     document_parsed.ECF.Encabezado.Totales = totales as any;
 
     // DETALLESITEMS
@@ -243,57 +256,15 @@ export class ParseDocument {
     // Paginacion
     document_parsed.ECF.Paginacion = this.parsePaginacion(document);
 
-
     this.cleaner.clean(document_parsed);
 
     return document_parsed;
   }
 
-  calcular_totales(document: FacturaI) {
-    const totales = {
-      MontoGravadoTotal: null,
-      MontoGravadoI1: null,
-      MontoGravadoI3: null,
-      MontoExento: null,
-      ITBIS1: null,
-      ITBIS3: null,
-      TotalITBIS: null,
-      TotalITBIS1: null,
-      TotalITBIS3: null,
-      MontoTotal: null,
-      ValorPagar: null,
-    };
-
-    const items_itbis = document.detalle_facturas.filter(prod => prod.articulo.calcular_itbis);
-    const items_no_itbis = document.detalle_facturas.filter(prod => !prod.articulo.calcular_itbis);
-
-    if (items_itbis.length > 0) {
-      totales.MontoGravadoI1 = items_itbis.reduce((acc, item) => acc + (item.precio * item.cantidad - item.descuento_valor), 0);
-
-      totales.ITBIS1 = 18;
-      totales.TotalITBIS1 = totales.MontoGravadoI1 * 0.18;
-    }
-
-    if (items_no_itbis.length > 0) {
-      totales.MontoGravadoI3 = items_no_itbis.reduce((acc, item) => acc + (item.precio * item.cantidad - item.descuento_valor), 0);
-
-      totales.ITBIS3 = 0;
-      totales.TotalITBIS3 = totales.MontoGravadoI3 * 0;
-    }
-
-    totales.MontoGravadoTotal = totales.MontoGravadoI1 + totales.MontoGravadoI3;
-    totales.TotalITBIS = totales.TotalITBIS1 + totales.TotalITBIS3;
-
-    totales.MontoTotal = totales.MontoGravadoTotal || 0 + totales.TotalITBIS || 0;
-    totales.ValorPagar = totales.MontoTotal;
-
-    return totales;
-  }
-
   parseDetalles(document: FacturaI) {
     const detallesItems = { Item: [] };
 
-    document.detalle_facturas.forEach((item: DetalleFactura, index: number) => {
+    document.detalle_facturas.forEach((item: DetalleFacturaI, index: number) => {
       const itemParsed = {} as ItemI;
       itemParsed.NumeroLinea = `${index + 1}`;
 
@@ -315,18 +286,18 @@ export class ParseDocument {
       itemParsed.UnidadMedida = unidad_codeE[item.articulo.unidad_medida] || null;
       itemParsed.PrecioUnitarioItem = redondearNum(item.precio);
 
-
       if (item.descuento_valor) {
         itemParsed.DescuentoMonto = redondearNum(item.descuento_valor);
 
         itemParsed.TablaSubDescuento = {
-          SubDescuento: [{
-            TipoSubDescuento: '$',
-            MontoSubDescuento: redondearNum(item.descuento_valor),
-          }],
+          SubDescuento: [
+            {
+              TipoSubDescuento: '$',
+              MontoSubDescuento: redondearNum(item.descuento_valor),
+            },
+          ],
         };
       }
-
 
       itemParsed.MontoItem = redondearNum(Number(itemParsed.PrecioUnitarioItem) * item.cantidad - Number(itemParsed.DescuentoMonto || 0));
       detallesItems.Item.push(itemParsed);
@@ -337,6 +308,37 @@ export class ParseDocument {
 
   parsePaginacion(document: FacturaI) {
     const paginacion = { Pagina: [] };
+
+    // TODO: agregar condicion para las notas de credito
+    const items_per_page = document.condicion == condicionE.contado ? this.items_per_page : this.items_per_page_credit;
+
+    if (document.detalle_facturas.length > items_per_page) {
+      const articulos_agrupados = agruparArticulosPorPagina(document.detalle_facturas, items_per_page);
+
+      if (this.sheet_type == sheet_typeE.paper && document.detalle_facturas.length > 10) {
+
+        articulos_agrupados.forEach((grupo, index) => {
+          const paginaParsed = {} as PaginacionI;
+          paginaParsed.PaginaNo = `${index + 1}`;
+          paginaParsed.NoLineaDesde = `${index * items_per_page + 1}`;
+          paginaParsed.NoLineaHasta = `${(index + 1) * items_per_page}`;
+
+          const totales = this.totalizacion.run(grupo);
+          paginaParsed.SubtotalMontoGravadoPagina = totales.MontoGravadoTotal;
+          paginaParsed.SubtotalMontoGravado1Pagina = totales.MontoGravadoI1;
+          paginaParsed.SubtotalMontoGravado3Pagina = totales.MontoGravadoI3;
+          paginaParsed.SubtotalExentoPagina = totales.MontoExento;
+          paginaParsed.SubtotalItbisPagina = totales.TotalITBIS;
+          paginaParsed.SubtotalItbis1Pagina = totales.TotalITBIS1;
+          paginaParsed.SubtotalItbis3Pagina = totales.TotalITBIS3;
+          paginaParsed.MontoSubtotalPagina = totales.MontoTotal;
+
+
+          paginacion.Pagina.push(paginaParsed);
+        });
+
+      }
+    }
 
     return paginacion;
   }

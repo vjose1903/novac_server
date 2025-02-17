@@ -52,7 +52,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     @unidad                     = object.unidad.split(" ")
 
     if @unidad.length > 1
-      descripcion              = "#{@articuloSelect['nombre']} (#{@unidad[2]} LBS)"
+      descripcion              = " (#{@unidad[2]} LBS) #{@articuloSelect['nombre']}"
       @peso_saco               = @unidad[2]
     else
       descripcion              = "#{@articuloSelect['nombre']}"

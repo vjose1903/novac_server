@@ -64,21 +64,27 @@ export enum indicadorBienoServicioE {
   servicio = '2',
 }
 
+
+export enum sheet_typeE {
+  paper = 'paper',
+  roll = 'roll',
+}
+
 export enum unidad_codeE {
-  barril = '1',
-  bolsa = '2',
-  botella = '5',
-  caja = '6',
-  docena = '13',
-  fardo = '14',
-  galon = '15',
-  kilogramo = '21',
-  libra = '23',
-  litro = '24',
-  tanque = '38',
-  unidad = '43',
-  saco = '46',
-  quintal = '51',
-  miligramo = '60',
-  onzas = '61',
+  barril = '1',       // -> BARR
+  bolsa = '2',        // -> BOL
+  botella = '5',      // -> BOTELLA
+  caja = '6',         // -> CAJ 
+  docena = '13',      // -> DOC
+  fardo = '14',       // -> FARD
+  galon = '15',       // -> GL
+  kilogramo = '21',   // -> KG
+  libra = '23',       // -> LB
+  litro = '24',       // -> LITRO
+  tanque = '38',      // -> TANQUE
+  unidad = '43',      // -> UND
+  saco = '46',        // -> SAC
+  quintal = '51',     // -> Q
+  miligramo = '60',   // -> MG
+  onzas = '61',       // -> OZ
 }

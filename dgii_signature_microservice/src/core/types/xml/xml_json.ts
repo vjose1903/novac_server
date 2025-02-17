@@ -1,5 +1,6 @@
 import { forma_pago_codeE } from "../../constants/factura.utils";
 import { ItemI } from "./xml_detallesItem_json";
+import { PaginacionI } from "./xml_paginacion_json";
 
 export interface EcfXmlJson {
   ECF: Ecf;
@@ -118,7 +119,7 @@ export interface InformacionReferencia {
 }
 
 export interface Paginacion {
-  Pagina: any[];
+  Pagina: PaginacionI[];
 }
 
 export interface Subtotales {

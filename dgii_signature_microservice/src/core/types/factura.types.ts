@@ -30,7 +30,7 @@ export interface FacturaI {
   cliente_id: any;
   NoCliente_nombre: string;
   NoCliente_direccion: string;
-  detalle_facturas: DetalleFactura[];
+  detalle_facturas: DetalleFacturaI[];
   FACTURA_DE: number;
   tipo: string;
   tiene_nota: boolean;
@@ -39,7 +39,7 @@ export interface FacturaI {
   [key: string]: any;
 }
 
-export interface DetalleFactura {
+export interface DetalleFacturaI {
   key: string;
   articulo: Articulo;
   unidades: UnidadesI[];
