@@ -88,3 +88,20 @@ export enum unidad_codeE {
   miligramo = '60',   // -> MG
   onzas = '61',       // -> OZ
 }
+
+export enum codigo_modificacionE {
+  anulacion = '1',
+  correccion_texto = '2',
+  correccion_monto = '3',
+  reemplazo_contingencia = '4',
+  referencia_factura_consumo = '3',
+}
+
+export enum codigo_modificacion_labelE {
+  anulacion = 'Anulación total',
+  correccion_texto = 'Corrección Texto',
+  correccion_monto = 'Corrección montos',
+  reemplazo_contingencia = 'Reemplazo NCF emitido en contingencia',
+  referencia_factura_consumo = 'Referencia Factura de Consumo Electrónica',
+}
+

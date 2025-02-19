@@ -44,7 +44,7 @@ export class ParseDocument {
             // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
             IndicadorNotaCredito: null,
             IndicadorEnvioDiferido: null,
-            // a) Valor 0 si no tienen itbis.             b) Valor 1 si tienen itbis.
+            // a) Valor 0 si los montos de los items no tienen itbis incluido.             b) Valor 1 si los montos de los items tienen itbis incluido.
             IndicadorMontoGravado: null,
             // 01: Ingresos por operaciones (No financieros).    02: Ingresos Financieros     03: Ingresos Extraordinarios     04: Ingresos por Arrendamientos     05: Ingresos por Venta de Activo Depreciable     06: Otros Ingresos
             TipoIngresos: '01',
@@ -226,7 +226,7 @@ export class ParseDocument {
     };
 
     // ENCABEZADO IDDOC
-    document_parsed.ECF.Encabezado.IdDoc.IndicadorMontoGravado = document.itbis > 0 ? 1 : 0;
+    document_parsed.ECF.Encabezado.IdDoc.IndicadorMontoGravado = 0;
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = document.condicion === condicionE.contado ? tipo_pago_codeE.contado : document.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
     if (document.condicion == condicionE.credito) {
@@ -273,7 +273,7 @@ export class ParseDocument {
       itemParsed.TablaCodigosItem.CodigosItem.push(codigo);
 
       // TODO: revisar
-      itemParsed.IndicadorFacturacion = item.articulo.calcular_itbis ? indicadorFacturacionE.itbis_18 : indicadorFacturacionE.itbis_0;
+      itemParsed.IndicadorFacturacion = item.articulo.calcular_itbis ? indicadorFacturacionE.itbis_18 : indicadorFacturacionE.excento;
 
       itemParsed.NombreItem = item.descripcion;
       itemParsed.IndicadorBienoServicio = item.articulo.tipo_articulo.descripcion.toLowerCase().includes('servicio') ? indicadorBienoServicioE.servicio : indicadorBienoServicioE.bien;
@@ -316,7 +316,6 @@ export class ParseDocument {
       const articulos_agrupados = agruparArticulosPorPagina(document.detalle_facturas, items_per_page);
 
       if (this.sheet_type == sheet_typeE.paper && document.detalle_facturas.length > 10) {
-
         articulos_agrupados.forEach((grupo, index) => {
           const paginaParsed = {} as PaginacionI;
           paginaParsed.PaginaNo = `${index + 1}`;
@@ -326,17 +325,13 @@ export class ParseDocument {
           const totales = this.totalizacion.run(grupo);
           paginaParsed.SubtotalMontoGravadoPagina = totales.MontoGravadoTotal;
           paginaParsed.SubtotalMontoGravado1Pagina = totales.MontoGravadoI1;
-          paginaParsed.SubtotalMontoGravado3Pagina = totales.MontoGravadoI3;
           paginaParsed.SubtotalExentoPagina = totales.MontoExento;
           paginaParsed.SubtotalItbisPagina = totales.TotalITBIS;
           paginaParsed.SubtotalItbis1Pagina = totales.TotalITBIS1;
-          paginaParsed.SubtotalItbis3Pagina = totales.TotalITBIS3;
           paginaParsed.MontoSubtotalPagina = totales.MontoTotal;
-
 
           paginacion.Pagina.push(paginaParsed);
         });
-
       }
     }
 
