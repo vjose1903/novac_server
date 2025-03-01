@@ -256,6 +256,15 @@ export class ParseDocument {
     // Paginacion
     document_parsed.ECF.Paginacion = this.parsePaginacion(document);
 
+    if (document.condicion == condicionE.credito) {
+      document_parsed.ECF.InformacionReferencia = {
+        NCFModificado: document.eNCF,
+        RNCOtroContribuyente: null,
+        FechaNCFModificado: document.fecha_equivalente,
+        CodigoModificacion: null,
+      };
+    }
+
     this.cleaner.clean(document_parsed);
 
     return document_parsed;
