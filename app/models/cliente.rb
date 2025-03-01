@@ -111,16 +111,16 @@ class Cliente < ApplicationRecord
     paginate_class               = Paginator.new(paginate_options)
     res                          = Response.new()
     cliente_en_turno             = self
+    order_by                     = ORDER_MANAGER.parse(params[:order_by])
 
     factura_a_buscar             = params[:factura_a_buscar]
-    next_page       = nil
     next_page                    = nil
 
     query      = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND (cabecera_facturas.tipo = 'venta' OR cabecera_facturas.tipo = 'pre_venta') AND cabecera_facturas.estado = true  AND cabecera_facturas.cliente_id = #{cliente_en_turno.id}"
 
     data       = {'balances' => { 'total_facturado' => 0, 'notas_credito' => 0, 'notas_debito' => 0, 'debiendo' => 0, 'abonado' => 0}, 'facturas' => [], 'page' => paginate_class.get_page}
 
-    facturas   = CabeceraFactura.where(query).order('id DESC').includes(CabeceraFactura.models_includes).each do | factura |
+    facturas   = CabeceraFactura.where(query).order(order_by ? order_by : 'id DESC').includes(CabeceraFactura.models_includes).each do | factura |
 
       data['balances']['total_facturado'] += factura.total_factura
       data['balances']['debiendo']        += factura.balance
@@ -142,7 +142,7 @@ class Cliente < ApplicationRecord
 
       unless index_factura_a_buscar.nil?
         next_page              = (index_factura_a_buscar / paginate_class.get_per_page.to_f).ceil
-        next_page = 1 if next_page == 0
+        next_page              = 1 if next_page == 0
 
         paginate_class.set_page(next_page)
         data['page']           = paginate_class.get_page
