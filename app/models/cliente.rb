@@ -86,11 +86,27 @@ class Cliente < ApplicationRecord
 
   def self.filtrarCliente(arg, params)
     res = Response.new(params)
+    # Divide la búsqueda en palabras individuales
+    palabras_busqueda = arg.to_s.downcase.split
 
-    clientes = Cliente
-    .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
-    .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")
-    .order("clientes.id ASC")
+    # Empieza con todos los clientes activos
+    query = Cliente.where(estado: true)
+                   .joins("LEFT JOIN documentos_de_identidad ON clientes.id = documentos_de_identidad.origen_id
+            AND documentos_de_identidad.origen_type = 'Cliente'
+            AND documentos_de_identidad.principal = true")
+
+    # Aplica cada palabra como un filtro separado
+    palabras_busqueda.each do |palabra|
+      query = query.where("
+      lower(clientes.nombre) LIKE :palabra OR
+      lower(clientes.apellido) LIKE :palabra OR
+      lower(COALESCE(documentos_de_identidad.documento, '')) LIKE :palabra",
+                          palabra: "%#{palabra}%"
+      )
+    end
+
+    # Ordena los resultados
+    clientes = query.where('clientes.sexo IS NOT NULL').order("clientes.id ASC")
 
     if clientes.length > 0
       res.set_data(clientes, {all: true}, Cliente.models_includes)
