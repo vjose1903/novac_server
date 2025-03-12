@@ -8,6 +8,10 @@ class AddCamposToReciboIngreso < ActiveRecord::Migration[7.0]
       add_column :recibos_ingresos,   :mora,   :float
     end
 
+    unless column_exists?(:recibos_ingresos, :balance_cliente)
+      add_column :recibos_ingresos,   :balance_cliente,   :float
+    end
+
     unless column_exists?(:detalle_recibos, :mora)
       add_column :detalle_recibos,   :mora,   :float
     end
@@ -26,6 +30,10 @@ class AddCamposToReciboIngreso < ActiveRecord::Migration[7.0]
 
     if column_exists?(:recibos_ingresos, :mora)
       remove_column :recibos_ingresos,   :mora
+    end
+
+    if column_exists?(:recibos_ingresos, :balance_cliente)
+      remove_column :recibos_ingresos,   :balance_cliente
     end
 
     if column_exists?(:detalle_recibos, :mora)

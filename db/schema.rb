@@ -860,6 +860,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.boolean "estado"
     t.float "bruto"
     t.float "mora"
+    t.float "balance_cliente"
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"

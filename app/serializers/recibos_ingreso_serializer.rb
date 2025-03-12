@@ -5,6 +5,7 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
   attribute :bruto,                               if: Proc.new { self.get_param('bruto') || self.get_param('all') }
   attribute :mora,                                if: Proc.new { self.get_param('mora') || self.get_param('all') }
   attribute :total,                               if: Proc.new { self.get_param('total') || self.get_param('all') }
+  attribute :balance_cliente,                     if: Proc.new { self.get_param('balance_cliente') || self.get_param('all') }
   attribute :forma_pago,                          if: Proc.new { self.get_param('forma_pago') || self.get_param('all') }
   attribute :tipo_factura_id,                     if: Proc.new { self.get_param('tipo_factura_id') || self.get_param('all') }
   attribute :devuelta,                            if: Proc.new { self.get_param('devuelta') || self.get_param('all') }
