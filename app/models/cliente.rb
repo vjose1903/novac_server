@@ -155,7 +155,6 @@ class Cliente < ApplicationRecord
 
     unless factura_a_buscar.nil?
       index_factura_a_buscar = facturas.index { |fact| "#{fact.id}" == "#{factura_a_buscar}" }
-
       unless index_factura_a_buscar.nil?
         next_page              = (index_factura_a_buscar / paginate_class.get_per_page.to_f).ceil
         next_page              = 1 if next_page == 0

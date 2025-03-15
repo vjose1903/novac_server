@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   db-dev:
     image: postgres:13.7
@@ -17,6 +15,13 @@ services:
       context: .
       dockerfile: docker/services/server/Dockerfile
     container_name: agrodemi-dev
+    develop:
+      watch:
+        - action: sync
+          path: ./config/initializers/global/functions.rb
+          target: /src/config/initializers/global/functions.rb
+          ignore:
+            - node_modules/
     environment:
       ALMACEN: "ADM"
       RAILS_ENV: "development"

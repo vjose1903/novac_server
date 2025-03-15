@@ -128,11 +128,11 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
-  pde = {"page" => params['page']|| 0, "per_page" => params['per_page'] || 0, "paginado" => params['paginado'].to_boolean || false}
-  return pde
+  return { "page" => params.obj_has?('page') ? params[:page] : 0, "per_page" => params.obj_has?('per_page') ? params[:per_page] : 0, "paginado" => params.obj_has?('paginado') ? params[:paginado].to_boolean : false }
 end
 # ---------------------------------------------------------------------------------------------------------
 def validate_optional_param(params, key)
+  puts "ANDO AQUIII".yellow
   params.obj_has?(key) && ["true", "false"].include?(params[key])
 end
 # ---------------------------------------------------------------------------------------------------------

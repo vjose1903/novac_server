@@ -17,10 +17,10 @@ function shDockerContainer() {
   const cliente = fs.readFileSync(pathAdd('../config_setup/actual_cliente.txt'), 'utf8').trim();
   const environmentSelected = PRODUCTION === 'yes' ? '-prod' : '-dev';
 
-  console.log(`${green(' docker-compose exec ')}${cliente}${environmentSelected} sh`);
+  console.log(`${green(' docker compose exec ')}${cliente}${environmentSelected} sh`);
   console.log(`${white(' ')}`);
 
-  execSync(`docker-compose exec ${cliente}${environmentSelected} sh`, { stdio: 'inherit' });
+  execSync(`docker compose exec ${cliente}${environmentSelected} sh`, { stdio: 'inherit' });
 }
 
 function getActualClient() {
@@ -61,9 +61,9 @@ function dockerCommand(command) {
 
 	execSync(`cd ..`, { stdio: 'inherit' });
   if (PRODUCTION === 'yes') {
-		execSync(`docker-compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
   } else {
-		execSync(`docker-compose ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
   }
 	execSync(`cd scripts`, { stdio: 'inherit' });
 }
@@ -97,7 +97,7 @@ function execDockerContainer(command) {
 	);
 	console.log(`${white(" ")}`);
 
-	execSync(`docker-compose exec ${cliente}${environmentSelected} ${command}`, {
+	execSync(`docker compose exec ${cliente}${environmentSelected} ${command}`, {
 		stdio: "inherit",
 	});
 }
