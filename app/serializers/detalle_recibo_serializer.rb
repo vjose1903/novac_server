@@ -4,6 +4,7 @@ class DetalleReciboSerializer < ActiveModel::Serializer
   attribute :cabecera_factura_id,                              if: Proc.new { self.get_param('cabecera_factura_id') || self.get_param('all') }
   attribute :pago_total,                                       if: Proc.new { self.get_param('pago_total') || self.get_param('all') }
   attribute :deposito,                                         if: Proc.new { self.get_param('deposito') || self.get_param('all') }
+  attribute :mora,                                             if: Proc.new { self.get_param('mora') || self.get_param('all') }
   attribute :balance_factura,                                  if: Proc.new { self.get_param('balance_factura') || self.get_param('all') }
   attribute :balance_anterior_factura,                         if: Proc.new { self.get_param('balance_anterior_factura') || self.get_param('all') }
   attribute :descripcion,                                      if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
@@ -15,7 +16,7 @@ class DetalleReciboSerializer < ActiveModel::Serializer
     factura =  object.cabecera_factura
     factura["total_factura"]
   end
-  
+
   def get_param(col)
 		return @instance_options[:"#{col}"]
 	end

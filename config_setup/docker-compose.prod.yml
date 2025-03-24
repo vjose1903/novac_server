@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   db-prod:
     image: postgres:13.7

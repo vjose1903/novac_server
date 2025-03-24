@@ -732,17 +732,16 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.calculateNextBalanceFactura(id, montoRecibido)
+  def self.calculateNextBalanceFactura(id, monto_recibido)
     res = Response.new
 
       factura                     = CabeceraFactura.find_by_id(id)
       balance                     = factura.balance
-      sumatoria                   = 0
 
-      if montoRecibido.to_f > balance
-        res.set_data({ :balance => 0, :balance_anterior => balance, :devolucion => (montoRecibido.to_f - balance), :factura => factura})
+      if monto_recibido.to_f > balance
+        res.set_data({ :balance => 0, :balance_anterior => balance, :devolucion => (monto_recibido.to_f - balance), :factura => factura})
       else
-        sumatoria = (balance - montoRecibido.to_f).to_d.truncate(2).to_f
+        sumatoria = (balance - monto_recibido.to_f).to_d.truncate(2).to_f
         res.set_data({ :balance => sumatoria, :balance_anterior => balance, :devolucion => 0, :factura => factura})
       end
 

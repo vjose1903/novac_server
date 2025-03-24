@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_02_08_121554) do
+ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -457,6 +457,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_02_08_121554) do
     t.boolean "is_ultimo"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.float "mora"
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
@@ -857,6 +858,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_02_08_121554) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "estado"
+    t.float "bruto"
+    t.float "mora"
+    t.float "balance_cliente"
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"
