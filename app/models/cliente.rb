@@ -1,7 +1,7 @@
 class Cliente < ApplicationRecord
 
-  belongs_to :imagen, optional: true
-  belongs_to :municipio,                                  class_name: 'Municipio'
+  belongs_to :imagen,    optional: true
+  belongs_to :municipio, optional: true,                  class_name: 'Municipio'
 
   accepts_nested_attributes_for :imagen
 
@@ -16,10 +16,12 @@ class Cliente < ApplicationRecord
   validates :maximo_credito,      presence: { :message => 'Cantidad de crédito del cliente no puede estar vacio.' }
   validates :vendedor_id,         presence: { :message => 'Debe de seleccionar un vendedor para el cliente.' }
   validates :direccion,           presence: { :message => 'Direccion del cliente no puede estar vacio.' }
-  validates :municipio,           presence: { :message => 'Municipio del cliente no puede estar vacio.' }
+  validates :municipio,           presence: { message: 'Municipio del cliente no puede estar vacio.' }, if: -> { create_validations }
+
+  attr_accessor :create_validations
 
   def init
-    self.balance = 0 unless self.balance
+    self.balance = 0                unless self.balance
   end
 
   def self.models_includes
@@ -54,7 +56,7 @@ class Cliente < ApplicationRecord
       cliente.municipio_id         = params[:municipio_id]                    if params.obj_has?(:municipio_id)
       cliente.estado               = true
 
-
+      cliente.create_validations   = true
       cliente.valid?
 
       if cliente.errors.empty?
@@ -194,17 +196,21 @@ class Cliente < ApplicationRecord
       end
     end
 
-    new_balance      = eval "#{balance} #{operacion} #{totalFactura.to_f}"
-    new_balance      = new_balance.to_d.truncate(2).to_f
-    cliente.balance  = new_balance
+    new_balance                  = eval "#{balance} #{operacion} #{totalFactura.to_f}"
+    new_balance                  = new_balance.to_d.truncate(2).to_f
+    cliente.balance              = new_balance
+    puts " ---- ANTES ---- #{cliente.to_json}".green
+    
     cliente.valid?
-
+    puts " ---- DESPUES ---- #{cliente.to_json}".red
+    
     if !cliente.errors.empty? || !cliente.save!
       res.add_msgs(cliente.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-
+    
     return res
   end
-
+  
+  private
 end
