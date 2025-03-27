@@ -386,7 +386,7 @@ class CabeceraFactura < ApplicationRecord
     valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
     limit_             = campo == FacturasParams.last_50 ? 50 : nil
 
-    valor_where = campo == FacturasParams.cliente_id || campo == FacturasParams.numero_factura ? valor_des : "'#{valor_des}' "
+    valor_where = FacturasParams.params_to_parse_int.my_includes_str(FacturasParams.enum[:"#{campo}"]) ? valor_des : "'#{valor_des}' "
 
     where_ = "cabecera_facturas.tipo = '#{tipo}' "
     where_ += "AND cabecera_facturas.is_adelantada = #{is_adelantada} "                                               if is_adelantada

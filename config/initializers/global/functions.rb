@@ -300,7 +300,7 @@ def is_empty?(parametro)
 	# Verifica si el parámetro es nil, un arreglo vacío, una cadena vacía o un hash vacío
 	# Pero devuelve false si el parámetro es un valor booleano
 	return false if parametro.is_a?(TrueClass) || parametro.is_a?(FalseClass)
-	
+
 	(parametro.nil? || (parametro.is_a?(String) && parametro.strip.empty?) || (parametro.is_a?(Hash) && parametro.empty?) || ( ( parametro.is_a?(Hash) || parametro.is_a?(Array) ) && parametro.empty?)  )
 end
 
@@ -330,7 +330,7 @@ end
 # ---------------------------------------------------------------------------------------------------------
 class Array
   def my_includes_str(str)
-    return  self.any? { |i| [str].include? i }
+    return  self.any? { |item| [str].include? item }
   end
 
   def my_includes_obj(key, value)

@@ -98,28 +98,59 @@ end
 DOCUMENTOS_DE_IDENTIDAD_VALIDOS = [Documentos.cedula, Documentos.rnc]
 
 module FacturasParams
+  Enum = {
+    todas: 0,
+    cliente_id: 1,
+    numero_comprobante: 2,
+    numero_factura: 3,
+    last_50: 4,
+    suplidor_id: 5,
+    id: 6,
+  }.with_indifferent_access
 
-  CLIENTE_ID = "cliente_id"
-  SUPLIDOR_ID = "suplidor_id"
-  NUMERO_COMPROBANTE = "numero_comprobante"
-  NUMERO_FACTURA = "numero_factura"
-  LAST_50 = "last_50"
-  TODAS = "todas"
+  CLIENTE_ID = 'cliente_id'
+  SUPLIDOR_ID = 'suplidor_id'
+  NUMERO_COMPROBANTE = 'numero_comprobante'
+  NUMERO_FACTURA = 'numero_factura'
+  LAST_50 = 'last_50'
+  ID = 'id'
+  TODAS = 'todas'
 
-  PARAMETROS = { :_0_ => TODAS, :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50, :_5_ => SUPLIDOR_ID }
+  PARAMETROS = { :_0_ => TODAS, :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50, :_5_ => SUPLIDOR_ID, :_6_ => ID }
+
 
   def self.get_campo_by_param(param)
     return PARAMETROS[:"_#{param}_"]
   end
 
-  def self.parse_valor_by_param(param, valor=nil)
-    valor = param == "1" || param == "3" || param == "5" ? valor.to_i : valor.upcase unless param == "4"
-    return valor
+  def self.parse_valor_by_param(param, valor='')
+
+    if param == "#{Enum[:last_50]}"
+      return valor
+
+    elsif FacturasParams.params_to_parse_int.my_includes_str(param.to_i)
+      return valor.to_i
+
+    else
+      return valor.upcase
+    end
   end
 
 
-  def self.cliente_id
+  def self.enum
+    return Enum
+  end
+
+  def self.params_to_parse_int
+    return [ Enum[:cliente_id], Enum[:numero_factura], Enum[:suplidor_id], Enum[:id ] ]
+  end
+
+  def self.suplidor_id
     return CLIENTE_ID
+  end
+
+  def self.cliente_id
+    return SUPLIDOR_ID
   end
 
   def self.numero_comprobante
@@ -134,11 +165,16 @@ module FacturasParams
     return LAST_50
   end
 
+  def self.id
+    return ID
+  end
+
   def self.todas
     return TODAS
   end
-
 end
+
+
 
 module TipoReporteVentas
   VENTAS_HOY      = 'ventas_diarias'
