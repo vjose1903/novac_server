@@ -1,7 +1,9 @@
-import { condicionT, forma_pagoT } from '../constants/factura.utils';
+import { condicionT, forma_pagoT, tipoComprobanteE } from '../constants/factura.utils';
+import { documentTypeT } from './document.types';
 
 export interface FacturaI {
   id_documento: string;
+  TipoeCF: tipoComprobanteE;
   condicion: condicionT;
   forma_pago: forma_pagoT;
   fecha_viaje: any;
@@ -34,8 +36,8 @@ export interface FacturaI {
   FACTURA_DE: number;
   tipo: string;
   tiene_nota: boolean;
-  eNCF: string;
   cliente?: ClienteI;
+  document_type?: documentTypeT;
   [key: string]: any;
 }
 

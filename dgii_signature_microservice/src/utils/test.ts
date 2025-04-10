@@ -2,11 +2,13 @@ import { DgiiService } from "../core/services/DgiiService.service"
 import { sleep } from "./typescript/functions";
 import { ParseDocument } from "./typescript/parseDocument";
 import { factura_32 } from "./factura_32";
+import { DateUtils } from '@vjose1903/dateutils';
 
 async function prueba() {
-	const parser = new ParseDocument();
-	const factura = parser.parse(factura_32);
-	console.log("factura >> ", JSON.stringify(factura, null, 2));
+	// const parser = new ParseDocument();
+	console.log(DateUtils.subtractDays(2, new Date()));
+	// const factura = parser.parse(factura_32);
+	// console.log("factura >> ", JSON.stringify(factura, null, 2));
 	// const dgiiService = DgiiService.getInstance();
 
 

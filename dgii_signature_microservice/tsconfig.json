@@ -6,7 +6,11 @@
       // "strict": true,
       "esModuleInterop": true,
       "types": ["node"],
-      "moduleResolution": "node"
+      "moduleResolution": "node",
+      "baseUrl": "./",
+      "paths": {
+        "@core/*": ["src/core/*"]
+      }
     },
     "include": ["src/**/*"]
   }

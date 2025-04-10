@@ -1,12 +1,15 @@
-import { DetalleFacturaI, FacturaI } from '../../core/types/factura.types';
+import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
 import { isEmpty, normalizarTexto, redondearNum } from './functions';
-import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '../../core/constants/factura.utils';
-import { FormaDePagoE, DescuentoORecargoI } from '../../core/types/xml/xml_json';
-import { CodigosItem, ItemI } from '../../core/types/xml/xml_detallesItem_json';
+import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
+import { FormaDePagoE, DescuentoORecargoI } from '@core/types/xml/xml_json';
+import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
 import { agruparArticulosPorPagina } from './paginacion';
-import { PaginacionI } from '../../core/types/xml/xml_paginacion_json';
+import { PaginacionI } from '@core/types/xml/xml_paginacion_json';
+import { NotaI } from '@core/types/notas.types';
+import { documentTypeE } from '@core/types/document.types';
+import { DateUtils } from '@vjose1903/dateutils';
 
 export class ParseDocument {
   private version: string;
@@ -18,6 +21,8 @@ export class ParseDocument {
 
   private cleaner: Clean;
   private totalizacion: Totalizacion;
+
+  private document: FacturaI | NotaI;
 
   constructor() {
     this.environment = process.env;
@@ -31,43 +36,45 @@ export class ParseDocument {
     this.totalizacion = new Totalizacion();
   }
 
-  parse(document: FacturaI) {
+  get isFactura() {
+    return this.document.document_type == documentTypeE.factura;
+  }
+
+  get isNota() {
+    return this.document.document_type == documentTypeE.nota;
+  }
+
+  get factura_aplicada() {
+    return this.document.facturas_aplicadas[0];
+  }
+
+  parse(document: FacturaI | NotaI) {
+    this.document = document;
+
     const document_parsed = {
       ECF: {
         Encabezado: {
           Version: this.version,
           IdDoc: {
-            TipoeCF: document.FACTURA_DE,
-            // TODO: agregar en el backend la secuencia a utilizar
-            eNCF: document.eNCF,
-            FechaVencimientoSecuencia: null,
-            // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
-            IndicadorNotaCredito: null,
+            TipoeCF: document.TipoeCF, // TODO: agregar en el backend la secuencia a utilizar
+            eNCF: document.numero_comprobante, // TODO: agregar en el backend antes de pasarlo por el microservicio
+            FechaVencimientoSecuencia: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
+            IndicadorNotaCredito: null, // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
             IndicadorEnvioDiferido: null,
-            // a) Valor 0 si los montos de los items no tienen itbis incluido.             b) Valor 1 si los montos de los items tienen itbis incluido.
-            IndicadorMontoGravado: null,
-            // 01: Ingresos por operaciones (No financieros).    02: Ingresos Financieros     03: Ingresos Extraordinarios     04: Ingresos por Arrendamientos     05: Ingresos por Venta de Activo Depreciable     06: Otros Ingresos
-            TipoIngresos: '01',
-            // Las facturas por entrega gratuita (código 3), no son válidas para crédito fiscal.
-            TipoPago: null,
-            // TODO:agregar en el backend la fecha limite de pago
-            FechaLimitePago: null,
+            IndicadorMontoGravado: null, // a) Valor 0 si los montos de los items no tienen itbis incluido.             b) Valor 1 si los montos de los items tienen itbis incluido.
+            TipoIngresos: '01', // 01: Ingresos por operaciones (No financieros).    02: Ingresos Financieros     03: Ingresos Extraordinarios     04: Ingresos por Arrendamientos     05: Ingresos por Venta de Activo Depreciable     06: Otros Ingresos
+            TipoPago: null, // Las facturas por entrega gratuita (código 3), no son válidas para crédito fiscal.
+            FechaLimitePago: null, // TODO: agregar en el backend la fecha limite de pago
             TerminoPago: null,
             TablaFormasPago: {
               FormaDePago: [],
             },
-            // CT: Cta. Corriente AH: Ahorro OT: Otra TODO: agregar en el backend
-            TipoCuentaPago: null,
-            // Número de la cuenta si la forma de pago es por cheque o transferencia bancaria.
-            NumeroCuentaPago: null,
-            // Banco de la Cuenta
-            BancoPago: null,
-            // Período de facturación para Servicios Periódicos Ej. Energía eléctrica, telefónica, otros. Fecha desde (Fecha inicial del servicio facturado).
-            FechaDesde: null,
-            // Período de facturación para Servicios Periódicos. Fecha hasta (Fecha final del servicio facturado).
-            FechaHasta: null,
-            // TODO: agregar un mecanismo para poder saber cuantos items por pagina tendra dependiendo del cliente
-            TotalPaginas: null,
+            TipoCuentaPago: null, // CT: Cta. Corriente AH: Ahorro OT: Otra TODO: agregar en el backend
+            NumeroCuentaPago: null, // Número de la cuenta si la forma de pago es por cheque o transferencia bancaria.
+            BancoPago: null, // Banco de la Cuenta
+            FechaDesde: null, // Período de facturación para Servicios Periódicos Ej. Energía eléctrica, telefónica, otros. Fecha desde (Fecha inicial del servicio facturado).
+            FechaHasta: null, // Período de facturación para Servicios Periódicos. Fecha hasta (Fecha final del servicio facturado).
+            TotalPaginas: null, // TODO: agregar un mecanismo para poder saber cuantos items por pagina tendra dependiendo del cliente
           },
           Emisor: {
             RNCEmisor: this.rnc_emisor,
@@ -84,8 +91,7 @@ export class ParseDocument {
             WebSite: null,
             ActividadEconomica: null,
             CodigoVendedor: null,
-            // TODO: agregar en el backend el numero de factura interna
-            NumeroFacturaInterna: document.numero_factura,
+            NumeroFacturaInterna: document.numero_factura, // TODO: agregar en el backend el numero de factura interna
             NumeroPedidoInterno: null,
             ZonaVenta: null,
             RutaVenta: null,
@@ -93,14 +99,11 @@ export class ParseDocument {
             FechaEmision: document.fecha_equivalente,
           },
           Comprador: {
-            // TODO: agregar en el backend antes de pasarlo por el microservicio
-            RNCComprador: null,
+            RNCComprador: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
             IdentificadorExtranjero: null,
             RazonSocialComprador: document.cliente?.nombre,
-            // TODO: agregar propiedad en la tabla cliente en el backend
-            ContactoComprador: null,
-            // TODO: agregar propiedad en la tabla cliente en el backend
-            CorreoComprador: null,
+            ContactoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend
+            CorreoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend
             DireccionComprador: document.cliente?.direccion,
             MunicipioComprador: document.cliente?.municipio?.codigo || null,
             ProvinciaComprador: document.cliente?.provincia?.codigo || null,
@@ -157,8 +160,7 @@ export class ParseDocument {
           },
           Totales: {
             MontoGravadoTotal: null,
-            // TODO: hacer un metodo que sume los totales de cada item que tenga identificadorFacturacion = 1
-            MontoGravadoI1: null,
+            MontoGravadoI1: null, // TODO: hacer un metodo que sume los totales de cada item que tenga identificadorFacturacion = 1
             MontoGravadoI2: null,
             MontoGravadoI3: null,
             MontoExento: null,
@@ -226,6 +228,11 @@ export class ParseDocument {
     };
 
     // ENCABEZADO IDDOC
+
+    if (this.isNota) {
+      if (this.factura_aplicada) document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = this.factura_aplicada.fecha_equivalente 
+    }
+
     document_parsed.ECF.Encabezado.IdDoc.IndicadorMontoGravado = 0;
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = document.condicion === condicionE.contado ? tipo_pago_codeE.contado : document.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
@@ -251,10 +258,10 @@ export class ParseDocument {
     document_parsed.ECF.Encabezado.Totales = totales as any;
 
     // DETALLESITEMS
-    document_parsed.ECF.DetallesItems = this.parseDetalles(document);
+    document_parsed.ECF.DetallesItems = this.parseDetalles();
 
     // Paginacion
-    document_parsed.ECF.Paginacion = this.parsePaginacion(document);
+    document_parsed.ECF.Paginacion = this.parsePaginacion();
 
     if (document.condicion == condicionE.credito) {
       document_parsed.ECF.InformacionReferencia = {
@@ -270,10 +277,10 @@ export class ParseDocument {
     return document_parsed;
   }
 
-  parseDetalles(document: FacturaI) {
+  parseDetalles() {
     const detallesItems = { Item: [] };
 
-    document.detalle_facturas.forEach((item: DetalleFacturaI, index: number) => {
+    this.document.detalle_facturas.forEach((item: DetalleFacturaI, index: number) => {
       const itemParsed = {} as ItemI;
       itemParsed.NumeroLinea = `${index + 1}`;
 
@@ -315,33 +322,31 @@ export class ParseDocument {
     return detallesItems;
   }
 
-  parsePaginacion(document: FacturaI) {
+  parsePaginacion() {
     const paginacion = { Pagina: [] };
 
     // TODO: agregar condicion para las notas de credito
-    const items_per_page = document.condicion == condicionE.contado ? this.items_per_page : this.items_per_page_credit;
+    const items_per_page = this.document.condicion == condicionE.contado ? this.items_per_page : this.items_per_page_credit;
 
-    if (document.detalle_facturas.length > items_per_page) {
-      const articulos_agrupados = agruparArticulosPorPagina(document.detalle_facturas, items_per_page);
+    if (this.sheet_type == sheet_typeE.paper && this.document.detalle_facturas.length > items_per_page) {
+      const articulos_agrupados = agruparArticulosPorPagina(this.document.detalle_facturas, items_per_page);
 
-      if (this.sheet_type == sheet_typeE.paper && document.detalle_facturas.length > 10) {
-        articulos_agrupados.forEach((grupo, index) => {
-          const paginaParsed = {} as PaginacionI;
-          paginaParsed.PaginaNo = `${index + 1}`;
-          paginaParsed.NoLineaDesde = `${index * items_per_page + 1}`;
-          paginaParsed.NoLineaHasta = `${(index + 1) * items_per_page}`;
+      articulos_agrupados.forEach((grupo, index) => {
+        const paginaParsed = {} as PaginacionI;
+        paginaParsed.PaginaNo = `${index + 1}`;
+        paginaParsed.NoLineaDesde = `${index * items_per_page + 1}`;
+        paginaParsed.NoLineaHasta = `${(index + 1) * items_per_page}`;
 
-          const totales = this.totalizacion.run(grupo);
-          paginaParsed.SubtotalMontoGravadoPagina = totales.MontoGravadoTotal;
-          paginaParsed.SubtotalMontoGravado1Pagina = totales.MontoGravadoI1;
-          paginaParsed.SubtotalExentoPagina = totales.MontoExento;
-          paginaParsed.SubtotalItbisPagina = totales.TotalITBIS;
-          paginaParsed.SubtotalItbis1Pagina = totales.TotalITBIS1;
-          paginaParsed.MontoSubtotalPagina = totales.MontoTotal;
+        const totales = this.totalizacion.run(grupo);
+        paginaParsed.SubtotalMontoGravadoPagina = totales.MontoGravadoTotal;
+        paginaParsed.SubtotalMontoGravado1Pagina = totales.MontoGravadoI1;
+        paginaParsed.SubtotalExentoPagina = totales.MontoExento;
+        paginaParsed.SubtotalItbisPagina = totales.TotalITBIS;
+        paginaParsed.SubtotalItbis1Pagina = totales.TotalITBIS1;
+        paginaParsed.MontoSubtotalPagina = totales.MontoTotal;
 
-          paginacion.Pagina.push(paginaParsed);
-        });
-      }
+        paginacion.Pagina.push(paginaParsed);
+      });
     }
 
     return paginacion;

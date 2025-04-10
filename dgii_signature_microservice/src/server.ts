@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import { DgiiService } from "./core/services/DgiiService.service"; // Importamos el servicio
+import { DgiiService } from "@core/services/DgiiService.service"; // Importamos el servicio
 
 const app = express();
 const server = http.createServer(app);

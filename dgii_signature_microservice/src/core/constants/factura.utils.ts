@@ -4,6 +4,19 @@ export enum tipo_pago_codeE {
   gratuito = 3,
 }
 
+export enum tipoComprobanteE {
+  factura_de_credito_fiscal = 31,
+  factura_de_consumo = 32,
+  nota_de_debito = 33,
+  nota_de_credito = 34,
+  compras = 41,
+  gastos_menores = 43,
+  regimenes_especiales = 44,
+  gubernamental = 45,
+  comprobante_de_exportaciones = 46,
+  comprobante_pagos_al_exterior = 47,
+}
+
 export enum condicionE {
   contado = 'Contado',
   credito = 'Crédito',
@@ -64,29 +77,28 @@ export enum indicadorBienoServicioE {
   servicio = '2',
 }
 
-
 export enum sheet_typeE {
   paper = 'paper',
   roll = 'roll',
 }
 
 export enum unidad_codeE {
-  barril = '1',       // -> BARR
-  bolsa = '2',        // -> BOL
-  botella = '5',      // -> BOTELLA
-  caja = '6',         // -> CAJ 
-  docena = '13',      // -> DOC
-  fardo = '14',       // -> FARD
-  galon = '15',       // -> GL
-  kilogramo = '21',   // -> KG
-  libra = '23',       // -> LB
-  litro = '24',       // -> LITRO
-  tanque = '38',      // -> TANQUE
-  unidad = '43',      // -> UND
-  saco = '46',        // -> SAC
-  quintal = '51',     // -> Q
-  miligramo = '60',   // -> MG
-  onzas = '61',       // -> OZ
+  barril = '1', // -> BARR
+  bolsa = '2', // -> BOL
+  botella = '5', // -> BOTELLA
+  caja = '6', // -> CAJ
+  docena = '13', // -> DOC
+  fardo = '14', // -> FARD
+  galon = '15', // -> GL
+  kilogramo = '21', // -> KG
+  libra = '23', // -> LB
+  litro = '24', // -> LITRO
+  tanque = '38', // -> TANQUE
+  unidad = '43', // -> UND
+  saco = '46', // -> SAC
+  quintal = '51', // -> Q
+  miligramo = '60', // -> MG
+  onzas = '61', // -> OZ
 }
 
 export enum codigo_modificacionE {
@@ -104,4 +116,3 @@ export enum codigo_modificacion_labelE {
   reemplazo_contingencia = 'Reemplazo NCF emitido en contingencia',
   referencia_factura_consumo = 'Referencia Factura de Consumo Electrónica',
 }
-

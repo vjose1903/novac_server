@@ -1,5 +1,5 @@
-import { DetalleFacturaI, FacturaI } from '../../core/types/factura.types';
-import { EcfXmlJson } from '../../core/types/xml/xml_json';
+import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
+import { EcfXmlJson } from '@core/types/xml/xml_json';
 import { isEmpty } from './functions';
 
 export class Totalizacion {
