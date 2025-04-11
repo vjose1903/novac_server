@@ -6,8 +6,8 @@ export interface FacturaI {
   TipoeCF: tipoComprobanteE;
   condicion: condicionT;
   forma_pago: forma_pagoT;
-  fecha_viaje: any;
-  fecha_equivalente: any;
+  fecha_viaje: string | Date;
+  fecha_equivalente: string | Date;
   fecha_limite_pago?: string;
   pagada: boolean;
   balance: number;

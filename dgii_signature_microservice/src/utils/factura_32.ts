@@ -1,14 +1,15 @@
-import { FacturaI } from '../core/types/factura.types';
+import { FacturaI } from '@core/types/factura.types';
+import { tipoComprobanteE } from '@core/constants/factura.utils';
 
 export const factura_32: FacturaI = {
   id_documento: '0',
   eNCF: 'testing', // AGREGAR EN EL BACKEND 
   fecha_limite_pago: '30-03-2025', // AGREGAR EN EL BACKEND 
-  numero_factura: null, // AGREGAR EN EL BACKEND 
+  numero_factura: 2101, // AGREGAR EN EL BACKEND 
   condicion: 'Contado',
   forma_pago: 'Efectivo',
   fecha_viaje: null,
-  fecha_equivalente: null,
+  fecha_equivalente: '2025-04-10 17:38:21.956',
   pagada: true,
   balance: 0,
   devuelta: 1300,
@@ -40,6 +41,7 @@ export const factura_32: FacturaI = {
     limite_credito: 30,
     
   },
+  TipoeCF: tipoComprobanteE.factura_de_consumo,
 
   detalle_facturas: [
     {

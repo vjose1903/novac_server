@@ -1,15 +1,20 @@
+import { tipoComprobanteE } from '@core/constants/factura.utils';
 import { NotaI } from '../core/types/notas.types';
+import { factura_32 } from './factura_32';
 
 export const nota_credito: NotaI = {
   cliente_id: 3,
   user_id: null,
   fecha_valida: '30/12/2022',
+  numero_comprobante: 'E340000000001',
   tipo_factura_id: 5,
   total: 40000,
+  TipoeCF: tipoComprobanteE.nota_de_credito,
   facturas_aplicadas: [
     {
       cabecera_factura_id: 53501,
       total: 40000,
+      factura: factura_32,
       detalles_facturas_notas: [
         { articulo_id: 984, 
           unidad: 'Saco', 

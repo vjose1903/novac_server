@@ -5,8 +5,9 @@ import { factura_32 } from "./factura_32";
 import { DateUtils } from '@vjose1903/dateutils';
 
 async function prueba() {
+	console.log(DateUtils.diffDays(factura_32.fecha_equivalente, new Date()));
+	console.log(DateUtils.format({ date: factura_32.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }));
 	// const parser = new ParseDocument();
-	console.log(DateUtils.subtractDays(2, new Date()));
 	// const factura = parser.parse(factura_32);
 	// console.log("factura >> ", JSON.stringify(factura, null, 2));
 	// const dgiiService = DgiiService.getInstance();

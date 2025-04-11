@@ -1,6 +1,6 @@
 import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
-import { isEmpty, normalizarTexto, redondearNum } from './functions';
+import { getProperty, hasValue, isEmpty, normalizarTexto, redondearNum } from './functions';
 import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
 import { FormaDePagoE, DescuentoORecargoI } from '@core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
@@ -69,12 +69,12 @@ export class ParseDocument {
             TablaFormasPago: {
               FormaDePago: [],
             },
-            TipoCuentaPago: null, // CT: Cta. Corriente AH: Ahorro OT: Otra TODO: agregar en el backend
+            TipoCuentaPago: null, // CT: Cta. Corriente AH: Ahorro OT: Otra
             NumeroCuentaPago: null, // Número de la cuenta si la forma de pago es por cheque o transferencia bancaria.
             BancoPago: null, // Banco de la Cuenta
             FechaDesde: null, // Período de facturación para Servicios Periódicos Ej. Energía eléctrica, telefónica, otros. Fecha desde (Fecha inicial del servicio facturado).
             FechaHasta: null, // Período de facturación para Servicios Periódicos. Fecha hasta (Fecha final del servicio facturado).
-            TotalPaginas: null, // TODO: agregar un mecanismo para poder saber cuantos items por pagina tendra dependiendo del cliente
+            TotalPaginas: null,
           },
           Emisor: {
             RNCEmisor: this.rnc_emisor,
@@ -91,12 +91,12 @@ export class ParseDocument {
             WebSite: null,
             ActividadEconomica: null,
             CodigoVendedor: null,
-            NumeroFacturaInterna: document.numero_factura, // TODO: agregar en el backend el numero de factura interna
+            NumeroFacturaInterna: this.isFactura ? getProperty(document, 'numero_factura') : getProperty(document, 'numero_documento'),
             NumeroPedidoInterno: null,
             ZonaVenta: null,
             RutaVenta: null,
             InformacionAdicionalEmisor: null,
-            FechaEmision: document.fecha_equivalente,
+            FechaEmision: hasValue(document.fecha_equivalente) ? DateUtils.format({ date: document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : null,
           },
           Comprador: {
             RNCComprador: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
@@ -160,7 +160,7 @@ export class ParseDocument {
           },
           Totales: {
             MontoGravadoTotal: null,
-            MontoGravadoI1: null, // TODO: hacer un metodo que sume los totales de cada item que tenga identificadorFacturacion = 1
+            MontoGravadoI1: null,
             MontoGravadoI2: null,
             MontoGravadoI3: null,
             MontoExento: null,
@@ -230,7 +230,8 @@ export class ParseDocument {
     // ENCABEZADO IDDOC
 
     if (this.isNota) {
-      if (this.factura_aplicada) document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = this.factura_aplicada.fecha_equivalente 
+      const daysFromNow = DateUtils.diffDays(this.factura_aplicada.fecha_equivalente, new Date());
+      document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = daysFromNow > 30 ? 1 : 0;
     }
 
     document_parsed.ECF.Encabezado.IdDoc.IndicadorMontoGravado = 0;
@@ -262,6 +263,8 @@ export class ParseDocument {
 
     // Paginacion
     document_parsed.ECF.Paginacion = this.parsePaginacion();
+    const pages_amount = document_parsed.ECF.Paginacion.Pagina.length;
+    document_parsed.ECF.Encabezado.IdDoc.TotalPaginas = pages_amount > 1 ? pages_amount : null;
 
     if (document.condicion == condicionE.credito) {
       document_parsed.ECF.InformacionReferencia = {
