@@ -1,7 +1,7 @@
 import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
 import { getProperty, hasValue, isEmpty, normalizarTexto, redondearNum } from './functions';
-import { condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
+import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
 import { FormaDePagoE, DescuentoORecargoI } from '@core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
@@ -47,9 +47,9 @@ export class ParseDocument {
   get factura_aplicada(): FacturasAplicada {
     return this.document.facturas_aplicadas[0];
   }
-  
+
   get factura(): FacturaI {
-    return this.isFactura ? this.document : getProperty(this.factura_aplicada, 'factura') as any;
+    return this.isFactura ? this.document : (getProperty(this.factura_aplicada, 'factura') as any);
   }
 
   parse(document: FacturaI | NotaI) {
@@ -272,12 +272,16 @@ export class ParseDocument {
     const pages_amount = document_parsed.ECF.Paginacion.Pagina.length;
     document_parsed.ECF.Encabezado.IdDoc.TotalPaginas = pages_amount > 1 ? pages_amount : null;
 
-    if (document.condicion == condicionE.credito) {
+    if (this.isNota) {
+      // codigo_modificacionE
+      const diferencia = Math.abs(this.factura_aplicada.factura.total_factura - this.factura.total);
+      const codigo_modificacion = diferencia <= 0.9 ? codigo_modificacionE.anulacion : codigo_modificacionE.correccion_texto;
+
       document_parsed.ECF.InformacionReferencia = {
         NCFModificado: this.factura_aplicada.factura.numero_comprobante,
         RNCOtroContribuyente: null,
         FechaNCFModificado: this.factura_aplicada.factura.fecha_equivalente,
-        CodigoModificacion: null,
+        CodigoModificacion: codigo_modificacion,
       };
     }
 

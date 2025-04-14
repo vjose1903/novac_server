@@ -41,7 +41,7 @@ export interface Encabezado {
   Comprador:                Comprador;
   InformacionesAdicionales: InformacionesAdicionales;
   Transporte:               Transporte;
-  Totales:                  { [key: string]: Totale | any };
+  Totales:                  TotalI;
   OtraMoneda:               { [key: string]: OtraMoneda | any };
 }
 
@@ -97,8 +97,31 @@ export interface OtraMoneda {
   ImpuestoAdicionalOtraMoneda: any[];
 }
 
-export interface Totale {
-  ImpuestoAdicional: any[];
+export interface TotalI {
+  MontoGravadoTotal?:      number,
+  MontoGravadoI1?:         number,
+  MontoGravadoI2?:         number,
+  MontoGravadoI3?:         number,
+  MontoExento?:            number,
+  ITBIS1?:                 number,
+  ITBIS2?:                 number,
+  ITBIS3?:                 number,
+  TotalITBIS?:             number,
+  TotalITBIS1?:            number,
+  TotalITBIS2?:            number,
+  TotalITBIS3?:            number,
+  MontoTotal?:             number,
+  MontoImpuestoAdicional?: number,
+  ImpuestoAdicional?:      any[];
+  MontoNoFacturable?:      number,
+  MontoPeriodo?:           number,
+  SaldoAnterior?:          number,
+  MontoAvancePago?:        number,
+  ValorPagar?:             number,
+  TotalITBISRetenido?:     number,
+  TotalISRRetencion?:      number,
+  TotalITBISPercepcion?:   number,
+  TotalISRPercepcion?:     number,
 }
 
 export interface Transporte {

@@ -20,11 +20,11 @@ export interface Articulo {
   is_materia_prima: boolean;
   contenido_articulos: ContenidoArticuloI[];
   descripcion: string;
-  contenido: ContenidoI;
-  cantidades: CantidadesI;
+  contenido?: ContenidoI;
+  cantidades?: CantidadesI;
   calcular_saco: boolean;
-  costos: CostosI;
-  tipo_articulo: TipoArticuloI;
+  costos?: CostosI;
+  tipo_articulo?: TipoArticuloI;
   [key: string]: any;
 }
 

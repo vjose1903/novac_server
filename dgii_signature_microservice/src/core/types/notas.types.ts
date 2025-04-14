@@ -38,6 +38,7 @@ export interface DetallesFacturasNota {
   total:                number;
   cantidad_en_unidades: number;
   cantidad:             number;
+  cantidad_origin:      number;
   detalle_factura_id:   number;
   descuento:            number;
   descuento_real:       number;
