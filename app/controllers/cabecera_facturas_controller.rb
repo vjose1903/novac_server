@@ -67,9 +67,10 @@ class CabeceraFacturasController < ApplicationController
   def get_parametros_opcionales
     return {
       all: true,
-      actual_price:       validate_optional_param(params, 'actual_price') ?       params['actual_price'].to_boolean       : false,
-      movimientos_viaje:  validate_optional_param(params, 'movimientos_viaje') ?  params['movimientos_viaje'].to_boolean  : false,
-      marca_modelo_anio:  validate_optional_param(params, 'marca_modelo_anio') ?  params['marca_modelo_anio'].to_boolean  : false,
+      actual_price:         validate_optional_param(params, 'actual_price') ?         params['actual_price'].to_boolean       : false,
+      movimientos_viaje:    validate_optional_param(params, 'movimientos_viaje') ?    params['movimientos_viaje'].to_boolean  : false,
+      marca_modelo_anio:    validate_optional_param(params, 'marca_modelo_anio') ?    params['marca_modelo_anio'].to_boolean  : false,
+      articulo_in_detalle:  validate_optional_param(params, 'articulo_in_detalle') ?  params['articulo_in_detalle'].to_boolean  : false,
     }
   end
 

@@ -1,11 +1,12 @@
 import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { EcfXmlJson } from '@core/types/xml/xml_json';
 import { isEmpty } from './functions';
+import { DetallesFacturasNota } from '@core/types/notas.types';
 
 export class Totalizacion {
   constructor() {}
 
-  run(articulos: DetalleFacturaI[]) {
+  run(articulos: DetalleFacturaI[] | DetallesFacturasNota[], isFactura: boolean) {
     const totales = {
       MontoGravadoTotal: null,
       MontoGravadoI1: null,

@@ -7,7 +7,7 @@ import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
 import { agruparArticulosPorPagina } from './paginacion';
 import { PaginacionI } from '@core/types/xml/xml_paginacion_json';
-import { NotaI } from '@core/types/notas.types';
+import { FacturasAplicada, NotaI } from '@core/types/notas.types';
 import { documentTypeE } from '@core/types/document.types';
 import { DateUtils } from '@vjose1903/dateutils';
 
@@ -44,8 +44,12 @@ export class ParseDocument {
     return this.document.document_type == documentTypeE.nota;
   }
 
-  get factura_aplicada() {
+  get factura_aplicada(): FacturasAplicada {
     return this.document.facturas_aplicadas[0];
+  }
+  
+  get factura(): FacturaI {
+    return this.isFactura ? this.document : getProperty(this.factura_aplicada, 'factura') as any;
   }
 
   parse(document: FacturaI | NotaI) {
@@ -230,24 +234,26 @@ export class ParseDocument {
     // ENCABEZADO IDDOC
 
     if (this.isNota) {
-      const daysFromNow = DateUtils.diffDays(this.factura_aplicada.fecha_equivalente, new Date());
+      const daysFromNow = DateUtils.diffDays(this.factura.fecha_equivalente, new Date());
       document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = daysFromNow > 30 ? 1 : 0;
     }
 
     document_parsed.ECF.Encabezado.IdDoc.IndicadorMontoGravado = 0;
-    document_parsed.ECF.Encabezado.IdDoc.TipoPago = document.condicion === condicionE.contado ? tipo_pago_codeE.contado : document.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
+    document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
-    if (document.condicion == condicionE.credito) {
-      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = document.fecha_limite_pago;
+    if (this.factura.condicion == condicionE.credito && this.isFactura) {
+      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = this.factura.fecha_limite_pago;
       document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${document.cliente?.limite_credito} días`;
     }
 
     document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago = [];
 
-    const forma_pago: FormaDePagoE = { FormaPago: forma_pago_codeE[normalizarTexto(document.forma_pago)] };
-    if (document.condicion != condicionE.credito) forma_pago.MontoPago = document.total_factura;
+    if (this.isFactura) {
+      const forma_pago: FormaDePagoE = { FormaPago: forma_pago_codeE[normalizarTexto(this.factura.forma_pago)] };
+      if (this.factura.condicion != condicionE.credito) forma_pago.MontoPago = this.factura.total_factura;
 
-    document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago.push(forma_pago);
+      document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago.push(forma_pago);
+    }
 
     // ENCABEZADO COMPRADOR
 
@@ -255,7 +261,7 @@ export class ParseDocument {
     if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = document.cliente?.documentos_de_identidad[0].documento;
 
     // ENCABEZADO TOTALES
-    const totales = this.totalizacion.run(document.detalle_facturas);
+    const totales = this.totalizacion.run(this.isFactura ? this.factura.detalle_facturas : this.factura_aplicada.detalles_facturas_notas, this.isFactura);
     document_parsed.ECF.Encabezado.Totales = totales as any;
 
     // DETALLESITEMS
@@ -268,9 +274,9 @@ export class ParseDocument {
 
     if (document.condicion == condicionE.credito) {
       document_parsed.ECF.InformacionReferencia = {
-        NCFModificado: document.eNCF,
+        NCFModificado: this.factura_aplicada.factura.numero_comprobante,
         RNCOtroContribuyente: null,
-        FechaNCFModificado: document.fecha_equivalente,
+        FechaNCFModificado: this.factura_aplicada.factura.fecha_equivalente,
         CodigoModificacion: null,
       };
     }
@@ -340,7 +346,7 @@ export class ParseDocument {
         paginaParsed.NoLineaDesde = `${index * items_per_page + 1}`;
         paginaParsed.NoLineaHasta = `${(index + 1) * items_per_page}`;
 
-        const totales = this.totalizacion.run(grupo);
+        const totales = this.totalizacion.run(grupo, this.isFactura);
         paginaParsed.SubtotalMontoGravadoPagina = totales.MontoGravadoTotal;
         paginaParsed.SubtotalMontoGravado1Pagina = totales.MontoGravadoI1;
         paginaParsed.SubtotalExentoPagina = totales.MontoExento;

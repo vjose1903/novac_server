@@ -1,6 +1,8 @@
 import { tipoComprobanteE } from "@core/constants/factura.utils";
-import { ClienteI, FacturaI } from "./factura.types";
-import { documentTypeT } from "./document.types";
+import { Articulo } from "@core/types/articulo.types";
+import { ClienteI } from "@core/types/cliente.types";
+import { FacturaI } from "@core/types/factura.types";
+import { documentTypeT } from "@core/types/document.types";
 
 export interface NotaI {
   cliente_id:         number;
@@ -22,9 +24,10 @@ export interface FacturasAplicada {
   factura?:                FacturaI;
   total:                   number;
   detalles_facturas_notas: DetallesFacturasNota[];
-}
+} 
 
 export interface DetallesFacturasNota {
+  articulo:             Articulo;
   articulo_id:          number;
   unidad:               string;
   itbis:                number;
