@@ -3,8 +3,7 @@ import { tipoComprobanteE } from '@core/constants/factura.utils';
 
 export const factura_32: FacturaI = {
   id_documento: '0',
-  eNCF: 'testing', // AGREGAR EN EL BACKEND 
-  fecha_limite_pago: '30-03-2025', // AGREGAR EN EL BACKEND 
+  fecha_vencimiento: '30-03-2025', // AGREGAR EN EL BACKEND 
   numero_factura: 2101, // AGREGAR EN EL BACKEND 
   condicion: 'Contado',
   forma_pago: 'Efectivo',

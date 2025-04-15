@@ -27,6 +27,7 @@ export interface FacturasAplicada {
 } 
 
 export interface DetallesFacturasNota {
+  descripcion:          string;
   articulo:             Articulo;
   articulo_id:          number;
   unidad:               string;

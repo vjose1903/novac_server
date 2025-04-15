@@ -10,7 +10,7 @@ export interface FacturaI {
   forma_pago: forma_pagoT;
   fecha_viaje: string | Date;
   fecha_equivalente: string | Date;
-  fecha_limite_pago?: string;
+  fecha_vencimiento?: string | Date;
   pagada: boolean;
   balance: number;
   devuelta: number;
@@ -32,8 +32,8 @@ export interface FacturaI {
   pre_factura: any;
   cotizacion: any;
   cliente_id: any;
-  NoCliente_nombre: string;
-  NoCliente_direccion: string;
+  NoCliente_nombre?: string;
+  NoCliente_direccion?: string;
   detalle_facturas: DetalleFacturaI[];
   FACTURA_DE: number;
   tipo: string;

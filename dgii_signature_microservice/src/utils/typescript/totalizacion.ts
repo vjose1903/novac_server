@@ -49,9 +49,28 @@ export class Totalizacion {
   }
 
   evaluateNota(items_itbis: DetallesFacturasNota[], items_no_itbis: DetallesFacturasNota[], totales: TotalI) {
-    // // TODO: ver que hacer con las notas
-    
-    // const isPriceChange = obj.cantidad == 0;
+    // TODO: ver que hacer con las notas
+
+    const calc_total_row = (item: DetallesFacturasNota) => {
+      const isPriceChange = item.cantidad == 0;
+
+      if (isPriceChange) {
+        return item.precio_real * item.cantidad_origin - item.descuento_real;
+      }
+
+      return item.precio * item.cantidad - item.descuento_real;
+    };
+
+    if (items_itbis.length > 0) {
+      totales.MontoGravadoI1 = items_itbis.reduce((acc, item) => acc + calc_total_row(item), 0);
+
+      totales.ITBIS1 = 18;
+      totales.TotalITBIS1 = totales.MontoGravadoI1 * 0.18;
+    }
+
+    if (items_no_itbis.length > 0) {
+      totales.MontoExento = items_no_itbis.reduce((acc, item) => acc + calc_total_row(item), 0);
+    }
 
     // switch (property) {
     //   case 'precio':

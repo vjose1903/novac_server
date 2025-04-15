@@ -8,7 +8,7 @@ export interface Articulo {
   existencia: number;
   aviso_existencia: number;
   codigo: string;
-  fecha_ingreso: Date;
+  fecha_ingreso: Date | string;
   medida: string;
   is_detallable: boolean;
   medida_alerta: string;

@@ -2,12 +2,12 @@ import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
 import { getProperty, hasValue, isEmpty, normalizarTexto, redondearNum } from './functions';
 import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
-import { FormaDePagoE, DescuentoORecargoI } from '@core/types/xml/xml_json';
+import { FormaDePagoE } from '@core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
 import { agruparArticulosPorPagina } from './paginacion';
 import { PaginacionI } from '@core/types/xml/xml_paginacion_json';
-import { FacturasAplicada, NotaI } from '@core/types/notas.types';
+import { DetallesFacturasNota, FacturasAplicada, NotaI } from '@core/types/notas.types';
 import { documentTypeE } from '@core/types/document.types';
 import { DateUtils } from '@vjose1903/dateutils';
 
@@ -18,6 +18,7 @@ export class ParseDocument {
   private sheet_type: sheet_typeE;
   private items_per_page: number;
   private items_per_page_credit: number;
+  private items_per_page_nota: number;
 
   private cleaner: Clean;
   private totalizacion: Totalizacion;
@@ -31,6 +32,7 @@ export class ParseDocument {
     this.sheet_type = sheet_typeE[this.environment.SHEET_TYPE] || sheet_typeE.paper;
     this.items_per_page = this.environment.ITEMS_PER_PAGE || 9;
     this.items_per_page_credit = this.environment.ITEMS_PER_PAGE_CREDIT || 18;
+    this.items_per_page_nota = this.environment.ITEMS_PER_PAGE_NOTA || 9;
 
     this.cleaner = new Clean();
     this.totalizacion = new Totalizacion();
@@ -50,6 +52,10 @@ export class ParseDocument {
 
   get factura(): FacturaI {
     return this.isFactura ? this.document : (getProperty(this.factura_aplicada, 'factura') as any);
+  }
+
+  get detalles(): DetalleFacturaI[] | DetallesFacturasNota[] {
+    return this.isFactura ? getProperty(this.document, 'detalle_facturas') : getProperty(this.document, 'detalles_facturas_notas');
   }
 
   parse(document: FacturaI | NotaI) {
@@ -242,7 +248,7 @@ export class ParseDocument {
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
     if (this.factura.condicion == condicionE.credito && this.isFactura) {
-      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = this.factura.fecha_limite_pago;
+      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = this.factura.fecha_vencimiento;
       document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${document.cliente?.limite_credito} días`;
     }
 
@@ -261,7 +267,7 @@ export class ParseDocument {
     if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = document.cliente?.documentos_de_identidad[0].documento;
 
     // ENCABEZADO TOTALES
-    const totales = this.totalizacion.run(this.isFactura ? this.factura.detalle_facturas : this.factura_aplicada.detalles_facturas_notas, this.isFactura);
+    const totales = this.totalizacion.run(this.detalles, this.isFactura);
     document_parsed.ECF.Encabezado.Totales = totales as any;
 
     // DETALLESITEMS
@@ -293,12 +299,12 @@ export class ParseDocument {
   parseDetalles() {
     const detallesItems = { Item: [] };
 
-    this.document.detalle_facturas.forEach((item: DetalleFacturaI, index: number) => {
+    this.detalles.forEach((item: DetalleFacturaI | DetallesFacturasNota, index: number) => {
       const itemParsed = {} as ItemI;
       itemParsed.NumeroLinea = `${index + 1}`;
 
       itemParsed.TablaCodigosItem = { CodigosItem: [] };
-      const codigo: CodigosItem = { TipoCodigo: 'Interna', CodigoItem: item.codigo };
+      const codigo: CodigosItem = { TipoCodigo: 'Interna', CodigoItem: item.articulo.codigo };
       itemParsed.TablaCodigosItem.CodigosItem.push(codigo);
 
       // TODO: revisar
@@ -315,14 +321,16 @@ export class ParseDocument {
       itemParsed.UnidadMedida = unidad_codeE[item.articulo.unidad_medida] || null;
       itemParsed.PrecioUnitarioItem = redondearNum(item.precio);
 
-      if (item.descuento_valor) {
-        itemParsed.DescuentoMonto = redondearNum(item.descuento_valor);
+      const descuento = getProperty(item, 'descuento_real') || getProperty(item, 'descuento_valor');
+
+      if (descuento) {
+        itemParsed.DescuentoMonto = redondearNum(descuento);
 
         itemParsed.TablaSubDescuento = {
           SubDescuento: [
             {
               TipoSubDescuento: '$',
-              MontoSubDescuento: redondearNum(item.descuento_valor),
+              MontoSubDescuento: redondearNum(descuento),
             },
           ],
         };
@@ -339,10 +347,10 @@ export class ParseDocument {
     const paginacion = { Pagina: [] };
 
     // TODO: agregar condicion para las notas de credito
-    const items_per_page = this.document.condicion == condicionE.contado ? this.items_per_page : this.items_per_page_credit;
+    const items_per_page = this.isNota ? this.items_per_page_nota : getProperty(this.document, 'condicion') == condicionE.contado ? this.items_per_page : this.items_per_page_credit;
 
-    if (this.sheet_type == sheet_typeE.paper && this.document.detalle_facturas.length > items_per_page) {
-      const articulos_agrupados = agruparArticulosPorPagina(this.document.detalle_facturas, items_per_page);
+    if (this.sheet_type == sheet_typeE.paper && this.detalles.length > items_per_page) {
+      const articulos_agrupados = agruparArticulosPorPagina(this.detalles, items_per_page);
 
       articulos_agrupados.forEach((grupo, index) => {
         const paginaParsed = {} as PaginacionI;
