@@ -25,6 +25,24 @@ export enum condicionE {
 
 export type condicionT = `${condicionE}`;
 
+
+/*
+01: Ingresos por operaciones (No financieros).
+02: Ingresos Financieros
+03: Ingresos Extraordinarios
+04: Ingresos por Arrendamientos
+05: Ingresos por Venta de Activo Depreciable
+06: Otros Ingresos
+*/
+export enum tipo_ingreso_E {
+  por_operaciones = '01',
+  financieros = '02',
+  extraordinarios = '03',
+  por_arrendamientos = '04',
+  por_venta_activo_depreciable = '05',
+  otros = '06',
+}
+
 /*
 1: Efectivo
 2: Cheque/Transferencia/Depósito

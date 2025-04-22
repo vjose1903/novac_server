@@ -1,5 +1,6 @@
 import { FacturaI } from '@core/types/factura.types';
 import { tipoComprobanteE } from '@core/constants/factura.utils';
+import { documentTypeE } from '@core/types/document.types';
 
 export const factura_32: FacturaI = {
   id_documento: '0',
@@ -41,7 +42,7 @@ export const factura_32: FacturaI = {
     
   },
   TipoeCF: tipoComprobanteE.factura_de_consumo,
-
+  document_type: documentTypeE.factura,
   detalle_facturas: [
     {
       key: '17386657026810',

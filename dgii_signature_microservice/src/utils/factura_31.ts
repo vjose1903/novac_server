@@ -1,5 +1,6 @@
 import { FacturaI } from '@core/types/factura.types';
 import { tipoComprobanteE } from '@core/constants/factura.utils';
+import { documentTypeE } from '@core/types/document.types';
 
 export const factura_31: FacturaI = {
   id_documento: '53502',
@@ -8,13 +9,13 @@ export const factura_31: FacturaI = {
   condicion: 'Crédito',
   forma_pago: 'Efectivo',
   fecha_viaje: null,
-  fecha_equivalente: null,
+  fecha_equivalente: '2025-04-15T08:00:00-04:00',
   pagada: false,
   balance: 146000,
   devuelta: 0,
   fecha_valida: null,
   tipo_factura_id: 3,
-  numero_comprobante: null,
+  numero_comprobante: 'E310000000001',
   costoYgasto: null,
   total_factura: 146000,
   Bruto: 150000,
@@ -22,7 +23,7 @@ export const factura_31: FacturaI = {
   descuento: 4000,
   estado: true,
   is_adelantada: false,
-  is_viaje: false,
+  is_viaje: false,  
   is_nota: false,
   movimientos_viaje: [],
   serie: 'normal',
@@ -39,13 +40,14 @@ export const factura_31: FacturaI = {
     documentos_de_identidad: [
       {
         id: 1,
-        numero: '1234567890',
+        numero: '131880681',
         tipo: 'rnc',
         principal: true,
       },
     ],
   },
   TipoeCF: tipoComprobanteE.factura_de_credito_fiscal,
+  document_type: documentTypeE.factura,
   detalle_facturas: [
     {
       key: '17447305427067',

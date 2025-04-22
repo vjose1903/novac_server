@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build:ts": "tsc",
-    "test-function": "ts-node -r tsconfig-paths/register src/utils/test.ts",
+    "test-function": "ts-node -r dotenv/config -r tsconfig-paths/register src/utils/test.ts",
     "copy:assets": "cpx \"src/utils/*.{p12,xml}\" dist/utils",
     "build": "npm run clean && npm run build:ts && npm run copy:assets",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -26,6 +26,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.12.0",
     "cpx": "^1.5.0",
+    "dotenv": "^16.5.0",
     "rimraf": "^5.0.0",
     "typescript": "^5.7.2",
     "xlsx": "^0.18.5",

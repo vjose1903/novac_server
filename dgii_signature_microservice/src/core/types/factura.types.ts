@@ -39,7 +39,7 @@ export interface FacturaI {
   tipo: string;
   tiene_nota: boolean;
   cliente?: ClienteI;
-  document_type?: documentTypeT;
+  document_type: documentTypeT;
   [key: string]: any;
 }
 

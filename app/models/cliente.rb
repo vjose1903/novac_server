@@ -60,7 +60,7 @@ class Cliente < ApplicationRecord
       cliente.valid?
 
       if cliente.errors.empty?
-        dependencias = [{modelo:DocumentoDeIdentidad, key_object: 'documentos_de_identidad', padre:cliente}]
+        dependencias = [{modelo: DocumentoDeIdentidad, key_object: 'documentos_de_identidad', padre: cliente}]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           cliente.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'

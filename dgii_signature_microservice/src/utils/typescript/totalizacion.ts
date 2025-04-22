@@ -6,6 +6,7 @@ export class Totalizacion {
   constructor() {}
 
   run(articulos: DetalleFacturaI[] | DetallesFacturasNota[], isFactura: boolean) {
+
     const totales: TotalI = {
       MontoGravadoTotal: null,
       MontoGravadoI1: null,

@@ -1,7 +1,7 @@
 import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
 import { getProperty, hasValue, isEmpty, normalizarTexto, redondearNum } from './functions';
-import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
+import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_ingreso_E, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
 import { FormaDePagoE } from '@core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
@@ -10,6 +10,7 @@ import { PaginacionI } from '@core/types/xml/xml_paginacion_json';
 import { DetallesFacturasNota, FacturasAplicada, NotaI } from '@core/types/notas.types';
 import { documentTypeE } from '@core/types/document.types';
 import { DateUtils } from '@vjose1903/dateutils';
+import { Detalles } from './detalles';
 
 export class ParseDocument {
   private version: string;
@@ -20,8 +21,9 @@ export class ParseDocument {
   private items_per_page_credit: number;
   private items_per_page_nota: number;
 
-  private cleaner: Clean;
-  private totalizacion: Totalizacion;
+  private cleanerClass: Clean;
+  private totalizacionClass: Totalizacion;
+  private detallesClass: Detalles;
 
   private document: FacturaI | NotaI;
 
@@ -34,8 +36,9 @@ export class ParseDocument {
     this.items_per_page_credit = this.environment.ITEMS_PER_PAGE_CREDIT || 18;
     this.items_per_page_nota = this.environment.ITEMS_PER_PAGE_NOTA || 9;
 
-    this.cleaner = new Clean();
-    this.totalizacion = new Totalizacion();
+    this.cleanerClass = new Clean();
+    this.totalizacionClass = new Totalizacion();
+    this.detallesClass = new Detalles();
   }
 
   get isFactura() {
@@ -46,20 +49,28 @@ export class ParseDocument {
     return this.document.document_type == documentTypeE.nota;
   }
 
-  get factura_aplicada(): FacturasAplicada {
-    return this.document.facturas_aplicadas[0];
+  get factura_aplicada(): FacturasAplicada | undefined {
+    return hasValue(this.document?.facturas_aplicadas) ? this.document.facturas_aplicadas[0] : undefined;
   }
 
   get factura(): FacturaI {
-    return this.isFactura ? this.document : (getProperty(this.factura_aplicada, 'factura') as any);
+    return this.isFactura ? this.document as FacturaI : (getProperty(this.factura_aplicada, 'factura') as FacturaI);
   }
 
   get detalles(): DetalleFacturaI[] | DetallesFacturasNota[] {
-    return this.isFactura ? getProperty(this.document, 'detalle_facturas') : getProperty(this.document, 'detalles_facturas_notas');
+    return this.isFactura ? getProperty(this.document, 'detalle_facturas') : getProperty(this.document, 'facturas_aplicadas')[0].detalles_facturas_notas;
   }
 
   parse(document: FacturaI | NotaI) {
     this.document = document;
+    console.log(" ");
+    console.log(" ");
+    console.log(" =========================================");
+    console.log(`       ${this.isFactura ? 'FACTURA' : 'NOTA CREDITO'}`);
+    console.log(" =========================================");
+    console.log(" ");
+    console.log(" ");
+    
 
     const document_parsed = {
       ECF: {
@@ -71,8 +82,8 @@ export class ParseDocument {
             FechaVencimientoSecuencia: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
             IndicadorNotaCredito: null, // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
             IndicadorEnvioDiferido: null,
-            IndicadorMontoGravado: null, // a) Valor 0 si los montos de los items no tienen itbis incluido.             b) Valor 1 si los montos de los items tienen itbis incluido.
-            TipoIngresos: '01', // 01: Ingresos por operaciones (No financieros).    02: Ingresos Financieros     03: Ingresos Extraordinarios     04: Ingresos por Arrendamientos     05: Ingresos por Venta de Activo Depreciable     06: Otros Ingresos
+            IndicadorMontoGravado: 0, // a) Valor 0 si los montos de los items no tienen itbis incluido.             b) Valor 1 si los montos de los items tienen itbis incluido.
+            TipoIngresos: tipo_ingreso_E.por_operaciones, // 01: Ingresos por operaciones (No financieros).    02: Ingresos Financieros     03: Ingresos Extraordinarios     04: Ingresos por Arrendamientos     05: Ingresos por Venta de Activo Depreciable     06: Otros Ingresos
             TipoPago: null, // Las facturas por entrega gratuita (código 3), no son válidas para crédito fiscal.
             FechaLimitePago: null, // TODO: agregar en el backend la fecha limite de pago
             TerminoPago: null,
@@ -101,7 +112,7 @@ export class ParseDocument {
             WebSite: null,
             ActividadEconomica: null,
             CodigoVendedor: null,
-            NumeroFacturaInterna: this.isFactura ? getProperty(document, 'numero_factura') : getProperty(document, 'numero_documento'),
+            NumeroFacturaInterna: this.isFactura ? getProperty(document, 'numero_factura').toString()?.padStart(8, '0') : getProperty(document, 'numero_documento').toString()?.padStart(8, '0'),
             NumeroPedidoInterno: null,
             ZonaVenta: null,
             RutaVenta: null,
@@ -112,8 +123,8 @@ export class ParseDocument {
             RNCComprador: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
             IdentificadorExtranjero: null,
             RazonSocialComprador: document.cliente?.nombre,
-            ContactoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend
-            CorreoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend
+            ContactoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, nombre de la persona de contacto con la empresa
+            CorreoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, correo de la empresa
             DireccionComprador: document.cliente?.direccion,
             MunicipioComprador: document.cliente?.municipio?.codigo || null,
             ProvinciaComprador: document.cliente?.provincia?.codigo || null,
@@ -238,13 +249,13 @@ export class ParseDocument {
     };
 
     // ENCABEZADO IDDOC
+    
 
     if (this.isNota) {
       const daysFromNow = DateUtils.diffDays(this.factura.fecha_equivalente, new Date());
       document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = daysFromNow > 30 ? 1 : 0;
     }
 
-    document_parsed.ECF.Encabezado.IdDoc.IndicadorMontoGravado = 0;
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
     if (this.factura.condicion == condicionE.credito && this.isFactura) {
@@ -264,14 +275,15 @@ export class ParseDocument {
     // ENCABEZADO COMPRADOR
 
     const documento_identidad = document.cliente?.documentos_de_identidad?.find(documento => documento.principal);
-    if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = document.cliente?.documentos_de_identidad[0].documento;
+    
+    if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = documento_identidad.numero.replace(/-/g, '');
 
     // ENCABEZADO TOTALES
-    const totales = this.totalizacion.run(this.detalles, this.isFactura);
+    const totales = this.totalizacionClass.run(this.detalles, this.isFactura);
     document_parsed.ECF.Encabezado.Totales = totales as any;
 
     // DETALLESITEMS
-    document_parsed.ECF.DetallesItems = this.parseDetalles();
+    document_parsed.ECF.DetallesItems = this.detallesClass.parse(this.detalles);
 
     // Paginacion
     document_parsed.ECF.Paginacion = this.parsePaginacion();
@@ -280,67 +292,20 @@ export class ParseDocument {
 
     if (this.isNota) {
       // codigo_modificacionE
-      const diferencia = Math.abs(this.factura_aplicada.factura.total_factura - this.factura.total);
-      const codigo_modificacion = diferencia <= 0.9 ? codigo_modificacionE.anulacion : codigo_modificacionE.correccion_texto;
+      const diferencia = Math.abs(this.factura_aplicada.factura.total_factura - this.factura_aplicada.total);
+      const codigo_modificacion = diferencia <= 0.9 ? codigo_modificacionE.anulacion : codigo_modificacionE.correccion_monto;
 
       document_parsed.ECF.InformacionReferencia = {
         NCFModificado: this.factura_aplicada.factura.numero_comprobante,
         RNCOtroContribuyente: null,
-        FechaNCFModificado: this.factura_aplicada.factura.fecha_equivalente,
+        FechaNCFModificado: DateUtils.format({ date: this.factura_aplicada.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }),
         CodigoModificacion: codigo_modificacion,
       };
     }
 
-    this.cleaner.clean(document_parsed);
+    this.cleanerClass.clean(document_parsed);
 
     return document_parsed;
-  }
-
-  parseDetalles() {
-    const detallesItems = { Item: [] };
-
-    this.detalles.forEach((item: DetalleFacturaI | DetallesFacturasNota, index: number) => {
-      const itemParsed = {} as ItemI;
-      itemParsed.NumeroLinea = `${index + 1}`;
-
-      itemParsed.TablaCodigosItem = { CodigosItem: [] };
-      const codigo: CodigosItem = { TipoCodigo: 'Interna', CodigoItem: item.articulo.codigo };
-      itemParsed.TablaCodigosItem.CodigosItem.push(codigo);
-
-      // TODO: revisar
-      itemParsed.IndicadorFacturacion = item.articulo.calcular_itbis ? indicadorFacturacionE.itbis_18 : indicadorFacturacionE.excento;
-
-      itemParsed.NombreItem = item.descripcion;
-      itemParsed.IndicadorBienoServicio = item.articulo.tipo_articulo.descripcion.toLowerCase().includes('servicio') ? indicadorBienoServicioE.servicio : indicadorBienoServicioE.bien;
-      itemParsed.CantidadItem = redondearNum(item.cantidad);
-
-      let key_unidad = item.unidad.replace(' ', '_').toLowerCase();
-      if (key_unidad.match(/saco_de_(\d+)?_libras/)) key_unidad = 'saco';
-      if (key_unidad == 'funda') key_unidad = 'bolsa';
-
-      itemParsed.UnidadMedida = unidad_codeE[item.articulo.unidad_medida] || null;
-      itemParsed.PrecioUnitarioItem = redondearNum(item.precio);
-
-      const descuento = getProperty(item, 'descuento_real') || getProperty(item, 'descuento_valor');
-
-      if (descuento) {
-        itemParsed.DescuentoMonto = redondearNum(descuento);
-
-        itemParsed.TablaSubDescuento = {
-          SubDescuento: [
-            {
-              TipoSubDescuento: '$',
-              MontoSubDescuento: redondearNum(descuento),
-            },
-          ],
-        };
-      }
-
-      itemParsed.MontoItem = redondearNum(Number(itemParsed.PrecioUnitarioItem) * item.cantidad - Number(itemParsed.DescuentoMonto || 0));
-      detallesItems.Item.push(itemParsed);
-    });
-
-    return detallesItems;
   }
 
   parsePaginacion() {
@@ -358,7 +323,7 @@ export class ParseDocument {
         paginaParsed.NoLineaDesde = `${index * items_per_page + 1}`;
         paginaParsed.NoLineaHasta = `${(index + 1) * items_per_page}`;
 
-        const totales = this.totalizacion.run(grupo, this.isFactura);
+        const totales = this.totalizacionClass.run(grupo, this.isFactura);
         paginaParsed.SubtotalMontoGravadoPagina = totales.MontoGravadoTotal;
         paginaParsed.SubtotalMontoGravado1Pagina = totales.MontoGravadoI1;
         paginaParsed.SubtotalExentoPagina = totales.MontoExento;

@@ -10,13 +10,13 @@ export interface NotaI {
   fecha_valida:       string;
   numero_comprobante: string;
   tipo_factura_id:    number;
-  numero_documento?:  number; // TODO: agregar en el backend
+  numero_documento?:  number | string; // TODO: agregar en el backend
   fecha_equivalente?: string | Date; // TODO: agregar en el backend
   total:              number;
   TipoeCF:            tipoComprobanteE;
   facturas_aplicadas: FacturasAplicada[];
   cliente?: ClienteI;
-  document_type?: documentTypeT;
+  document_type: documentTypeT;
 }
 
 export interface FacturasAplicada {

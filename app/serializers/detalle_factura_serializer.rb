@@ -36,7 +36,12 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     @articuloSelect = object.articulo
     @articuloSelect['nombre']
 
-    return articulo_in_detalle ? @articuloSelect : @articuloSelect['nombre']
+    if articulo_in_detalle
+      serialize_parser(@articuloSelect, { all: true })
+    else
+      @articuloSelect['nombre']
+    end
+
   end
 
   def calcular_itbis
