@@ -28,12 +28,16 @@ class ApplicationController < ActionController::API
   def testFunction
 
     res = Response.new
-    user_id                  = get_current_user[:id]
-    result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
+    # user_id                  = get_current_user[:id]
+    # result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
     # result = Permiso.verificateUserPermiso(user_id, 'articulo')
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
-    res = result
+    # document      = Nota.find_by_id(51)
+    document        = CabeceraFactura.find_by_id(6)
+    document_parsed = DGII_MANAGER.send(document)
+
+    res.set_data(document_parsed)
 
     res.send_response self
 

@@ -11,6 +11,7 @@ import { DetallesFacturasNota, FacturasAplicada, NotaI } from '@core/types/notas
 import { documentTypeE } from '@core/types/document.types';
 import { DateUtils } from '@vjose1903/dateutils';
 import { Detalles } from './detalles';
+import Big from 'big.js';
 
 export class ParseDocument {
   private version: string;
@@ -59,6 +60,10 @@ export class ParseDocument {
 
   get detalles(): DetalleFacturaI[] | DetallesFacturasNota[] {
     return this.isFactura ? getProperty(this.document, 'detalle_facturas') : getProperty(this.document, 'facturas_aplicadas')[0].detalles_facturas_notas;
+  }
+
+  get daysFromNow(): number {
+    return this.isNota ? DateUtils.diffDays(this.factura.fecha_equivalente, new Date()) : 0;
   }
 
   parse(document: FacturaI | NotaI) {
@@ -252,8 +257,7 @@ export class ParseDocument {
     
 
     if (this.isNota) {
-      const daysFromNow = DateUtils.diffDays(this.factura.fecha_equivalente, new Date());
-      document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = daysFromNow > 30 ? 1 : 0;
+      document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = this.daysFromNow > 30 ? 1 : 0;
     }
 
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
@@ -292,7 +296,8 @@ export class ParseDocument {
 
     if (this.isNota) {
       // codigo_modificacionE
-      const diferencia = Math.abs(this.factura_aplicada.factura.total_factura - this.factura_aplicada.total);
+      const diferencia = Math.abs(Big(this.factura_aplicada.factura.total_factura).minus(this.factura_aplicada.total).toNumber());
+      
       const codigo_modificacion = diferencia <= 0.9 ? codigo_modificacionE.anulacion : codigo_modificacionE.correccion_monto;
 
       document_parsed.ECF.InformacionReferencia = {

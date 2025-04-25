@@ -20,7 +20,7 @@ async function prueba() {
   const parser = new ParseDocument();
   // const factura = parser.parse(factura_31);
   const factura = parser.parse(nota_credito);
-  // console.log('factura >> ', JSON.stringify(factura, null, 2));
+  console.log('factura >> ', JSON.stringify(factura, null, 2));
   // const dgiiService = DgiiService.getInstance();
 
   // await sleep(1000);

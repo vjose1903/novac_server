@@ -3,6 +3,7 @@ import { DetalleFacturaI } from "@core/types/factura.types";
 import { DetallesFacturasNota } from "@core/types/notas.types";
 import { CodigosItem, ItemI } from "@core/types/xml/xml_detallesItem_json";
 import { getProperty, redondearNum } from "./functions";
+import Big from "big.js";
 
 export class Detalles {
   constructor() {}
@@ -32,31 +33,28 @@ export class Detalles {
       itemParsed.UnidadMedida = unidad_codeE[item.articulo.unidad_medida] || null;
       itemParsed.PrecioUnitarioItem = redondearNum(item.precio);
 
-      const descuento = getProperty(item, 'descuento_real') || getProperty(item, 'descuento_valor');
-
-      console.log(" ");
-      console.log(" ");
-      console.log(" ");
-      console.log("descuento ", descuento);
-      console.log(" ");
-      console.log(" ");
-      console.log(" ");
-      
+      const descuento = getProperty(item, 'descuento') || getProperty(item, 'descuento_valor');
 
       if (descuento) {
-        itemParsed.DescuentoMonto = redondearNum(descuento);
+        const isPriceChange = item.cantidad == 0;
+
+        const descuento_big = Big(descuento);
+        const descuento_equivalente = descuento_big.div(item.cantidad_origin).toNumber();
+        const descuento_proporcional = descuento_equivalente * (isPriceChange ? item.cantidad_origin : item.cantidad);
+
+        itemParsed.DescuentoMonto = redondearNum(descuento_proporcional);
 
         itemParsed.TablaSubDescuento = {
           SubDescuento: [
             {
               TipoSubDescuento: '$',
-              MontoSubDescuento: redondearNum(descuento),
+              MontoSubDescuento: redondearNum(descuento_proporcional),
             },
           ],
         };
       }
 
-      itemParsed.MontoItem = redondearNum(Number(itemParsed.PrecioUnitarioItem) * item.cantidad - Number(itemParsed.DescuentoMonto || 0));
+      itemParsed.MontoItem = redondearNum((Number(itemParsed.PrecioUnitarioItem) * item.cantidad) - Number(itemParsed.DescuentoMonto || 0));
       detallesItems.Item.push(itemParsed);
     });
 

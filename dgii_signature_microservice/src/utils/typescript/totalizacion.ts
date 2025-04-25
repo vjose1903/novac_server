@@ -1,12 +1,12 @@
 import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { DetallesFacturasNota, NotaI } from '@core/types/notas.types';
 import { TotalI } from '@core/types/xml/xml_json';
+import Big from 'big.js';
 
 export class Totalizacion {
   constructor() {}
 
   run(articulos: DetalleFacturaI[] | DetallesFacturasNota[], isFactura: boolean) {
-
     const totales: TotalI = {
       MontoGravadoTotal: null,
       MontoGravadoI1: null,
@@ -37,6 +37,7 @@ export class Totalizacion {
   }
 
   evaluateFactura(items_itbis: DetalleFacturaI[], items_no_itbis: DetalleFacturaI[], totales: TotalI) {
+
     if (items_itbis.length > 0) {
       totales.MontoGravadoI1 = items_itbis.reduce((acc, item) => acc + (item.precio * item.cantidad - item.descuento_valor), 0);
 
@@ -50,16 +51,17 @@ export class Totalizacion {
   }
 
   evaluateNota(items_itbis: DetallesFacturasNota[], items_no_itbis: DetallesFacturasNota[], totales: TotalI) {
-    // TODO: ver que hacer con las notas
-
     const calc_total_row = (item: DetallesFacturasNota) => {
       const isPriceChange = item.cantidad == 0;
 
       if (isPriceChange) {
-        return item.precio_real * item.cantidad_origin - item.descuento_real;
+        return item.precio_real * item.cantidad_origin - item.descuento;
       }
 
-      return item.precio * item.cantidad - item.descuento_real;
+      const descuento_big = Big(item.descuento);
+      const descuento_equivalente = descuento_big.div(item.cantidad_origin).toNumber();
+
+      return (item.precio - descuento_equivalente) * item.cantidad;
     };
 
     if (items_itbis.length > 0) {
@@ -72,18 +74,5 @@ export class Totalizacion {
     if (items_no_itbis.length > 0) {
       totales.MontoExento = items_no_itbis.reduce((acc, item) => acc + calc_total_row(item), 0);
     }
-
-    // switch (property) {
-    //   case 'precio':
-    //     return isPriceChange ? obj.precio_real : obj.precio;
-    //   case 'cantidad':
-    //     return isPriceChange ? obj.cantidad_origin : obj.cantidad;
-    //   case 'descuento_valor':
-    //     return isPriceChange ? obj.descuento_real : obj.descuento;
-    // }
-
-    // return obj[property] || 0;
-
-    // const totales = this.run(nota.facturas_aplicadas, false);
   }
 }
