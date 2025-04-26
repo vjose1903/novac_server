@@ -1,7 +1,7 @@
 import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
 import { getProperty, hasValue, isEmpty, normalizarTexto, redondearNum } from './functions';
-import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_ingreso_E, tipo_pago_codeE, unidad_codeE } from '@core/constants/factura.utils';
+import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_ingreso_E, tipo_pago_codeE, tipoComprobanteE, unidad_codeE } from '@core/constants/factura.utils';
 import { FormaDePagoE } from '@core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
@@ -55,7 +55,7 @@ export class ParseDocument {
   }
 
   get factura(): FacturaI {
-    return this.isFactura ? this.document as FacturaI : (getProperty(this.factura_aplicada, 'factura') as FacturaI);
+    return this.isFactura ? (this.document as FacturaI) : (getProperty(this.factura_aplicada, 'factura') as FacturaI);
   }
 
   get detalles(): DetalleFacturaI[] | DetallesFacturasNota[] {
@@ -68,14 +68,13 @@ export class ParseDocument {
 
   parse(document: FacturaI | NotaI) {
     this.document = document;
-    console.log(" ");
-    console.log(" ");
-    console.log(" =========================================");
+    console.log(' ');
+    console.log(' ');
+    console.log(' =========================================');
     console.log(`       ${this.isFactura ? 'FACTURA' : 'NOTA CREDITO'}`);
-    console.log(" =========================================");
-    console.log(" ");
-    console.log(" ");
-    
+    console.log(' =========================================');
+    console.log(' ');
+    console.log(' ');
 
     const document_parsed = {
       ECF: {
@@ -84,7 +83,7 @@ export class ParseDocument {
           IdDoc: {
             TipoeCF: document.TipoeCF, // TODO: agregar en el backend la secuencia a utilizar
             eNCF: document.numero_comprobante, // TODO: agregar en el backend antes de pasarlo por el microservicio
-            FechaVencimientoSecuencia: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
+            FechaVencimientoSecuencia: null,
             IndicadorNotaCredito: null, // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
             IndicadorEnvioDiferido: null,
             IndicadorMontoGravado: 0, // a) Valor 0 si los montos de los items no tienen itbis incluido.             b) Valor 1 si los montos de los items tienen itbis incluido.
@@ -127,10 +126,10 @@ export class ParseDocument {
           Comprador: {
             RNCComprador: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
             IdentificadorExtranjero: null,
-            RazonSocialComprador: document.cliente?.nombre,
+            RazonSocialComprador: document.cliente?.nombre || 'VENTA DE CONTADO',
             ContactoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, nombre de la persona de contacto con la empresa
             CorreoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, correo de la empresa
-            DireccionComprador: document.cliente?.direccion,
+            DireccionComprador: document.cliente?.direccion || null,
             MunicipioComprador: document.cliente?.municipio?.codigo || null,
             ProvinciaComprador: document.cliente?.provincia?.codigo || null,
             PaisComprador: null,
@@ -254,18 +253,21 @@ export class ParseDocument {
     };
 
     // ENCABEZADO IDDOC
-    
 
     if (this.isNota) {
       document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = this.daysFromNow > 30 ? 1 : 0;
     }
 
-    document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
+    if (document.TipoeCF == tipoComprobanteE.factura_de_credito_fiscal || document.TipoeCF == tipoComprobanteE.nota_de_credito) {
+      document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = document.fecha_valida ? DateUtils.format({ date: document.fecha_valida, dateFormat: 'DD-MM-YYYY' }) : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
 
-    if (this.factura.condicion == condicionE.credito && this.isFactura) {
-      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = this.factura.fecha_vencimiento;
-      document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${document.cliente?.limite_credito} días`;
+      if (this.isFactura) {
+        document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
+        document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${document.cliente?.limite_credito} días`;
+      }
     }
+
+    document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
     document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago = [];
 
@@ -277,9 +279,8 @@ export class ParseDocument {
     }
 
     // ENCABEZADO COMPRADOR
-
     const documento_identidad = document.cliente?.documentos_de_identidad?.find(documento => documento.principal);
-    
+
     if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = documento_identidad.numero.replace(/-/g, '');
 
     // ENCABEZADO TOTALES
@@ -297,7 +298,7 @@ export class ParseDocument {
     if (this.isNota) {
       // codigo_modificacionE
       const diferencia = Math.abs(Big(this.factura_aplicada.factura.total_factura).minus(this.factura_aplicada.total).toNumber());
-      
+
       const codigo_modificacion = diferencia <= 0.9 ? codigo_modificacionE.anulacion : codigo_modificacionE.correccion_monto;
 
       document_parsed.ECF.InformacionReferencia = {

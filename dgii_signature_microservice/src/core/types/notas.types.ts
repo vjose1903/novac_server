@@ -15,7 +15,7 @@ export interface NotaI {
   total:              number;
   TipoeCF:            tipoComprobanteE;
   facturas_aplicadas: FacturasAplicada[];
-  cliente?: ClienteI;
+  cliente?: ClienteI | null;
   document_type: documentTypeT;
 }
 

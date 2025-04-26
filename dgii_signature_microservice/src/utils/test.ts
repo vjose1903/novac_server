@@ -5,7 +5,6 @@ import { factura_31 } from './factura_31';
 import { DateUtils } from '@vjose1903/dateutils';
 import { nota_credito } from './nota_cred';
 
-
 console.log(' ');
 console.log(' ');
 console.log(' ');
@@ -19,8 +18,10 @@ console.log(' ');
 async function prueba() {
   const parser = new ParseDocument();
   // const factura = parser.parse(factura_31);
-  const factura = parser.parse(nota_credito);
-  console.log('factura >> ', JSON.stringify(factura, null, 2));
+  console.log('>>>> ', DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' }));
+
+  // const factura = parser.parse(nota_credito);
+  // console.log('factura >> ', JSON.stringify(factura, null, 2));
   // const dgiiService = DgiiService.getInstance();
 
   // await sleep(1000);

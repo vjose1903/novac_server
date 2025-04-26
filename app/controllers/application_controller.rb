@@ -34,8 +34,12 @@ class ApplicationController < ActionController::API
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
     # document      = Nota.find_by_id(51)
-    document        = CabeceraFactura.find_by_id(6)
-    document_parsed = DGII_MANAGER.send(document)
+
+    certification_params = { TipoeCF: 31, numero_comprobante: 'E310000000001' }.with_indifferent_access
+
+    document        = CabeceraFactura.find_by_id(19)
+
+    document_parsed = DGII_MANAGER.send(document, certification_params)
 
     res.set_data(document_parsed)
 
