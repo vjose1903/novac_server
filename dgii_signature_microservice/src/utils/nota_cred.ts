@@ -37,6 +37,7 @@ export const nota_credito: NotaI = {
       detalles_facturas_notas: [
         {
           articulo_id: 984,
+          codigo: '00984',
           articulo: {
             id: 984,
             imagen_id: null,
@@ -83,6 +84,7 @@ export const nota_credito: NotaI = {
         },
         {
           articulo_id: 208,
+          codigo: '00208',
           articulo: {
             id: 208,
             imagen_id: null,
@@ -129,6 +131,7 @@ export const nota_credito: NotaI = {
         },
         {
           articulo_id: 166,
+          codigo: '00166',
           articulo: {
             id: 166,
             imagen_id: null,

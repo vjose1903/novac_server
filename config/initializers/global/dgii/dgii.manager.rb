@@ -1,6 +1,6 @@
 module DGII_MANAGER
   @certification_params = nil
-  
+
   def self.send(document, certification_params = nil)
     @certification_params = certification_params
 
@@ -35,20 +35,22 @@ module DGII_MANAGER
       process[:numero_comprobante]   = @certification_params[:numero_comprobante]
     end
 
-    return process.with_indifferent_access
+    process.with_indifferent_access
   end
 
   def self.parse_detalles(document)
     detalles = document.detalle_facturas.map do | detalle |
       detalle_parsed = detalle.attributes
+
       articulo       = detalle.articulo
+      add_articulo(detalle_parsed, articulo)
 
-      detalle_parsed[:articulo] = { **detalle.articulo.attributes, tipo_articulo: articulo.tipo_articulo.attributes }
+      detalle_parsed[:descripcion] = articulo.nombre.strip
 
-      return detalle_parsed
+      detalle_parsed.with_indifferent_access
     end
 
-    return detalles.with_indifferent_access
+    detalles
   end
 
 
@@ -57,18 +59,44 @@ module DGII_MANAGER
   # ========================================================================================================
 
   def self.parse_nota(process, document)
-    process[:document_type] = DocumentType.nota
-    process[:TipoeCF]       = document.tipo_factura.referencia
+    process[:document_type]            = DocumentType.nota
+    process[:TipoeCF]                  = document.tipo_factura.referencia
+
+    process[:facturas_aplicadas]       = parse_detalles_notas(document)
+
 
     unless @certification_params == nil
-      process[:TipoeCF]                  = @certification_params[:TipoeCF]
-      process[:numero_comprobante]       = @certification_params[:numero_comprobante]
-
+      process[:TipoeCF]                = @certification_params[:TipoeCF]
+      process[:numero_comprobante]     = @certification_params[:numero_comprobante]
     end
 
     process.with_indifferent_access
   end
 
+  def self.parse_detalles_notas(document)
+    detalles_nota = document.facturas_aplicadas.map do | detalle |
+      detalle_nota_parsed           = detalle.attributes
+
+      # TODO: hacer un metodo que me convierta el comprobante de la factura a tipo electronico si hay certification_params
+      factura                       = detalle.cabecera_factura
+      detalle_nota_parsed[:factura] = factura.attributes
+
+      detalle_nota_parsed[:detalles_facturas_notas] = detalle.detalles_facturas_notas.map do | detalle_factura_nota |
+        detalle_factura_nota_parsed = detalle_factura_nota.attributes
+
+        articulo                    = detalle.articulo
+        add_articulo(detalle_factura_nota_parsed, articulo)
+
+        detalle_factura_nota_parsed[:descripcion] = articulo.nombre.strip
+
+        detalle_factura_nota_parsed.with_indifferent_access
+      end
+
+      detalle_nota_parsed.with_indifferent_access
+    end
+
+    return detalles_nota
+  end
 
 
   # ========================================================================================================
@@ -90,5 +118,9 @@ module DGII_MANAGER
     end
 
     return cliente_attributes
+  end
+
+  def self.add_articulo(detalle_parsed, articulo)
+    detalle_parsed[:articulo] = { **articulo.attributes, tipo_articulo: articulo.tipo_articulo.attributes }
   end
 end

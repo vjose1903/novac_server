@@ -297,14 +297,14 @@ export class ParseDocument {
 
     if (this.isNota) {
       // codigo_modificacionE
-      const diferencia = Math.abs(Big(this.factura_aplicada.factura.total_factura).minus(this.factura_aplicada.total).toNumber());
+      const diferencia = Math.abs(Big(this.factura.total_factura).minus(this.factura_aplicada.total).toNumber());
 
       const codigo_modificacion = diferencia <= 0.9 ? codigo_modificacionE.anulacion : codigo_modificacionE.correccion_monto;
 
       document_parsed.ECF.InformacionReferencia = {
-        NCFModificado: this.factura_aplicada.factura.numero_comprobante,
+        NCFModificado: this.factura.numero_comprobante,
         RNCOtroContribuyente: null,
-        FechaNCFModificado: DateUtils.format({ date: this.factura_aplicada.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }),
+        FechaNCFModificado: DateUtils.format({ date: this.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }), //TODO: verificar si es necesario siempre en las notas de credito
         CodigoModificacion: codigo_modificacion,
       };
     }
