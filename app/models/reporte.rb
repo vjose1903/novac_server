@@ -222,7 +222,7 @@ class Reporte < ApplicationRecord
     # ---------------------------------------------------------------------------------------------------------
     def self.calcularCantidades(articulos)
         array                         =[]
-        plural                        = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Galon: 'Galones', Funda: 'Fundas', Producto: 'Productos' }
+        plural                        = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Galon: 'Galones', Funda: 'Fundas', Bolsa: 'Bolsas', Producto: 'Productos' }
         articulos.each do |articulo|
             obj                       = articulo.attributes
             obj["cantidades"]         = Articulo.calcularCantidades(articulo)
@@ -573,7 +573,7 @@ class Reporte < ApplicationRecord
     def self.calcular_cantidad_proporcional(detalle)
 
       total_venta=0
-      plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Funda: 'Fundas' }
+      plural = { Quintal: 'Quintales', Libra: 'Libras', Caja: 'Cajas', Paquete: 'Paquetes', Unidad: 'Unidades', Saco: 'Sacos', Funda: 'Fundas', Bolsa: 'Bolsas' }
 
       vendido_mostrar  = "0.00"
       devuelto_mostrar = "0.00"

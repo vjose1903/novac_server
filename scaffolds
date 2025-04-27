@@ -43,6 +43,7 @@ rails g migration AddCalcularSacoToMantenimientoArticulo calcular_saco:boolean
 rails g migration AddDetalleFacturaToDetalleFactura detalle_factura_nota:integer
 rails g migration AddEstadoToReciboIngreso estado:boolean
 rails g migration AddFechaEquivalenteToCuadreCaja fecha_equivalente:datetime
+rails g migration AddCamposToDetalleDacturasNotas cantidad_origin:float codigo:string
 
 
 

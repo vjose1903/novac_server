@@ -81,15 +81,15 @@ export class ParseDocument {
         Encabezado: {
           Version: this.version,
           IdDoc: {
-            TipoeCF: document.TipoeCF, // TODO: agregar en el backend la secuencia a utilizar
-            eNCF: document.numero_comprobante, // TODO: agregar en el backend antes de pasarlo por el microservicio
+            TipoeCF: document.TipoeCF,
+            eNCF: document.numero_comprobante,
             FechaVencimientoSecuencia: null,
             IndicadorNotaCredito: null, // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
             IndicadorEnvioDiferido: null,
             IndicadorMontoGravado: 0, // a) Valor 0 si los montos de los items no tienen itbis incluido.             b) Valor 1 si los montos de los items tienen itbis incluido.
             TipoIngresos: tipo_ingreso_E.por_operaciones, // 01: Ingresos por operaciones (No financieros).    02: Ingresos Financieros     03: Ingresos Extraordinarios     04: Ingresos por Arrendamientos     05: Ingresos por Venta de Activo Depreciable     06: Otros Ingresos
             TipoPago: null, // Las facturas por entrega gratuita (código 3), no son válidas para crédito fiscal.
-            FechaLimitePago: null, // TODO: agregar en el backend la fecha limite de pago
+            FechaLimitePago: null,
             TerminoPago: null,
             TablaFormasPago: {
               FormaDePago: [],
@@ -124,7 +124,7 @@ export class ParseDocument {
             FechaEmision: hasValue(document.fecha_equivalente) ? DateUtils.format({ date: document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : null,
           },
           Comprador: {
-            RNCComprador: null, // TODO: agregar en el backend antes de pasarlo por el microservicio
+            RNCComprador: null,
             IdentificadorExtranjero: null,
             RazonSocialComprador: document.cliente?.nombre || 'VENTA DE CONTADO',
             ContactoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, nombre de la persona de contacto con la empresa
@@ -317,7 +317,6 @@ export class ParseDocument {
   parsePaginacion() {
     const paginacion = { Pagina: [] };
 
-    // TODO: agregar condicion para las notas de credito
     const items_per_page = this.isNota ? this.items_per_page_nota : getProperty(this.document, 'condicion') == condicionE.contado ? this.items_per_page : this.items_per_page_credit;
 
     if (this.sheet_type == sheet_typeE.paper && this.detalles.length > items_per_page) {

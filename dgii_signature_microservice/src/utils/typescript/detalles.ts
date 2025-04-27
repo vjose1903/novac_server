@@ -16,7 +16,7 @@ export class Detalles {
       itemParsed.NumeroLinea = `${index + 1}`;
 
       itemParsed.TablaCodigosItem = { CodigosItem: [] };
-      const codigo: CodigosItem = { TipoCodigo: 'Interna', CodigoItem: item.articulo.codigo };
+      const codigo: CodigosItem = { TipoCodigo: 'Interna', CodigoItem: item.codigo };
       itemParsed.TablaCodigosItem.CodigosItem.push(codigo);
 
       // TODO: revisar
@@ -26,11 +26,10 @@ export class Detalles {
       itemParsed.IndicadorBienoServicio = item.articulo.tipo_articulo.descripcion.toLowerCase().includes('servicio') ? indicadorBienoServicioE.servicio : indicadorBienoServicioE.bien;
       itemParsed.CantidadItem = redondearNum(item.cantidad);
 
-      let key_unidad = item.unidad.replace(' ', '_').toLowerCase();
-      if (key_unidad.match(/saco_de_(\d+)?_libras/)) key_unidad = 'saco';
+      let key_unidad = item.unidad.split(' ')[0].toLowerCase();
       if (key_unidad == 'funda') key_unidad = 'bolsa';
 
-      itemParsed.UnidadMedida = unidad_codeE[item.articulo.unidad_medida] || null;
+      itemParsed.UnidadMedida = unidad_codeE[key_unidad] || null;
       itemParsed.PrecioUnitarioItem = redondearNum(item.precio);
 
       const descuento = getProperty(item, 'descuento') || getProperty(item, 'descuento_valor');

@@ -29,6 +29,7 @@ export interface FacturasAplicada {
 export interface DetallesFacturasNota {
   descripcion:          string;
   articulo:             Articulo;
+  codigo:               string;
   articulo_id:          number;
   unidad:               string;
   itbis:                number;

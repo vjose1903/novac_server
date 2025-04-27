@@ -34,19 +34,39 @@ module DGII_MANAGER
     return parse_nota(process, document)    if model_name == 'nota'
   end
 
-  def self.parse_factura(process, document)
-    process[:document_type] = DocumentType.factura
-    process[:TipoeCF]       = document.tipo_factura.referencia
+  # ========================================================================================================
+  # FACTURAS
+  # ========================================================================================================
 
+  def self.parse_factura(process, document)
+    process[:document_type]          = DocumentType.factura
+    process[:TipoeCF]                = document.tipo_factura.referencia
+
+    process[:detalle_facturas]       = parse_detalles(document)
 
     unless @certification_params == nil
-      process[:TipoeCF]                  = @certification_params[:TipoeCF]
-      process[:numero_comprobante]       = @certification_params[:numero_comprobante]
-
+      process[:TipoeCF]              = @certification_params[:TipoeCF]
+      process[:numero_comprobante]   = @certification_params[:numero_comprobante]
     end
 
     process.with_indifferent_access
   end
+
+  def self.parse_detalles(document)
+    detalles = document.detalle_facturas.map do | detalle |
+      detalle_parsed = detalle.attributes
+      articulo       = detalle.articulo
+
+      detalle_parsed[:articulo] = { **detalle.articulo.attributes, tipo_articulo: articulo.tipo_articulo.attributes }
+    end
+
+    detalles
+  end
+
+
+  # ========================================================================================================
+  # NOTAS
+  # ========================================================================================================
 
   def self.parse_nota(process, document)
     process[:document_type] = DocumentType.nota
@@ -61,6 +81,11 @@ module DGII_MANAGER
     process.with_indifferent_access
   end
 
+
+
+  # ========================================================================================================
+  # SHARED
+  # ========================================================================================================
 
   def self.parse_cliente(document)
     cliente            = document.cliente || nil
