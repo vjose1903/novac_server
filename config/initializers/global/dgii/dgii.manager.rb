@@ -1,25 +1,11 @@
 module DGII_MANAGER
-
   @certification_params = nil
+  
   def self.send(document, certification_params = nil)
     @certification_params = certification_params
-    puts "certification_params ".light_green + " #{certification_params}"
-    # TODO: hacer que si se pasan parametros de certificacion tome esos parametros y no los reales
-    puts " "
-    puts " "
-    puts " "
-    puts "model_name --> ".red + "#{document.model_name.element}"
-    # cabecera_factura
-    # nota
-    puts "document --> ".yellow + "#{document.to_json}"
+
     document_parsed = DGII_MANAGER.parse(document)
-    puts "document_parsed --> ".magenta + "#{document_parsed}"
 
-    puts " "
-    puts " "
-    puts " "
-
-    # TipoeCF
     return document_parsed
   end
 
@@ -49,7 +35,7 @@ module DGII_MANAGER
       process[:numero_comprobante]   = @certification_params[:numero_comprobante]
     end
 
-    process.with_indifferent_access
+    return process.with_indifferent_access
   end
 
   def self.parse_detalles(document)
@@ -58,9 +44,11 @@ module DGII_MANAGER
       articulo       = detalle.articulo
 
       detalle_parsed[:articulo] = { **detalle.articulo.attributes, tipo_articulo: articulo.tipo_articulo.attributes }
+
+      return detalle_parsed
     end
 
-    detalles
+    return detalles.with_indifferent_access
   end
 
 
