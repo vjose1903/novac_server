@@ -1,11 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import ECF, { P12Reader, ENVIRONMENT, Signature } from 'dgii-ecf';
+import ECF, { P12Reader, ENVIRONMENT, Signature, Transformer, getCodeSixDigitfromSignature, generateFcQRCodeURL } from 'dgii-ecf';
 import { P12ReaderData, CommercialApprovalEnum } from '../types/readerData.types';
 import { crearArchivoXML, isEmpty, sleep } from '../../utils/typescript/functions';
-// const xmlFormatter = require('xml-formatter');
+const xmlFormatter = require('xml-formatter');
 import Queue from 'queue';
 import { TokenData } from '../types/token.types';
+import { ParseDocument } from '@utils/typescript/parseDocument';
+import { FacturaI } from '@core/types/factura.types';
+import { NotaI } from '@core/types/notas.types';
+import { EcfXmlJson } from '@core/types/xml/xml_json';
 
 export class DgiiService {
   private static instance: DgiiService;
@@ -15,6 +19,9 @@ export class DgiiService {
   private isAuthenticating: boolean = false;
   private authQueue: { resolve: (result: { success: boolean; message?: string }) => void; reject: (error: any) => void }[] = [];
   private queue: Queue;
+  private environment: any;
+  private transformer: Transformer;
+  private env: ENVIRONMENT;
 
   private constructor() {
     this.initialize();
@@ -27,6 +34,11 @@ export class DgiiService {
 
   private async initialize() {
     this.queue = new Queue({ concurrency: 3, autostart: true });
+    this.environment = process.env;
+    this.transformer = new Transformer();
+    // this.env = ENVIRONMENT.CERT;
+    this.env = ENVIRONMENT.DEV;
+
     await this.loadCertificates();
     // await this.authenticate();
   }
@@ -37,7 +49,7 @@ export class DgiiService {
       const reader = new P12Reader(secret);
       const certs = reader.getKeyFromFile(path.resolve(__dirname, '../../utils/firma-digital.p12'));
 
-      this.ecf = new ECF(certs, ENVIRONMENT.CERT);
+      this.ecf = new ECF(certs, this.env);
       this.signature = new Signature(certs.key, certs.cert);
     } catch (error) {
       console.error('Error cargando certificados:', error);
@@ -47,6 +59,8 @@ export class DgiiService {
 
   private async authenticate() {
     return new Promise<{ success: boolean; message?: string }>((resolvePrincipal, rejectPrincipal) => {
+      console.log(' ----- authenticate ----- ');
+
       if (this.isAuthenticating) {
         return this.authQueue.push({ resolve: resolvePrincipal, reject: rejectPrincipal });
       }
@@ -79,7 +93,7 @@ export class DgiiService {
     return new Date(this.authToken.expira) <= new Date();
   }
 
-  private tokenIsValid() {
+  private tokenIsInvalid() {
     if (isEmpty(this.authToken)) return true;
 
     const tokenIsValid = typeof this.authToken.token === 'string' && typeof this.authToken.expira === 'string' && typeof this.authToken.expedido === 'string';
@@ -93,10 +107,17 @@ export class DgiiService {
 
   private async validateTokenBeforeSend() {
     return new Promise<{ success: boolean; message?: any; data?: any }>(async (resolve, reject) => {
-      if (this.tokenIsValid()) {
+      console.log(' ');
+      console.log(' ');
+      console.log('this.authToken ', this.authToken);
+      console.log('tokenIsInvalid ', this.tokenIsInvalid());
+      console.log(' ');
+      console.log(' ');
+
+      if (this.tokenIsInvalid()) {
         this.authenticate()
           .then(result => {
-            if (this.tokenIsValid()) {
+            if (this.tokenIsInvalid()) {
               reject({ success: false, message: 'Error de autenticación. No se pudo obtener un token válido.' });
             }
             resolve(result);
@@ -110,38 +131,82 @@ export class DgiiService {
     });
   }
 
-  public async firmarYEnviarXML(jsonData: any) {
+  public async firmarYEnviarXML(jsonData: FacturaI | NotaI) {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.validateTokenBeforeSend()
-        .then(() => {
+        .then(async () => {
+          try {
+            const parser = new ParseDocument(jsonData);
 
-          // TODO: colocar en el servidor un key para identificar el tipo de documento
-          // switch (document.tipo) {
-          //     case "factura":
-          //         return this.parseFactura(document);
-          //     default:
-          //         throw new Error(`Tipo de documento no soportado: ${document.tipo}`);
-          // }
+            const factura: EcfXmlJson = parser.parse();
 
-          // const xml = '';
+            let fileName = `${this.environment.RNC_EMISOR}${jsonData.numero_comprobante}.xml`;
+            // TODO: colocar en el servidor un key para identificar el tipo de documento
+            // switch (jsonData.TipoeCF) {
+            //     case :
+            //         return this.parseFactura(document);
+            //     default:
+            //         throw new Error(`Tipo de documento no soportado: ${document.tipo}`);
+            // }
 
-          // const fileName = `${jsonData.RNCComprador}${jsonData.noEcf}.xml`;
+            const xml = this.transformer.json2xml(factura);
 
-          // const signedXml = this.signature.signXml(xml, 'ACECF');
-          // const formattedXml = xmlFormatter(signedXml, {
-          //   collapseContent: true,
-          //   indentation: '  ',
-          //   lineSeparator: '\n',
-          //   prettyPrint: true,
-          // });
+            // console.log('xml ', xml);
 
-          // const response = await this.ecf.sendCommercialApproval(signedXml, fileName);
-          // await sleep(2000);
+            const signedXml = this.signature.signXml(xml, 'ECF');
 
-          // crearArchivoXML(formattedXml, path.resolve(__dirname, `./firmados/${fileName}`));
+            // -------------------------------------------------------
+            const formattedXml = xmlFormatter(signedXml, {
+              collapseContent: true,
+              indentation: '  ',
+              lineSeparator: '\n',
+              prettyPrint: true,
+            });
+            // -------------------------------------------------------
 
-          // return { success: true, response };
-          resolve({ success: true , data: this.authToken});
+            const response = await this.ecf.sendElectronicDocument(signedXml, fileName);
+            console.log('response ', response);
+
+            await sleep(2000);
+            const responseConsult = await this.ecf.statusTrackId(response.trackId);
+
+            if (parser.rnc_comprador) {
+              const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
+              console.log('responseCustomerDirectory ', responseCustomerDirectory);
+            }
+
+            console.log('responseConsult ', responseConsult);
+            
+
+            crearArchivoXML(formattedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fileName}`));
+
+            const securityCode = getCodeSixDigitfromSignature(signedXml);
+
+
+            const qr_url_dgii_data = {
+              rncemisor: this.environment.RNC_EMISOR,
+              rncComprador: this.environment.RNC_EMISOR,
+              encf:'',
+              montototal: response.trackId,
+              fechaEmision: response.trackId,
+              fechaFirma: response.trackId,
+              codigoseguridad: securityCode,
+              env: this.env,
+            }
+
+            const data = {
+              fecha_hora_firma: factura.ECF.FechaHoraFirma,
+              trackId: response.trackId,
+              security_code: securityCode,
+              xml_file_name: fileName,
+              // TODO: continuar aqui
+              // qr_url_dgii: generateFcQRCodeURL(),
+            }
+            // return { success: true, response };
+            resolve({ success: true, data: { token: this.authToken, info: data } });
+          } catch (error) {
+            reject(error);
+          }
         })
         .catch(error => {
           reject(error);

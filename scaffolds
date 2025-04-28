@@ -159,6 +159,7 @@ rails g migration addSerieToCabeceraFactura
 rails g migration addCamposToReciboIngreso
 rails g migration addCodigoToProvincia
 rails g migration addMunicipioToCliente
+rails g migration addCamposXMLToDocumentos
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 

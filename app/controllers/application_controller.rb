@@ -33,13 +33,11 @@ class ApplicationController < ActionController::API
     # result = Permiso.verificateUserPermiso(user_id, 'articulo')
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
-
-
-    # certification_params = { TipoeCF: 34, numero_comprobante: 'E340000000001' }.with_indifferent_access
+    # certification_params = { TipoeCF: 34, numero_comprobante: 'E340000000006' }.with_indifferent_access
     # document      = Nota.find_by_id(51)
 
-    certification_params = { TipoeCF: 31, numero_comprobante: 'E310000000001' }.with_indifferent_access
-    document        = CabeceraFactura.find_by_id(19)
+    certification_params = { TipoeCF: 31, numero_comprobante: 'E310000000011' }.with_indifferent_access
+    document        = CabeceraFactura.find_by_id(450)
 
     document_parsed = DGII_MANAGER.send(document, certification_params)
 

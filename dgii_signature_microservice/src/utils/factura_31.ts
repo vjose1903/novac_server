@@ -40,7 +40,7 @@ export const factura_31: FacturaI = {
     documentos_de_identidad: [
       {
         id: 1,
-        numero: '131880681',
+        documento: '131880681',
         tipo: 'rnc',
         principal: true,
       },

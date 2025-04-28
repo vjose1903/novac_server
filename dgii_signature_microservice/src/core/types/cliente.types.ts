@@ -14,7 +14,7 @@ export interface ClienteI {
 export interface DocumentoIdentidadI {
   id: number;
   tipo: string;
-  numero: string;
+  documento: string;
   principal: boolean;
   [key: string]: any;
 }

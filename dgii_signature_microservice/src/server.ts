@@ -1,6 +1,8 @@
 import express from 'express';
 import http from 'http';
 import { DgiiService } from '@core/services/DgiiService.service'; // Importamos el servicio
+import { handleNovacDgiiRequest } from '@controllers/dgiiController';
+
 
 if (process.env.ENVIRONMENT !== 'production') {
   printEnvironment('DESARROLLO');
@@ -10,39 +12,32 @@ if (process.env.ENVIRONMENT !== 'production') {
 }
 
 function printEnvironment(environment: string) {
-    console.log('  ');
-    console.log(' - - - - - - - - - - - - - - - - - - - -');
-    console.log(`  EJECUTANDO EN AMBIENTE DE ${environment}`);
-    console.log(' - - - - - - - - - - - - - - - - - - - -');
-    console.log('  ');
-  }
-  
+  console.log('  ');
+  console.log(' - - - - - - - - - - - - - - - - - - - -');
+  console.log(`  EJECUTANDO EN AMBIENTE DE ${environment}`);
+  console.log(' - - - - - - - - - - - - - - - - - - - -');
+  console.log('  ');
+}
+
 const app = express();
 const server = http.createServer(app);
 
+// Configurar el servicio DGII
+DgiiService.getInstance();
+
 app.use(express.json());
 
-// Configurar el servicio DGII
-const dgiiService = DgiiService.getInstance();
+// Crear un router para manejar todas las rutas bajo /api/v1
+const apiV1Router = express.Router();
 
-// Endpoint para recibir el JSON desde Ruby on Rails
-app.post('/procesar', async (req, res) => {
-  try {
-    const jsonData = req.body;
+// Definir la ruta novac-dgii dentro del router /api/v1
+apiV1Router.post('/novac-dgii', handleNovacDgiiRequest);
 
-    // Agregar la tarea a la cola y esperar a que termine
-    const result = await dgiiService.addToQueue(jsonData);
-
-    // Retornar la respuesta solo cuando el proceso haya terminado
-    res.status(200).json(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error procesando la solicitud' });
-  }
-});
+// Usar el router con el prefijo /api/v1
+app.use('/api/v1', apiV1Router);
 
 // Iniciar el servidor
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 9091;
 server.listen(port, () => {
   console.log(`Servidor escuchando en el puerto ${port}`);
 });

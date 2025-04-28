@@ -1,9 +1,9 @@
-import { indicadorBienoServicioE, indicadorFacturacionE, unidad_codeE } from "@core/constants/factura.utils";
-import { DetalleFacturaI } from "@core/types/factura.types";
-import { DetallesFacturasNota } from "@core/types/notas.types";
-import { CodigosItem, ItemI } from "@core/types/xml/xml_detallesItem_json";
-import { getProperty, redondearNum } from "./functions";
-import Big from "big.js";
+import { indicadorBienoServicioE, indicadorFacturacionE, unidad_codeE } from '@core/constants/factura.utils';
+import { DetalleFacturaI } from '@core/types/factura.types';
+import { DetallesFacturasNota } from '@core/types/notas.types';
+import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
+import { getProperty, redondearNum } from './functions';
+import Big from 'big.js';
 
 export class Detalles {
   constructor() {}
@@ -53,7 +53,7 @@ export class Detalles {
         };
       }
 
-      itemParsed.MontoItem = redondearNum((Number(itemParsed.PrecioUnitarioItem) * item.cantidad) - Number(itemParsed.DescuentoMonto || 0));
+      itemParsed.MontoItem = redondearNum(Number(itemParsed.PrecioUnitarioItem) * item.cantidad - Number(itemParsed.DescuentoMonto || 0));
       detallesItems.Item.push(itemParsed);
     });
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_04_27_150224) do
+ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -272,8 +272,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_04_27_150224) do
     t.float "itbis_real"
     t.float "descuento_real"
     t.bigint "tipo_factura_id"
-    t.float "cantidad_origin"
-    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"

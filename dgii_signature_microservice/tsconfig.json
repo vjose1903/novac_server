@@ -9,8 +9,11 @@
       "moduleResolution": "node",
       "baseUrl": "./",
       "paths": {
-        "@core/*": ["src/core/*"]
+        "@core/*": ["src/core/*"],
+        "@controllers/*": ["src/controllers/*"],
+        "@utils/*": ["src/utils/*"]
       }
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
   }

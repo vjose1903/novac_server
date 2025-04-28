@@ -53,6 +53,7 @@ export interface Comprador {
   DireccionComprador:            any;
   MunicipioComprador:            any;
   ProvinciaComprador:            any;
+  PaisComprador:                 any;
   FechaEntrega:                  any;
   ContactoEntrega:               any;
   DireccionEntrega:              any;
@@ -79,18 +80,28 @@ export interface FormaDePagoE {
 }
 
 export interface InformacionesAdicionales {
-  FechaEmbarque:    any;
-  NumeroEmbarque:   any;
-  NumeroContenedor: any;
-  NumeroReferencia: any;
-  PesoBruto:        any;
-  PesoNeto:         any;
-  UnidadPesoBruto:  any;
-  UnidadPesoNeto:   any;
-  CantidadBulto:    any;
-  UnidadBulto:      any;
-  VolumenBulto:     any;
-  UnidadVolumen:    any;
+  FechaEmbarque:           any;
+  NumeroEmbarque:          any;
+  NumeroContenedor:        any;
+  NumeroReferencia:        any;
+  NombrePuertoEmbarque:    any;
+  CondicionesEntrega:      any;
+  TotalFob:                any;
+  Seguro:                  any;
+  Flete:                   any;
+  OtrosGastos:             any;
+  TotalCif:                any;
+  RegimenAduanero:         any;
+  NombrePuertoSalida:      any;
+  NombrePuertoDesembarque: any;
+  PesoBruto:            any;
+  PesoNeto:             any;
+  UnidadPesoBruto:      any;
+  UnidadPesoNeto:       any;
+  CantidadBulto:        any;
+  UnidadBulto:          any;
+  VolumenBulto:         any;
+  UnidadVolumen:        any;
 }
 
 export interface OtraMoneda {
@@ -112,7 +123,7 @@ export interface TotalI {
   TotalITBIS3?:            number,
   MontoTotal?:             number,
   MontoImpuestoAdicional?: number,
-  ImpuestoAdicional?:      any[];
+  ImpuestosAdicionales:    any,
   MontoNoFacturable?:      number,
   MontoPeriodo?:           number,
   SaldoAnterior?:          number,
@@ -125,6 +136,13 @@ export interface TotalI {
 }
 
 export interface Transporte {
+  ViaTransporte:       any;
+  PaisOrigen:          any;
+  DireccionDestino:    any;
+  PaisDestino:         any;
+  RNCIdentificacionCompaniaTransportista: any;
+  NombreCompaniaTransportista: any;
+  NumeroViaje:         any;
   Conductor:           any;
   DocumentoTransporte: any;
   Ficha:               any;

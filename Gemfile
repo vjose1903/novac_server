@@ -59,6 +59,7 @@ gem 'rack-cors'
 gem 'colorize'
 gem 'zlib'
 gem "rolify"
+gem 'faraday'
 
 
 # source 'https://rubygems.org'

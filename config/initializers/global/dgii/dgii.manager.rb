@@ -6,7 +6,15 @@ module DGII_MANAGER
 
     document_parsed = DGII_MANAGER.parse(document)
 
-    return document_parsed
+    client = BaseRequest::Client.new('novac-dgii')
+
+    response = client.create_one(document_parsed)
+
+    puts "response --> ".red + " #{response}"
+
+
+    return response.with_indifferent_access
+    # return document_parsed
   end
 
   def self.parse(document)
@@ -45,6 +53,7 @@ module DGII_MANAGER
       articulo       = detalle.articulo
       add_articulo(detalle_parsed, articulo)
 
+      detalle_parsed[:codigo]      = articulo.codigo
       detalle_parsed[:descripcion] = articulo.nombre.strip
 
       detalle_parsed.with_indifferent_access
@@ -81,12 +90,17 @@ module DGII_MANAGER
       factura                       = detalle.cabecera_factura
       detalle_nota_parsed[:factura] = factura.attributes
 
+      unless @certification_params == nil
+
+      end
+
       detalle_nota_parsed[:detalles_facturas_notas] = detalle.detalles_facturas_notas.map do | detalle_factura_nota |
         detalle_factura_nota_parsed = detalle_factura_nota.attributes
 
-        articulo                    = detalle.articulo
+        articulo                    = detalle_factura_nota.articulo
         add_articulo(detalle_factura_nota_parsed, articulo)
 
+        detalle_factura_nota_parsed[:codigo]      = articulo.codigo
         detalle_factura_nota_parsed[:descripcion] = articulo.nombre.strip
 
         detalle_factura_nota_parsed.with_indifferent_access

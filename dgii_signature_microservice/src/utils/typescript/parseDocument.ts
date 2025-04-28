@@ -2,7 +2,7 @@ import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
 import { getProperty, hasValue, isEmpty, normalizarTexto, redondearNum } from './functions';
 import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_ingreso_E, tipo_pago_codeE, tipoComprobanteE, unidad_codeE } from '@core/constants/factura.utils';
-import { FormaDePagoE } from '@core/types/xml/xml_json';
+import { EcfXmlJson, FormaDePagoE } from '@core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
 import { agruparArticulosPorPagina } from './paginacion';
@@ -28,7 +28,8 @@ export class ParseDocument {
 
   private document: FacturaI | NotaI;
 
-  constructor() {
+  constructor(document: FacturaI | NotaI) {
+    this.document = document;
     this.environment = process.env;
     this.version = this.environment.XML_VERSION || '1.0';
     this.rnc_emisor = this.environment.RNC_EMISOR || '';
@@ -66,8 +67,12 @@ export class ParseDocument {
     return this.isNota ? DateUtils.diffDays(this.factura.fecha_equivalente, new Date()) : 0;
   }
 
-  parse(document: FacturaI | NotaI) {
-    this.document = document;
+  get rnc_comprador() {
+    const documento_identidad = this.document.cliente?.documentos_de_identidad?.find(documento => documento.principal);
+    return documento_identidad ? documento_identidad.documento.replace(/-/g, '') : null;
+  }
+
+  parse() {
     console.log(' ');
     console.log(' ');
     console.log(' =========================================');
@@ -76,13 +81,13 @@ export class ParseDocument {
     console.log(' ');
     console.log(' ');
 
-    const document_parsed = {
+    const document_parsed: EcfXmlJson = {
       ECF: {
         Encabezado: {
           Version: this.version,
           IdDoc: {
-            TipoeCF: document.TipoeCF,
-            eNCF: document.numero_comprobante,
+            TipoeCF: this.document.TipoeCF,
+            eNCF: this.document.numero_comprobante,
             FechaVencimientoSecuencia: null,
             IndicadorNotaCredito: null, // a) Valor 0 si fecha de emisión del e-CF afectado es ≤ 30 días calendario.             b) Valor 1 si fecha de emisión del e-CF afectado es > 30 días calendario.
             IndicadorEnvioDiferido: null,
@@ -116,22 +121,22 @@ export class ParseDocument {
             WebSite: null,
             ActividadEconomica: null,
             CodigoVendedor: null,
-            NumeroFacturaInterna: this.isFactura ? getProperty(document, 'numero_factura').toString()?.padStart(8, '0') : getProperty(document, 'numero_documento').toString()?.padStart(8, '0'),
+            NumeroFacturaInterna: this.isFactura ? getProperty(this.document, 'numero_factura').toString()?.padStart(8, '0') : getProperty(this.document, 'numero_documento').toString()?.padStart(8, '0'),
             NumeroPedidoInterno: null,
             ZonaVenta: null,
             RutaVenta: null,
             InformacionAdicionalEmisor: null,
-            FechaEmision: hasValue(document.fecha_equivalente) ? DateUtils.format({ date: document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : null,
+            FechaEmision: hasValue(this.document.fecha_equivalente) ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : null,
           },
           Comprador: {
             RNCComprador: null,
             IdentificadorExtranjero: null,
-            RazonSocialComprador: document.cliente?.nombre || 'VENTA DE CONTADO',
+            RazonSocialComprador: this.document.cliente?.nombre || 'VENTA DE CONTADO',
             ContactoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, nombre de la persona de contacto con la empresa
             CorreoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, correo de la empresa
-            DireccionComprador: document.cliente?.direccion || null,
-            MunicipioComprador: document.cliente?.municipio?.codigo || null,
-            ProvinciaComprador: document.cliente?.provincia?.codigo || null,
+            DireccionComprador: this.document.cliente?.direccion || null,
+            MunicipioComprador: this.document.cliente?.municipio?.codigo || null,
+            ProvinciaComprador: this.document.cliente?.provincia?.codigo || null,
             PaisComprador: null,
             FechaEntrega: null,
             ContactoEntrega: null,
@@ -139,7 +144,7 @@ export class ParseDocument {
             TelefonoAdicional: null,
             FechaOrdenCompra: null,
             NumeroOrdenCompra: null,
-            CodigoInternoComprador: document.cliente?.id?.toString()?.padStart(5, '0') || null,
+            CodigoInternoComprador: this.document.cliente?.id?.toString()?.padStart(5, '0') || null,
             ResponsablePago: null,
             InformacionAdicionalComprador: null,
           },
@@ -258,12 +263,14 @@ export class ParseDocument {
       document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = this.daysFromNow > 30 ? 1 : 0;
     }
 
-    if (document.TipoeCF == tipoComprobanteE.factura_de_credito_fiscal || document.TipoeCF == tipoComprobanteE.nota_de_credito) {
-      document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = document.fecha_valida ? DateUtils.format({ date: document.fecha_valida, dateFormat: 'DD-MM-YYYY' }) : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
+    if (hasValue(this.factura.fecha_vencimiento)) {
+      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
+    }
 
+    if (this.document.TipoeCF == tipoComprobanteE.factura_de_credito_fiscal || this.document.TipoeCF == tipoComprobanteE.nota_de_credito) {
       if (this.isFactura) {
-        document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
-        document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${document.cliente?.limite_credito} días`;
+        document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = this.document.fecha_valida ? DateUtils.format({ date: this.document.fecha_valida, dateFormat: 'DD-MM-YYYY' }) : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
+        document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${this.document.cliente?.limite_credito} días`;
       }
     }
 
@@ -271,17 +278,17 @@ export class ParseDocument {
 
     document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago = [];
 
-    if (this.isFactura) {
+    if (this.isFactura && this.factura.condicion != condicionE.credito) {
+      console.log('this.factura.total_factura >>> ', this.factura.total_factura);
+
       const forma_pago: FormaDePagoE = { FormaPago: forma_pago_codeE[normalizarTexto(this.factura.forma_pago)] };
-      if (this.factura.condicion != condicionE.credito) forma_pago.MontoPago = this.factura.total_factura;
+      forma_pago.MontoPago = this.factura.total_factura;
 
       document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago.push(forma_pago);
     }
 
     // ENCABEZADO COMPRADOR
-    const documento_identidad = document.cliente?.documentos_de_identidad?.find(documento => documento.principal);
-
-    if (!isEmpty(documento_identidad)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = documento_identidad.numero.replace(/-/g, '');
+    if (!isEmpty(this.rnc_comprador)) document_parsed.ECF.Encabezado.Comprador.RNCComprador = this.rnc_comprador;
 
     // ENCABEZADO TOTALES
     const totales = this.totalizacionClass.run(this.detalles, this.isFactura);
@@ -308,6 +315,19 @@ export class ParseDocument {
         CodigoModificacion: codigo_modificacion,
       };
     }
+
+    document_parsed.ECF.FechaHoraFirma = DateUtils.format({ date: new Date(), dateFormat: 'DD-MM-YYYY', hourFormat: 'hh:mm:ss', separator: ' ' });
+    console.log(' ');
+    console.log(' ------------------------------------------------------------------------------------------');
+    console.log(' ');
+    console.log(' ');
+    console.log(' ');
+    console.log('document_parsed.ECF.FechaHoraFirma ', document_parsed.ECF.FechaHoraFirma);
+    console.log(' ');
+    console.log(' ');
+    console.log(' ');
+    console.log(' ------------------------------------------------------------------------------------------');
+    console.log(' ');
 
     this.cleanerClass.clean(document_parsed);
 

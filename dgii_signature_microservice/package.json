@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "src/server",
   "scripts": {
+    "start:dev": "ts-node -r dotenv/config -r tsconfig-paths/register src/server.ts",
     "clean": "rimraf dist",
     "build:ts": "tsc",
     "test-function": "ts-node -r dotenv/config -r tsconfig-paths/register src/utils/test.ts",

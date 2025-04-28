@@ -16,11 +16,12 @@ console.log(' ');
 console.log(' ');
 
 async function prueba() {
-  const parser = new ParseDocument();
-  // const factura = parser.parse(factura_31);
+  const parser_factura = new ParseDocument(factura_31);
+  // const factura = parser_factura.parse();
   console.log('>>>> ', DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' }));
-
-  // const factura = parser.parse(nota_credito);
+  
+  // const parser_nota = new ParseDocument(nota_credito);
+  // const nota = parser_nota.parse();
   // console.log('factura >> ', JSON.stringify(factura, null, 2));
   // const dgiiService = DgiiService.getInstance();
 
