@@ -1,5 +1,5 @@
 import { FacturaI } from '@core/types/factura.types';
-import { tipoComprobanteE } from '@core/constants/factura.utils';
+import { tipoComprobanteE } from '@core/constants/factura.const';
 import { documentTypeE } from '@core/types/document.types';
 
 export const factura_31: FacturaI = {

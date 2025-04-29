@@ -29,7 +29,6 @@ export function leerArchivo(ruta: string): string {
   return fs.readFileSync(ruta, 'utf-8');
 }
 
-
 /**
  * Nombre: sleep
  * Descripción: Esta función pausa la ejecución durante un tiempo especificado.
@@ -108,7 +107,6 @@ export function hasValue(value: any): boolean {
   return !isEmpty(value);
 }
 
-
 /**
  * Nombre: getProperty
  * Descripción: Esta función obtiene el valor de una propiedad anidada de un objeto dado.
@@ -120,4 +118,34 @@ export function hasValue(value: any): boolean {
 export function getProperty(obj: any, prop: string) {
   const value = prop.split('.').reduce((objeto, property) => objeto?.[property], obj);
   return value ?? null;
+}
+
+/**
+ * Nombre: retryUntil
+ * Descripción: Esta función reintenta una tarea hasta que se cumpla una condición o se alcance un número máximo de intentos.
+ * @param task La función asíncrona que ejecuta la tarea.
+ * @param retryWhen Función que determina si se debe reintentar (retorna true para reintentar).
+ * @param actionAfterRetry Función a ejecutar cuando la tarea es exitosa.
+ * @param actionIfNoSuccess Función a ejecutar si se alcanza el número máximo de intentos sin éxito.
+ * @param delayBetweenRetries Tiempo de espera entre reintentos en milisegundos (por defecto 500).
+ * @param retryMax Número máximo de reintentos (por defecto 20).
+ * @param retryCount Contador actual de reintentos (por defecto 0).
+ * @param logError Indica si se deben registrar errores en consola (por defecto false).
+ * @example retryUntil(fetchData, res => !res.data, data => processData(data), () => handleError(), 1000, 5)
+ */
+export function retryUntil(task: any, retryWhen: any, actionAfterRetry: any, actionIfNoSuccess: any, delayBetweenRetries = 500, retryMax = 20, retryCount = 0, logError = false) {
+  task().then((response: any) => {
+    const hasRetries = retryCount < retryMax;
+
+    if (hasRetries && retryWhen(response)) {
+      setTimeout(() => {
+        retryUntil(task, retryWhen, actionAfterRetry, actionIfNoSuccess, delayBetweenRetries, retryMax, ++retryCount, logError);
+      }, delayBetweenRetries);
+    } else if (!hasRetries) {
+      if (logError) console.error('Max numbers of retries -');
+      actionIfNoSuccess();
+    } else {
+      actionAfterRetry(response);
+    }
+  });
 }

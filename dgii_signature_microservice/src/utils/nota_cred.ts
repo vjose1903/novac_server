@@ -1,4 +1,4 @@
-import { tipoComprobanteE } from '@core/constants/factura.utils';
+import { tipoComprobanteE } from '@core/constants/factura.const';
 import { NotaI } from '../core/types/notas.types';
 import { factura_31 } from './factura_31';
 import { documentTypeE } from '@core/types/document.types';

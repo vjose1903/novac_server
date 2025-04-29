@@ -1,7 +1,7 @@
 import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { Clean } from './clean';
 import { getProperty, hasValue, isEmpty, normalizarTexto, redondearNum } from './functions';
-import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_ingreso_E, tipo_pago_codeE, tipoComprobanteE, unidad_codeE } from '@core/constants/factura.utils';
+import { codigo_modificacionE, condicionE, forma_pago_codeE, indicadorBienoServicioE, indicadorFacturacionE, sheet_typeE, tipo_ingreso_E, tipo_pago_codeE, tipoComprobanteE, unidad_codeE } from '@core/constants/factura.const';
 import { EcfXmlJson, FormaDePagoE } from '@core/types/xml/xml_json';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';
 import { Totalizacion } from './totalizacion';
@@ -12,6 +12,7 @@ import { documentTypeE } from '@core/types/document.types';
 import { DateUtils } from '@vjose1903/dateutils';
 import { Detalles } from './detalles';
 import Big from 'big.js';
+import { getCurrentFormattedDateTime } from 'dgii-ecf';
 
 export class ParseDocument {
   private version: string;
@@ -72,6 +73,10 @@ export class ParseDocument {
     return documento_identidad ? documento_identidad.documento.replace(/-/g, '') : null;
   }
 
+  get eNCF() {
+    return this.document.numero_comprobante
+  }
+
   parse() {
     console.log(' ');
     console.log(' ');
@@ -126,7 +131,8 @@ export class ParseDocument {
             ZonaVenta: null,
             RutaVenta: null,
             InformacionAdicionalEmisor: null,
-            FechaEmision: hasValue(this.document.fecha_equivalente) ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : null,
+            // FechaEmision: hasValue(this.document.fecha_equivalente) ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : DateUtils.format({ dateFormat: 'DD-MM-YYYY' }),
+            FechaEmision: DateUtils.format({ dateFormat: 'DD-MM-YYYY' }),
           },
           Comprador: {
             RNCComprador: null,
@@ -316,18 +322,7 @@ export class ParseDocument {
       };
     }
 
-    document_parsed.ECF.FechaHoraFirma = DateUtils.format({ date: new Date(), dateFormat: 'DD-MM-YYYY', hourFormat: 'hh:mm:ss', separator: ' ' });
-    console.log(' ');
-    console.log(' ------------------------------------------------------------------------------------------');
-    console.log(' ');
-    console.log(' ');
-    console.log(' ');
-    console.log('document_parsed.ECF.FechaHoraFirma ', document_parsed.ECF.FechaHoraFirma);
-    console.log(' ');
-    console.log(' ');
-    console.log(' ');
-    console.log(' ------------------------------------------------------------------------------------------');
-    console.log(' ');
+    document_parsed.ECF.FechaHoraFirma = getCurrentFormattedDateTime();
 
     this.cleanerClass.clean(document_parsed);
 

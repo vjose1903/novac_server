@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
+ActiveRecord::Schema[7.0].define(version: 2025_04_28_160109) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -100,6 +100,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.integer "pre_factura"
     t.integer "cotizacion"
     t.string "serie"
+    t.datetime "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
@@ -233,6 +238,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.integer "detalle_factura_nota"
     t.boolean "is_devuelto"
     t.boolean "is_defectuoso"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end
@@ -272,6 +278,8 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.float "itbis_real"
     t.float "descuento_real"
     t.bigint "tipo_factura_id"
+    t.float "cantidad_origin"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
@@ -473,6 +481,11 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "fecha_valida", precision: nil
+    t.datetime "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"

@@ -1,4 +1,4 @@
-import { indicadorBienoServicioE, indicadorFacturacionE, unidad_codeE } from '@core/constants/factura.utils';
+import { indicadorBienoServicioE, indicadorFacturacionE, unidad_codeE } from '@core/constants/factura.const';
 import { DetalleFacturaI } from '@core/types/factura.types';
 import { DetallesFacturasNota } from '@core/types/notas.types';
 import { CodigosItem, ItemI } from '@core/types/xml/xml_detallesItem_json';

@@ -1,4 +1,4 @@
-import { condicionT, forma_pagoT, tipoComprobanteE } from '../constants/factura.utils';
+import { condicionT, forma_pagoT, tipoComprobanteE } from '../constants/factura.const';
 import { Articulo, UnidadesI } from './articulo.types';
 import { ClienteI } from './cliente.types';
 import { documentTypeT } from './document.types';

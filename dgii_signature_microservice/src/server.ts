@@ -1,10 +1,10 @@
 import express from 'express';
 import http from 'http';
-import { DgiiService } from '@core/services/DgiiService.service'; // Importamos el servicio
+import { DgiiEcfService } from '@core/services/DgiiEcf.service'; // Importamos el servicio
 import { handleNovacDgiiRequest } from '@controllers/dgiiController';
 
 
-if (process.env.ENVIRONMENT !== 'production') {
+if (process.env.ENV !== 'PROD') {
   printEnvironment('DESARROLLO');
   import('dotenv/config');
 } else {
@@ -23,7 +23,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Configurar el servicio DGII
-DgiiService.getInstance();
+DgiiEcfService.getInstance();
 
 app.use(express.json());
 

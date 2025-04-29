@@ -1,4 +1,4 @@
-import { forma_pago_codeE } from "../../constants/factura.utils";
+import { forma_pago_codeE } from "../../constants/factura.const";
 import { ItemI } from "./xml_detallesItem_json";
 import { PaginacionI } from "./xml_paginacion_json";
 
@@ -123,7 +123,7 @@ export interface TotalI {
   TotalITBIS3?:            number,
   MontoTotal?:             number,
   MontoImpuestoAdicional?: number,
-  ImpuestosAdicionales:    any,
+  ImpuestosAdicionales?:   any,
   MontoNoFacturable?:      number,
   MontoPeriodo?:           number,
   SaldoAnterior?:          number,

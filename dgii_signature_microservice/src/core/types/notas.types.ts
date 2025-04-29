@@ -1,4 +1,4 @@
-import { tipoComprobanteE } from "@core/constants/factura.utils";
+import { tipoComprobanteE } from "@core/constants/factura.const";
 import { Articulo } from "@core/types/articulo.types";
 import { ClienteI } from "@core/types/cliente.types";
 import { FacturaI } from "@core/types/factura.types";
