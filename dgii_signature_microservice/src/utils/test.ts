@@ -5,6 +5,7 @@ import { factura_31 } from './factura_31';
 import { DateUtils } from '@vjose1903/dateutils';
 import { nota_credito } from './nota_cred';
 import { getCurrentFormattedDateTime } from 'dgii-ecf';
+import { ParseAnulacion } from './typescript/parseAnulacion';
 
 console.log(' ');
 console.log(' ');
@@ -17,11 +18,14 @@ console.log(' ');
 console.log(' ');
 
 async function prueba() {
-  const parser_factura = new ParseDocument(factura_31);
+  const parser_anulacion = new ParseAnulacion();
+  const anulacion = parser_anulacion.parse([{ eNCFDesde: 'E310000000001' }, { eNCFDesde: 'E3400000000020', eNCFHasta: 'E3400000000025' }]);
+  console.log('anulacion >> ', JSON.stringify(anulacion, null, 2));
+
+  // const parser_factura = new ParseDocument(factura_31);
   // const factura = parser_factura.parse();
   // console.log('>>>> ', DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' }));
 
-  
   // const parser_nota = new ParseDocument(nota_credito);
   // const nota = parser_nota.parse();
   // console.log('factura >> ', JSON.stringify(factura, null, 2));

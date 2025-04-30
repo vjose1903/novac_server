@@ -13,6 +13,7 @@ import { rootElNameE } from '@core/constants/xml.const';
 import { QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DateUtils } from '@vjose1903/dateutils';
 import { DgiiAuthService } from './DgiiAuth.service';
+import { DgiiAnulacionService } from './DgiiAnulacion.service';
 
 export class DgiiEcfService {
   private static instance: DgiiEcfService;
@@ -24,6 +25,7 @@ export class DgiiEcfService {
   private env: ENVIRONMENT;
 
   private authService: DgiiAuthService;
+  private anulacionService: DgiiAnulacionService;
 
   private constructor() {
     this.initialize();
@@ -38,9 +40,12 @@ export class DgiiEcfService {
     this.queue = new Queue({ concurrency: 3, autostart: true });
     this.environment = process.env;
     this.transformer = new Transformer();
+
     this.authService = DgiiAuthService.getInstance();
     this.ecf = this.authService.ecf;
     this.signature = this.authService.signature;
+
+    this.anulacionService = DgiiAnulacionService.getInstance();
 
     // this.env = ENVIRONMENT.CERT;
     this.env = this.environment.ENV;

@@ -21,6 +21,7 @@ export class DgiiAnulacionService {
   private static instance: DgiiAnulacionService;
   private ecf!: ECF;
   private signature!: Signature;
+  private queue: Queue;
   private environment: any;
   private transformer: Transformer;
   private env: ENVIRONMENT;
@@ -37,6 +38,7 @@ export class DgiiAnulacionService {
   }
 
   private async initialize() {
+    this.queue = new Queue({ concurrency: 3, autostart: true });
     this.environment = process.env;
     this.transformer = new Transformer();
 
