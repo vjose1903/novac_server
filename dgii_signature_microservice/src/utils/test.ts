@@ -4,23 +4,24 @@ import { ParseDocument } from './typescript/parseDocument';
 import { factura_31 } from './factura_31';
 import { DateUtils } from '@vjose1903/dateutils';
 import { nota_credito } from './nota_cred';
-import { getCurrentFormattedDateTime } from 'dgii-ecf';
+import ECF, { ENVIRONMENT, getCurrentFormattedDateTime, P12Reader } from 'dgii-ecf';
 import { ParseAnulacion } from './typescript/parseAnulacion';
+import { DgiiAnulacionService } from '@core/services/DgiiAnulacion.service';
+import path from 'path';
+import { P12ReaderData } from '@core/types/readerData.types';
+import { DgiiAuthService } from '@core/services/DgiiAuth.service';
 
 console.log(' ');
 console.log(' ');
 console.log(' ');
 console.log(' ');
-console.log('process.env.ENV', process.env.ENV);
+console.log('process.env.ENV', ENVIRONMENT[process.env.ENV as keyof typeof ENVIRONMENT]);
 console.log(' ');
 console.log(' ');
 console.log(' ');
 console.log(' ');
 
 async function prueba() {
-  const parser_anulacion = new ParseAnulacion();
-  const anulacion = parser_anulacion.parse([{ eNCFDesde: 'E310000000001' }, { eNCFDesde: 'E3400000000020', eNCFHasta: 'E3400000000025' }]);
-  console.log('anulacion >> ', JSON.stringify(anulacion, null, 2));
 
   // const parser_factura = new ParseDocument(factura_31);
   // const factura = parser_factura.parse();

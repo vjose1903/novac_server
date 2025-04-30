@@ -1,7 +1,7 @@
 import * as path from 'path';
 import ECF, { ENVIRONMENT, Signature, Transformer, getCodeSixDigitfromSignature, generateFcQRCodeURL, convertECF32ToRFCE, generateEcfQRCodeURL } from 'dgii-ecf';
-import { TrackStatusEnum, TrackingStatusResponse } from 'dgii-ecf/dist/networking/types';
-import { crearArchivoXML, retryUntil } from '../../utils/typescript/functions';
+import { TrackStatusEnum, TrackingStatusResponse, InvoiceSummaryResponse, InvoiceResponse } from 'dgii-ecf/dist/networking/types';
+import { crearArchivoXML, isEmpty, retryUntil } from '../../utils/typescript/functions';
 const xmlFormatter = require('xml-formatter');
 import Queue from 'queue';
 import { ParseDocument } from '@utils/typescript/parseDocument';
@@ -48,7 +48,7 @@ export class DgiiEcfService {
     this.anulacionService = DgiiAnulacionService.getInstance();
 
     // this.env = ENVIRONMENT.CERT;
-    this.env = this.environment.ENV;
+    this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
   }
 
   public async firmarYEnviarXML(jsonData: FacturaI | NotaI) {
@@ -106,7 +106,7 @@ export class DgiiEcfService {
 
             this.validateSendResponse(sendResponse)
               .then(async response => {
-                console.log('response ', response);
+                console.log('\n\n\nresponse =================> ', response);
 
                 // -------------------------------------------------------
                 const formattedXml = xmlFormatter(signedXml, {
@@ -119,37 +119,31 @@ export class DgiiEcfService {
 
                 if (parser.rnc_comprador) {
                   const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
-                  // this.ecf.voidENCF();
                   console.log('responseCustomerDirectory ', responseCustomerDirectory);
                 }
 
                 crearArchivoXML(formattedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fileName}`));
 
-                const message_from_send = response.mensajes.reduce((acc, curr) => {
-                  acc += `${acc.length > 0 ? ', ' : ''}${curr.valor}`;
-
-                  return acc;
-                }, '');
-
                 const data = {
-                  estado: response.estado,
-                  message: message_from_send,
+                  message: this.getMessage(sendResponse),
                   fecha_hora_firma: factura.ECF.FechaHoraFirma,
-                  trackId: sendResponse.trackId,
                   security_code: qr_url_dgii_data.codigoseguridad,
                   xml_file_name: fileName,
                   qr_url_dgii,
                 };
 
-                // return { success: true, response };
+                data['estado'] = 'estado' in response ? response?.estado : null;
+                data['trackId'] = 'trackId' in response ? response?.trackId : null;
+
                 resolve({ success: true, data });
               })
               .catch(error => {
                 reject(error);
               });
           } catch (error) {
-            console.error(error);
-            reject(error);
+            console.error('error =================> ', error);
+            const msg = this.getMessage(error);
+            reject({ success: false, message: msg || 'Error al firmar y enviar el XML.' });
           }
         })
         .catch(error => {
@@ -158,25 +152,40 @@ export class DgiiEcfService {
     });
   }
 
+  getMessage(response: TrackingStatusResponse | InvoiceSummaryResponse | InvoiceResponse) {
+    if (isEmpty(response?.mensajes)) return '';
+
+    const message_from_send = response.mensajes.reduce((acc, curr) => {
+      acc += `${acc.length > 0 ? ', ' : ''}${curr.valor}`;
+
+      return acc;
+    }, '');
+
+    return message_from_send;
+  }
+
   validateSendResponse(sendResponse: any) {
-    return new Promise<TrackingStatusResponse>((resolve, reject) => {
+    console.log('\n\nvalidateSendResponse ---> ', sendResponse);
+    
+    return new Promise<TrackingStatusResponse | InvoiceSummaryResponse | InvoiceResponse>((resolve, reject) => {
       try {
         if (!('trackId' in sendResponse)) {
-          resolve(null);
+          resolve(sendResponse);
           return;
         }
 
         const taskGetStatus = () => this.ecf.statusTrackId(sendResponse.trackId);
         const reintentarSi = (response: TrackingStatusResponse) => response.estado === TrackStatusEnum.IN_PROCESS;
-        const noTableLoaded = () => reject({ success: false, message: 'Error al obtener el estado de la factura.' });
+        const errorFunction = () => reject({ success: false, message: 'Error al obtener el estado de la factura.' });
 
         const returnResponse = (response: TrackingStatusResponse) => {
+          console.log('\n\nreturnResponse ---> ', response);
           resolve(response);
         };
 
-        retryUntil(taskGetStatus, reintentarSi, returnResponse.bind(this), noTableLoaded);
+        retryUntil(taskGetStatus, reintentarSi, returnResponse.bind(this), errorFunction);
       } catch (error) {
-        reject(error);
+        reject({ success: false, message: error.message || 'Error al obtener el estado de la factura.' });
       }
     });
   }

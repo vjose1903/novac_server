@@ -9,8 +9,8 @@ module DGII_MANAGER
     client = BaseRequest::Client.new('novac-dgii')
 
     response = client.create_one(document_parsed)
-
     puts "response --> ".red + " #{response}"
+
 
 
     return response.with_indifferent_access
@@ -18,9 +18,10 @@ module DGII_MANAGER
   end
 
   def self.parse(document)
-    process           = document.attributes
+    process                     = document.attributes
 
-    process[:cliente] = parse_cliente(document)
+    process[:cliente]           = parse_cliente(document)
+    process[:fecha_vencimiento] = validate_fecha_vencimiento(document)
 
 
     model_name = document.model_name.element
@@ -127,6 +128,7 @@ module DGII_MANAGER
       cliente_attributes                           = cliente.attributes
       cliente_attributes[:documentos_de_identidad] = cliente.documentos_de_identidad
 
+      cliente_attributes[:limite_credito]          = cliente.limite_credito
       cliente_attributes[:municipio]               = cliente.municipio
       cliente_attributes[:provincia]               = cliente.provincia
     end
@@ -136,5 +138,35 @@ module DGII_MANAGER
 
   def self.add_articulo(detalle_parsed, articulo)
     detalle_parsed[:articulo] = { **articulo.attributes, tipo_articulo: articulo.tipo_articulo.attributes }
+  end
+
+  def self.validate_fecha_vencimiento(document)
+    fecha_vencimiento = document[:fecha_vencimiento]
+
+    if fecha_vencimiento.nil?
+      return nil
+    end
+
+    unless @certification_params == nil
+      cliente = document[:cliente]
+      dias_credito = 30 # valor por defecto
+
+      # Si existe cliente y tiene limite_credito, usamos ese valor
+      if cliente && cliente[:limite_credito].present?
+        dias_credito = cliente[:limite_credito]
+      end
+
+      # Calcular fecha base (fecha actual + días de crédito)
+      fecha_base = Date.today + dias_credito.days
+
+      # Crear DateTime con hora específica (7:59 AM)
+      fecha_con_hora = DateTime.new(fecha_base.year, fecha_base.month, fecha_base.day, 7, 59, 0)
+
+      # Convertir a formato ISO 8601 con milisegundos
+      return fecha_con_hora.utc.iso8601(3)
+    end
+
+    return fecha_vencimiento
+
   end
 end

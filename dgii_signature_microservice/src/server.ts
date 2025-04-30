@@ -2,6 +2,8 @@ import express from 'express';
 import http from 'http';
 import { DgiiEcfService } from '@core/services/DgiiEcf.service'; // Importamos el servicio
 import { handleNovacDgiiRequest } from '@controllers/dgiiController';
+import { DgiiAnulacionService } from '@core/services/DgiiAnulacion.service';
+import { DgiiAuthService } from '@core/services/DgiiAuth.service';
 
 
 if (process.env.ENV !== 'PROD') {
@@ -22,8 +24,9 @@ function printEnvironment(environment: string) {
 const app = express();
 const server = http.createServer(app);
 
-// Configurar el servicio DGII
+// Inicializar los servicios DGII
 DgiiEcfService.getInstance();
+DgiiAnulacionService.getInstance();
 
 app.use(express.json());
 

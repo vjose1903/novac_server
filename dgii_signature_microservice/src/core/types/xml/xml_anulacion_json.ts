@@ -26,6 +26,10 @@ export interface Anulacion {
 }
 
 export interface TablaRangoSecuenciasAnuladaseNCF {
+  Secuencias: Secuencias;
+}
+
+export interface Secuencias {
   SecuenciaeNCFDesde: string;
   SecuenciaeNCFHasta: string;
 }

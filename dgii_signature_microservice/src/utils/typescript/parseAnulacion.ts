@@ -1,5 +1,6 @@
 import { getCurrentFormattedDateTime } from 'dgii-ecf';
 import { EcfXmlAnulacionJson } from '@core/types/xml/xml_anulacion_json';
+import { AnulacionParams } from '@core/types/anulacion.types';
 
 export class ParseAnulacion {
   private version: string;
@@ -12,7 +13,7 @@ export class ParseAnulacion {
     this.rnc_emisor = this.environment.RNC_EMISOR || '';
   }
 
-  parse(range: Array<{ eNCFDesde: string; eNCFHasta?: string }>) {
+  parse(range: AnulacionParams[]) {
     const document_parsed: EcfXmlAnulacionJson = {
       ANECF: {
         Encabezado: {
@@ -31,11 +32,11 @@ export class ParseAnulacion {
     return document_parsed;
   }
 
-  parseDetalleAnulacion(document_parsed: EcfXmlAnulacionJson, range: Array<{ eNCFDesde: string; eNCFHasta?: string }>) {
+  parseDetalleAnulacion(document_parsed: EcfXmlAnulacionJson, range: AnulacionParams[]) {
     const detalles = document_parsed.ANECF.DetalleAnulacion;
 
     document_parsed.ANECF.DetalleAnulacion = range.reduce((acc, curr, index) => {
-      const type = curr.eNCFDesde.substring(0, 3);
+      const type = curr.eNCFDesde.substring(1, 3);
       const eNCFDesde = curr.eNCFDesde;
       const eNCFHasta = curr.eNCFHasta || eNCFDesde;
 
@@ -47,8 +48,10 @@ export class ParseAnulacion {
         NoLinea: index + 1,
         TipoeCF: type,
         TablaRangoSecuenciasAnuladaseNCF: {
-          SecuenciaeNCFDesde: eNCFDesde,
-          SecuenciaeNCFHasta: eNCFHasta,
+          Secuencias: {
+            SecuenciaeNCFDesde: eNCFDesde,
+            SecuenciaeNCFHasta: eNCFHasta,
+          },
         },
         CantidadeNCFAnulados: cantidadNCFAnulados,
       };

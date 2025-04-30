@@ -1,48 +1,81 @@
 import * as path from 'path';
-import ECF, { P12Reader, ENVIRONMENT, Signature, Transformer } from 'dgii-ecf';
+import ECF, { P12Reader, ENVIRONMENT, Signature } from 'dgii-ecf';
 import { isEmpty } from '../../utils/typescript/functions';
-const xmlFormatter = require('xml-formatter');
-import Queue from 'queue';
+import fs from 'fs';
 import { TokenData } from '../types/token.types';
 
 export class DgiiAuthService {
   public authToken: TokenData | null = null;
-  public ecf!: ECF;
-  public signature!: Signature;
 
+  private _ecf!: ECF;
+  private _signature!: Signature;
   private static instance: DgiiAuthService;
   private environment: any;
   private isAuthenticating: boolean = false;
   private authQueue: { resolve: (result: { success: boolean; message?: string }) => void; reject: (error: any) => void }[] = [];
   private env: ENVIRONMENT;
 
+  get ecf() {
+    return this._ecf;
+  }
+
+  get signature() {
+    return this._signature;
+  }
+
   private constructor() {
     this.initialize();
   }
 
   public static getInstance(): DgiiAuthService {
-    if (!DgiiAuthService.instance) DgiiAuthService.instance = new DgiiAuthService();
+    if (!DgiiAuthService.instance) {
+      console.log('\n\n------------------------ INICIALIZANDO INSTANCIA DE DGII AUTH SERVICE ------------------------\n\n');
+      DgiiAuthService.instance = new DgiiAuthService();
+    }
+
+    console.log('\n\n------------------------ INSTANCIA DE DGII AUTH SERVICE CREADA ------------------------\n\n');
     return DgiiAuthService.instance;
   }
 
   private async initialize() {
     this.environment = process.env;
-    this.env = this.environment.ENV;
-
+    this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
     await this.loadCertificates();
   }
 
   private async loadCertificates() {
     try {
-      const secret = 'VICVAS01';
-      const reader = new P12Reader(secret);
-      const certs = reader.getKeyFromFile(path.resolve(__dirname, '../../utils/firma-digital.p12'));
+      const certPath = path.resolve(__dirname, '../../utils/firma-digital.p12');
 
-      this.ecf = new ECF(certs, this.env);
-      this.signature = new Signature(certs.key, certs.cert);
+      if (!fs.existsSync(certPath)) {
+        throw new Error(`El archivo de certificado no existe en la ruta: ${certPath}`);
+      }
+
+      const reader = new P12Reader('VICVAS01');
+      const certs = reader.getKeyFromFile(certPath);
+
+      if (!this.env || typeof this.env !== 'string') {
+        console.warn('Entorno no válido no se pudo cargar el entorno de la aplicación');
+        throw new Error(`Entorno no válido no se pudo cargar el entorno de la aplicación`);
+      }
+
+      this._ecf = new ECF(certs, this.env);
+      this._signature = new Signature(certs.key, certs.cert);
     } catch (error) {
       console.error('Error cargando certificados:', error);
-      throw new Error('No se pudieron cargar los certificados.');
+      throw new Error(`No se pudieron cargar los certificados: ${error.message}`);
+    }
+  }
+
+  public async testAuthentication() {
+    try {
+      const result = await this.authenticate();
+      console.log('Test de autenticación exitoso:', result);
+      console.log('Token actual:', this.authToken);
+      return result;
+    } catch (error) {
+      console.error('Test de autenticación fallido:', error);
+      throw error;
     }
   }
 
@@ -51,7 +84,8 @@ export class DgiiAuthService {
       console.log(' ----- authenticate ----- ');
 
       if (this.isAuthenticating) {
-        return this.authQueue.push({ resolve: resolvePrincipal, reject: rejectPrincipal });
+        this.authQueue.push({ resolve: resolvePrincipal, reject: rejectPrincipal });
+        return;
       }
 
       this.isAuthenticating = true;
@@ -60,13 +94,15 @@ export class DgiiAuthService {
         .authenticate()
         .then(authToken => {
           this.authToken = authToken;
-
           this.authQueue.forEach(task => task.resolve({ success: true }));
           this.authQueue = [];
           resolvePrincipal({ success: true });
         })
         .catch(error => {
-          const result = { success: false, message: error?.message || 'Error de autenticación. Servicio de la DGII no disponible.' };
+          const result = {
+            success: false,
+            message: error?.message || 'Error de autenticación. Servicio de la DGII no disponible.',
+          };
           this.authQueue.forEach(task => task.reject(result));
           this.authQueue = [];
           rejectPrincipal(result);
@@ -80,9 +116,19 @@ export class DgiiAuthService {
   private isTokenExpired(): boolean {
     if (isEmpty(this.authToken)) return true;
 
+    console.log(' ');
+    console.log(' ');
+    console.log('--------------------------------------------------------------');
+    console.log('                 DEPURACION DE TOKEN EXPIRADO                 ');
+    console.log('--------------------------------------------------------------');
+    console.log(' ');
     console.log('new Date(this.authToken.expira).getTime()', new Date(this.authToken.expira).getTime());
     console.log('new Date().getTime()', new Date().getTime());
     console.log('new Date(this.authToken.expira).getTime() <= new Date().getTime()', new Date(this.authToken.expira).getTime() <= new Date().getTime());
+    console.log(' ');
+    console.log('--------------------------------------------------------------');
+    console.log(' ');
+    console.log(' ');
 
     return new Date(this.authToken.expira).getTime() <= new Date().getTime();
   }
@@ -92,36 +138,24 @@ export class DgiiAuthService {
 
     const tokenIsValid = typeof this.authToken.token === 'string' && typeof this.authToken.expira === 'string' && typeof this.authToken.expedido === 'string';
 
-    if (!tokenIsValid) return true;
-
-    const expired = this.isTokenExpired();
-
-    return expired;
+    return !tokenIsValid || this.isTokenExpired();
   }
 
   public async validateTokenBeforeSend() {
-    return new Promise<{ success: boolean; message?: any; data?: any }>(async (resolve, reject) => {
-      console.log(' ');
-      console.log(' ');
-      console.log('this.authToken ', this.authToken);
-      console.log('tokenIsInvalid ', this.tokenIsInvalid());
-      console.log(' ');
-      console.log(' ');
+    console.log('\n\nthis.authToken', this.authToken);
+    console.log('tokenIsInvalid', this.tokenIsInvalid());
+    console.log('this.env', this.env, '\n\n');
 
+    if (!this.tokenIsInvalid()) return { success: true };
+
+    try {
+      await this.authenticate();
       if (this.tokenIsInvalid()) {
-        this.authenticate()
-          .then(result => {
-            if (this.tokenIsInvalid()) {
-              reject({ success: false, message: 'Error de autenticación. No se pudo obtener un token válido.' });
-            }
-            resolve(result);
-          })
-          .catch(error => {
-            reject(error);
-          });
-      } else {
-        resolve({ success: true });
+        throw { success: false, message: 'Error de autenticación. No se pudo obtener un token válido.' };
       }
-    });
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
   }
 }

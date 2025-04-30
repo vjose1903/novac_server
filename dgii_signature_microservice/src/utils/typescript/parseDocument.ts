@@ -77,6 +77,16 @@ export class ParseDocument {
     return this.document.numero_comprobante
   }
 
+  get fecha_emision() {
+    const fecha_equivalente = hasValue(this.document.fecha_equivalente) ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : null
+    console.log(" \n\n fecha_equivalente ---> ", fecha_equivalente);
+    
+    const fecha_equivalente_is_positive = DateUtils.compareDates(fecha_equivalente, DateUtils.format({ dateFormat: 'DD-MM-YYYY' })) >= 0
+    console.log("fecha_equivalente_is_positive ---> ", fecha_equivalente_is_positive);
+
+    return hasValue(fecha_equivalente) && fecha_equivalente_is_positive ? fecha_equivalente : DateUtils.format({ dateFormat: 'DD-MM-YYYY' })
+  }
+
   parse() {
     console.log(' ');
     console.log(' ');
@@ -131,8 +141,7 @@ export class ParseDocument {
             ZonaVenta: null,
             RutaVenta: null,
             InformacionAdicionalEmisor: null,
-            // FechaEmision: hasValue(this.document.fecha_equivalente) ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : DateUtils.format({ dateFormat: 'DD-MM-YYYY' }),
-            FechaEmision: DateUtils.format({ dateFormat: 'DD-MM-YYYY' }),
+            FechaEmision: this.fecha_emision,
           },
           Comprador: {
             RNCComprador: null,

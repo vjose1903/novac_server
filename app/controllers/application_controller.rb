@@ -36,8 +36,8 @@ class ApplicationController < ActionController::API
     # certification_params = { TipoeCF: 34, numero_comprobante: 'E340000000006' }.with_indifferent_access
     # document      = Nota.find_by_id(51)
 
-    certification_params = { TipoeCF: 31, numero_comprobante: 'E310000000015' }.with_indifferent_access
-    document        = CabeceraFactura.find_by_id(528)
+    certification_params = { TipoeCF: 32, numero_comprobante: 'E320000000012' }.with_indifferent_access
+    document        = CabeceraFactura.find_by_id(218)
 
     document_parsed = DGII_MANAGER.send(document, certification_params)
 

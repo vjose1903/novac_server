@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RFCE>
+  <Encabezado>
+    <Version>1.0</Version>
+    <IdDoc>
+      <TipoeCF>32</TipoeCF>
+      <eNCF>E320000000008</eNCF>
+      <TipoIngresos>01</TipoIngresos>
+      <TipoPago>1</TipoPago>
+      <TablaFormasPago>
+        <FormaDePago>
+          <FormaPago>1</FormaPago>
+          <MontoPago>1802.5</MontoPago>
+        </FormaDePago>
+      </TablaFormasPago>
+    </IdDoc>
+    <Emisor>
+      <RNCEmisor>131996035</RNCEmisor>
+      <RazonSocialEmisor>AGROPECUARIA DELIA &amp; MILO AGRODEMI SRL</RazonSocialEmisor>
+      <FechaEmision>30-04-2025</FechaEmision>
+    </Emisor>
+    <Comprador>
+      <RazonSocialComprador>Cliente contado</RazonSocialComprador>
+    </Comprador>
+    <Totales>
+      <MontoExento>1802.5</MontoExento>
+      <MontoTotal>1802.5</MontoTotal>
+    </Totales>
+    <CodigoSeguridadeCF>UZSFjn</CodigoSeguridadeCF>
+  </Encabezado>
+  <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <SignedInfo>
+      <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+      <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+      <Reference URI="">
+        <Transforms>
+          <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+        </Transforms>
+        <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+        <DigestValue>iDyrkJe66ENIdVZP6vvppQALsSOGEB8klUdP4t9Ltyk=</DigestValue>
+      </Reference>
+    </SignedInfo>
+    <SignatureValue>GGi+wJXm4KGF9jm1SYvUPW/KgeYOzu1tYQga0OqzfLw5RDXB+a0YSWpUqEMNAfNnE6KrSqcSq//35CXbMFmYe9QLdruYHV27EWGC9i6sGB4NGf19Fz0ixUrmZ0YFtge8UgZsSYD4IKT6TcxUNywd46hTtWqTvr9XmnOt6g7ornGWIc+sTGKrWJYcGUOALjmI2vJ6XMRXM1FV2E1OhOUbVZ/+P0iarr3YdGpEmphxwVvHaBHbiAYHQsz+6Wa2PLmUdTKu1XysaZeg2EE/a41LGTYecL6bfHRYdv93XjI1u9U1WhWCSuChWySmsx6WLhyTc9fy2c/8F3TZHBV4VsA0YQ==</SignatureValue>
+    <KeyInfo>
+      <X509Data>
+        <X509Certificate>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</X509Certificate>
+      </X509Data>
+    </KeyInfo>
+  </Signature>
+</RFCE>
