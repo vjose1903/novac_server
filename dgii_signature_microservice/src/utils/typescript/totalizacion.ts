@@ -2,6 +2,7 @@ import { DetalleFacturaI, FacturaI } from '@core/types/factura.types';
 import { DetallesFacturasNota, NotaI } from '@core/types/notas.types';
 import { TotalI } from '@core/types/xml/xml_json';
 import Big from 'big.js';
+import { redondearNum } from './functions';
 
 export class Totalizacion {
   constructor() {}
@@ -30,7 +31,7 @@ export class Totalizacion {
     if (totales.MontoGravadoI1) totales.MontoGravadoTotal = totales.MontoGravadoI1;
     totales.TotalITBIS = totales.TotalITBIS1;
 
-    totales.MontoTotal = (totales.MontoGravadoTotal || 0) + (totales.MontoExento || 0) + (totales.TotalITBIS || 0);
+    totales.MontoTotal = Number(redondearNum((totales.MontoGravadoTotal || 0) + (totales.MontoExento || 0) + (totales.TotalITBIS || 0)));
     // totales.ValorPagar = totales.MontoTotal;
 
     return totales;

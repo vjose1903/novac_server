@@ -74,17 +74,18 @@ export class ParseDocument {
   }
 
   get eNCF() {
-    return this.document.numero_comprobante
+    return this.document.numero_comprobante;
   }
 
   get fecha_emision() {
-    const fecha_equivalente = hasValue(this.document.fecha_equivalente) ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : null
-    console.log(" \n\n fecha_equivalente ---> ", fecha_equivalente);
+    if (!hasValue(this.document.fecha_equivalente)) return DateUtils.format({ dateFormat: 'DD-MM-YYYY' });
     
-    const fecha_equivalente_is_positive = DateUtils.compareDates(fecha_equivalente, DateUtils.format({ dateFormat: 'DD-MM-YYYY' })) >= 0
-    console.log("fecha_equivalente_is_positive ---> ", fecha_equivalente_is_positive);
-
-    return hasValue(fecha_equivalente) && fecha_equivalente_is_positive ? fecha_equivalente : DateUtils.format({ dateFormat: 'DD-MM-YYYY' })
+    const fechaComparacion = DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'YYYY-MM-DD' });
+    const fechaActual = DateUtils.format({ dateFormat: 'YYYY-MM-DD' });
+    
+    const esFechaValida = DateUtils.compareDates(fechaActual, fechaComparacion) >= 0;
+    
+    return esFechaValida ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : DateUtils.format({ dateFormat: 'DD-MM-YYYY' });
   }
 
   parse() {
@@ -274,12 +275,18 @@ export class ParseDocument {
 
     // ENCABEZADO IDDOC
 
-    if (this.isNota) {
+    if (this.isNota && this.document.TipoeCF == tipoComprobanteE.nota_de_credito) {
       document_parsed.ECF.Encabezado.IdDoc.IndicadorNotaCredito = this.daysFromNow > 30 ? 1 : 0;
     }
 
     if (hasValue(this.factura.fecha_vencimiento)) {
       document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
+
+      const fecha_vencimiento_certificacion = DateUtils.addDays(30);
+      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
+
+      console.log("document_parsed.ECF.Encabezado.IdDoc ", document_parsed.ECF.Encabezado.IdDoc);
+      
     }
 
     if (this.document.TipoeCF == tipoComprobanteE.factura_de_credito_fiscal || this.document.TipoeCF == tipoComprobanteE.nota_de_credito) {

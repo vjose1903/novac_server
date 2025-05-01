@@ -151,7 +151,7 @@ export class DgiiAuthService {
     try {
       await this.authenticate();
       if (this.tokenIsInvalid()) {
-        throw { success: false, message: 'Error de autenticación. No se pudo obtener un token válido.' };
+        throw { success: false, message: 'Error de autenticación. No se pudo obtener un token válido.', secuenciaUtilizada: false };
       }
       return { success: true };
     } catch (error) {

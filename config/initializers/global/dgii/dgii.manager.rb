@@ -2,19 +2,41 @@ module DGII_MANAGER
   @certification_params = nil
 
   def self.send(document, certification_params = nil)
+    res = Response.new
+
     @certification_params = certification_params
 
-    document_parsed = DGII_MANAGER.parse(document)
+    document_parsed       = DGII_MANAGER.parse(document)
 
-    client = BaseRequest::Client.new('novac-dgii')
+    client   = BaseRequest::Client.new('novac-dgii')
 
     response = client.create_one(document_parsed)
-    puts "response --> ".red + " #{response}"
+
+    data_response = response.with_indifferent_access[:data]
+
+    if data_response[:secuenciaUtilizada] && data_response[:estado].downcase != 'rechazado'
+      document.fecha_hora_firma   = data_response[:fecha_hora_firma]
+      document.trackId            = data_response[:trackId]
+      document.security_code      = data_response[:security_code]
+      document.xml_file_name      = data_response[:xml_file_name]
+      document.qr_url_dgii        = data_response[:qr_url_dgii]
+
+      unless @certification_params == nil
+        document.save!
+      end
+    end
 
 
 
-    return response.with_indifferent_access
-    # return document_parsed
+    res.set_data(data_response.with_indifferent_access)
+    res.add_msg(response[:message])
+
+    if data_response[:estado].downcase == 'rechazado'
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    # TODO: SI GET_DATA DEL RES TIENE LA PROPIEDAD 'secuenciaUtilizada' independientemente del estado tengo que sumar la secuencia
+    return res
   end
 
   def self.parse(document)
@@ -92,6 +114,7 @@ module DGII_MANAGER
       detalle_nota_parsed[:factura] = factura.attributes
 
       unless @certification_params == nil
+      detalle_nota_parsed[:factura][:fecha_vencimiento] = validate_fecha_vencimiento(factura.attributes)
 
       end
 
@@ -161,7 +184,6 @@ module DGII_MANAGER
 
       # Crear DateTime con hora específica (7:59 AM)
       fecha_con_hora = DateTime.new(fecha_base.year, fecha_base.month, fecha_base.day, 7, 59, 0)
-
       # Convertir a formato ISO 8601 con milisegundos
       return fecha_con_hora.utc.iso8601(3)
     end

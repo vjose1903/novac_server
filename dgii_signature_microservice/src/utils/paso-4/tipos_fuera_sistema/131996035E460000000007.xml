@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ECF>
+  <Encabezado>
+    <Version>1.0</Version>
+    <IdDoc>
+      <TipoeCF>46</TipoeCF>
+      <eNCF>E460000000007</eNCF>
+      <FechaVencimientoSecuencia>31-12-2025</FechaVencimientoSecuencia>
+      <TipoIngresos>01</TipoIngresos>
+      <TipoPago>1</TipoPago>
+    </IdDoc>
+    <Emisor>
+      <RNCEmisor>131996035</RNCEmisor>
+      <RazonSocialEmisor>AGROPECUARIA DELIA &amp; MILO AGRODEMI SRL</RazonSocialEmisor>
+      <DireccionEmisor>Autopista Duarte Km0 El Higüero, La Vega</DireccionEmisor>
+      <Municipio>130101</Municipio>
+      <Provincia>130000</Provincia>
+      <TablaTelefonoEmisor>
+        <TelefonoEmisor>809-573-0060</TelefonoEmisor>
+      </TablaTelefonoEmisor>
+      <CorreoEmisor>agrodemisrl@gmail.com</CorreoEmisor>
+      <FechaEmision>30-04-2025</FechaEmision>
+    </Emisor>
+    <Comprador>
+      <RNCComprador>131726704</RNCComprador>
+      <RazonSocialComprador>PETROLINE </RazonSocialComprador>
+      <NumeroOrdenCompra>F250418042659</NumeroOrdenCompra>
+    </Comprador>
+    <Totales>
+      <MontoGravadoTotal>664000.00</MontoGravadoTotal>
+      <MontoGravadoI3>664000.00</MontoGravadoI3>
+      <ITBIS3>0</ITBIS3>
+      <TotalITBIS>0.00</TotalITBIS>
+      <TotalITBIS3>0.00</TotalITBIS3>
+      <MontoTotal>664000.00</MontoTotal>
+    </Totales>
+  </Encabezado>
+  <DetallesItems>
+    <Item>
+      <NumeroLinea>1</NumeroLinea>
+      <IndicadorFacturacion>3</IndicadorFacturacion>
+      <NombreItem>VENTANAS CORREDERAS P-92 PLATA, VIDRIO CLARO LISO 132.80P</NombreItem>
+      <IndicadorBienoServicio>1</IndicadorBienoServicio>
+      <CantidadItem>10</CantidadItem>
+      <PrecioUnitarioItem>66400.00</PrecioUnitarioItem>
+      <MontoItem>664000.00</MontoItem>
+    </Item>
+  </DetallesItems>
+  <FechaHoraFirma></FechaHoraFirma>
+</ECF>

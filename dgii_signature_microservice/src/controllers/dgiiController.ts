@@ -15,7 +15,7 @@ export const handleNovacDgiiRequest = async (req: Request, res: Response) => {
       .then(resp => {
         const { success, message, data, ...res } = resp;
 
-        response.add_status(200).add_msg(message).add_data({ ...data }).send();
+        response.add_status(200).add_msg(message).add_data(data).send();
       })
       .catch(error => {
         console.error('error >>>', error);
