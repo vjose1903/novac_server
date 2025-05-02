@@ -22,9 +22,14 @@ console.log(' ');
 console.log(' ');
 
 async function prueba() {
-  const fecha_vencimiento_certificacion = DateUtils.addDays(30);
-  const fecha = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
-  console.log('fecha >> ', fecha);
+  // const fecha_vencimiento_certificacion = DateUtils.addDays(30);
+  // const fecha = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
+  // console.log('fecha >> ', fecha);
+
+  const authService = DgiiAuthService.getInstance();
+  await authService.testAuthentication();
+
+  authService.testAuthentication();
 
   // const parser_factura = new ParseDocument(factura_31);
   // const factura = parser_factura.parse();

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import ECF, { P12Reader, ENVIRONMENT, Signature } from 'dgii-ecf';
-import { isEmpty } from '../../utils/typescript/functions';
+import { hasValue, isEmpty } from '../../utils/typescript/functions';
 import fs from 'fs';
 import { TokenData } from '../types/token.types';
 
@@ -69,9 +69,14 @@ export class DgiiAuthService {
 
   public async testAuthentication() {
     try {
+      console.log('HAY TOKEN PREVIO', hasValue(this.authToken));
       const result = await this.authenticate();
       console.log('Test de autenticación exitoso:', result);
       console.log('Token actual:', this.authToken);
+      console.log(" ");
+      console.log(" ");
+      console.log(" ");
+      
       return result;
     } catch (error) {
       console.error('Test de autenticación fallido:', error);
@@ -82,6 +87,8 @@ export class DgiiAuthService {
   private async authenticate() {
     return new Promise<{ success: boolean; message?: string }>((resolvePrincipal, rejectPrincipal) => {
       console.log(' ----- authenticate ----- ');
+      console.log('this.isAuthenticating', this.isAuthenticating);
+      
 
       if (this.isAuthenticating) {
         this.authQueue.push({ resolve: resolvePrincipal, reject: rejectPrincipal });

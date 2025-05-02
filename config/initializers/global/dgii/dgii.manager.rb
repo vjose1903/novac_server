@@ -14,7 +14,7 @@ module DGII_MANAGER
 
     data_response = response.with_indifferent_access[:data]
 
-    if data_response[:secuenciaUtilizada] && data_response[:estado].downcase != 'rechazado'
+    if data_response[:secuenciaUtilizada] && ((data_response[:estado].present? && data_response[:estado].downcase != 'rechazado') || !data_response[:estado].present?)
       document.fecha_hora_firma   = data_response[:fecha_hora_firma]
       document.trackId            = data_response[:trackId]
       document.security_code      = data_response[:security_code]
@@ -114,7 +114,7 @@ module DGII_MANAGER
       detalle_nota_parsed[:factura] = factura.attributes
 
       unless @certification_params == nil
-      detalle_nota_parsed[:factura][:fecha_vencimiento] = validate_fecha_vencimiento(factura.attributes)
+      detalle_nota_parsed[:factura][:fecha_vencimiento] = validate_fecha_vencimiento(factura.attributes.with_indifferent_access)
 
       end
 
@@ -165,6 +165,14 @@ module DGII_MANAGER
 
   def self.validate_fecha_vencimiento(document)
     fecha_vencimiento = document[:fecha_vencimiento]
+    puts " "
+    puts " "
+    puts " "
+    puts "document          ".green + " #{document}"
+    puts "fecha_vencimiento ".green + " #{fecha_vencimiento}"
+    puts " "
+    puts " "
+    puts " "
 
     if fecha_vencimiento.nil?
       return nil

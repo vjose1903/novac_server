@@ -77,6 +77,8 @@ export class DgiiEcfService {
               console.log(' =====================================================');
               console.log(' ');
               console.log(' ');
+              const fc_extendido_file_name = fileName.replace('.xml', '_ext.xml');
+              crearArchivoXML(signedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fc_extendido_file_name}`));
 
               const { xml } = convertECF32ToRFCE(signedXml);
 
@@ -104,8 +106,11 @@ export class DgiiEcfService {
               );
             }
 
+            console.log('sendResponse ', sendResponse);
+
             this.validateSendResponse(sendResponse)
               .then(async response => {
+                console.log('response validation ', response);
                 // -------------------------------------------------------
                 const formattedXml = xmlFormatter(signedXml, {
                   collapseContent: true,
@@ -113,14 +118,19 @@ export class DgiiEcfService {
                   lineSeparator: '\n',
                   prettyPrint: true,
                 });
-                // -------------------------------------------------------
+                console.log('1');
 
+                // -------------------------------------------------------
+                // if (getProperty(response, 'estado') !== TrackStatusEnum.REJECTED) {
                 if (parser.rnc_comprador) {
-                  const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
+                  // const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
                   // console.log('\n\nresponseCustomerDirectory ', responseCustomerDirectory);
                 }
+                console.log('2');
 
                 crearArchivoXML(formattedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fileName}`));
+
+                console.log('3');
 
                 const data = {
                   fecha_hora_firma: factura.ECF.FechaHoraFirma,
@@ -129,6 +139,8 @@ export class DgiiEcfService {
                   secuenciaUtilizada: getProperty(response, 'secuenciaUtilizada'),
                   qr_url_dgii,
                 };
+
+                console.log('data ', data);
 
                 data['estado'] = 'estado' in response ? response?.estado : null;
                 data['trackId'] = 'trackId' in response ? response?.trackId : null;

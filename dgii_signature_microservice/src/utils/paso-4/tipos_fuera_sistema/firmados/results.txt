@@ -1,0 +1,211 @@
+
+
+(1): 131996035E410000010001.xml
+{
+  "envio": {
+    "trackId": "133aa9ea-c259-4a8d-b26d-fe6a730c38b3",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "133aa9ea-c259-4a8d-b26d-fe6a730c38b3",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E410000010001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "5/1/2025 10:16:25 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  },
+  "qr_url_dgii": "https://ecf.dgii.gov.do/certecf/consultatimbre?rncemisor=131996035&RncComprador=131537804&encf=E410000010001&FechaEmision=30-04-2025&montototal=5900.00&FechaFirma=01-05-2025%2010:16:24&codigoseguridad=f0fd9o",
+  "qr_url_dgii_data": {
+    "rncemisor": "131996035",
+    "encf": "E410000010001",
+    "montototal": "5900.00",
+    "env": "CerteCF",
+    "codigoseguridad": "f0fd9o",
+    "rncComprador": "131537804",
+    "fechaEmision": "30-04-2025",
+    "fechaFirma": "01-05-2025 10:16:24"
+  }
+}
+
+(2): 131996035E430000010001.xml
+{
+  "envio": {
+    "trackId": "a2373e83-741f-401d-abb0-f774190786e8",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "a2373e83-741f-401d-abb0-f774190786e8",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E430000010001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "5/1/2025 10:16:26 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  },
+  "qr_url_dgii": "https://ecf.dgii.gov.do/certecf/consultatimbre?rncemisor=131996035&encf=E430000010001&FechaEmision=30-04-2025&montototal=300.00&FechaFirma=01-05-2025%2010:16:26&codigoseguridad=JYBBrN",
+  "qr_url_dgii_data": {
+    "rncemisor": "131996035",
+    "encf": "E430000010001",
+    "montototal": "300.00",
+    "env": "CerteCF",
+    "codigoseguridad": "JYBBrN",
+    "rncComprador": "",
+    "fechaEmision": "30-04-2025",
+    "fechaFirma": "01-05-2025 10:16:26"
+  }
+}
+
+(3): 131996035E440000010001.xml
+{
+  "envio": {
+    "trackId": "45b6783f-3732-4b54-a4ac-c13651e8173f",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "45b6783f-3732-4b54-a4ac-c13651e8173f",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E440000010001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "5/1/2025 10:16:27 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  },
+  "qr_url_dgii": "https://ecf.dgii.gov.do/certecf/consultatimbre?rncemisor=131996035&RncComprador=131471048&encf=E440000010001&FechaEmision=30-04-2025&montototal=39000.00&FechaFirma=01-05-2025%2010:16:26&codigoseguridad=efCcq7",
+  "qr_url_dgii_data": {
+    "rncemisor": "131996035",
+    "encf": "E440000010001",
+    "montototal": "39000.00",
+    "env": "CerteCF",
+    "codigoseguridad": "efCcq7",
+    "rncComprador": "131471048",
+    "fechaEmision": "30-04-2025",
+    "fechaFirma": "01-05-2025 10:16:26"
+  }
+}
+
+(4): 131996035E450000010001.xml
+{
+  "envio": {
+    "trackId": "2dd96f5f-3922-4683-8424-ae929f7ca576",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "2dd96f5f-3922-4683-8424-ae929f7ca576",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E450000010001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "5/1/2025 10:16:28 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  },
+  "qr_url_dgii": "https://ecf.dgii.gov.do/certecf/consultatimbre?rncemisor=131996035&RncComprador=131471048&encf=E450000010001&FechaEmision=30-04-2025&montototal=76700.00&FechaFirma=01-05-2025%2010:16:27&codigoseguridad=bf3F0e",
+  "qr_url_dgii_data": {
+    "rncemisor": "131996035",
+    "encf": "E450000010001",
+    "montototal": "76700.00",
+    "env": "CerteCF",
+    "codigoseguridad": "bf3F0e",
+    "rncComprador": "131471048",
+    "fechaEmision": "30-04-2025",
+    "fechaFirma": "01-05-2025 10:16:27"
+  }
+}
+
+(5): 131996035E460000010001.xml
+{
+  "envio": {
+    "trackId": "ac43c218-c55f-4db3-8289-f76c34db3343",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "ac43c218-c55f-4db3-8289-f76c34db3343",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E460000010001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "5/1/2025 10:16:28 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  },
+  "qr_url_dgii": "https://ecf.dgii.gov.do/certecf/consultatimbre?rncemisor=131996035&RncComprador=131726704&encf=E460000010001&FechaEmision=30-04-2025&montototal=664000.00&FechaFirma=01-05-2025%2010:16:28&codigoseguridad=Wn1mMq",
+  "qr_url_dgii_data": {
+    "rncemisor": "131996035",
+    "encf": "E460000010001",
+    "montototal": "664000.00",
+    "env": "CerteCF",
+    "codigoseguridad": "Wn1mMq",
+    "rncComprador": "131726704",
+    "fechaEmision": "30-04-2025",
+    "fechaFirma": "01-05-2025 10:16:28"
+  }
+}
+
+(6): 131996035E470000010001.xml
+{
+  "envio": {
+    "trackId": "d2cec630-e1b7-4225-8d17-184560ad3cc5",
+    "error": null,
+    "mensaje": null
+  },
+  "consulta": {
+    "trackId": "d2cec630-e1b7-4225-8d17-184560ad3cc5",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "131996035",
+    "encf": "E470000010001",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "5/1/2025 10:16:29 AM",
+    "mensajes": [
+      {
+        "valor": "",
+        "codigo": 0
+      }
+    ]
+  },
+  "qr_url_dgii": "https://ecf.dgii.gov.do/certecf/consultatimbre?rncemisor=131996035&encf=E470000010001&FechaEmision=30-04-2025&montototal=5000.00&FechaFirma=01-05-2025%2010:16:29&codigoseguridad=GNZpyS",
+  "qr_url_dgii_data": {
+    "rncemisor": "131996035",
+    "encf": "E470000010001",
+    "montototal": "5000.00",
+    "env": "CerteCF",
+    "codigoseguridad": "GNZpyS",
+    "rncComprador": "",
+    "fechaEmision": "30-04-2025",
+    "fechaFirma": "01-05-2025 10:16:29"
+  }
+}

@@ -79,12 +79,12 @@ export class ParseDocument {
 
   get fecha_emision() {
     if (!hasValue(this.document.fecha_equivalente)) return DateUtils.format({ dateFormat: 'DD-MM-YYYY' });
-    
+
     const fechaComparacion = DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'YYYY-MM-DD' });
     const fechaActual = DateUtils.format({ dateFormat: 'YYYY-MM-DD' });
-    
+
     const esFechaValida = DateUtils.compareDates(fechaActual, fechaComparacion) >= 0;
-    
+
     return esFechaValida ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : DateUtils.format({ dateFormat: 'DD-MM-YYYY' });
   }
 
@@ -282,18 +282,22 @@ export class ParseDocument {
     if (hasValue(this.factura.fecha_vencimiento)) {
       document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
 
+      // PARA LA CERTIFICACION -----
       const fecha_vencimiento_certificacion = DateUtils.addDays(30);
       document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
-
-      console.log("document_parsed.ECF.Encabezado.IdDoc ", document_parsed.ECF.Encabezado.IdDoc);
-      
+      // ---------------------------
     }
 
-    if (this.document.TipoeCF == tipoComprobanteE.factura_de_credito_fiscal || this.document.TipoeCF == tipoComprobanteE.nota_de_credito) {
+    const no_fecha_vencimiento = [tipoComprobanteE.factura_de_consumo, tipoComprobanteE.nota_de_credito];
+    if (!no_fecha_vencimiento.includes(this.document.TipoeCF)) {
       if (this.isFactura) {
         document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = this.document.fecha_valida ? DateUtils.format({ date: this.document.fecha_valida, dateFormat: 'DD-MM-YYYY' }) : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
         document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${this.document.cliente?.limite_credito} días`;
       }
+
+      // PARA LA CERTIFICACION -----
+      document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
+      // ---------------------------
     }
 
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
@@ -301,8 +305,6 @@ export class ParseDocument {
     document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago = [];
 
     if (this.isFactura && this.factura.condicion != condicionE.credito) {
-      console.log('this.factura.total_factura >>> ', this.factura.total_factura);
-
       const forma_pago: FormaDePagoE = { FormaPago: forma_pago_codeE[normalizarTexto(this.factura.forma_pago)] };
       forma_pago.MontoPago = this.factura.total_factura;
 
@@ -333,7 +335,7 @@ export class ParseDocument {
       document_parsed.ECF.InformacionReferencia = {
         NCFModificado: this.factura.numero_comprobante,
         RNCOtroContribuyente: null,
-        FechaNCFModificado: DateUtils.format({ date: this.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }), //TODO: verificar si es necesario siempre en las notas de credito
+        FechaNCFModificado: DateUtils.format({ date: this.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }),
         CodigoModificacion: codigo_modificacion,
       };
     }

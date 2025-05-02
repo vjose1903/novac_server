@@ -4,10 +4,11 @@ import { DgiiEcfService } from '@core/services/DgiiEcf.service'; // Importamos e
 import { handleNovacDgiiRequest } from '@controllers/dgiiController';
 import { DgiiAnulacionService } from '@core/services/DgiiAnulacion.service';
 import { DgiiAuthService } from '@core/services/DgiiAuth.service';
+import { ENVIRONMENT } from 'dgii-ecf';
 
 
 if (process.env.ENV !== 'PROD') {
-  printEnvironment('DESARROLLO');
+  printEnvironment(`DESARROLLO: ${ENVIRONMENT[process.env.ENV]}`);
   import('dotenv/config');
 } else {
   printEnvironment('PRODUCCIÓN');
@@ -15,9 +16,9 @@ if (process.env.ENV !== 'PROD') {
 
 function printEnvironment(environment: string) {
   console.log('  ');
-  console.log(' - - - - - - - - - - - - - - - - - - - -');
+  console.log(' - - - - - - - - - - - - - - - - - - - - - - - - -');
   console.log(`  EJECUTANDO EN AMBIENTE DE ${environment}`);
-  console.log(' - - - - - - - - - - - - - - - - - - - -');
+  console.log(' - - - - - - - - - - - - - - - - - - - - - - - - -');
   console.log('  ');
 }
 
