@@ -116,6 +116,8 @@ export function hasValue(value: any): boolean {
  * @example getProperty({ a: { b: 2 } }, 'a.b') // Retorna 2
  */
 export function getProperty(obj: any, prop: string) {
+  if (isEmpty(obj)) return null;
+
   const value = prop.split('.').reduce((objeto, property) => objeto?.[property], obj);
   return value ?? null;
 }

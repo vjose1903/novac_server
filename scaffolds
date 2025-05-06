@@ -44,6 +44,9 @@ rails g migration AddDetalleFacturaToDetalleFactura detalle_factura_nota:integer
 rails g migration AddEstadoToReciboIngreso estado:boolean
 rails g migration AddFechaEquivalenteToCuadreCaja fecha_equivalente:datetime
 rails g migration AddCamposToDetalleDacturasNotas cantidad_origin:float codigo:string
+rails g migration ChangeCamposFacturacionElectronica
+rails g migration ChangeCamposFacturacionElectronicaNota
+rails g migration AddSerieToNotas serie:string
 
 
 
@@ -160,6 +163,7 @@ rails g migration addCamposToReciboIngreso
 rails g migration addCodigoToProvincia
 rails g migration addMunicipioToCliente
 rails g migration addCamposXMLToDocumentos
+rails g migration addCamposMoreXMLToDocumentos
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 

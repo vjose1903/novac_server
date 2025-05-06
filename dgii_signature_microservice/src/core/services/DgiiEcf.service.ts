@@ -8,7 +8,7 @@ import { ParseDocument } from '@utils/typescript/parseDocument';
 import { FacturaI } from '@core/types/factura.types';
 import { NotaI } from '@core/types/notas.types';
 import { EcfXmlJson } from '@core/types/xml/xml_json';
-import { tipoComprobanteE } from '@core/constants/factura.const';
+import { codigo_modificacion_labelE, num_codigo_modificacion_to_label, tipoComprobanteE } from '@core/constants/factura.const';
 import { rootElNameE } from '@core/constants/xml.const';
 import { QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DateUtils } from '@vjose1903/dateutils';
@@ -140,6 +140,10 @@ export class DgiiEcfService {
                   qr_url_dgii,
                 };
 
+                if (jsonData.TipoeCF == tipoComprobanteE.nota_de_credito || jsonData.TipoeCF == tipoComprobanteE.nota_de_debito) {
+                  const codigo_modificacion = getProperty(factura?.ECF?.InformacionReferencia, 'CodigoModificacion');
+                  if (codigo_modificacion) data['razon'] = codigo_modificacion_labelE[num_codigo_modificacion_to_label[`_${codigo_modificacion}`]];
+                }
                 console.log('data ', data);
 
                 data['estado'] = 'estado' in response ? response?.estado : null;

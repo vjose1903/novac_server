@@ -8,7 +8,7 @@ import Big from 'big.js';
 export class Detalles {
   constructor() {}
 
-  parse(detalles: DetalleFacturaI[] | DetallesFacturasNota[]) {
+  parse(detalles: DetalleFacturaI[] | DetallesFacturasNota[], isFactura: boolean) {
     const detallesItems = { Item: [] };
 
     detalles.forEach((item: DetalleFacturaI | DetallesFacturasNota, index: number) => {
@@ -37,9 +37,16 @@ export class Detalles {
       if (descuento) {
         const isPriceChange = item.cantidad == 0;
 
-        const descuento_big = Big(descuento);
-        const descuento_equivalente = descuento_big.div(item.cantidad_origin).toNumber();
-        const descuento_proporcional = descuento_equivalente * (isPriceChange ? item.cantidad_origin : item.cantidad);
+        let descuento_proporcional = 0;
+
+        if (isFactura) {
+          descuento_proporcional = descuento;
+        } else {
+          const descuento_big = Big(descuento);
+          const descuento_equivalente = descuento_big.div(item.cantidad_origin).toNumber();
+
+          descuento_proporcional = descuento_equivalente * (isPriceChange ? item.cantidad_origin : item.cantidad);
+        }
 
         itemParsed.DescuentoMonto = redondearNum(descuento_proporcional);
 

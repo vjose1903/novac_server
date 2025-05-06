@@ -319,7 +319,7 @@ export class ParseDocument {
     document_parsed.ECF.Encabezado.Totales = totales as any;
 
     // DETALLESITEMS
-    document_parsed.ECF.DetallesItems = this.detallesClass.parse(this.detalles);
+    document_parsed.ECF.DetallesItems = this.detallesClass.parse(this.detalles, this.isFactura);
 
     // Paginacion
     document_parsed.ECF.Paginacion = this.parsePaginacion();

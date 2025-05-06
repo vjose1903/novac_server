@@ -36,6 +36,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   attribute :fecha_hora_firma,                               if: Proc.new { self.get_param('all') || self.get_param('fecha_hora_firma')  }
   attribute :qr_url_dgii,                                    if: Proc.new { self.get_param('all') || self.get_param('qr_url_dgii')  }
   attribute :trackId,                                        if: Proc.new { self.get_param('all') || self.get_param('trackId')  }
+  attribute :security_code,                                  if: Proc.new { self.get_param('all') || self.get_param('security_code')  }
   attribute :movimientos_viaje,                              if: Proc.new { self.get_param('movimientos_viaje') }
 
   attribute :tipo_factura,                                   if: Proc.new { self.get_param('all') || self.get_param('tipo_factura')  }

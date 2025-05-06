@@ -1,7 +1,11 @@
 module DGII_MANAGER
   @certification_params = nil
+  @is_nota    = false
+  @is_factura = false
 
   def self.send(document, certification_params = nil)
+    DGII_MANAGER.determinate_document(document)
+
     res = Response.new
 
     @certification_params = certification_params
@@ -14,18 +18,24 @@ module DGII_MANAGER
 
     data_response = response.with_indifferent_access[:data]
 
-    if data_response[:secuenciaUtilizada] && ((data_response[:estado].present? && data_response[:estado].downcase != 'rechazado') || !data_response[:estado].present?)
+    estado = data_response[:estado].present? ? data_response[:estado] : nil
+
+    document.is_aceptada          = estado.nil? ? false : estado.downcase != 'rechazado'
+    document.dgii_message         = response[:message]
+    document.estado               = false  unless document.is_aceptada
+
+    if data_response[:secuenciaUtilizada] && ((estado && estado.downcase != 'rechazado') || !data_response[:estado].present?)
       document.fecha_hora_firma   = data_response[:fecha_hora_firma]
       document.trackId            = data_response[:trackId]
       document.security_code      = data_response[:security_code]
       document.xml_file_name      = data_response[:xml_file_name]
       document.qr_url_dgii        = data_response[:qr_url_dgii]
+      document.razon              = data_response[:razon] if @is_nota &&  data_response[:razon].present?
 
       unless @certification_params == nil
         document.save!
       end
     end
-
 
 
     res.set_data(data_response.with_indifferent_access)
@@ -39,16 +49,21 @@ module DGII_MANAGER
     return res
   end
 
+  def self.determinate_document(document)
+    model_name = document.model_name.element
+
+    @is_nota    = model_name == 'nota'
+    @is_factura = model_name == 'cabecera_factura'
+  end
+
   def self.parse(document)
     process                     = document.attributes
 
     process[:cliente]           = parse_cliente(document)
     process[:fecha_vencimiento] = validate_fecha_vencimiento(document)
 
-
-    model_name = document.model_name.element
-    return parse_factura(process, document) if model_name == 'cabecera_factura'
-    return parse_nota(process, document)    if model_name == 'nota'
+    return parse_factura(process, document) if @is_factura
+    return parse_nota(process, document)    if @is_nota
   end
 
   # ========================================================================================================

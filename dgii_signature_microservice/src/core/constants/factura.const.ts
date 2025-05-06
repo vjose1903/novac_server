@@ -127,10 +127,18 @@ export enum codigo_modificacionE {
   referencia_factura_consumo = '3',
 }
 
+export const num_codigo_modificacion_to_label = {
+  '_1' : 'anulacion',
+  '_2' : 'correccion_texto',
+  '_3' : 'correccion_monto',
+  '_4' : 'reemplazo_contingencia',
+  '_5' : 'referencia_factura_consumo',
+}
+
 export enum codigo_modificacion_labelE {
-  anulacion = 'Anulación total',
-  correccion_texto = 'Corrección Texto',
-  correccion_monto = 'Corrección montos',
+  anulacion = 'Anula el NCF modificado',
+  correccion_texto = 'Corrige Texto del Comprobante Fiscal modificado',
+  correccion_monto = 'Corrige montos del NCF modificado',
   reemplazo_contingencia = 'Reemplazo NCF emitido en contingencia',
-  referencia_factura_consumo = 'Referencia Factura de Consumo Electrónica',
+  referencia_factura_consumo = 'Referencia Factura Consumo Electrónica',
 }

@@ -1,5 +1,5 @@
 import { DgiiEcfService } from '../core/services/DgiiEcf.service';
-import { sleep } from './typescript/functions';
+import { getProperty, sleep } from './typescript/functions';
 import { ParseDocument } from './typescript/parseDocument';
 import { factura_31 } from './factura_31';
 import { DateUtils } from '@vjose1903/dateutils';
@@ -10,6 +10,8 @@ import { DgiiAnulacionService } from '@core/services/DgiiAnulacion.service';
 import path from 'path';
 import { P12ReaderData } from '@core/types/readerData.types';
 import { DgiiAuthService } from '@core/services/DgiiAuth.service';
+import { num_codigo_modificacion_to_label } from '@core/constants/factura.const';
+import { codigo_modificacion_labelE } from '@core/constants/factura.const';
 
 console.log(' ');
 console.log(' ');
@@ -25,11 +27,16 @@ async function prueba() {
   // const fecha_vencimiento_certificacion = DateUtils.addDays(30);
   // const fecha = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
   // console.log('fecha >> ', fecha);
+  const data = {test: '3'};
+  const codigo_modificacion = getProperty(data, 'test');
+  if (codigo_modificacion) data['razon'] = codigo_modificacion_labelE[num_codigo_modificacion_to_label[`_${codigo_modificacion}`]];
 
-  const authService = DgiiAuthService.getInstance();
-  await authService.testAuthentication();
+  console.log('data >> ', data);
+  
+  // const authService = DgiiAuthService.getInstance();
+  // await authService.testAuthentication();
 
-  authService.testAuthentication();
+  // authService.testAuthentication();
 
   // const parser_factura = new ParseDocument(factura_31);
   // const factura = parser_factura.parse();

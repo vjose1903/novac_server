@@ -56,6 +56,8 @@ class CabeceraFactura < ApplicationRecord
     res                                    = Response.new
     @tipo_de_documento                     = TipoFactura.find_by_id(params[:FACTURA_DE])
     @tipo_de_factura                       = TipoFactura.find_by_id(params[:tipo_factura_id])
+    @increment_secuencia_comprobante       = false
+    @is_electronica                        = params[:serie].present? && params[:serie] == SerieFactura.electronica
 
     CabeceraFactura.transaction do
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
@@ -130,8 +132,21 @@ class CabeceraFactura < ApplicationRecord
               cabecera_factura.identificador      = CabeceraFactura.makeIdentificador(cabecera_factura)
               if cabecera_factura.save!
 
-                res_valid                         = CabeceraFactura.update_secuencias(params, data_secuencias)
-                res_valid                         = cabecera_factura.procesos_cabecera() if res_valid.status_valid
+                if @is_electronica
+                  res_valid                          = DGII_MANAGER.send(cabecera_factura) if @is_electronica
+                  data_response_dgii                 = res_valid.get_data
+
+                  if data_response_dgii[:secuenciaUtilizada]
+                    @increment_secuencia_comprobante = true
+                  end
+                else
+                  @increment_secuencia_comprobante = true
+                end
+
+                res_valid   = nil
+                res_valid   = CabeceraFactura.update_secuencias(params, data_secuencias) if @increment_secuencia_comprobante
+
+                res_valid   = cabecera_factura.procesos_cabecera if res_valid&.status_valid || res_valid.nil?
 
                 if res_valid.status_valid
                   res.set_data(cabecera_factura, {all: true, movimientos_viaje: true})
@@ -288,8 +303,12 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
 
-  def procesos_cabecera()
+  def procesos_cabecera
     res               = Response.new
+
+    unless self.estado
+      return res
+    end
 
     unless self.pre_factura.nil?
       res = CabeceraFactura.payFactura(self.pre_factura, {"deposito" => self.total_factura}, true)
@@ -318,7 +337,7 @@ class CabeceraFactura < ApplicationRecord
       if data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
 
         res_aumento  = nil
-        res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if !data_secuencias[:actual_paquete_comprobante].nil? &&  data_secuencias[:actual_paquete_comprobante][:is_paquete]
+        res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id]) if !data_secuencias[:actual_paquete_comprobante].nil? && data_secuencias[:actual_paquete_comprobante][:is_paquete]
 
         unless res_aumento.nil?
           unless res_aumento.status_valid
