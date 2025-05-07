@@ -32,9 +32,7 @@ module DGII_MANAGER
       document.qr_url_dgii        = data_response[:qr_url_dgii]
       document.razon              = data_response[:razon] if @is_nota &&  data_response[:razon].present?
 
-      unless @certification_params == nil
-        document.save!
-      end
+      document.save!
     end
 
 

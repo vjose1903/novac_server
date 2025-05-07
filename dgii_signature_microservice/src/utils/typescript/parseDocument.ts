@@ -35,9 +35,9 @@ export class ParseDocument {
     this.version = this.environment.XML_VERSION || '1.0';
     this.rnc_emisor = this.environment.RNC_EMISOR || '';
     this.sheet_type = sheet_typeE[this.environment.SHEET_TYPE] || sheet_typeE.paper;
-    this.items_per_page = this.environment.ITEMS_PER_PAGE || 9;
-    this.items_per_page_credit = this.environment.ITEMS_PER_PAGE_CREDIT || 18;
-    this.items_per_page_nota = this.environment.ITEMS_PER_PAGE_NOTA || 9;
+    this.items_per_page = this.environment.ITEMS_PER_PAGE || 5;
+    this.items_per_page_credit = this.environment.ITEMS_PER_PAGE_CREDIT || 14;
+    this.items_per_page_nota = this.environment.ITEMS_PER_PAGE_NOTA || 5;
 
     this.cleanerClass = new Clean();
     this.totalizacionClass = new Totalizacion();

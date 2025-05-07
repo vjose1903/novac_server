@@ -47,6 +47,7 @@ rails g migration AddCamposToDetalleDacturasNotas cantidad_origin:float codigo:s
 rails g migration ChangeCamposFacturacionElectronica
 rails g migration ChangeCamposFacturacionElectronicaNota
 rails g migration AddSerieToNotas serie:string
+rails g migration AddKeyToTipoFacturas key:string
 
 
 
