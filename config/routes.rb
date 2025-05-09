@@ -140,7 +140,6 @@ Rails.application.routes.draw do
 
   resources :cabecera_facturas do
     collection do
-
       # cabecera facturas
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
@@ -158,7 +157,16 @@ Rails.application.routes.draw do
     end
   end
 
-  get "ruta/test"              => "application#testFunction"
+
+  # -------------------------------------------------------------------------------------------------------------------------------
+  # Facturacion Electronica
+  # -------------------------------------------------------------------------------------------------------------------------------
+  scope :fe do
+    post 'recepcion/api/ecf',           to: 'facturacion_electronica#recepcion'
+    post 'aprobacioncomercial/api/ecf', to: 'facturacion_electronica#aprobacion_comercial'
+  end
+
+  post "ruta/test"              => "application#testFunction"
 
   resources :permisos do
     collection do
