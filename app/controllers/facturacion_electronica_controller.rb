@@ -1,5 +1,9 @@
 class FacturacionElectronicaController < ApplicationController
-  skip_before_action :validateUserIsLogging!
+  if ENV["RAILS_ENV"] != "development"
+    skip_before_action :validateUserIsLogging!
+  end
+
+  
   def recepcion
     # lógica para manejar la recepción de ECF
     render json: { mensaje: "Recepción procesada" }, status: :ok
