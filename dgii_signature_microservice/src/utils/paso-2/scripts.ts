@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import ECF, { P12Reader, ENVIRONMENT, Signature } from "dgii-ecf";
 import { P12ReaderData } from "../../core/types/readerData.types";
-import { crearArchivoXML, leerArchivo, sleep } from "../typescript/functions";
+import { guardarArchivoXML, leerArchivo, sleep } from "../typescript/functions";
 import { TrackStatusEnum } from "dgii-ecf/dist/networking/types";
 const xmlFormatter = require('xml-formatter');
 
@@ -62,7 +62,7 @@ async function firmarXML(fileObj: { RNCEmisor: string; noEcf: string; file: stri
 
 		// Save the signedXml to a file
 		const formattedXml = xmlFormatter(signedXml, { collapseContent: true, indentation: '  ', lineSeparator: '\n', prettyPrint: true, });
-		crearArchivoXML(formattedXml, path.resolve( __dirname, `./firmados/${fileName}` ));
+		guardarArchivoXML(formattedXml, path.resolve( __dirname, `./firmados/${fileName}` ));
 
 		return responseConsult.estado == TrackStatusEnum.ACCEPTED
 	} catch (error) {
@@ -82,7 +82,7 @@ function saveResponse(filename: string, response: any, index: number) {
 
 	results += `\n\n(${index}): ${filename}\n${JSON.stringify(response, null, 2)}`;
 
-	crearArchivoXML(results, resultsPath);
+	guardarArchivoXML(results, resultsPath);
 }
 
 function getXMLS(): Promise< { RNCEmisor: string; noEcf: string; file: string }[] > {

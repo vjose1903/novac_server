@@ -1,7 +1,7 @@
 import * as path from 'path';
 import ECF, { ENVIRONMENT, Signature, Transformer, getCodeSixDigitfromSignature, generateFcQRCodeURL, convertECF32ToRFCE, generateEcfQRCodeURL } from 'dgii-ecf';
 import { TrackStatusEnum, TrackingStatusResponse, InvoiceSummaryResponse, InvoiceResponse } from 'dgii-ecf/dist/networking/types';
-import { crearArchivoXML, getProperty, hasValue, isEmpty, retryUntil } from '../../utils/typescript/functions';
+import { guardarArchivoXML, getProperty, hasValue, isEmpty, retryUntil } from '../../utils/typescript/functions';
 const xmlFormatter = require('xml-formatter');
 import Queue from 'queue';
 import { ParseDocument } from '@utils/typescript/parseDocument';
@@ -26,6 +26,11 @@ export class DgiiEcfService {
 
   private authService: DgiiAuthService;
   private anulacionService: DgiiAnulacionService;
+  private jsonData: FacturaI | NotaI;
+
+  private get isFCLessThan250K() {
+    return this.jsonData.TipoeCF == tipoComprobanteE.factura_de_consumo && (this.jsonData as FacturaI).total_factura < 250000
+  }
 
   private constructor() {
     this.initialize();
@@ -51,14 +56,14 @@ export class DgiiEcfService {
     this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
   }
 
-  public async firmarYEnviarXML(jsonData: FacturaI | NotaI) {
+  public async firmarYEnviarXML() {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.authService
         .validateTokenBeforeSend()
         .then(async () => {
           try {
-            const { factura, parser } = this.convertToEcfXmlJson(jsonData);
-            let fileName = `${this.environment.RNC_EMISOR}${jsonData.numero_comprobante}.xml`;
+            const { factura, parser } = this.convertToEcfXmlJson();
+            let fileName = `${this.environment.RNC_EMISOR}${this.jsonData.numero_comprobante}.xml`;
             let sendResponse = null;
             let qr_url_dgii = '';
 
@@ -69,7 +74,7 @@ export class DgiiEcfService {
             let signedXml = this.signature.signXml(xml, rootElNameE.ECF);
             qr_url_dgii_data.codigoseguridad = getCodeSixDigitfromSignature(signedXml);
 
-            if (jsonData.TipoeCF == tipoComprobanteE.factura_de_consumo && (jsonData as FacturaI).total_factura < 250000) {
+            if (this.isFCLessThan250K) {
               console.log(' ');
               console.log(' ');
               console.log(' =====================================================');
@@ -78,7 +83,7 @@ export class DgiiEcfService {
               console.log(' ');
               console.log(' ');
               const fc_extendido_file_name = fileName.replace('.xml', '_ext.xml');
-              crearArchivoXML(signedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fc_extendido_file_name}`));
+              guardarArchivoXML(signedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fc_extendido_file_name}`));
 
               const { xml } = convertECF32ToRFCE(signedXml);
 
@@ -122,13 +127,17 @@ export class DgiiEcfService {
 
                 // -------------------------------------------------------
                 // if (getProperty(response, 'estado') !== TrackStatusEnum.REJECTED) {
-                if (parser.rnc_comprador) {
+                if (parser.rnc_comprador && !this.isFCLessThan250K) {
                   // const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
                   // console.log('\n\nresponseCustomerDirectory ', responseCustomerDirectory);
+                  
+                  // urlRecepcion
+                  // urlAceptacion
                 }
+
                 console.log('2');
 
-                crearArchivoXML(formattedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fileName}`));
+                guardarArchivoXML(formattedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fileName}`));
 
                 console.log('3');
 
@@ -140,7 +149,7 @@ export class DgiiEcfService {
                   qr_url_dgii,
                 };
 
-                if (jsonData.TipoeCF == tipoComprobanteE.nota_de_credito || jsonData.TipoeCF == tipoComprobanteE.nota_de_debito) {
+                if (this.jsonData.TipoeCF == tipoComprobanteE.nota_de_credito || this.jsonData.TipoeCF == tipoComprobanteE.nota_de_debito) {
                   const codigo_modificacion = getProperty(factura?.ECF?.InformacionReferencia, 'CodigoModificacion');
                   if (codigo_modificacion) data['razon'] = codigo_modificacion_labelE[num_codigo_modificacion_to_label[`_${codigo_modificacion}`]];
                 }
@@ -199,8 +208,8 @@ export class DgiiEcfService {
     });
   }
 
-  convertToEcfXmlJson(jsonData: any): { factura: EcfXmlJson; parser: ParseDocument } {
-    const parser = new ParseDocument(jsonData);
+  convertToEcfXmlJson(): { factura: EcfXmlJson; parser: ParseDocument } {
+    const parser = new ParseDocument(this.jsonData);
     const factura: EcfXmlJson = parser.parse();
     return { factura, parser };
   }
@@ -209,7 +218,8 @@ export class DgiiEcfService {
     return new Promise<{ success: boolean; message?: any; data?: any }>(async (resolve, reject) => {
       try {
         this.queue.push(async () => {
-          this.firmarYEnviarXML(jsonData)
+          this.jsonData = jsonData;
+          this.firmarYEnviarXML()
             .then(result => {
               if (result && result.success) resolve(result);
               else reject(result);

@@ -177,3 +177,5 @@ rails generate serializer movimiento_viaje
 
 rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
+
+rails g scaffold ecf_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float approved:boolean

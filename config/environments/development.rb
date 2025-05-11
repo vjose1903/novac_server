@@ -57,4 +57,6 @@ Rails.application.configure do
   config.hosts << "agrodemi.inspot-technology.com"
   config.hosts << "admservidor.ddns.net"
   config.hosts << "localhost"
+  config.hosts << "novac.loca.lt"
+
 end

@@ -255,6 +255,7 @@ DEPENDENCIES
   faraday
   google-api-client
   listen
+  nokogiri
   pg
   puma
   rack-cors

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import ECF, { P12Reader, ENVIRONMENT, Signature, getCodeSixDigitfromSignature, generateEcfQRCodeURL, getCurrentFormattedDateTime } from 'dgii-ecf';
 import { P12ReaderData } from '../../core/types/readerData.types';
-import { crearArchivoXML, leerArchivo, retryUntil, sleep } from '../typescript/functions';
+import { guardarArchivoXML, leerArchivo, retryUntil, sleep } from '../typescript/functions';
 import { InvoiceResponse, InvoiceSummaryResponse, TrackingStatusResponse, TrackStatusEnum } from 'dgii-ecf/dist/networking/types';
 import { QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DateUtils } from '@vjose1903/dateutils';
@@ -108,7 +108,7 @@ async function firmarXML(fileObj: { RNCEmisor: string; noEcf: string; file: stri
 
     // // Save the signedXml to a file
     const formattedXml = xmlFormatter(signedXml, { collapseContent: true, indentation: '  ', lineSeparator: '\n', prettyPrint: true });
-    crearArchivoXML(formattedXml, path.resolve(__dirname, `./tipos_fuera_sistema/firmados/${fileName}`));
+    guardarArchivoXML(formattedXml, path.resolve(__dirname, `./tipos_fuera_sistema/firmados/${fileName}`));
     
     return responseConsult.estado == TrackStatusEnum.ACCEPTED
     
@@ -151,7 +151,7 @@ function saveResponse(filename: string, response: any, index: number) {
 
   results += `\n\n(${index}): ${filename}\n${JSON.stringify(response, null, 2)}`;
 
-  crearArchivoXML(results, resultsPath);
+  guardarArchivoXML(results, resultsPath);
 }
 
 function getXMLS(): Promise<{ RNCEmisor: string; noEcf: string; file: string }[]> {

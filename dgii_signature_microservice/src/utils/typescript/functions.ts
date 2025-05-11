@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 
 /**
- * Nombre: crearArchivoXML
- * Descripción: Esta función crea un archivo XML con el contenido proporcionado.
+ * Nombre: guardarArchivoXML
+ * Descripción: Esta función guarda un archivo XML con el contenido proporcionado.
  * @param content El contenido a escribir en el archivo.
  * @param fileName El nombre del archivo a crear.
- * @example crearArchivoXML('<xml>contenido</xml>', 'archivo.xml')
+ * @example guardarArchivoXML('<xml>contenido</xml>', 'archivo.xml')
  */
-export function crearArchivoXML(content: string, fileName: string): void {
+export function guardarArchivoXML(content: string, fileName: string): void {
   fs.writeFile(fileName, content, err => {
     if (err) {
       console.error('Error al escribir el archivo:', err);

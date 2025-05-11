@@ -46,7 +46,7 @@ group :development do
   gem 'spring-watcher-listen'
 end
 
-# gem 'nokogiri'
+gem 'nokogiri'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data'

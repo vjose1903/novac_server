@@ -3,6 +3,10 @@ module DGII_MANAGER
   @is_nota    = false
   @is_factura = false
 
+  # ========================================================================================================
+  # ENVIAR FACTURAS Y NOTAS A DGII
+  # ========================================================================================================  
+
   def self.send(document, certification_params = nil)
     DGII_MANAGER.determinate_document(document)
 
@@ -211,5 +215,43 @@ module DGII_MANAGER
 
     return fecha_vencimiento
 
+  end
+
+
+  # ========================================================================================================
+  # RECEPCION DE FACTURAS 
+  # ========================================================================================================  
+
+  def self.reception(params)
+    res      = Response.new
+    client   = BaseRequest::Client.new('novac-dgii-reception')
+    
+
+    response      = client.create_one(params)
+
+    data_response = response.with_indifferent_access[:data]
+
+    res.set_data({xml: data_response}.with_indifferent_access)
+
+    return res
+  end
+
+
+  # ========================================================================================================
+  # VALIDATE COMMERCIAL APPROVAL
+  # ========================================================================================================  
+
+  def self.validate_commercial_approval(params)
+    res      = Response.new
+    client   = BaseRequest::Client.new('novac-dgii-validate-commercial-approval')
+    
+
+    response      = client.create_one(params)
+
+    data_response = response.with_indifferent_access[:data]
+    puts "data_response:".magenta + " #{data_response.to_json}"
+    res.set_data(data_response.with_indifferent_access)
+
+    return res
   end
 end

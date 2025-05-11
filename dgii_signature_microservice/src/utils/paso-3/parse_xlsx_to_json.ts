@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import * as fs from "fs";
 import * as path from "path";
 import { Transformer } from "dgii-ecf";
-import { crearArchivoXML, isEmpty } from "../typescript/functions";
+import { guardarArchivoXML, isEmpty } from "../typescript/functions";
 
 interface JSONData {
 	[key: string]: any;
@@ -159,7 +159,7 @@ parseExcelToCustomJson(filePath)
 			const fileName = `${index + 1}_${RNCComprador}${eNCF}.xml`;
 			const filePath = path.join(__dirname, `sin_firmar/${fileName}`);
 
-			crearArchivoXML(xml, filePath);
+			guardarArchivoXML(xml, filePath);
 		});
 	})
 	.catch((error) => {

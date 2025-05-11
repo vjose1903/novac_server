@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_05_07_104748) do
+ActiveRecord::Schema[7.0].define(version: 2025_05_11_175958) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -315,6 +315,19 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_07_104748) do
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
+  end
+
+  create_table "ecf_receptions", force: :cascade do |t|
+    t.bigint "suplidor_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.boolean "approved"
+    t.string "fecha_emision"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["suplidor_id"], name: "index_ecf_receptions_on_suplidor_id"
   end
 
   create_table "facturas_aplicadas", force: :cascade do |t|
@@ -721,6 +734,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_07_104748) do
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
+  add_foreign_key "ecf_receptions", "suplidores"
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"

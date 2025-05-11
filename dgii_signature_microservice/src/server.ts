@@ -1,7 +1,7 @@
 import express from 'express';
 import http from 'http';
 import { DgiiEcfService } from '@core/services/DgiiEcf.service'; // Importamos el servicio
-import { handleNovacDgiiRequest } from '@controllers/dgiiController';
+import { handleNovacDgiiReception, handleNovacDgiiRequest, handleNovacDgiiValidateCommercialApproval } from '@controllers/dgiiController';
 import { DgiiAnulacionService } from '@core/services/DgiiAnulacion.service';
 import { DgiiAuthService } from '@core/services/DgiiAuth.service';
 import { ENVIRONMENT } from 'dgii-ecf';
@@ -36,6 +36,8 @@ const apiV1Router = express.Router();
 
 // Definir la ruta novac-dgii dentro del router /api/v1
 apiV1Router.post('/novac-dgii', handleNovacDgiiRequest);
+apiV1Router.post('/novac-dgii-reception', handleNovacDgiiReception);
+apiV1Router.post('/novac-dgii-validate-commercial-approval', handleNovacDgiiValidateCommercialApproval);
 
 // Usar el router con el prefijo /api/v1
 app.use('/api/v1', apiV1Router);
