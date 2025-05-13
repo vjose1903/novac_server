@@ -14,7 +14,7 @@ services:
   $$PROD_ENVIRONMENT_NAME_IMG$$:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: $$PROD_ENVIRONMENT_NAME_IMG$$
     environment:
       VIRTUAL_HOST: "$$SEGURE_HOST$$"

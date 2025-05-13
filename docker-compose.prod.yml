@@ -14,7 +14,7 @@ services:
   agrodemi-prod:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: agrodemi-prod
     environment:
       VIRTUAL_HOST: agrodemi.inspot-technology.com,admservidor.ddns.net
@@ -60,12 +60,3 @@ services:
     depends_on:
       - nginx-proxy
     restart: always
-
-  # nginx-proxy-prod:
-  #   build: ./docker/services/nginx
-  #   container_name: nginx-proxy-prod
-  #   ports:
-  #     - 9090:9090
-  #   depends_on:
-  #     - agrodemi-prod
-  #   restart: always

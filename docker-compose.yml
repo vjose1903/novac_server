@@ -13,7 +13,7 @@ services:
   agrodemi-dev:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: agrodemi-dev
     environment:
       ALMACEN: "ADM"

@@ -13,7 +13,7 @@ services:
   $$ENVIRONMENT_NAME_IMG$$:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: $$ENVIRONMENT_NAME_IMG$$
     environment:
       ALMACEN: "$$ALMACEN$$"
