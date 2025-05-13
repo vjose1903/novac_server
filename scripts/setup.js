@@ -72,7 +72,7 @@ const files = [
 
 	{ tipo: 'reemplazo',  file_name: 'docker-compose.prod.yml',                       path: 'docker-compose.prod.yml' },
 	{ tipo: 'reemplazo',  file_name: 'docker-compose.yml',                            path: 'docker-compose.yml' },
-	{ tipo: 'reemplazo',  file_name: 'Dockerfile',                                    path: 'docker/services/server/Dockerfile' },
+	{ tipo: 'reemplazo',  file_name: 'Dockerfile',                                    path: 'docker/Dockerfile' },
 	{ tipo: 'reemplazo',  file_name: 'run_server.sh',                                 path: 'run_server.sh' },
 	{ tipo: 'reemplazo',  file_name: 'cors.rb',                                       path: 'config/initializers/cors.rb' },
 	{ tipo: 'reemplazo',  file_name: 'development.rb',                                path: 'config/environments/development.rb' },
