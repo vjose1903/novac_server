@@ -53,7 +53,7 @@ services:
     container_name: nginx-letsencrypt
     environment:
       NGINX_PROXY_CONTAINER: nginx-proxy
-      DEFAULT_EMAIL: tu-correo@dominio.com
+      DEFAULT_EMAIL: novacagrodemi@gmail.com
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./certs:/etc/nginx/certs
