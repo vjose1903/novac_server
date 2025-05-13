@@ -17,6 +17,9 @@ services:
       dockerfile: docker/services/server/Dockerfile
     container_name: agrodemi-prod
     environment:
+      VIRTUAL_HOST: agrodemi.inspot-technology.com,admservidor.ddns.net
+      LETSENCRYPT_HOST: agrodemi.inspot-technology.com,admservidor.ddns.net
+      LETSENCRYPT_EMAIL: novacagrodemi@gmail.com
       ALMACEN: "ADM"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
@@ -24,17 +27,47 @@ services:
       MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
+    expose:
+      - "3000"
     depends_on:
       - db-prod
     restart: always
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
-
-  nginx-proxy-prod:
-    build: ./docker/services/nginx
-    container_name: nginx-proxy-prod
+    
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
     ports:
-      - 9090:9090
-    depends_on:
-      - agrodemi-prod
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
     restart: always
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-letsencrypt
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      DEFAULT_EMAIL: tu-correo@dominio.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+    depends_on:
+      - nginx-proxy
+    restart: always
+
+  # nginx-proxy-prod:
+  #   build: ./docker/services/nginx
+  #   container_name: nginx-proxy-prod
+  #   ports:
+  #     - 9090:9090
+  #   depends_on:
+  #     - agrodemi-prod
+  #   restart: always
