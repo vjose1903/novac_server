@@ -57,7 +57,7 @@ function dockerCommand(command) {
   console.log(`${cyan('command >>')} ${command}`);
   console.log(`${white(' ')}`);
 
-  const isBackground = command === 'up' && BACKGROUND === 'yes' ? '-d' : '';
+  const isBackground = command === 'up' && BACKGROUND === 'yes' ? '--detach' : '';
 
 	execSync(`cd ..`, { stdio: 'inherit' });
   if (PRODUCTION === 'yes') {
