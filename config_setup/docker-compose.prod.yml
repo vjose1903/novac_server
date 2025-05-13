@@ -14,9 +14,12 @@ services:
   $$PROD_ENVIRONMENT_NAME_IMG$$:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: $$PROD_ENVIRONMENT_NAME_IMG$$
     environment:
+      VIRTUAL_HOST: "$$FRONTEND_HOST$$,$$FRONTEND_HOST_SECONDARY$$"
+      LETSENCRYPT_HOST: "$$FRONTEND_HOST$$,$$FRONTEND_HOST_SECONDARY$$"
+      LETSENCRYPT_EMAIL: "$$EMAIL$$"
       ALMACEN: "$$ALMACEN$$"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
@@ -24,17 +27,36 @@ services:
       MONTU: "$$MONTU$$"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
+    expose:
+      - "$$DB_PORT$$"
     depends_on:
       - db-prod
     restart: always
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
 
-  nginx-proxy-prod:
-    build: ./docker/services/nginx
-    container_name: nginx-proxy-prod
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
     ports:
-      - $$FRONT_PORT$$:$$FRONT_PORT$$
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./html:/usr/share/nginx/html
+    restart: always
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-letsencrypt
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      DEFAULT_EMAIL: novacagrodemi@gmail.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./html:/usr/share/nginx/html
     depends_on:
-      - $$PROD_ENVIRONMENT_NAME_IMG$$
+      - nginx-proxy
     restart: always

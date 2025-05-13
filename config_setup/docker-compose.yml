@@ -13,7 +13,7 @@ services:
   $$ENVIRONMENT_NAME_IMG$$:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: $$ENVIRONMENT_NAME_IMG$$
     environment:
       ALMACEN: "$$ALMACEN$$"
@@ -21,6 +21,9 @@ services:
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
       MONTU: "$$MONTU$$"
+      VIRTUAL_HOST: "localhost"
+    expose:
+      - "3000"
     depends_on:
       - db-dev
     volumes:
@@ -28,9 +31,12 @@ services:
     command: ["./wait-for-it.sh", "db-dev:5432", "--", "sh", "./run_server.sh"]
 
   nginx-proxy-dev:
-    build: ./docker/services/nginx
+    image: jwilder/nginx-proxy
     container_name: nginx-proxy-dev
     ports:
-      - $$FRONT_PORT$$:$$FRONT_PORT$$
+      - $$FRONT_PORT$$:80
     depends_on:
       - $$ENVIRONMENT_NAME_IMG$$
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+

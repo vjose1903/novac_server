@@ -13,7 +13,7 @@ services:
   agrodemi-dev:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: agrodemi-dev
     environment:
       ALMACEN: "ADM"
@@ -21,7 +21,10 @@ services:
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
       MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
+      VIRTUAL_HOST: "localhost"
       API_BASE_URL_DGII_MICROSERVICE: "http://host.docker.internal:9091"
+    expose:
+      - "3000"
     depends_on:
       - db-dev
     volumes:
@@ -29,9 +32,12 @@ services:
     command: ["./wait-for-it.sh", "db-dev:5432", "--", "sh", "./run_server.sh"]
 
   nginx-proxy-dev:
-    build: ./docker/services/nginx
+    image: jwilder/nginx-proxy
     container_name: nginx-proxy-dev
     ports:
-      - 9090:9090
+      - 9090:80
     depends_on:
       - agrodemi-dev
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+

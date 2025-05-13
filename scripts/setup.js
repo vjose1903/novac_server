@@ -16,7 +16,7 @@ const setup = {
     FRONT_PORT: "9093",
     FRONTEND_HOST: "8n3mw1zq-9093.use2.devtunnels.ms",
     FRONTEND_HOST_SECONDARY: "8n3mw1zq-9093.use2.devtunnels.ms",
-    NGINX_SERVER_NAME: "localhost 8n3mw1zq-9093.use2.devtunnels.ms *.8n3mw1zq-9093.use2.devtunnels.ms",
+    EMAIL: "novacdemo@gmail.com",
     MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
   },
   agrodemi: {
@@ -29,7 +29,7 @@ const setup = {
     FRONT_PORT: "9090",
     FRONTEND_HOST: "agrodemi.inspot-technology.com",
     FRONTEND_HOST_SECONDARY: "admservidor.ddns.net",
-    NGINX_SERVER_NAME: "localhost admservidor.ddns.net *.admservidor.ddns.net agrodemi.inspot-technology.com *.agrodemi.inspot-technology.com",
+    EMAIL: "novacagrodemi@gmail.com",
     MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
   },
   brendy: {
@@ -42,7 +42,7 @@ const setup = {
     FRONT_PORT: "9091",
     FRONTEND_HOST: "novac-brendy.ddns.net",
     FRONTEND_HOST_SECONDARY: "novac-brendy.ddns.net",
-    NGINX_SERVER_NAME: "localhost novac-brendy.ddns.net *.novac-brendy.ddns.net",
+    EMAIL: "novacbrendy@gmail.com",
 		MONTU: "1C96yS20EDDyX7rgi2Y5OQju_4FQ8G5_C"
   },
   vasquez: {
@@ -53,9 +53,9 @@ const setup = {
     DB_PORT: "3002",
     CORS_PORT: "5222",
     FRONT_PORT: "9092",
-    FRONTEND_HOST: "novac-vasquez.ddns.net",
+    FRONTEND_HOST: "vasquez.inspot-technology.com",
     FRONTEND_HOST_SECONDARY: "novac-vasquez.ddns.net",
-    NGINX_SERVER_NAME: "localhost novac-vasquez.ddns.net *.novac-vasquez.ddns.net",
+    EMAIL: "novacvasquez@gmail.com",
 		MONTU: "17pDTnH139lHpSRj3_xoPWP8jJYHR0roa"
   }
 };
@@ -65,8 +65,7 @@ const files = [
 
 	{ tipo: 'reemplazo',  file_name: 'docker-compose.prod.yml',                       path: 'docker-compose.prod.yml' },
 	{ tipo: 'reemplazo',  file_name: 'docker-compose.yml',                            path: 'docker-compose.yml' },
-	{ tipo: 'reemplazo',  file_name: 'Dockerfile',                                    path: 'docker/services/server/Dockerfile' },
-	{ tipo: 'reemplazo',  file_name: 'default.conf',                                  path: 'docker/services/nginx/default.conf' },
+	{ tipo: 'reemplazo',  file_name: 'Dockerfile',                                    path: 'docker/Dockerfile' },
 	{ tipo: 'reemplazo',  file_name: 'run_server.sh',                                 path: 'run_server.sh' },
 	{ tipo: 'reemplazo',  file_name: 'cors.rb',                                       path: 'config/initializers/cors.rb' },
 	{ tipo: 'reemplazo',  file_name: 'development.rb',                                path: 'config/environments/development.rb' },

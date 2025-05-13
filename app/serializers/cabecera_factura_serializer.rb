@@ -122,8 +122,9 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def pagos
+
     pago_parseo    = []
-    if object.Bruto != nil && ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
+    if object.condicion != 'Contado' || object.is_viaje
       pagos          = object.detalle_recibos
 
       if pagos.length > 0

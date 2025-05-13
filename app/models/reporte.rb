@@ -136,36 +136,45 @@ class Reporte < ApplicationRecord
         "case when trunc(((current_date - cabecera_facturas.fecha_equivalente::date))/30) >= 3 then cabecera_facturas.balance else 0 end as noventa_uno_to_more"
       end
 
-      # Añadir campos para recibos si se requiere
-      if include_mora
-        select_ += ", ultimo_detalle_recibo.id as ultimo_recibo_id, " +
-                   "ultimo_detalle_recibo.recibos_ingreso_id as ultimo_recibo_ingreso_id, " +
-                   "ri.fecha_equivalente as ultimo_recibo_fecha_equivalente"
-      end
-
-      # Definir group_by
-      group_by = case tipo
-                  when Report::CxC.agrupado then 'clientes.id'
-                  when Report::CxC.detallado then 'cabecera_facturas.id, clientes.id'
-                  else ''
-                 end
-
-      # Condición para facturas pagadas
-      facturas_pagadas_where = include_pagadas ? '' : 'cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false'
-
       # Construir joins
       joins_ = "INNER JOIN clientes ON cabecera_facturas.cliente_id = clientes.id"
 
       if include_mora
+        # Primero creamos una subconsulta que agrupe los pagos por factura
         joins_ += <<-SQL
           LEFT JOIN (
-            SELECT DISTINCT ON (detalle_recibos.cabecera_factura_id) detalle_recibos.*
-            FROM detalle_recibos
-            ORDER BY detalle_recibos.cabecera_factura_id, detalle_recibos.created_at DESC
-          ) AS ultimo_detalle_recibo ON ultimo_detalle_recibo.cabecera_factura_id = cabecera_facturas.id
-          LEFT JOIN recibos_ingresos AS ri ON ri.id = ultimo_detalle_recibo.recibos_ingreso_id
+            SELECT 
+              dr.cabecera_factura_id,
+              jsonb_agg(
+                jsonb_build_object(
+                  'id', ri.id,
+                  'fecha_equivalente', ri.fecha_equivalente,
+                  'deposito', dr.deposito,
+                  'mora', dr.mora
+                )
+              ) as pagos_array
+            FROM detalle_recibos dr
+            INNER JOIN recibos_ingresos ri ON ri.id = dr.recibos_ingreso_id
+            GROUP BY dr.cabecera_factura_id
+          ) AS pagos_agrupados ON pagos_agrupados.cabecera_factura_id = cabecera_facturas.id
         SQL
+
+        # Modificar select para incluir los pagos ya agrupados
+        select_ += ", pagos_agrupados.pagos_array as pagos"
       end
+
+      # Definir group_by según el tipo
+      group_by = case tipo
+                    when Report::CxC.agrupado then 'clientes.id, clientes.nombre, clientes.apellido'
+                    when Report::CxC.detallado then 'cabecera_facturas.id, clientes.id, clientes.nombre, clientes.apellido'
+                    when Report::CxC.por_cliente then 'cabecera_facturas.id, clientes.id, clientes.nombre, clientes.apellido, pagos_agrupados.pagos_array'
+                    else ''
+                  end
+
+      
+
+      # Condición para facturas pagadas
+      facturas_pagadas_where = include_pagadas ? '' : 'cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false'
 
       # Ordenamiento
       order_by = tipo == Report::CxC.agrupado ? '' : 'cabecera_facturas.fecha_equivalente ASC'
@@ -192,9 +201,8 @@ class Reporte < ApplicationRecord
         cabeza['numero_documento']  = cabeza['tipo'] == 'venta' ? cabeza['numero_comprobante']: ("%08d" % cabeza['numero_factura'].to_s) if tipo != Report::CxC.agrupado
         cabeza                      = sustituirMonto(cabeza) if tipo == Report::CxC.detallado
 
-        if cf.respond_to?(:ultimo_recibo_ingreso_id) && cf.ultimo_recibo_ingreso_id.present?
-          cabeza['pagos'] = [{ id: cabeza['ultimo_recibo_ingreso_id'], fecha_equivalente: cabeza['ultimo_recibo_fecha_equivalente'] }]
-        end
+        # Los pagos ya vienen agrupados desde la consulta SQL
+        cabeza['pagos'] = (cabeza['pagos'] || []).reject(&:nil?)
 
         cabeza
       end

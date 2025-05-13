@@ -2,8 +2,7 @@ class DetalleRecibo < ApplicationRecord
   belongs_to :recibos_ingreso
   belongs_to :cabecera_factura, optional: true
 
-  validates :deposito,    presence: { :message => 'El recibo no esta completado.' }, numericality: { greater_than: 0, :message => 'El deposito del recibo debe de ser mayor a 0.' }
-
+  validate  :has_payment
 
   def self.crear_actualizar_detalle_recibo(params, padre, is_save=false)
     res = Response.new
@@ -112,5 +111,14 @@ class DetalleRecibo < ApplicationRecord
 
     res_valid.set_data object_valid
     return res_valid
+  end
+
+  private 
+
+  def has_payment
+    payment = (self.deposito || 0 ) + (self.mora || 0)
+    if payment == 0 
+      errors.add(:has_payment, "El deposito del recibo debe de ser mayor a 0.")
+    end
   end
 end
