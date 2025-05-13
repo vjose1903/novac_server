@@ -57,7 +57,7 @@ function dockerCommand(command) {
   console.log(`${cyan('command >>')} ${command}`);
   console.log(`${white(' ')}`);
 
-  const isBackground = command === 'up' && BACKGROUND === 'yes' ? '--detach' : '';
+  const isBackground = command === 'up' && BACKGROUND === 'yes' ? '-d' : '';
 
 	execSync(`cd ..`, { stdio: 'inherit' });
   if (PRODUCTION === 'yes') {
@@ -192,7 +192,7 @@ async function processArgs() {
 					break;
 				case '-u':
 					console.log('la opcion -u');
-					dockerCommand('up --build');
+					dockerCommand('up');
 					break;
 				case '-d':
 					console.log('la opcion -d');

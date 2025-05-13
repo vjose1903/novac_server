@@ -30,4 +30,4 @@ echo ""
 echo ""
 echo "\e[95m  ===================================================================================== EJECUTAR NUEVAMENTE EL PROYECTO \e[0m"
 echo ""
-node ./scripts/start.js -w -p -c agrodemi -t -u
+node ./scripts/start.js -w -p -c agrodemi -b -t -u
