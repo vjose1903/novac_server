@@ -15,9 +15,8 @@ const setup = {
     CORS_PORT: "5223",
     FRONT_PORT: "9093",
     FRONTEND_HOST: "8n3mw1zq-9093.use2.devtunnels.ms",
-    EMAIL: "novacdemo@gmail.com",
     FRONTEND_HOST_SECONDARY: "8n3mw1zq-9093.use2.devtunnels.ms",
-    NGINX_SERVER_NAME: "localhost 8n3mw1zq-9093.use2.devtunnels.ms *.8n3mw1zq-9093.use2.devtunnels.ms",
+    EMAIL: "novacdemo@gmail.com",
     MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
   },
   agrodemi: {
@@ -29,10 +28,8 @@ const setup = {
     CORS_PORT: "5220",
     FRONT_PORT: "9090",
     FRONTEND_HOST: "agrodemi.inspot-technology.com",
-    EMAIL: "novacagrodemi@gmail.com",
-    SEGURE_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net",
     FRONTEND_HOST_SECONDARY: "admservidor.ddns.net",
-    NGINX_SERVER_NAME: "localhost admservidor.ddns.net *.admservidor.ddns.net agrodemi.inspot-technology.com *.agrodemi.inspot-technology.com",
+    EMAIL: "novacagrodemi@gmail.com",
     MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
   },
   brendy: {
@@ -44,10 +41,8 @@ const setup = {
     CORS_PORT: "5221",
     FRONT_PORT: "9091",
     FRONTEND_HOST: "novac-brendy.ddns.net",
-    EMAIL: "novacbrendy@gmail.com",
-    SEGURE_HOST: "brendy.inspot-technology.com,novac-brendy.ddns.net",
     FRONTEND_HOST_SECONDARY: "novac-brendy.ddns.net",
-    NGINX_SERVER_NAME: "localhost novac-brendy.ddns.net *.novac-brendy.ddns.net",
+    EMAIL: "novacbrendy@gmail.com",
 		MONTU: "1C96yS20EDDyX7rgi2Y5OQju_4FQ8G5_C"
   },
   vasquez: {
@@ -58,11 +53,9 @@ const setup = {
     DB_PORT: "3002",
     CORS_PORT: "5222",
     FRONT_PORT: "9092",
-    FRONTEND_HOST: "novac-vasquez.ddns.net",
-    EMAIL: "novacvasquez@gmail.com",
-    SEGURE_HOST: "vasquez.inspot-technology.com,novac-vasquez.ddns.net",
+    FRONTEND_HOST: "vasquez.inspot-technology.com",
     FRONTEND_HOST_SECONDARY: "novac-vasquez.ddns.net",
-    NGINX_SERVER_NAME: "localhost novac-vasquez.ddns.net *.novac-vasquez.ddns.net",
+    EMAIL: "novacvasquez@gmail.com",
 		MONTU: "17pDTnH139lHpSRj3_xoPWP8jJYHR0roa"
   }
 };

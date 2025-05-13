@@ -17,9 +17,9 @@ services:
       dockerfile: docker/Dockerfile
     container_name: agrodemi-prod
     environment:
-      VIRTUAL_HOST: agrodemi.inspot-technology.com,admservidor.ddns.net
-      LETSENCRYPT_HOST: agrodemi.inspot-technology.com,admservidor.ddns.net
-      LETSENCRYPT_EMAIL: novacagrodemi@gmail.com
+      VIRTUAL_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
+      LETSENCRYPT_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
+      LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
       ALMACEN: "ADM"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
@@ -34,7 +34,7 @@ services:
     restart: always
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
-    
+
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy

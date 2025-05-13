@@ -17,8 +17,8 @@ services:
       dockerfile: docker/Dockerfile
     container_name: $$PROD_ENVIRONMENT_NAME_IMG$$
     environment:
-      VIRTUAL_HOST: "$$SEGURE_HOST$$"
-      LETSENCRYPT_HOST: "$$SEGURE_HOST$$"
+      VIRTUAL_HOST: "$$FRONTEND_HOST$$,$$FRONTEND_HOST_SECONDARY$$"
+      LETSENCRYPT_HOST: "$$FRONTEND_HOST$$,$$FRONTEND_HOST_SECONDARY$$"
       LETSENCRYPT_EMAIL: "$$EMAIL$$"
       ALMACEN: "$$ALMACEN$$"
       RAILS_ENV: "production"
