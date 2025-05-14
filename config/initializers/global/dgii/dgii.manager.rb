@@ -24,7 +24,7 @@ module DGII_MANAGER
 
     estado = data_response[:estado].present? ? data_response[:estado] : nil
 
-    document.is_aceptada          = estado.nil? ? false : estado.downcase != 'rechazado'
+    document.is_aceptada          = estado.nil? ? 'Aceptado' : estado
     document.dgii_message         = response[:message]
     document.estado               = false  unless document.is_aceptada
 
@@ -37,7 +37,7 @@ module DGII_MANAGER
       document.razon              = data_response[:razon] if @is_nota &&  data_response[:razon].present?
 
     end
-    
+
     document.save!
 
 
@@ -245,12 +245,11 @@ module DGII_MANAGER
   def self.validate_commercial_approval(params)
     res      = Response.new
     client   = BaseRequest::Client.new('novac-dgii-validate-commercial-approval')
-    
 
     response      = client.create_one(params)
 
     data_response = response.with_indifferent_access[:data]
-    puts "data_response:".magenta + " #{data_response.to_json}"
+    
     res.set_data(data_response.with_indifferent_access)
 
     return res

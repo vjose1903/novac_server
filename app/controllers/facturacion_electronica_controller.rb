@@ -7,6 +7,8 @@ class FacturacionElectronicaController < ApplicationController
 
   def validate_xml_file
     xml_file = params[:xml]
+
+    puts "xml_file: #{xml_file.to_json}".yellow
     
     if xml_file.content_type != "application/xml" && xml_file.content_type != "text/xml"
       render json: { error: "El archivo XML es requerido" }, status: :bad_request

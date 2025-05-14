@@ -143,7 +143,7 @@ class Reporte < ApplicationRecord
         # Primero creamos una subconsulta que agrupe los pagos por factura
         joins_ += <<-SQL
           LEFT JOIN (
-            SELECT 
+            SELECT
               dr.cabecera_factura_id,
               jsonb_agg(
                 jsonb_build_object(
@@ -171,7 +171,7 @@ class Reporte < ApplicationRecord
                     else ''
                   end
 
-      
+
 
       # Condición para facturas pagadas
       facturas_pagadas_where = include_pagadas ? '' : 'cabecera_facturas.balance >= 1 AND cabecera_facturas.pagada = false'
@@ -633,6 +633,7 @@ class Reporte < ApplicationRecord
         desde             = params["desde"]
         hasta             = params["hasta"]
         formas_pago       = params["formas_pago"]
+        serie             = params["serie"].present? ? params["serie"] : SerieFactura.all
         cliente_id        = params["cliente_id"]
         sub_titulo        = ""
 
@@ -648,6 +649,7 @@ class Reporte < ApplicationRecord
         query['fecha_equivalente']    = tipo_reporte == TipoReporteVentas.ventas_hoy ?  DateTime.now.beginning_of_day..DateTime.now.end_of_day : (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
         query['cliente_id']           = cliente_id         if tipo_reporte == TipoReporteVentas.ventas_cliente
         query['tipo_factura_id']      = tipo_factura_id    if params[:tipo_factura_id].present? && tipo_factura_id != "0"
+        query['serie']                = serie              if serie != SerieFactura.all
         query['tipo']                 = 'venta'
         query['is_nota']              = false
 

@@ -402,6 +402,7 @@ class CabeceraFactura < ApplicationRecord
     tipo               = params[:tipo] ? params[:tipo] : 'venta'
     pagada             = params[:pagada] != '0' ? params[:pagada].to_boolean : '0'
     estado             = params[:estado] != '0' ? params[:estado].to_boolean : '0'
+    serie              = params[:serie] ? params[:serie] : SerieFactura.all
 
 
     campo              = FacturasParams.get_campo_by_param(campoNum)
@@ -417,6 +418,7 @@ class CabeceraFactura < ApplicationRecord
     where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"                                            unless tipo_factura_id == "0"
     where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params[:pagada].present? && pagada != "0"
     where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params[:estado].present? && estado != "0"
+    where_ += "AND cabecera_facturas.serie = '#{serie}' "                                                             if serie != SerieFactura.all
 
     joins_ = 'inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id '
     joins_ += 'inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id ' if is_adelantada

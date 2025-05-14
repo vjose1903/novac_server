@@ -165,6 +165,7 @@ rails g migration addCodigoToProvincia
 rails g migration addMunicipioToCliente
 rails g migration addCamposXMLToDocumentos
 rails g migration addCamposMoreXMLToDocumentos
+rails g migration change_is_aceptada_to_be_string
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 

@@ -314,8 +314,9 @@ end
 
 module SerieFactura
   ELECTRONICA = 'electronica'
-  NORMAL = 'normal'
-  NO_ = 0
+  NORMAL      = 'normal'
+  ALL         = 'all'
+  NO_         = 0
 
   def self.electronica
     return ELECTRONICA
@@ -323,6 +324,10 @@ module SerieFactura
 
   def self.normal
     return NORMAL
+  end
+
+  def self.all
+    return ALL
   end
 
   def self.no

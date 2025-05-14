@@ -31,6 +31,7 @@ export class DgiiCommercialApprovalService {
   public async validateApproval(data: any) {
     return new Promise<{ success: boolean; message?: any; data?: any }>(async (resolve, reject) => {
       try {
+        console.log('data.xml ', data.xml);
         const result = validateXMLCertificate(data.xml);
 
         const res = await this.googleDrive.uploadFile(this.approve_received_folder, data.xml, data.fileName);

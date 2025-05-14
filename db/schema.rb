@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_05_14_152415) do
+ActiveRecord::Schema[7.0].define(version: 2025_05_14_213616) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -105,7 +105,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_14_152415) do
     t.string "security_code"
     t.string "xml_file_name"
     t.string "qr_url_dgii"
-    t.boolean "is_aceptada"
+    t.string "is_aceptada"
     t.string "dgii_message"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
@@ -521,7 +521,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_14_152415) do
     t.string "razon"
     t.float "bruto"
     t.float "itbis"
-    t.boolean "is_aceptada"
+    t.string "is_aceptada"
     t.string "dgii_message"
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
