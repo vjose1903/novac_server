@@ -179,3 +179,4 @@ rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
 
 rails g scaffold ecf_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float approved:boolean
+rails g scaffold commertial_approval_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float estado:integer detalleMotivoRechazo:string cabecera_factura:references

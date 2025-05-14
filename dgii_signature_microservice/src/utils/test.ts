@@ -1,17 +1,7 @@
-import { DgiiEcfService } from '../core/services/DgiiEcf.service';
-import { getProperty, sleep } from './typescript/functions';
-import { ParseDocument } from './typescript/parseDocument';
-import { factura_31 } from './factura_31';
-import { DateUtils } from '@vjose1903/dateutils';
-import { nota_credito } from './nota_cred';
-import ECF, { ENVIRONMENT, getCurrentFormattedDateTime, P12Reader } from 'dgii-ecf';
-import { ParseAnulacion } from './typescript/parseAnulacion';
-import { DgiiAnulacionService } from '@core/services/DgiiAnulacion.service';
+import { ENVIRONMENT } from 'dgii-ecf';
+import GoogleDriveUtils from './typescript/google/google_drive.utils';
 import path from 'path';
-import { P12ReaderData } from '@core/types/readerData.types';
-import { DgiiAuthService } from '@core/services/DgiiAuth.service';
-import { num_codigo_modificacion_to_label } from '@core/constants/factura.const';
-import { codigo_modificacion_labelE } from '@core/constants/factura.const';
+import * as fs from 'fs';
 
 console.log(' ');
 console.log(' ');
@@ -24,44 +14,24 @@ console.log(' ');
 console.log(' ');
 
 async function prueba() {
-  // const fecha_vencimiento_certificacion = DateUtils.addDays(30);
-  // const fecha = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
-  // console.log('fecha >> ', fecha);
-  const data = {test: '3'};
-  const codigo_modificacion = getProperty(data, 'test');
-  if (codigo_modificacion) data['razon'] = codigo_modificacion_labelE[num_codigo_modificacion_to_label[`_${codigo_modificacion}`]];
-
-  console.log('data >> ', data);
+  const googleDrive = await GoogleDriveUtils.getInstance();
+  const emmitedFolderId = process.env.EMITTED_FOLDER_ID;
+  const receivedFolderId = process.env.RECEIVED_FOLDER_ID;
   
-  // const authService = DgiiAuthService.getInstance();
-  // await authService.testAuthentication();
+  const filePath = path.resolve(__dirname, 'paso-4', 'firmados', '131996035E310000000051.xml');
+  const fileName = '131996035E310000000051.xml';
+  
+  // Validar que el archivo exista antes de intentar subirlo
+  if (fs.existsSync(filePath)) {
 
-  // authService.testAuthentication();
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
 
-  // const parser_factura = new ParseDocument(factura_31);
-  // const factura = parser_factura.parse();
-  // console.log('>>>> ', DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' }));
 
-  // const parser_nota = new ParseDocument(nota_credito);
-  // const nota = parser_nota.parse();
-  // console.log('factura >> ', JSON.stringify(factura, null, 2));
-  // const dgiiService = DgiiService.getInstance();
-
-  // await sleep(1000);
-  // console.log(" ");
-  // console.log(" ");
-  // console.log(" ");
-  // console.log(" ");
-
-  // dgiiService.addToQueue({ RNCComprador: "1234567890", noEcf: "1" }).then(result => {
-
-  // 	console.log("@@@@@ result ", result);
-
-  // }).catch(error => {
-
-  // 	console.log("@@@@@ 1 error ", error);
-
-  // });
+    const res = await googleDrive.uploadFile(emmitedFolderId, fileContent, fileName);
+    console.log('res', res);
+  } else {
+    console.error(`Error: El archivo no existe en la ruta ${filePath}`);
+  }
 }
 
 prueba();

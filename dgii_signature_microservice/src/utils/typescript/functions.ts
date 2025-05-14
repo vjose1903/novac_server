@@ -4,16 +4,40 @@ import * as fs from 'fs';
  * Nombre: guardarArchivoXML
  * Descripción: Esta función guarda un archivo XML con el contenido proporcionado.
  * @param content El contenido a escribir en el archivo.
- * @param fileName El nombre del archivo a crear.
- * @example guardarArchivoXML('<xml>contenido</xml>', 'archivo.xml')
+ * @param filePath La ruta del archivo a crear.
+ * @example guardarArchivoXML('<xml>contenido</xml>', 'ruta/al/archivo.xml')
  */
-export function guardarArchivoXML(content: string, fileName: string): void {
-  fs.writeFile(fileName, content, err => {
-    if (err) {
-      console.error('Error al escribir el archivo:', err);
-    } else {
-      console.log(`El archivo ${fileName} ha sido creado exitosamente.`);
-    }
+export function guardarArchivoXML(content: string, filePath: string, folder?: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    fs.writeFile(filePath, content, err => {
+      if (err) {
+        console.error('Error al escribir el archivo:', err);
+        reject(err);
+      } else {
+        console.log(`El archivo ${filePath} ha sido creado exitosamente.`);
+        resolve();
+      }
+    });
+  });
+}
+
+/**
+ * Nombre: eliminarArchivo
+ * Descripción: Esta función elimina un archivo de la ruta especificada.
+ * @param filePath La ruta del archivo a eliminar.
+ * @example eliminarArchivo('ruta/al/archivo.xml')
+ */
+export function eliminarArchivo(filePath: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    fs.unlink(filePath, err => {
+      if (err) {
+        console.error('Error al eliminar el archivo:', err);
+        reject(err);
+      } else {
+        console.log(`El archivo ${filePath} ha sido eliminado exitosamente.`);
+        resolve();
+      }
+    });
   });
 }
 

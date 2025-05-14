@@ -64,7 +64,10 @@ class CabeceraFactura < ApplicationRecord
       if res_secuencias.status_valid
 
         data_secuencias                    = res_secuencias.get_data
+
+        puts " data_secuencias ".red + " #{data_secuencias.to_json}"
         num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params[:tipo], tipo_factura_id: params[:tipo_factura_id], condicion: params[:condicion]})
+        puts " num_factura_blank ".yellow + " #{num_factura_blank.to_json}"
 
         if num_factura_blank.blank?
 

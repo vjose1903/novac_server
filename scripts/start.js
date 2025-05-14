@@ -192,7 +192,7 @@ async function processArgs() {
 					break;
 				case '-u':
 					console.log('la opcion -u');
-					dockerCommand('up --build');
+					dockerCommand('up');
 					break;
 				case '-d':
 					console.log('la opcion -d');

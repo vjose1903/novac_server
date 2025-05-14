@@ -2,9 +2,11 @@ import express from 'express';
 import http from 'http';
 import { DgiiEcfService } from '@core/services/DgiiEcf.service'; // Importamos el servicio
 import { handleNovacDgiiReception, handleNovacDgiiRequest, handleNovacDgiiValidateCommercialApproval } from '@controllers/dgiiController';
-import { DgiiAnulacionService } from '@core/services/DgiiAnulacion.service';
 import { DgiiAuthService } from '@core/services/DgiiAuth.service';
 import { ENVIRONMENT } from 'dgii-ecf';
+import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
+import { DgiiReceptionService } from '@core/services/DgiiReception.service';
+import { DgiiCommercialApprovalService } from '@core/services/DgiiCommercialApproval.service';
 
 
 if (process.env.ENV !== 'PROD') {
@@ -25,9 +27,13 @@ function printEnvironment(environment: string) {
 const app = express();
 const server = http.createServer(app);
 
-// Inicializar los servicios DGII
+// Inicializar los servicios DGII en orden correcto
+DgiiAuthService.getInstance(); 
 DgiiEcfService.getInstance();
-DgiiAnulacionService.getInstance();
+
+DgiiReceptionService.getInstance();
+DgiiCommercialApprovalService.getInstance();
+GoogleDriveUtils.getInstance();
 
 app.use(express.json());
 

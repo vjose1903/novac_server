@@ -28,12 +28,15 @@ export class DgiiAuthService {
   }
 
   public static getInstance(): DgiiAuthService {
+    let isCreated = true;
     if (!DgiiAuthService.instance) {
+      isCreated = false;
       console.log('\n\n------------------------ INICIALIZANDO INSTANCIA DE DGII AUTH SERVICE ------------------------\n\n');
       DgiiAuthService.instance = new DgiiAuthService();
+      console.log('\n\n------------------------ INSTANCIA DE DGII AUTH SERVICE CREADA ------------------------\n\n');
     }
-
-    console.log('\n\n------------------------ INSTANCIA DE DGII AUTH SERVICE CREADA ------------------------\n\n');
+    
+    if (isCreated) console.log('\n\n------------------------ INSTANCIA DE DGII AUTH SERVICE YA HA SIDO CREADA PREVIAMENTE ------------------------\n\n');
     return DgiiAuthService.instance;
   }
 
@@ -73,10 +76,10 @@ export class DgiiAuthService {
       const result = await this.authenticate();
       console.log('Test de autenticación exitoso:', result);
       console.log('Token actual:', this.authToken);
-      console.log(" ");
-      console.log(" ");
-      console.log(" ");
-      
+      console.log(' ');
+      console.log(' ');
+      console.log(' ');
+
       return result;
     } catch (error) {
       console.error('Test de autenticación fallido:', error);
@@ -88,7 +91,6 @@ export class DgiiAuthService {
     return new Promise<{ success: boolean; message?: string }>((resolvePrincipal, rejectPrincipal) => {
       console.log(' ----- authenticate ----- ');
       console.log('this.isAuthenticating', this.isAuthenticating);
-      
 
       if (this.isAuthenticating) {
         this.authQueue.push({ resolve: resolvePrincipal, reject: rejectPrincipal });
@@ -148,7 +150,7 @@ export class DgiiAuthService {
     return !tokenIsValid || this.isTokenExpired();
   }
 
-  public async validateTokenBeforeSend() {
+  public async validateToken() {
     console.log('\n\nthis.authToken', this.authToken);
     console.log('tokenIsInvalid', this.tokenIsInvalid());
     console.log('this.env', this.env, '\n\n');

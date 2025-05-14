@@ -30,7 +30,9 @@ class FacturacionElectronicaController < ApplicationController
       receptionDB = EcfReception.create_new(validation[:values], true)
       
       if receptionDB.status_valid
-        response  = DGII_MANAGER.reception( { xml: @xml_content } )
+        receptionData = receptionDB.get_data
+
+        response  = DGII_MANAGER.reception( { xml: @xml_content, fileName: receptionData.xml_file_name} )
         render xml: response.get_data[:xml], status: :ok, content_type: "application/xml"
       else
         render json: { isValid: false, message: receptionDB.get_msgs.to_a.join(", ") }, status: :bad_request
@@ -47,16 +49,32 @@ class FacturacionElectronicaController < ApplicationController
   
   def aprobacion_comercial
     puts "@xml_content:".yellow + " #{@xml_content}"
+    validation = FacturacionElectronica.validate_reception_commercial_approval(@xml_content)
     
-    validation = DGII_MANAGER.validate_commercial_approval( { xml: @xml_content } )
-    response   = validation.get_data
+    if validation[:isValid]
+      
+      approvedDB = CommertialApprovalReception.create_new(validation[:values], true)
+      
+      if approvedDB.status_valid
+        approvedData = approvedDB.get_data
 
-    isValid = response[:isValid]
+        validation = DGII_MANAGER.validate_commercial_approval( { xml: @xml_content, fileName: approvedData.xml_file_name } )
+        response   = validation.get_data
 
-    if isValid
-      render json: { isValid: isValid }, status: :ok
+        isValid = response[:isValid]
+    
+        if isValid
+          render json: { isValid: isValid }, status: :ok
+        else
+          render json: { isValid: isValid }, status: :bad_request
+        end
+
+      else
+        render json: { isValid: false, message: receptionDB.get_msgs.to_a.join(", ") }, status: :bad_request
+      end
+
     else
-      render json: { isValid: isValid }, status: :bad_request
+      render json: { isValid: validation[:isValid], message: validation[:message] }, status: :bad_request
     end
   end
 end

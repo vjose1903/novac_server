@@ -22,6 +22,7 @@ services:
       FRAGA: "novacSystem"
       MONTU: "$$MONTU$$"
       VIRTUAL_HOST: "localhost"
+      API_BASE_URL_DGII_MICROSERVICE: "http://host.docker.internal:9091"
     expose:
       - "3000"
     depends_on:

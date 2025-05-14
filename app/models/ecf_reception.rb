@@ -12,12 +12,12 @@ class EcfReception < ApplicationRecord
 
     ecf_reception                = EcfReception.where(:id => params[:id]).first_or_create
 
-
     ecf_reception.eNCF           = params[:eNCF]           if params.obj_has?(:eNCF)
     ecf_reception.rnc_emisor     = params[:rnc_emisor]     if params.obj_has?(:rnc_emisor)
     ecf_reception.rnc_comprador  = params[:rnc_comprador]  if params.obj_has?(:rnc_comprador)
     ecf_reception.monto_total    = params[:monto_total]    if params.obj_has?(:monto_total)
     ecf_reception.fecha_emision  = params[:fecha_emision]  if params.obj_has?(:fecha_emision)
+    ecf_reception.xml_file_name  = "#{params[:rnc_comprador]}#{params[:eNCF]}.xml"
 
     if ecf_reception.rnc_emisor.present?
       documento_identidad    = DocumentoDeIdentidad.where("REPLACE(documento, '-', '') = '#{ecf_reception.rnc_emisor}' AND suplidor_id IS NOT NULL").first
@@ -25,7 +25,7 @@ class EcfReception < ApplicationRecord
     end
 
     ecf_reception.valid?
-    ecf_reception.errors.delete(:cabecera_factura) unless is_save
+    ecf_reception.errors.delete(:suplidor) unless is_save
     
     if ecf_reception.errors.empty? && (!is_save || (is_save && ecf_reception.save!))
       res.set_data(ecf_reception)

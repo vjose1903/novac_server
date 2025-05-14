@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_05_11_175958) do
+ActiveRecord::Schema[7.0].define(version: 2025_05_14_152415) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -149,6 +149,21 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_11_175958) do
     t.bigint "municipio_id"
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
     t.index ["municipio_id"], name: "index_clientes_on_municipio_id"
+  end
+
+  create_table "commertial_approval_receptions", force: :cascade do |t|
+    t.bigint "cabecera_factura_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.integer "estado"
+    t.string "fecha_emision"
+    t.string "detalleMotivoRechazo"
+    t.string "xml_file_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cabecera_factura_id"], name: "index_commertial_approval_receptions_on_cabecera_factura_id"
   end
 
   create_table "config_articulos", force: :cascade do |t|
@@ -325,6 +340,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_11_175958) do
     t.float "monto_total"
     t.boolean "approved"
     t.string "fecha_emision"
+    t.string "xml_file_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["suplidor_id"], name: "index_ecf_receptions_on_suplidor_id"
@@ -714,6 +730,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_11_175958) do
   add_foreign_key "choferes_viajes", "users"
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "clientes", "municipios"
+  add_foreign_key "commertial_approval_receptions", "cabecera_facturas"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"

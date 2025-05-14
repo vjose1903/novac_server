@@ -23,7 +23,9 @@
     "queue": "^6.0.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "xmldom": "^0.6.0"
+    "xmldom": "^0.6.0",
+    "googleapis": "^148.0.0",
+    "mime-types": "^3.0.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

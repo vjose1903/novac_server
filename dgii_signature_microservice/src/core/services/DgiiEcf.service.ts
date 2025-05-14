@@ -1,8 +1,6 @@
-import * as path from 'path';
 import ECF, { ENVIRONMENT, Signature, Transformer, getCodeSixDigitfromSignature, generateFcQRCodeURL, convertECF32ToRFCE, generateEcfQRCodeURL } from 'dgii-ecf';
 import { TrackStatusEnum, TrackingStatusResponse, InvoiceSummaryResponse, InvoiceResponse } from 'dgii-ecf/dist/networking/types';
-import { guardarArchivoXML, getProperty, hasValue, isEmpty, retryUntil } from '../../utils/typescript/functions';
-const xmlFormatter = require('xml-formatter');
+import { getProperty, isEmpty, retryUntil } from '../../utils/typescript/functions';
 import Queue from 'queue';
 import { ParseDocument } from '@utils/typescript/parseDocument';
 import { FacturaI } from '@core/types/factura.types';
@@ -13,23 +11,27 @@ import { rootElNameE } from '@core/constants/xml.const';
 import { QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DateUtils } from '@vjose1903/dateutils';
 import { DgiiAuthService } from './DgiiAuth.service';
-import { DgiiAnulacionService } from './DgiiAnulacion.service';
+import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
 
 export class DgiiEcfService {
   private static instance: DgiiEcfService;
+  private authService: DgiiAuthService;
+  private googleDrive: GoogleDriveUtils;
+
   private ecf!: ECF;
   private signature!: Signature;
   private queue: Queue;
   private environment: any;
   private transformer: Transformer;
   private env: ENVIRONMENT;
+  private emitted_folder: string;
+  private acuse_recepcion_folder: string;
+  private rnc_emisor: string;
 
-  private authService: DgiiAuthService;
-  private anulacionService: DgiiAnulacionService;
   private jsonData: FacturaI | NotaI;
 
   private get isFCLessThan250K() {
-    return this.jsonData.TipoeCF == tipoComprobanteE.factura_de_consumo && (this.jsonData as FacturaI).total_factura < 250000
+    return this.jsonData.TipoeCF == tipoComprobanteE.factura_de_consumo && (this.jsonData as FacturaI).total_factura < 250000;
   }
 
   private constructor() {
@@ -37,41 +39,57 @@ export class DgiiEcfService {
   }
 
   public static getInstance(): DgiiEcfService {
-    if (!DgiiEcfService.instance) DgiiEcfService.instance = new DgiiEcfService();
+    let isCreated = true;
+    if (!DgiiEcfService.instance) {
+      DgiiEcfService.instance = new DgiiEcfService();
+      isCreated = false;
+    }
+
+    if (isCreated) console.log('\n\n------------------------ INSTANCIA DE DGII ECF SERVICE YA HA SIDO CREADA PREVIAMENTE ------------------------\n\n');
     return DgiiEcfService.instance;
   }
 
   private async initialize() {
     this.queue = new Queue({ concurrency: 3, autostart: true });
     this.environment = process.env;
-    this.transformer = new Transformer();
+    this.emitted_folder = this.environment.EMITTED_FOLDER_ID;
+    this.acuse_recepcion_folder = this.environment.ACUSE_RECEIVED_FOLDER_ID;
+    this.rnc_emisor = this.environment.RNC_EMISOR;
 
     this.authService = DgiiAuthService.getInstance();
+    await this.authService.validateToken();
+
+    this.googleDrive = await GoogleDriveUtils.getInstance();
+
+    this.transformer = new Transformer();
+
     this.ecf = this.authService.ecf;
     this.signature = this.authService.signature;
 
-    this.anulacionService = DgiiAnulacionService.getInstance();
-
-    // this.env = ENVIRONMENT.CERT;
     this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
   }
 
   public async firmarYEnviarXML() {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.authService
-        .validateTokenBeforeSend()
+        .validateToken()
         .then(async () => {
-          try {
-            const { factura, parser } = this.convertToEcfXmlJson();
-            let fileName = `${this.environment.RNC_EMISOR}${this.jsonData.numero_comprobante}.xml`;
-            let sendResponse = null;
-            let qr_url_dgii = '';
+          let sendResponse = null;
+          let fileName = `${this.environment.RNC_EMISOR}${this.jsonData.numero_comprobante}.xml`;
+          let qr_url_dgii = '';
+          let signedXml = '';
+          let parser: ParseDocument;
+          let factura: EcfXmlJson;
+          let qr_url_dgii_data: QrUrlDgiiData;
 
-            let qr_url_dgii_data: QrUrlDgiiData = { rncemisor: this.environment.RNC_EMISOR, encf: parser.eNCF, montototal: factura.ECF.Encabezado.Totales.MontoTotal, env: this.env };
+          try {
+            ({ factura, parser } = this.convertToEcfXmlJson());
+
+            qr_url_dgii_data = { rncemisor: this.environment.RNC_EMISOR, encf: parser.eNCF, montototal: factura.ECF.Encabezado.Totales.MontoTotal, env: this.env };
 
             const xml = this.transformer.json2xml(factura);
 
-            let signedXml = this.signature.signXml(xml, rootElNameE.ECF);
+            signedXml = this.signature.signXml(xml, rootElNameE.ECF);
             qr_url_dgii_data.codigoseguridad = getCodeSixDigitfromSignature(signedXml);
 
             if (this.isFCLessThan250K) {
@@ -83,7 +101,7 @@ export class DgiiEcfService {
               console.log(' ');
               console.log(' ');
               const fc_extendido_file_name = fileName.replace('.xml', '_ext.xml');
-              guardarArchivoXML(signedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fc_extendido_file_name}`));
+              await this.googleDrive.uploadFile(this.emitted_folder, signedXml, fc_extendido_file_name);
 
               const { xml } = convertECF32ToRFCE(signedXml);
 
@@ -112,32 +130,41 @@ export class DgiiEcfService {
             }
 
             console.log('sendResponse ', sendResponse);
+          } catch (error) {
+            console.error('error =================> ', error);
+            const msg = this.getMessage(error);
+            reject({ success: false, message: msg || 'Error al firmar y enviar el XML.', secuenciaUtilizada: false });
+          }
 
-            this.validateSendResponse(sendResponse)
-              .then(async response => {
-                console.log('response validation ', response);
-                // -------------------------------------------------------
-                const formattedXml = xmlFormatter(signedXml, {
-                  collapseContent: true,
-                  indentation: '  ',
-                  lineSeparator: '\n',
-                  prettyPrint: true,
-                });
-                console.log('1');
+          this.validateSendResponse(sendResponse)
+            .then(async response => {
+              console.log('response validation ', response);
 
-                // -------------------------------------------------------
-                // if (getProperty(response, 'estado') !== TrackStatusEnum.REJECTED) {
-                if (parser.rnc_comprador && !this.isFCLessThan250K) {
-                  // const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
-                  // console.log('\n\nresponseCustomerDirectory ', responseCustomerDirectory);
-                  
-                  // urlRecepcion
-                  // urlAceptacion
+              if (parser.rnc_comprador && !this.isFCLessThan250K && getProperty(response, 'estado') != TrackStatusEnum.REJECTED) {
+                try {
+                  const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
+                  console.log('\n\nresponseCustomerDirectory ', responseCustomerDirectory);
+
+                  if (responseCustomerDirectory.length > 0) {
+                    const buyerHost = responseCustomerDirectory[0].urlRecepcion;
+
+                    if (!this.isFCLessThan250K && buyerHost) {
+                      const acuseRecepcion = (await this.ecf.sendElectronicDocument(signedXml, fileName, buyerHost)) as string;
+                      const acuseFileName = fileName.replace(this.rnc_emisor, `${parser.rnc_comprador}`);
+                      await this.googleDrive.uploadFile(this.acuse_recepcion_folder, acuseRecepcion, acuseFileName);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error al enviar documento al comprador:', error);
                 }
+              }
 
+              const secuenciaUtilizada = getProperty(response, 'secuenciaUtilizada');
+
+              try {
                 console.log('2');
 
-                guardarArchivoXML(formattedXml, path.resolve(__dirname, `../../utils/paso-4/firmados/${fileName}`));
+                await this.googleDrive.uploadFile(this.emitted_folder, signedXml, fileName);
 
                 console.log('3');
 
@@ -145,7 +172,7 @@ export class DgiiEcfService {
                   fecha_hora_firma: factura.ECF.FechaHoraFirma,
                   security_code: qr_url_dgii_data.codigoseguridad,
                   xml_file_name: fileName,
-                  secuenciaUtilizada: getProperty(response, 'secuenciaUtilizada'),
+                  secuenciaUtilizada,
                   qr_url_dgii,
                 };
 
@@ -153,21 +180,21 @@ export class DgiiEcfService {
                   const codigo_modificacion = getProperty(factura?.ECF?.InformacionReferencia, 'CodigoModificacion');
                   if (codigo_modificacion) data['razon'] = codigo_modificacion_labelE[num_codigo_modificacion_to_label[`_${codigo_modificacion}`]];
                 }
+
                 console.log('data ', data);
 
                 data['estado'] = 'estado' in response ? response?.estado : null;
                 data['trackId'] = 'trackId' in response ? response?.trackId : null;
 
                 resolve({ success: true, data, message: this.getMessage(response) });
-              })
-              .catch(error => {
-                reject(error);
-              });
-          } catch (error) {
-            console.error('error =================> ', error);
-            const msg = this.getMessage(error);
-            reject({ success: false, message: msg || 'Error al firmar y enviar el XML.', secuenciaUtilizada: false });
-          }
+              } catch (error) {
+                console.error('Error al guardar el archivo XML:', error);
+                reject({ success: false, message: 'Error al guardar el archivo XML.', secuenciaUtilizada });
+              }
+            })
+            .catch(error => {
+              reject(error);
+            });
         })
         .catch(error => {
           reject(error);

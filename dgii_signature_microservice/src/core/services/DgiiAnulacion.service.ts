@@ -29,6 +29,8 @@ export class DgiiAnulacionService {
     this.transformer = new Transformer();
 
     this.authService = DgiiAuthService.getInstance();
+    await this.authService.validateToken();
+    
     this.ecf = this.authService.ecf;
     this.signature = this.authService.signature;
   }
@@ -36,7 +38,7 @@ export class DgiiAnulacionService {
   public async firmarYEnviarXML(anulacionParams: AnulacionParams[]) {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.authService
-        .validateTokenBeforeSend()
+        .validateToken()
         .then(async () => {
           try {
             const anulacion = new ParseAnulacion().parse(anulacionParams);

@@ -14,6 +14,7 @@ import { QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DateUtils } from '@vjose1903/dateutils';
 import { DgiiAuthService } from './DgiiAuth.service';
 import { DgiiAnulacionService } from './DgiiAnulacion.service';
+import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
 
 export class DgiiReceptionService {
   private static instance: DgiiReceptionService;
@@ -21,13 +22,12 @@ export class DgiiReceptionService {
   private signature!: Signature;
   private queue: Queue;
   private environment: any;
-  private transformer: Transformer;
-  private env: ENVIRONMENT;
+  private received_folder: string;
+  private acuse_emitted_folder: string;
   
   private senderReceiver: SenderReceiver;
-
   private authService: DgiiAuthService;
-  private anulacionService: DgiiAnulacionService;
+  private googleDrive: GoogleDriveUtils;
 
   private constructor() {
     this.initialize();
@@ -41,33 +41,37 @@ export class DgiiReceptionService {
   private async initialize() {
     this.queue = new Queue({ concurrency: 5, autostart: true });
     this.environment = process.env;
-    this.transformer = new Transformer();
+    this.received_folder = this.environment.RECEIVED_FOLDER_ID;
+    this.acuse_emitted_folder = this.environment.ACUSE_EMITTED_FOLDER_ID;
 
     this.authService = DgiiAuthService.getInstance();
+    await this.authService.validateToken();
+
+    this.googleDrive = await GoogleDriveUtils.getInstance();
+
     this.ecf = this.authService.ecf;
     this.signature = this.authService.signature;
 
 
     this.senderReceiver = new SenderReceiver();
-
-    this.anulacionService = DgiiAnulacionService.getInstance();
-
-    // this.env = ENVIRONMENT.CERT;
-    this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
   }
 
   public async processReception(data: any) {
     return new Promise<{ success: boolean; message?: any; data?: any }>((resolve, reject) => {
       this.authService
-        .validateTokenBeforeSend()
+        .validateToken()
         .then(async () => {
           try {
-            
-            const ecfData = this.senderReceiver.getECFDataFromXML(data.xml, this.environment.RNC_EMISOR, ReceivedStatus['e-CF Recibido']);
-            const signedXml = this.signature.signXml(ecfData, rootElNameE.ARECF);
 
-            const formattedXml = xmlFormatter(signedXml, { collapseContent: true, indentation: '  ', lineSeparator: '\n', prettyPrint: true });
-            console.log('formattedXml >>>', formattedXml);
+            const xml = data.xml;
+            const fileName = data.fileName;
+
+            
+            const ecfData = this.senderReceiver.getECFDataFromXML(xml, this.environment.RNC_EMISOR, ReceivedStatus['e-CF Recibido']);
+            const signedXml = this.signature.signXml(ecfData, rootElNameE.ARECF);
+            
+            await this.googleDrive.uploadFile(this.received_folder, xml, fileName);
+            await this.googleDrive.uploadFile(this.acuse_emitted_folder, signedXml, fileName.replace('.xml', '_emitted.xml'));
             
             resolve({ success: true, data: signedXml, message: '' });
           } catch (error) {

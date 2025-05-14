@@ -36,8 +36,9 @@ module DGII_MANAGER
       document.qr_url_dgii        = data_response[:qr_url_dgii]
       document.razon              = data_response[:razon] if @is_nota &&  data_response[:razon].present?
 
-      document.save!
     end
+    
+    document.save!
 
 
     res.set_data(data_response.with_indifferent_access)

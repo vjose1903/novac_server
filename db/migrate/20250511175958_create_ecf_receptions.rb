@@ -8,6 +8,7 @@ class CreateEcfReceptions < ActiveRecord::Migration[7.0]
       t.float      :monto_total
       t.boolean    :approved
       t.string     :fecha_emision
+      t.string     :xml_file_name
 
       t.timestamps
     end
