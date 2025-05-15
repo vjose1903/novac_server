@@ -136,7 +136,7 @@ class CabeceraFactura < ApplicationRecord
               if cabecera_factura.save!
 
                 if @is_electronica
-                  res_valid                          = DGII_MANAGER.send(cabecera_factura) if @is_electronica
+                  res_valid                          = DGII_MANAGER.send(cabecera_factura) if @is_electronica && @tipo_de_documento.descripcion != TiposFacturasDescripcion.compra
                   data_response_dgii                 = res_valid.get_data
 
                   if data_response_dgii[:secuenciaUtilizada]
