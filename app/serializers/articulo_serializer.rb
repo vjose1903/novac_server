@@ -177,8 +177,8 @@ class ArticuloSerializer < ActiveModel::Serializer
     else
       articulo  = historicos.find  { | item | item['id'] == object.id }
       puts "articulo ".magenta + " #{articulo.to_json}"
-      content   = articulo['contenido_articulos']           || articulo[:contenido_articulos]           if tipo == 'contenidos'
-      content   = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados] if tipo == 'formulas'
+      content   = articulo['contenido_articulos']           || articulo[:contenido_articulos] || articulo.contenido_articulos                     if tipo == 'contenidos'
+      content   = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados] || articulo.formulas_productos_terminados if tipo == 'formulas'
     end
 
     return content.nil? ? [] : content
