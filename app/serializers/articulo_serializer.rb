@@ -165,20 +165,19 @@ class ArticuloSerializer < ActiveModel::Serializer
   def getContentHistorico(tipo)
 
     historicos  = self.get_param('historicos')
-    content     = nil
-    puts "====== EXPLOTA ======".red
+    content     = []
+
+    puts "HISTORICOS ".yellow + " #{historicos.to_json}"
+    
     if historicos.blank? || historicos.empty?
       content = object.contenido_articulos           if tipo == 'contenidos'
       content = object.formulas_productos_terminados if tipo == 'formulas'
     else
-
       articulo  = historicos.find  { | item | item['id'] == object.id }
-      content   = articulo['contenido_articulos']           || articulo.contenido_articulos           if tipo == 'contenidos'
-      content   = articulo['formulas_productos_terminados'] || articulo.formulas_productos_terminados if tipo == 'formulas'
+      puts "articulo ".magenta + " #{articulo.to_json}"
+      content   = articulo['contenido_articulos']           || articulo[:contenido_articulos]           if tipo == 'contenidos'
+      content   = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados] if tipo == 'formulas'
     end
-    puts "."
     return content
   end
-
-
 end

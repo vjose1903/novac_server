@@ -10,11 +10,11 @@ services:
     ports:
       - 127.0.0.1:9731:5432
 
-  agrodemi-prod:
+  agrodemi-dev:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: agrodemi-prod
+    container_name: agrodemi-dev
     environment:
       ALMACEN: "ADM"
       RAILS_ENV: "development"
@@ -56,7 +56,7 @@ services:
     ports:
       - 9090:80
     depends_on:
-      - agrodemi-prod
+      - agrodemi-dev
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
 
