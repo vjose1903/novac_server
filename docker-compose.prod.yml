@@ -11,14 +11,16 @@ services:
       - 127.0.0.1:9731:5432
     restart: always
 
-  agrodemi-prod:
+  agrodemi-dev:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: agrodemi-prod
+    container_name: agrodemi-dev
     environment:
-      VIRTUAL_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
-      LETSENCRYPT_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
+      # VIRTUAL_HOST: "adm.inspot-technology.com,admservidor.ddns.net"
+      VIRTUAL_HOST: "adm.inspot-technology.com"
+      # LETSENCRYPT_HOST: "adm.inspot-technology.com,admservidor.ddns.net"
+      LETSENCRYPT_HOST: "adm.inspot-technology.com"
       LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
       ALMACEN: "ADM"
       RAILS_ENV: "production"
