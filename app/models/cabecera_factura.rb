@@ -327,7 +327,7 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
   def self.update_secuencias(params, data_secuencias)
     res   = Response.new
-    puts "@tipo_de_documento.descripcion ".red + " #{@tipo_de_documento.descripcion}"
+    puts "@tipo_de_documento.descripcion ".light_yellow + " #{@tipo_de_documento.descripcion}"
     if @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
       # --------- COMPRA ---------
       unless data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
