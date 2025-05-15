@@ -1,8 +1,0 @@
-{
-  "restartable": "rs",
-  "ignore": [".git", "node_modules/**/node_modules"],
-  "verbose": true,
-  "watch": ["src/**/*.ts"],
-  "ext": "ts,json",
-  "exec": "NODE_OPTIONS='--loader=ts-node/esm' node --trace-warnings --require dotenv/config --require tsconfig-paths/register  ./src/server.ts"
-}

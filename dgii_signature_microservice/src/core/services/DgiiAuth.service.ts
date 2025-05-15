@@ -43,6 +43,7 @@ export class DgiiAuthService {
   private async initialize() {
     this.environment = process.env;
     this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
+    
     await this.loadCertificates();
   }
 
@@ -89,8 +90,6 @@ export class DgiiAuthService {
 
   private async authenticate() {
     return new Promise<{ success: boolean; message?: string }>((resolvePrincipal, rejectPrincipal) => {
-      console.log(' ----- authenticate ----- ');
-      console.log('this.isAuthenticating', this.isAuthenticating);
 
       if (this.isAuthenticating) {
         this.authQueue.push({ resolve: resolvePrincipal, reject: rejectPrincipal });
@@ -103,6 +102,7 @@ export class DgiiAuthService {
         .authenticate()
         .then(authToken => {
           this.authToken = authToken;
+
           this.authQueue.forEach(task => task.resolve({ success: true }));
           this.authQueue = [];
           resolvePrincipal({ success: true });
@@ -131,7 +131,10 @@ export class DgiiAuthService {
     console.log('                 DEPURACION DE TOKEN EXPIRADO                 ');
     console.log('--------------------------------------------------------------');
     console.log(' ');
+    console.log('new Date(this.authToken.expira)', new Date(this.authToken.expira));
     console.log('new Date(this.authToken.expira).getTime()', new Date(this.authToken.expira).getTime());
+    console.log('');
+    console.log('new Date()', new Date());
     console.log('new Date().getTime()', new Date().getTime());
     console.log('new Date(this.authToken.expira).getTime() <= new Date().getTime()', new Date(this.authToken.expira).getTime() <= new Date().getTime());
     console.log(' ');
@@ -151,12 +154,10 @@ export class DgiiAuthService {
   }
 
   public async validateToken() {
-    console.log('\n\nthis.authToken', this.authToken);
-    console.log('tokenIsInvalid', this.tokenIsInvalid());
-    console.log('this.env', this.env, '\n\n');
-
     if (!this.tokenIsInvalid()) return { success: true };
 
+    console.log("============================================== NO EXISTE TOKEN O EXPIRO ==============================================");
+    
     try {
       await this.authenticate();
       if (this.tokenIsInvalid()) {

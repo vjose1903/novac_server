@@ -131,7 +131,6 @@ def set_paginate_options(params)
 end
 # ---------------------------------------------------------------------------------------------------------
 def validate_optional_param(params, key)
-  puts "ANDO AQUIII".yellow
   params.obj_has?(key) && ["true", "false"].include?(params[key])
 end
 # ---------------------------------------------------------------------------------------------------------

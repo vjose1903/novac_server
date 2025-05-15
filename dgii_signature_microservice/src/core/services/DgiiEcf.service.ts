@@ -129,7 +129,6 @@ export class DgiiEcfService {
               );
             }
 
-            console.log('sendResponse ', sendResponse);
           } catch (error) {
             console.error('error =================> ', error);
             const msg = this.getMessage(error);
@@ -138,12 +137,10 @@ export class DgiiEcfService {
 
           this.validateSendResponse(sendResponse)
             .then(async response => {
-              console.log('response validation ', response);
 
               if (parser.rnc_comprador && !this.isFCLessThan250K && getProperty(response, 'estado') != TrackStatusEnum.REJECTED) {
                 try {
                   const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
-                  console.log('\n\nresponseCustomerDirectory ', responseCustomerDirectory);
 
                   if (responseCustomerDirectory.length > 0) {
                     const buyerHost = responseCustomerDirectory[0].urlRecepcion;
@@ -162,11 +159,8 @@ export class DgiiEcfService {
               const secuenciaUtilizada = getProperty(response, 'secuenciaUtilizada');
 
               try {
-                console.log('2');
 
                 await this.googleDrive.uploadFile(this.emitted_folder, signedXml, fileName);
-
-                console.log('3');
 
                 const data = {
                   fecha_hora_firma: factura.ECF.FechaHoraFirma,
@@ -181,7 +175,7 @@ export class DgiiEcfService {
                   if (codigo_modificacion) data['razon'] = codigo_modificacion_labelE[num_codigo_modificacion_to_label[`_${codigo_modificacion}`]];
                 }
 
-                console.log('data ', data);
+                // console.log('data ', data);
 
                 data['estado'] = 'estado' in response ? response?.estado : null;
                 data['trackId'] = 'trackId' in response ? response?.trackId : null;

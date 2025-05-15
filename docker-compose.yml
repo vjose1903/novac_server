@@ -21,8 +21,8 @@ services:
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
       MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
-      VIRTUAL_HOST: "localhost"
-      API_BASE_URL_DGII_MICROSERVICE: "http://host.docker.internal:9091"
+      VIRTUAL_HOST: "localhost,novac.loca.lt"
+      API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-dev:9091"
     expose:
       - "3000"
     depends_on:
@@ -30,6 +30,25 @@ services:
     volumes:
       - .:/usr/src/novac_server
     command: ["./wait-for-it.sh", "db-dev:5432", "--", "sh", "./run_server.sh"]
+
+  dgii-microservice-dev:
+    build:
+      context: ./dgii_signature_microservice
+      dockerfile: Dockerfile.dev
+    container_name: dgii-microservice-dev
+    env_file:
+      - ./dgii_signature_microservice/.env
+    environment:
+      ENV: "DEV"
+    expose:
+      - "9091"
+    volumes:
+      - ./dgii_signature_microservice/src:/app/src
+      - ./dgii_signature_microservice/tsconfig.json:/app/tsconfig.json
+      - ./dgii_signature_microservice/package.json:/app/package.json
+    restart: unless-stopped
+    depends_on:
+      - db-dev
 
   nginx-proxy-dev:
     image: jwilder/nginx-proxy
