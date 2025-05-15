@@ -61,7 +61,7 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./certs:/etc/nginx/certs
       - ./html:/usr/share/nginx/html
-    restart: always
+    restart: unless-stopped
     depends_on:
       - db-prod
 
@@ -77,4 +77,4 @@ services:
       - ./html:/usr/share/nginx/html
     depends_on:
       - nginx-proxy
-    restart: always
+    restart: unless-stopped
