@@ -24,10 +24,11 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 /public/**
-/node_modules
 /.idea/*
 /node_modules/*
+/node_modules
 node_modules/*
+node_modules
 **/.DS_Store
 .env
 .env.*
