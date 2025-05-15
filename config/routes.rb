@@ -25,6 +25,7 @@ Rails.application.routes.draw do
   resources :config_articulos
 
 
+
   resources :roles do
     collection do
       get "filtro/:arg"        => "roles#getRolesFiltrados"
@@ -165,8 +166,18 @@ Rails.application.routes.draw do
     post 'recepcion/api/ecf',           to: 'facturacion_electronica#recepcion'
     post 'aprobacioncomercial/api/ecf', to: 'facturacion_electronica#aprobacion_comercial'
   end
+  
+  resources :ecf_receptions, only: [:index, :show] do
+    member do
+      post 'approve_deny', to: 'ecf_receptions#approveDenyEcf'
+    end
+  end
 
-  post "ruta/test"              => "application#testFunction"
+  resources :commertial_approval_receptions, only: [:index, :show]
+
+  # -------------------------------------------------------------------------------------------------------------------------------
+
+  get "ruta/test"              => "application#testFunction"
 
   resources :permisos do
     collection do

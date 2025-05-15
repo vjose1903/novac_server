@@ -21,7 +21,7 @@ services:
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
       MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
-      VIRTUAL_HOST: "localhost,novac.loca.lt"
+      VIRTUAL_HOST: "localhost"
       API_BASE_URL_DGII_MICROSERVICE: "http://host.docker.internal:9091"
     expose:
       - "3000"

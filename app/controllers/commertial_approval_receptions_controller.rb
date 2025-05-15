@@ -3,49 +3,38 @@ class CommertialApprovalReceptionsController < ApplicationController
 
   # GET /commertial_approval_receptions
   def index
-    @commertial_approval_receptions = CommertialApprovalReception.all
-
-    render json: @commertial_approval_receptions
-  end
+		return Response.new(params, nil, CommertialApprovalReception.all, nil, get_parametros_opcionales).send_response self
+	end
 
   # GET /commertial_approval_receptions/1
   def show
-    render json: @commertial_approval_reception
+    return Response.new(params, nil, @commertial_approval_reception, nil, get_parametros_opcionales).send_response self
   end
 
-  # POST /commertial_approval_receptions
-  def create
-    @commertial_approval_reception = CommertialApprovalReception.new(commertial_approval_reception_params)
-
-    if @commertial_approval_reception.save
-      render json: @commertial_approval_reception, status: :created, location: @commertial_approval_reception
-    else
-      render json: @commertial_approval_reception.errors, status: :unprocessable_entity
-    end
-  end
-
-  # PATCH/PUT /commertial_approval_receptions/1
-  def update
-    if @commertial_approval_reception.update(commertial_approval_reception_params)
-      render json: @commertial_approval_reception
-    else
-      render json: @commertial_approval_reception.errors, status: :unprocessable_entity
-    end
-  end
-
-  # DELETE /commertial_approval_receptions/1
-  def destroy
-    @commertial_approval_reception.destroy
-  end
+  def get_parametros_opcionales
+		optional_params = {
+			all:                      validate_optional_param(params, 'all')                   ? params['all'].to_boolean                   : true,
+      eNCF:                     validate_optional_param(params, 'eNCF')                  ? params['eNCF'].to_boolean                  : false,
+      rnc_emisor:               validate_optional_param(params, 'rnc_emisor')            ? params['rnc_emisor'].to_boolean            : false,
+      rnc_comprador:            validate_optional_param(params, 'rnc_comprador')         ? params['rnc_comprador'].to_boolean         : false,
+      monto_total:              validate_optional_param(params, 'monto_total')           ? params['monto_total'].to_boolean           : false,
+      estado:                   validate_optional_param(params, 'estado')                ? params['estado'].to_boolean                : false,
+      detalleMotivoRechazo:     validate_optional_param(params, 'detalleMotivoRechazo')  ? params['detalleMotivoRechazo'].to_boolean  : false,
+      cabecera_factura_id:      validate_optional_param(params, 'cabecera_factura_id')   ? params['cabecera_factura_id'].to_boolean   : false,
+			cabecera_factura: {
+				all: false,
+				id:                     validate_optional_param(params, 'cabecera_factura.id')                   ? params['cabecera_factura.id'].to_boolean              : false,
+				numero_comprobante:     validate_optional_param(params, 'cabecera_factura.numero_comprobante')   ? params['cabecera_factura.numero_comprobante'].to_boolean          : false,
+			}
+		}
+	end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_commertial_approval_reception
-      @commertial_approval_reception = CommertialApprovalReception.find(params[:id])
-    end
+      respuesta = set_entidad(CommertialApprovalReception, params)
+			@commertial_approval_reception = respuesta.get_data
 
-    # Only allow a list of trusted parameters through.
-    def commertial_approval_reception_params
-      params.require(:commertial_approval_reception).permit(:eNCF, :rnc_emisor, :rnc_comprador, :monto_total, :estado, :detalleMotivoRechazo, :cabecera_factura_id)
+			return respuesta.send_response self if @commertial_approval_reception.nil?
     end
 end

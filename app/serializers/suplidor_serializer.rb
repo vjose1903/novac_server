@@ -1,20 +1,17 @@
 class SuplidorSerializer < ActiveModel::Serializer
   
-  attribute :id,                            if: Proc.new { self.get_param('id') || self.get_param('all') }
-  attribute :nombre,                        if: Proc.new { self.get_param('nombre') || self.get_param('all') }
-  attribute :telefono,                      if: Proc.new { self.get_param('telefono') || self.get_param('all') }
-  attribute :direccion,                     if: Proc.new { self.get_param('direccion') || self.get_param('all') }
-  attribute :email,                         if: Proc.new { self.get_param('email') || self.get_param('all') }
-  attribute :estado,                        if: Proc.new { self.get_param('estado') || self.get_param('all') }
-  attribute :documentos_de_identidad,       if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
-  attribute :nombre_completo
+  attribute :id,                            if: Proc.new { has_to_show(self.get_param('all') || self.get_param('id')) }
+  attribute :nombre,                        if: Proc.new { has_to_show(self.get_param('all') || self.get_param('nombre')) }
+  attribute :telefono,                      if: Proc.new { has_to_show(self.get_param('all') || self.get_param('telefono')) }
+  attribute :direccion,                     if: Proc.new { has_to_show(self.get_param('all') || self.get_param('direccion')) }
+  attribute :email,                         if: Proc.new { has_to_show(self.get_param('all') || self.get_param('email')) }
+  attribute :estado,                        if: Proc.new { has_to_show(self.get_param('all') || self.get_param('estado')) }
+  attribute :documentos_de_identidad,       if: Proc.new { has_to_show(self.get_param('all') || self.get_param('documentos_de_identidad')) }
+  attribute :nombre_completo,               if: Proc.new { has_to_show(self.get_param('all') || self.get_param('nombre_completo')) }
 
   def documentos_de_identidad
-    documentos = []
-    object.documentos_de_identidad.each do |documento|
-      documentos.push(serialize_parser(documento, {}))
-    end
-    documentos
+    optional_params = parse_serialize_optional_params(self.get_param('documentos_de_identidad'), { all: false, descripcion: true, documento: true  })
+    serialize_parser(object.documentos_de_identidad, optional_params)
   end
   
   def nombre_completo
