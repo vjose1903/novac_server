@@ -283,8 +283,8 @@ export class ParseDocument {
       document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
 
       // PARA LA CERTIFICACION -----
-      const fecha_vencimiento_certificacion = DateUtils.addDays(30);
-      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
+      // const fecha_vencimiento_certificacion = DateUtils.addDays(30);
+      // document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
       // ---------------------------
     }
 
@@ -296,7 +296,7 @@ export class ParseDocument {
       }
 
       // PARA LA CERTIFICACION -----
-      document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
+      // document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
       // ---------------------------
     }
 
