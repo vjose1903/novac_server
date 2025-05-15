@@ -178,6 +178,7 @@ class ArticuloSerializer < ActiveModel::Serializer
       content   = articulo['contenido_articulos']           || articulo[:contenido_articulos]           if tipo == 'contenidos'
       content   = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados] if tipo == 'formulas'
     end
-    return content
+
+    return content.nil? ? [] : content
   end
 end
