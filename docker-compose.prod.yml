@@ -17,9 +17,9 @@ services:
       dockerfile: docker/Dockerfile
     container_name: agrodemi-prod
     environment:
-      VIRTUAL_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
-      LETSENCRYPT_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
-      LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
+      VIRTUAL_HOST: "localhost,novac.loca.lt"
+      # LETSENCRYPT_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
+      # LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
       ALMACEN: "ADM"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
@@ -48,12 +48,14 @@ services:
     expose:
       - "9091"
     restart: always
+    depends_on:
+      - db-prod
 
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     ports:
-      - "80:80"
+      - "9090:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro

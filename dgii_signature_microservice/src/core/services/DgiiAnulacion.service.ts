@@ -1,5 +1,4 @@
 import ECF, { Signature, Transformer } from 'dgii-ecf';
-const xmlFormatter = require('xml-formatter');
 import Queue from 'queue';
 import { rootElNameE } from '@core/constants/xml.const';
 import { DgiiAuthService } from './DgiiAuth.service';

@@ -1,19 +1,11 @@
-import * as path from 'path';
-import ECF, { ENVIRONMENT, Signature, Transformer, getCodeSixDigitfromSignature, generateFcQRCodeURL, convertECF32ToRFCE, generateEcfQRCodeURL, SenderReceiver, ReceivedStatus } from 'dgii-ecf';
+import ECF, { Signature, SenderReceiver, ReceivedStatus } from 'dgii-ecf';
 import { TrackStatusEnum, TrackingStatusResponse, InvoiceSummaryResponse, InvoiceResponse } from 'dgii-ecf/dist/networking/types';
-import { guardarArchivoXML, getProperty, hasValue, isEmpty, retryUntil } from '../../utils/typescript/functions';
-const xmlFormatter = require('xml-formatter');
+import { getProperty, isEmpty, retryUntil } from '../../utils/typescript/functions';
 import Queue from 'queue';
 import { ParseDocument } from '@utils/typescript/parseDocument';
-import { FacturaI } from '@core/types/factura.types';
-import { NotaI } from '@core/types/notas.types';
 import { EcfXmlJson } from '@core/types/xml/xml_json';
-import { codigo_modificacion_labelE, num_codigo_modificacion_to_label, tipoComprobanteE } from '@core/constants/factura.const';
 import { rootElNameE } from '@core/constants/xml.const';
-import { QrUrlDgiiData } from '@core/constants/dgii.const';
-import { DateUtils } from '@vjose1903/dateutils';
 import { DgiiAuthService } from './DgiiAuth.service';
-import { DgiiAnulacionService } from './DgiiAnulacion.service';
 import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
 
 export class DgiiReceptionService {

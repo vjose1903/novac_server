@@ -6,7 +6,6 @@ import { guardarArchivoXML, leerArchivo, retryUntil, sleep } from '../typescript
 import { InvoiceResponse, InvoiceSummaryResponse, TrackingStatusResponse, TrackStatusEnum } from 'dgii-ecf/dist/networking/types';
 import { QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DateUtils } from '@vjose1903/dateutils';
-const xmlFormatter = require('xml-formatter');
 const { convertXML } = require('simple-xml-to-json');
 
 // Función para leer un archivo y devolver su contenido como un string
@@ -107,11 +106,9 @@ async function firmarXML(fileObj: { RNCEmisor: string; noEcf: string; file: stri
     saveResponse(fileObj.file, { envio: response, consulta: responseConsult, qr_url_dgii, qr_url_dgii_data }, index);
 
     // // Save the signedXml to a file
-    const formattedXml = xmlFormatter(signedXml, { collapseContent: true, indentation: '  ', lineSeparator: '\n', prettyPrint: true });
-    guardarArchivoXML(formattedXml, path.resolve(__dirname, `./tipos_fuera_sistema/firmados/${fileName}`));
-    
-    return responseConsult.estado == TrackStatusEnum.ACCEPTED
-    
+    guardarArchivoXML(signedXml, path.resolve(__dirname, `./tipos_fuera_sistema/firmados/${fileName}`));
+
+    return responseConsult.estado == TrackStatusEnum.ACCEPTED;
   } catch (error) {
     console.error(error);
   }
@@ -173,7 +170,7 @@ function getXMLS(): Promise<{ RNCEmisor: string; noEcf: string; file: string }[]
       sortedFiles.forEach(file => {
         if (file != 'firmados') {
           console.log('file ', file);
-            
+
           const match = file.match(regex);
 
           if (match) {
