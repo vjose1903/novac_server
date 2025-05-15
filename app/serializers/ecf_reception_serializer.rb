@@ -14,7 +14,7 @@ class EcfReceptionSerializer < ActiveModel::Serializer
   def rnc_comprador
     format_rnc(object.rnc_comprador)
   end
-  
+
   def suplidor
     optional_params = parse_serialize_optional_params(self.get_param('suplidor'), { all: false, id: true, nombre: true  })
     serialize_parser(object.suplidor, optional_params)
