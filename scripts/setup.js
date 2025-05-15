@@ -29,7 +29,7 @@ const setup = {
     CORS_PORT: '5220',
     FRONT_PORT: '9090',
     DGII_MICROSERVICE_PORT: '9091',
-    FRONTEND_HOST: 'agrodemi.inspot-technology.com',
+    FRONTEND_HOST: 'adm.inspot-technology.com',
     FRONTEND_HOST_SECONDARY: 'admservidor.ddns.net',
     EMAIL: 'novacagrodemi@gmail.com',
     MONTU: '1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a',
