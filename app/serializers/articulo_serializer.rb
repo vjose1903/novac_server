@@ -168,6 +168,8 @@ class ArticuloSerializer < ActiveModel::Serializer
     content     = []
 
     puts "HISTORICOS ".yellow + " #{historicos.to_json}"
+    puts "HISTORICOS.blank? ".green + " #{historicos.blank?}"
+    puts "HISTORICOS.empty? ".red + " #{historicos.empty?}"
     
     if historicos.blank? || historicos.empty?
       content = object.contenido_articulos           if tipo == 'contenidos'
