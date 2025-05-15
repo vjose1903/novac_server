@@ -77,6 +77,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./certs:/etc/nginx/certs
       - ./html:/usr/share/nginx/html
+      - ./acme:/etc/acme.sh
     depends_on:
       - nginx-proxy
     restart: unless-stopped
