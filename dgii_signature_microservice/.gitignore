@@ -4,9 +4,11 @@
 
 # Compiled output
 dist/
+dist/*
 
 # Runtime data
 node_modules/
 
 # Log files
 logs/
+
