@@ -3,6 +3,9 @@ var fs = require('fs');
 var chalk = require('chalk');
 var path = require('path');
 
+// Importar el script de configuración de variables de entorno
+const setupEnv = require('./env-setup');
+
 const green = chalk.green;
 const red = chalk.red;
 const white = chalk.white;
@@ -124,6 +127,10 @@ async function processArgs() {
 
 		if (opt.startsWith('-')) {
 			switch (opt) {
+				case '-env':
+					console.log('la opcion -env');
+					setupEnv(); // Configurar variables de entorno
+					break;
 				case '-w':
 					console.log('la opcion -w');
 					execSync('docker system prune -f', {stdio: 'inherit'});
@@ -210,7 +217,7 @@ async function processArgs() {
 					console.log(`${red('*************************************')}`);
 					process.exit(2);
 			}
-			}
+		}
 		args.splice(0, 1);
 	}
 }

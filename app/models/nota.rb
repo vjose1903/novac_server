@@ -53,11 +53,14 @@ class Nota < ApplicationRecord
               nota.cliente_id               = params[:cliente_id]
               nota.user_id                  = get_current_user[:id]
               nota.tipo_factura_id          = params[:tipo_factura_id]
+              nota.bruto                    = params[:bruto]
+              nota.itbis                    = params[:itbis]
               nota.total                    = params[:total]
               nota.numero_documento         = data_secuencias[:numero_documento]
               nota.numero_comprobante       = data_secuencias[:numero_comprobante]
               nota.fecha_equivalente        = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.blank? ? DateTime.now : CabeceraFactura.calculateNextDay
               nota.fecha_valida             = params[:fecha_valida]
+              nota.serie                    = params[:serie]
               nota.estado                   = true
               nota.no_cliente_nombre        = data_facturas[:no_cliente_nombre]
               nota.no_cliente_direccion     = data_facturas[:no_cliente_direccion]
@@ -258,15 +261,25 @@ class Nota < ApplicationRecord
 
   def self.filtrarNota(params, paginate_params)
     res         = Response.new(params)
-    arg         = params["arg"]
-    tipo_nota   = params["tipo_nota"] || nil
-    query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true"
-    query      += " AND notas.tipo_factura_id = #{TiposNotasId.get_id(tipo_nota)}" if tipo_nota != nil
+    arg         = params[:arg]
+    tipo_nota   = params[:tipo_nota] || nil
 
-    notas = Nota
-    .joins('left join clientes on clientes.id = notas.cliente_id')
-    .where(query)
-    .order('notas.id DESC')
+    query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true"
+    
+    if tipo_nota.present?
+      referencias = tipo_nota.split(',').map(&:strip)
+      query += " AND tipo_facturas.referencia IN (?)"
+      
+      notas = Nota
+        .joins('left join clientes on clientes.id = notas.cliente_id inner join tipo_facturas on tipo_facturas.id = notas.tipo_factura_id')
+        .where(query, referencias)
+        .order('notas.id DESC')
+    else
+      notas = Nota
+        .joins('left join clientes on clientes.id = notas.cliente_id inner join tipo_facturas on tipo_facturas.id = notas.tipo_factura_id')
+        .where(query)
+        .order('notas.id DESC')
+    end
 
     if notas.length > 0
       res.set_data(notas, {all: true}, Nota.models_includes)

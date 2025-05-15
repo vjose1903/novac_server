@@ -17,9 +17,9 @@ services:
       dockerfile: docker/Dockerfile
     container_name: agrodemi-prod
     environment:
-      VIRTUAL_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
-      LETSENCRYPT_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
-      LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
+      VIRTUAL_HOST: "localhost,novac.loca.lt"
+      # LETSENCRYPT_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
+      # LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
       ALMACEN: "ADM"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
@@ -27,6 +27,7 @@ services:
       MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
+      API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-prod:9091"
     expose:
       - "3000"
     depends_on:
@@ -35,17 +36,34 @@ services:
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
 
+  dgii-microservice-prod:
+    build:
+      context: ./dgii_signature_microservice
+      dockerfile: Dockerfile
+    container_name: dgii-microservice-prod
+    env_file:
+      - ./dgii_signature_microservice/.env
+    environment:
+      ENV: "PROD"
+    expose:
+      - "9091"
+    restart: always
+    depends_on:
+      - db-prod
+
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     ports:
-      - "80:80"
+      - "9090:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./certs:/etc/nginx/certs
       - ./html:/usr/share/nginx/html
     restart: always
+    depends_on:
+      - db-prod
 
   letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion

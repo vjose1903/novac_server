@@ -1,0 +1,47 @@
+{
+  "name": "@vjose1903/dgii",
+  "version": "1.0.0",
+  "main": "src/server",
+  "scripts": {
+    "start:dev": "ts-node -r dotenv/config -r tsconfig-paths/register src/server.ts",
+    "clean": "rimraf dist",
+    "build:ts": "tsc && tsc-alias",
+    "test-function": "ts-node -r dotenv/config -r tsconfig-paths/register src/utils/test.ts",
+    "copy:assets": "cpx \"src/utils/*.{p12,xml,json}\" dist/utils",
+    "build": "npm run clean && npm run build:ts && npm run copy:assets",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@types/big.js": "6.2.2",
+    "@vjose1903/dateutils": "1.0.19",
+    "big.js": "7.0.1",
+    "body-parser": "^2.2.0",
+    "dgii-ecf": "^1.6.5",
+    "express": "^5.1.0",
+    "googleapis": "^148.0.0",
+    "http": "^0.0.1-security",
+    "mime-types": "^3.0.1",
+    "node-forge": "^1.3.1",
+    "queue": "^7.0.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "xmldom": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.12.0",
+    "cpx": "^1.5.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
+    "rimraf": "^6.0.1",
+    "simple-xml-to-json": "^1.2.3",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.7.2",
+    "xlsx": "^0.18.5"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "commonjs"
+}

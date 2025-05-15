@@ -4,9 +4,9 @@ class ApplicationController < ActionController::API
   # protect_from_forgery with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  # if ENV["RAILS_ENV"] != "development"
+  if ENV["RAILS_ENV"] != "development"
     before_action :validateUserIsLogging!
-  # end
+  end
 
   around_action :encarsular_usuario
 
@@ -28,12 +28,21 @@ class ApplicationController < ActionController::API
   def testFunction
 
     res = Response.new
-    user_id                  = get_current_user[:id]
-    result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
+    # user_id                  = get_current_user[:id]
+    # result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
     # result = Permiso.verificateUserPermiso(user_id, 'articulo')
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
-    res = result
+    # certification_params = { TipoeCF: 34, numero_comprobante: 'E340000010001' }.with_indifferent_access
+    # document      = Nota.find_by_id(52)
+
+    # certification_params = { TipoeCF: 32, numero_comprobante: 'E320000010002' }.with_indifferent_access
+    # document        = CabeceraFactura.find_by_id(955)
+
+    # document_parsed = DGII_MANAGER.send(document, certification_params)
+    #
+    # res = document_parsed
+    res.set_data(formar_permisos)
 
     res.send_response self
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
+ActiveRecord::Schema[7.0].define(version: 2025_05_15_041433) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -45,24 +45,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "is_materia_prima"
     t.boolean "calcular_saco"
-    t.bigint "sub_tipo_articulo_id"
     t.index ["estado", "nombre"], name: "index_articulos_on_estado_and_nombre", unique: true, where: "(estado = true)"
     t.index ["imagen_id"], name: "index_articulos_on_imagen_id"
-    t.index ["sub_tipo_articulo_id"], name: "index_articulos_on_sub_tipo_articulo_id"
     t.index ["tipo_articulo_id"], name: "index_articulos_on_tipo_articulo_id"
-  end
-
-  create_table "bancos", force: :cascade do |t|
-    t.string "nombre", null: false
-    t.string "rnc"
-    t.string "comentario"
-    t.string "telefono"
-    t.string "direccion"
-    t.string "ejecutivo_cuenta"
-    t.string "telefono_ejecutivo_cuenta"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "cabecera_conduces", force: :cascade do |t|
@@ -115,29 +100,17 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.integer "pre_factura"
     t.integer "cotizacion"
     t.string "serie"
-    t.boolean "can_pagar"
+    t.string "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
+    t.string "is_aceptada"
+    t.string "dgii_message"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_cabecera_facturas_on_user_id"
-  end
-
-  create_table "cabezas_asientos_contables", force: :cascade do |t|
-    t.bigint "usuario_creador_id", null: false
-    t.bigint "usuario_anulador_id"
-    t.bigint "periodo_fiscal_id", null: false
-    t.string "comentario"
-    t.string "tipo"
-    t.date "fecha_equivalente"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "is_validated"
-    t.string "codigo"
-    t.datetime "fecha_anulacion"
-    t.index ["periodo_fiscal_id"], name: "index_cabezas_asientos_contables_on_periodo_fiscal_id"
-    t.index ["usuario_anulador_id"], name: "index_cabezas_asientos_contables_on_usuario_anulador_id"
-    t.index ["usuario_creador_id"], name: "index_cabezas_asientos_contables_on_usuario_creador_id"
   end
 
   create_table "camiones_viajes", force: :cascade do |t|
@@ -150,45 +123,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.index ["vehiculo_id"], name: "index_camiones_viajes_on_vehiculo_id"
   end
 
-  create_table "categorias_entidades_contables", force: :cascade do |t|
-    t.bigint "cuenta_contable_control_id", null: false
-    t.bigint "cuenta_contable_auxiliar_id"
-    t.bigint "configuracion_entidad_cuenta_id", null: false
-    t.string "descripcion"
-    t.string "key"
-    t.string "entidad"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["configuracion_entidad_cuenta_id"], name: "idx_cat_ent_cont_cuenta_cont_config_ent"
-    t.index ["cuenta_contable_auxiliar_id"], name: "idx_cat_ent_cont_cuenta_cont_aux"
-    t.index ["cuenta_contable_control_id"], name: "idx_cat_ent_cont_cuenta_cont_cont"
-  end
-
-  create_table "cheques", force: :cascade do |t|
-    t.bigint "cuenta_bancaria_id", null: false
-    t.bigint "divisa_id", null: false
-    t.float "tasa"
-    t.float "monto"
-    t.float "monto_local"
-    t.float "balance"
-    t.string "comentario"
-    t.datetime "fecha_equivalente"
-    t.bigint "user_creador_id", null: false
-    t.bigint "last_user_update_id"
-    t.date "fecha_update"
-    t.bigint "user_anulador_id"
-    t.date "fecha_anulacion"
-    t.integer "secuencia"
-    t.string "estado", default: "active"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cuenta_bancaria_id"], name: "index_cheques_on_cuenta_bancaria_id"
-    t.index ["divisa_id"], name: "index_cheques_on_divisa_id"
-    t.index ["last_user_update_id"], name: "index_cheques_on_last_user_update_id"
-    t.index ["user_anulador_id"], name: "index_cheques_on_user_anulador_id"
-    t.index ["user_creador_id"], name: "index_cheques_on_user_creador_id"
-  end
-
   create_table "choferes_viajes", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "recibos_ingreso_id", null: false
@@ -196,52 +130,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.datetime "updated_at", null: false
     t.index ["recibos_ingreso_id"], name: "index_choferes_viajes_on_recibos_ingreso_id"
     t.index ["user_id"], name: "index_choferes_viajes_on_user_id"
-  end
-
-  create_table "cierre_cuentas", force: :cascade do |t|
-    t.bigint "periodo_fiscal_id", null: false
-    t.bigint "cuenta_contable_id", null: false
-    t.float "enero", default: 0.0
-    t.float "enero_debito", default: 0.0
-    t.float "enero_credito", default: 0.0
-    t.float "febrero", default: 0.0
-    t.float "febrero_debito", default: 0.0
-    t.float "febrero_credito", default: 0.0
-    t.float "marzo", default: 0.0
-    t.float "marzo_debito", default: 0.0
-    t.float "marzo_credito", default: 0.0
-    t.float "abril", default: 0.0
-    t.float "abril_debito", default: 0.0
-    t.float "abril_credito", default: 0.0
-    t.float "mayo", default: 0.0
-    t.float "mayo_debito", default: 0.0
-    t.float "mayo_credito", default: 0.0
-    t.float "junio", default: 0.0
-    t.float "junio_debito", default: 0.0
-    t.float "junio_credito", default: 0.0
-    t.float "julio", default: 0.0
-    t.float "julio_debito", default: 0.0
-    t.float "julio_credito", default: 0.0
-    t.float "agosto", default: 0.0
-    t.float "agosto_debito", default: 0.0
-    t.float "agosto_credito", default: 0.0
-    t.float "septiembre", default: 0.0
-    t.float "septiembre_debito", default: 0.0
-    t.float "septiembre_credito", default: 0.0
-    t.float "octubre", default: 0.0
-    t.float "octubre_debito", default: 0.0
-    t.float "octubre_credito", default: 0.0
-    t.float "noviembre", default: 0.0
-    t.float "noviembre_debito", default: 0.0
-    t.float "noviembre_credito", default: 0.0
-    t.float "diciembre", default: 0.0
-    t.float "diciembre_debito", default: 0.0
-    t.float "diciembre_credito", default: 0.0
-    t.float "total_anual", default: 0.0
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cuenta_contable_id"], name: "index_cierre_cuentas_on_cuenta_contable_id"
-    t.index ["periodo_fiscal_id"], name: "index_cierre_cuentas_on_periodo_fiscal_id"
   end
 
   create_table "clientes", force: :cascade do |t|
@@ -263,25 +151,27 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.index ["municipio_id"], name: "index_clientes_on_municipio_id"
   end
 
+  create_table "commertial_approval_receptions", force: :cascade do |t|
+    t.bigint "cabecera_factura_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.integer "estado"
+    t.string "fecha_emision"
+    t.string "detalleMotivoRechazo"
+    t.string "xml_file_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "suplidor_id"
+    t.index ["cabecera_factura_id"], name: "index_commertial_approval_receptions_on_cabecera_factura_id"
+    t.index ["suplidor_id"], name: "index_commertial_approval_receptions_on_suplidor_id"
+  end
+
   create_table "config_articulos", force: :cascade do |t|
     t.float "porciento_ganancia"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "configuraciones_entidades_cuentas", force: :cascade do |t|
-    t.string "descripcion"
-    t.string "entidad"
-    t.bigint "cuenta_contable_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "key"
-    t.boolean "is_nacional"
-    t.boolean "has_comun"
-    t.boolean "has_individual"
-    t.boolean "has_categoria"
-    t.boolean "has_sub_categoria"
-    t.index ["cuenta_contable_id"], name: "index_configuraciones_entidades_cuentas_on_cuenta_contable_id"
   end
 
   create_table "contenido_articulos", force: :cascade do |t|
@@ -333,80 +223,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
 
-  create_table "cuentas_bancarias", force: :cascade do |t|
-    t.bigint "banco_id", null: false
-    t.bigint "tipo_cuenta_bancaria_id", null: false
-    t.bigint "divisa_id", null: false
-    t.bigint "cuenta_contable_id", null: false
-    t.bigint "cuenta_contable_prima_id"
-    t.date "fecha_apertura"
-    t.string "numero_cuenta"
-    t.string "comentario"
-    t.string "descripcion"
-    t.boolean "is_nacional"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.float "balance_inicial_banco", default: 0.0
-    t.float "balance_inicial_libro", default: 0.0
-    t.date "fecha_primera_conciliacion"
-    t.boolean "has_chequera", default: false
-    t.index ["banco_id"], name: "index_cuentas_bancarias_on_banco_id"
-    t.index ["cuenta_contable_id"], name: "index_cuentas_bancarias_on_cuenta_contable_id"
-    t.index ["cuenta_contable_prima_id"], name: "index_cuentas_bancarias_on_cuenta_contable_prima_id"
-    t.index ["divisa_id"], name: "index_cuentas_bancarias_on_divisa_id"
-    t.index ["tipo_cuenta_bancaria_id"], name: "index_cuentas_bancarias_on_tipo_cuenta_bancaria_id"
-  end
-
-  create_table "cuentas_contables", force: :cascade do |t|
-    t.bigint "grupo_cuenta_id", null: false
-    t.string "descripcion"
-    t.string "codigo"
-    t.integer "nivel"
-    t.string "origen"
-    t.string "tipo"
-    t.boolean "is_control"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "cuenta_control_id"
-    t.index ["grupo_cuenta_id"], name: "index_cuentas_contables_on_grupo_cuenta_id"
-  end
-
-  create_table "depositos", force: :cascade do |t|
-    t.bigint "cuenta_bancaria_id", null: false
-    t.bigint "divisa_id", null: false
-    t.bigint "user_creador_id", null: false
-    t.bigint "user_anulador_id"
-    t.bigint "last_user_update_id"
-    t.float "tasa"
-    t.float "monto"
-    t.float "monto_local"
-    t.string "comentario"
-    t.string "numero_referencia"
-    t.date "fecha_equivalente"
-    t.date "fecha_anulacion"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cuenta_bancaria_id"], name: "index_depositos_on_cuenta_bancaria_id"
-    t.index ["divisa_id"], name: "index_depositos_on_divisa_id"
-    t.index ["last_user_update_id"], name: "index_depositos_on_last_user_update_id"
-    t.index ["user_anulador_id"], name: "index_depositos_on_user_anulador_id"
-    t.index ["user_creador_id"], name: "index_depositos_on_user_creador_id"
-  end
-
-  create_table "detalle_cheques", force: :cascade do |t|
-    t.bigint "cheque_id", null: false
-    t.string "comentario"
-    t.float "tasa"
-    t.float "monto"
-    t.float "monto_local"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cheque_id"], name: "index_detalle_cheques_on_cheque_id"
-  end
-
   create_table "detalle_conduces", force: :cascade do |t|
     t.bigint "cabecera_conduce_id"
     t.bigint "detalle_factura_id"
@@ -441,6 +257,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.integer "detalle_factura_nota"
     t.boolean "is_devuelto"
     t.boolean "is_defectuoso"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end
@@ -462,19 +279,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
 
-  create_table "detalles_asientos_contables", force: :cascade do |t|
-    t.bigint "cabeza_asiento_contable_id", null: false
-    t.bigint "cuenta_contable_auxiliar_id", null: false
-    t.bigint "cuenta_contable_control_id", null: false
-    t.float "valor_debito"
-    t.float "valor_credito"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cabeza_asiento_contable_id"], name: "idx_det_as_cont_cabeza_asi_cont"
-    t.index ["cuenta_contable_auxiliar_id"], name: "idx_det_as_cont_cuenta_cont_aux"
-    t.index ["cuenta_contable_control_id"], name: "idx_det_as_cont_cuenta_cont_cont"
-  end
-
   create_table "detalles_facturas_notas", force: :cascade do |t|
     t.bigint "factura_aplicada_id", null: false
     t.bigint "articulo_id", null: false
@@ -493,29 +297,12 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.float "itbis_real"
     t.float "descuento_real"
     t.bigint "tipo_factura_id"
+    t.float "cantidad_origin"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
     t.index ["tipo_factura_id"], name: "index_detalles_facturas_notas_on_tipo_factura_id"
-  end
-
-  create_table "detalles_periodos_fiscales", force: :cascade do |t|
-    t.bigint "periodo_fiscal_id", null: false
-    t.boolean "enero"
-    t.boolean "febrero"
-    t.boolean "marzo"
-    t.boolean "abril"
-    t.boolean "mayo"
-    t.boolean "junio"
-    t.boolean "julio"
-    t.boolean "agosto"
-    t.boolean "septiembre"
-    t.boolean "octubre"
-    t.boolean "noviembre"
-    t.boolean "diciembre"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["periodo_fiscal_id"], name: "index_detalles_periodos_fiscales_on_periodo_fiscal_id"
   end
 
   create_table "detalles_produccion", force: :cascade do |t|
@@ -528,17 +315,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.datetime "updated_at", precision: nil, null: false
     t.index ["articulo_id"], name: "index_detalles_produccion_on_articulo_id"
     t.index ["produccion_id"], name: "index_detalles_produccion_on_produccion_id"
-  end
-
-  create_table "divisas", force: :cascade do |t|
-    t.string "nombre"
-    t.string "simbolo"
-    t.boolean "is_principal"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.float "current_tasa", default: 1.0
-    t.boolean "predeterminado", default: false
   end
 
   create_table "documentos_de_identidad", force: :cascade do |t|
@@ -558,22 +334,18 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
   end
 
-  create_table "entidad_cuentas_contables", force: :cascade do |t|
-    t.string "origen_entidad_type", null: false
-    t.bigint "origen_entidad_id", null: false
-    t.string "key"
-    t.string "tipo_agrupacion_contable"
-    t.bigint "cuenta_contable_id"
-    t.string "origen_categoria_type"
-    t.bigint "origen_categoria_id"
-    t.bigint "configuracion_entidad_cuenta_id", null: false
-    t.boolean "is_comun", default: false
+  create_table "ecf_receptions", force: :cascade do |t|
+    t.bigint "suplidor_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.boolean "approved"
+    t.string "fecha_emision"
+    t.string "xml_file_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["configuracion_entidad_cuenta_id"], name: "idx_ent_cuenta_cont_config_ent"
-    t.index ["cuenta_contable_id"], name: "index_entidad_cuentas_contables_on_cuenta_contable_id"
-    t.index ["origen_categoria_type", "origen_categoria_id"], name: "index_entidad_cuentas_contables_on_origen_categoria"
-    t.index ["origen_entidad_type", "origen_entidad_id"], name: "index_entidad_cuentas_contables_on_origen_entidad"
+    t.index ["suplidor_id"], name: "index_ecf_receptions_on_suplidor_id"
   end
 
   create_table "facturas_aplicadas", force: :cascade do |t|
@@ -592,22 +364,12 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.bigint "articulo_id"
     t.float "cantidad"
     t.float "costo"
+    t.integer "articulo_combo"
     t.float "precio"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "medida"
-    t.bigint "articulo_combo_id"
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
-  end
-
-  create_table "grupos_de_cuentas", force: :cascade do |t|
-    t.string "descripcion"
-    t.integer "grupo"
-    t.string "origen"
-    t.string "tipo"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "historico_producciones", force: :cascade do |t|
@@ -624,12 +386,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
   create_table "imagenes", force: :cascade do |t|
     t.string "file_name"
     t.string "base_64"
+    t.string "path"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.string "origen_img_type"
-    t.bigint "origen_img_id"
-    t.string "file_hash"
-    t.index ["origen_img_type", "origen_img_id"], name: "index_imagenes_on_origen"
   end
 
   create_table "incidencias", force: :cascade do |t|
@@ -740,11 +499,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
   end
 
-  create_table "nombre_bancos", force: :cascade do |t|
-    t.string "nombre"
-    t.string "identificador"
-  end
-
   create_table "notas", force: :cascade do |t|
     t.bigint "cliente_id"
     t.bigint "user_id", null: false
@@ -760,52 +514,20 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "fecha_valida", precision: nil
+    t.string "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
+    t.string "serie"
+    t.string "razon"
+    t.float "bruto"
+    t.float "itbis"
+    t.string "is_aceptada"
+    t.string "dgii_message"
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"
-  end
-
-  create_table "pago_factura_detalles", force: :cascade do |t|
-    t.bigint "pago_factura_id", null: false
-    t.bigint "cabecera_factura_id", null: false
-    t.float "balance_anterior_factura"
-    t.float "balance_factura"
-    t.float "deposito"
-    t.boolean "is_ultimo"
-    t.string "descripcion"
-    t.boolean "pago_a_tiempo"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cabecera_factura_id"], name: "index_pago_factura_detalles_on_cabecera_factura_id"
-    t.index ["pago_factura_id"], name: "index_pago_factura_detalles_on_pago_factura_id"
-  end
-
-  create_table "pago_facturas", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "suplidor_id", null: false
-    t.bigint "tipo_factura_id", null: false
-    t.integer "numero"
-    t.string "forma_pago"
-    t.boolean "estado", default: true
-    t.float "total"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "fecha_equivalente"
-    t.index ["suplidor_id"], name: "index_pago_facturas_on_suplidor_id"
-    t.index ["tipo_factura_id"], name: "index_pago_facturas_on_tipo_factura_id"
-    t.index ["user_id"], name: "index_pago_facturas_on_user_id"
-  end
-
-  create_table "periodos_fiscales", force: :cascade do |t|
-    t.date "fecha_inicio"
-    t.date "fecha_cierre"
-    t.boolean "estado", default: true
-    t.boolean "is_open", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "fecha_cerrado"
-    t.bigint "usuario_cerrador_id"
-    t.index ["usuario_cerrador_id"], name: "index_periodos_fiscales_on_usuario_cerrador_id"
   end
 
   create_table "permisos", force: :cascade do |t|
@@ -902,29 +624,12 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.index ["tipo_factura_id"], name: "index_secuencia_comprobantes_on_tipo_factura_id"
   end
 
-  create_table "secuencia_documentos", force: :cascade do |t|
-    t.string "origen_secuencia_type", null: false
-    t.bigint "origen_secuencia_id", null: false
-    t.integer "secuencia", default: 1
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["origen_secuencia_type", "origen_secuencia_id"], name: "index_secuencia_documentos_on_origen_secuencia"
-  end
-
   create_table "secuencia_facturas", force: :cascade do |t|
     t.bigint "tipo_factura_id"
     t.integer "secuencia"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.index ["tipo_factura_id"], name: "index_secuencia_facturas_on_tipo_factura_id"
-  end
-
-  create_table "sub_tipo_articulos", force: :cascade do |t|
-    t.bigint "tipo_articulo_id", null: false
-    t.string "descripcion"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["tipo_articulo_id"], name: "index_sub_tipo_articulos_on_tipo_articulo_id"
   end
 
   create_table "suplidores", force: :cascade do |t|
@@ -935,38 +640,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.boolean "estado"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.bigint "divisa_id"
-    t.index ["divisa_id"], name: "index_suplidores_on_divisa_id"
-  end
-
-  create_table "tasas_de_cambio", force: :cascade do |t|
-    t.bigint "divisa_id", null: false
-    t.bigint "user_id"
-    t.bigint "last_user_update_id"
-    t.date "fecha_equivalente"
-    t.float "valor", default: 0.0
-    t.integer "secuencia", default: 0
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["divisa_id"], name: "index_tasas_de_cambio_on_divisa_id"
-    t.index ["last_user_update_id"], name: "index_tasas_de_cambio_on_last_user_update_id"
-    t.index ["user_id"], name: "index_tasas_de_cambio_on_user_id"
-  end
-
-  create_table "tipo_articulo_cuentas_contables", force: :cascade do |t|
-    t.string "origen_tipo_type", null: false
-    t.bigint "origen_tipo_id", null: false
-    t.bigint "configuracion_entidad_cuenta_id"
-    t.bigint "cuenta_contable_control_id"
-    t.bigint "cuenta_contable_auxiliar_id"
-    t.string "key"
-    t.string "entidad"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["configuracion_entidad_cuenta_id"], name: "idx_tipo_art_config_ent_cuenta"
-    t.index ["cuenta_contable_auxiliar_id"], name: "idx_tipo_art_cuenta_cont_aux"
-    t.index ["cuenta_contable_control_id"], name: "idx_tipo_art_cuenta_cont_cont"
-    t.index ["origen_tipo_type", "origen_tipo_id"], name: "index_tipo_articulo_cuentas_contables_on_origen_tipo"
   end
 
   create_table "tipo_articulos", force: :cascade do |t|
@@ -977,47 +650,13 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
     t.string "codigo"
   end
 
-  create_table "tipo_cuentas_bancarias", force: :cascade do |t|
-    t.string "descripcion"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "tipo_facturas", force: :cascade do |t|
     t.string "referencia"
     t.string "descripcion"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "serie"
-  end
-
-  create_table "transferencias", force: :cascade do |t|
-    t.bigint "cuenta_bancaria_origen_id", null: false
-    t.bigint "cuenta_bancaria_destino_id"
-    t.bigint "divisa_id", null: false
-    t.bigint "user_creador_id", null: false
-    t.bigint "last_user_update_id"
-    t.bigint "user_anulador_id"
-    t.float "tasa"
-    t.float "monto"
-    t.float "monto_local"
-    t.string "comentario"
-    t.string "nombre_banco_tercero"
-    t.string "cuenta_bancaria_tercero"
-    t.string "numero_referencia"
-    t.boolean "estado", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.date "fecha_equivalente"
-    t.datetime "fecha_anulacion"
-    t.date "fecha_update"
-    t.index ["cuenta_bancaria_destino_id"], name: "index_transferencias_on_cuenta_bancaria_destino_id"
-    t.index ["cuenta_bancaria_origen_id"], name: "index_transferencias_on_cuenta_bancaria_origen_id"
-    t.index ["divisa_id"], name: "index_transferencias_on_divisa_id"
-    t.index ["last_user_update_id"], name: "index_transferencias_on_last_user_update_id"
-    t.index ["user_anulador_id"], name: "index_transferencias_on_user_anulador_id"
-    t.index ["user_creador_id"], name: "index_transferencias_on_user_creador_id"
+    t.string "key"
   end
 
   create_table "users", force: :cascade do |t|
@@ -1088,43 +727,18 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
   add_foreign_key "cabecera_facturas", "suplidores"
   add_foreign_key "cabecera_facturas", "tipo_facturas"
   add_foreign_key "cabecera_facturas", "users"
-  add_foreign_key "cabezas_asientos_contables", "periodos_fiscales", column: "periodo_fiscal_id"
-  add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_anulador_id"
-  add_foreign_key "cabezas_asientos_contables", "users", column: "usuario_creador_id"
   add_foreign_key "camiones_viajes", "vehiculos"
-  add_foreign_key "categorias_entidades_contables", "configuraciones_entidades_cuentas", column: "configuracion_entidad_cuenta_id"
-  add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
-  add_foreign_key "categorias_entidades_contables", "cuentas_contables", column: "cuenta_contable_control_id"
-  add_foreign_key "cheques", "cuentas_bancarias", column: "cuenta_bancaria_id"
-  add_foreign_key "cheques", "divisas"
-  add_foreign_key "cheques", "users", column: "last_user_update_id"
-  add_foreign_key "cheques", "users", column: "user_anulador_id"
-  add_foreign_key "cheques", "users", column: "user_creador_id"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
-  add_foreign_key "cierre_cuentas", "cuentas_contables", column: "cuenta_contable_id"
-  add_foreign_key "cierre_cuentas", "periodos_fiscales", column: "periodo_fiscal_id"
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "clientes", "municipios"
-  add_foreign_key "configuraciones_entidades_cuentas", "cuentas_contables", column: "cuenta_contable_id"
+  add_foreign_key "commertial_approval_receptions", "cabecera_facturas"
+  add_foreign_key "commertial_approval_receptions", "suplidores"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"
   add_foreign_key "costos_fletes_historiales", "users"
   add_foreign_key "cuadre_cajas", "users"
-  add_foreign_key "cuentas_bancarias", "bancos"
-  add_foreign_key "cuentas_bancarias", "cuentas_contables", column: "cuenta_contable_id"
-  add_foreign_key "cuentas_bancarias", "cuentas_contables", column: "cuenta_contable_prima_id"
-  add_foreign_key "cuentas_bancarias", "divisas"
-  add_foreign_key "cuentas_bancarias", "tipo_cuentas_bancarias", column: "tipo_cuenta_bancaria_id"
-  add_foreign_key "cuentas_contables", "cuentas_contables", column: "cuenta_control_id"
-  add_foreign_key "cuentas_contables", "grupos_de_cuentas", column: "grupo_cuenta_id"
-  add_foreign_key "depositos", "cuentas_bancarias", column: "cuenta_bancaria_id"
-  add_foreign_key "depositos", "divisas"
-  add_foreign_key "depositos", "users", column: "last_user_update_id"
-  add_foreign_key "depositos", "users", column: "user_anulador_id"
-  add_foreign_key "depositos", "users", column: "user_creador_id"
-  add_foreign_key "detalle_cheques", "cheques"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"
@@ -1132,24 +746,18 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
   add_foreign_key "detalle_facturas", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "cabecera_facturas"
   add_foreign_key "detalle_recibos", "recibos_ingresos"
-  add_foreign_key "detalles_asientos_contables", "cabezas_asientos_contables", column: "cabeza_asiento_contable_id"
-  add_foreign_key "detalles_asientos_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
-  add_foreign_key "detalles_asientos_contables", "cuentas_contables", column: "cuenta_contable_control_id"
   add_foreign_key "detalles_facturas_notas", "articulos"
   add_foreign_key "detalles_facturas_notas", "detalle_facturas"
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"
-  add_foreign_key "detalles_periodos_fiscales", "periodos_fiscales", column: "periodo_fiscal_id"
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
-  add_foreign_key "entidad_cuentas_contables", "configuraciones_entidades_cuentas", column: "configuracion_entidad_cuenta_id"
-  add_foreign_key "entidad_cuentas_contables", "cuentas_contables", column: "cuenta_contable_id"
+  add_foreign_key "ecf_receptions", "suplidores"
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"
-  add_foreign_key "formulas_productos_terminados", "articulos", column: "articulo_combo_id"
   add_foreign_key "historico_producciones", "articulos"
   add_foreign_key "historico_producciones", "users"
   add_foreign_key "mantenimiento_articulos", "articulos"
@@ -1164,12 +772,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
   add_foreign_key "notas", "clientes"
   add_foreign_key "notas", "tipo_facturas"
   add_foreign_key "notas", "users"
-  add_foreign_key "pago_factura_detalles", "cabecera_facturas"
-  add_foreign_key "pago_factura_detalles", "pago_facturas"
-  add_foreign_key "pago_facturas", "suplidores"
-  add_foreign_key "pago_facturas", "tipo_facturas"
-  add_foreign_key "pago_facturas", "users"
-  add_foreign_key "periodos_fiscales", "users", column: "usuario_cerrador_id"
   add_foreign_key "permisos_acciones", "acciones"
   add_foreign_key "permisos_acciones", "permisos"
   add_foreign_key "producciones", "users"
@@ -1181,19 +783,6 @@ ActiveRecord::Schema[7.0].define(version: 2025_03_11_111402) do
   add_foreign_key "roles_permisos_acciones", "roles"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
-  add_foreign_key "sub_tipo_articulos", "tipo_articulos"
-  add_foreign_key "tasas_de_cambio", "divisas"
-  add_foreign_key "tasas_de_cambio", "users"
-  add_foreign_key "tasas_de_cambio", "users", column: "last_user_update_id"
-  add_foreign_key "tipo_articulo_cuentas_contables", "configuraciones_entidades_cuentas", column: "configuracion_entidad_cuenta_id"
-  add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_auxiliar_id"
-  add_foreign_key "tipo_articulo_cuentas_contables", "cuentas_contables", column: "cuenta_contable_control_id"
-  add_foreign_key "transferencias", "cuentas_bancarias", column: "cuenta_bancaria_destino_id"
-  add_foreign_key "transferencias", "cuentas_bancarias", column: "cuenta_bancaria_origen_id"
-  add_foreign_key "transferencias", "divisas"
-  add_foreign_key "transferencias", "users", column: "last_user_update_id"
-  add_foreign_key "transferencias", "users", column: "user_anulador_id"
-  add_foreign_key "transferencias", "users", column: "user_creador_id"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

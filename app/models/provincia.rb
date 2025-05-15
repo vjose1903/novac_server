@@ -1,5 +1,5 @@
 class Provincia < ApplicationRecord
-  validates :nombre, presence: { :message => "Debe de especificar un nombre para la provincia." }, uniqueness: { case_sensitive: false, :message => "Esta provincia ya esta creada"}
+  validates :nombre, presence: { :message => 'Debe de especificar un nombre para la provincia.' }, uniqueness: { case_sensitive: false, :message => 'Esta provincia ya esta creada'}
 
 	has_many :municipios, dependent: :destroy
   accepts_nested_attributes_for :municipios, :allow_destroy => true
@@ -7,9 +7,13 @@ class Provincia < ApplicationRecord
   def self.crear_actualizar_provincia(params, is_save=false)
     res = Response.new
 
-		provincia         = Provincia.where(:id => params["id"]).first_or_create
+		provincia         = Provincia.where(:id => params[:id]).first_or_create
 
-    provincia.nombre  = params["nombre"]
+    provincia.nombre  = params[:nombre] if params.obj_has?(:nombre)
+    provincia.codigo  = params[:codigo] if params.obj_has?(:codigo)
+
+
+
 
     provincia.valid?
 
