@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_05_14_213616) do
+ActiveRecord::Schema[7.0].define(version: 2025_05_15_041433) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -163,7 +163,9 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_14_213616) do
     t.string "xml_file_name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "suplidor_id"
     t.index ["cabecera_factura_id"], name: "index_commertial_approval_receptions_on_cabecera_factura_id"
+    t.index ["suplidor_id"], name: "index_commertial_approval_receptions_on_suplidor_id"
   end
 
   create_table "config_articulos", force: :cascade do |t|
@@ -731,6 +733,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_14_213616) do
   add_foreign_key "clientes", "imagenes"
   add_foreign_key "clientes", "municipios"
   add_foreign_key "commertial_approval_receptions", "cabecera_facturas"
+  add_foreign_key "commertial_approval_receptions", "suplidores"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"

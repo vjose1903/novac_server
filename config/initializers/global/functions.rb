@@ -194,6 +194,27 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 
+def format_rnc(rnc)
+  return rnc unless rnc
+  
+  # Asegurarnos que el RNC sea tratado como string
+  rnc = rnc.to_s
+  
+  # Extraer los primeros 3 dígitos
+  first_part = rnc[0..2]
+  
+  # Extraer los dígitos del medio (todos menos los 3 primeros y el último)
+  middle_part = rnc[3..-2]
+  
+  # Extraer el último dígito
+  last_part = rnc[-1]
+  
+  # Formato: XXX-XXXXX-X
+  "#{first_part}-#{middle_part}-#{last_part}"
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
 
 def encrypt(str)
   cipher_salt1 = '013213810'

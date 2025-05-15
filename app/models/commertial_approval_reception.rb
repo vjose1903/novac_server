@@ -1,5 +1,6 @@
 class CommertialApprovalReception < ApplicationRecord
   belongs_to :cabecera_factura, optional: true
+  belongs_to :suplidor, optional: true
 
   validates :eNCF,            presence: { :message => 'Debe de especificar la secuencia del comprobante electrónico.' }, length: { is: 13, message: "el Ecf debe de tener 13 caracteres" }
   validates :rnc_comprador,   presence: { :message => "Debe de especificar el RNC del comprador" }
@@ -21,8 +22,13 @@ class CommertialApprovalReception < ApplicationRecord
     commertial_approval.xml_file_name         = "#{params[:rnc_comprador]}#{params[:eNCF]}.xml"
 
     if commertial_approval.eNCF.present?
-      cabecera_factura    = CabeceraFactura.where("numero_comprobante='#{commertial_approval.eNCF}' AND tipo='venta'").first
+      cabecera_factura                     = CabeceraFactura.where("numero_comprobante='#{commertial_approval.eNCF}' AND tipo='venta'").first
       commertial_approval.cabecera_factura = cabecera_factura if cabecera_factura.present?
+    end
+
+    if commertial_approval.rnc_emisor.present?
+      documento_identidad          = DocumentoDeIdentidad.where("REPLACE(documento, '-', '') = '#{commertial_approval.rnc_emisor}' AND suplidor_id IS NOT NULL").first
+      commertial_approval.suplidor = documento_identidad.suplidor if documento_identidad.present?
     end
 
     commertial_approval.valid?
