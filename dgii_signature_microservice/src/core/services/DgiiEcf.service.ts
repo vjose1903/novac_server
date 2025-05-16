@@ -1,6 +1,6 @@
 import ECF, { ENVIRONMENT, Signature, Transformer, getCodeSixDigitfromSignature, generateFcQRCodeURL, convertECF32ToRFCE, generateEcfQRCodeURL } from 'dgii-ecf';
 import { TrackStatusEnum, TrackingStatusResponse, InvoiceSummaryResponse, InvoiceResponse } from 'dgii-ecf/dist/networking/types';
-import { getProperty, isEmpty, retryUntil } from '../../utils/typescript/functions';
+import { getProperty, hasValue, isEmpty, retryUntil } from '../../utils/typescript/functions';
 import Queue from 'queue';
 import { ParseDocument } from '@utils/typescript/parseDocument';
 import { FacturaI } from '@core/types/factura.types';
@@ -93,13 +93,7 @@ export class DgiiEcfService {
             qr_url_dgii_data.codigoseguridad = getCodeSixDigitfromSignature(signedXml);
 
             if (this.isFCLessThan250K) {
-              console.log(' ');
-              console.log(' ');
-              console.log(' =====================================================');
-              console.log('    Factura de consumo con valor menor a 250,000');
-              console.log(' =====================================================');
-              console.log(' ');
-              console.log(' ');
+              // Factura de consumo con valor menor a 250,000
               const fc_extendido_file_name = fileName.replace('.xml', '_ext.xml');
               await this.googleDrive.uploadFile(this.emitted_folder, signedXml, fc_extendido_file_name);
 
@@ -128,16 +122,14 @@ export class DgiiEcfService {
                 qr_url_dgii_data.env
               );
             }
-
           } catch (error) {
-            console.error('error =================> ', error);
-            const msg = this.getMessage(error);
-            reject({ success: false, message: msg || 'Error al firmar y enviar el XML.', secuenciaUtilizada: false });
+            const raw_msg = this.getMessage(error);
+            const msg = hasValue(raw_msg) ? `DGII mensaje: ${raw_msg}` : 'Error al firmar y enviar el XML.';
+            reject({ success: false, message: msg, secuenciaUtilizada: false, ...error });
           }
 
           this.validateSendResponse(sendResponse)
             .then(async response => {
-
               if (parser.rnc_comprador && !this.isFCLessThan250K && getProperty(response, 'estado') != TrackStatusEnum.REJECTED) {
                 try {
                   const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
@@ -159,14 +151,13 @@ export class DgiiEcfService {
               const secuenciaUtilizada = getProperty(response, 'secuenciaUtilizada');
 
               try {
-
                 await this.googleDrive.uploadFile(this.emitted_folder, signedXml, fileName);
 
                 const data = {
                   fecha_hora_firma: factura.ECF.FechaHoraFirma,
                   security_code: qr_url_dgii_data.codigoseguridad,
                   xml_file_name: fileName,
-                  secuenciaUtilizada,
+                  secuenciaUtilizada: secuenciaUtilizada || false,
                   qr_url_dgii,
                 };
 
@@ -180,7 +171,10 @@ export class DgiiEcfService {
                 data['estado'] = 'estado' in response ? response?.estado : null;
                 data['trackId'] = 'trackId' in response ? response?.trackId : null;
 
-                resolve({ success: true, data, message: this.getMessage(response) });
+                const raw_msg = this.getMessage(response);
+                const message = hasValue(raw_msg) ? `DGII mensaje: ${raw_msg}` : '';
+
+                resolve({ success: true, data, message });
               } catch (error) {
                 console.error('Error al guardar el archivo XML:', error);
                 reject({ success: false, message: 'Error al guardar el archivo XML.', secuenciaUtilizada });
@@ -246,7 +240,12 @@ export class DgiiEcfService {
               else reject(result);
             })
             .catch(error => {
-              reject({ success: false, message: error.message || 'Error procesando la solicitud.', secuenciaUtilizada: false });
+              error ??= {};
+              error.success ??= false;
+              error.message ??= 'Error procesando la solicitud.';
+              error.secuenciaUtilizada ??= false;
+
+              reject(error);
             });
         });
       } catch (error) {

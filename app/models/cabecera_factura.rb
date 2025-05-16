@@ -58,6 +58,7 @@ class CabeceraFactura < ApplicationRecord
     @tipo_de_factura                       = TipoFactura.find_by_id(params[:tipo_factura_id])
     @increment_secuencia_comprobante       = false
     @is_electronica                        = params[:serie].present? && params[:serie] == SerieFactura.electronica
+    @res_valid_dgii = nil
 
     CabeceraFactura.transaction do
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
@@ -65,9 +66,7 @@ class CabeceraFactura < ApplicationRecord
 
         data_secuencias                    = res_secuencias.get_data
 
-        puts " data_secuencias ".red + " #{data_secuencias.to_json}"
-        num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params[:tipo], tipo_factura_id: params[:tipo_factura_id], condicion: params[:condicion]})
-        puts " num_factura_blank ".yellow + " #{num_factura_blank.to_json}"
+        num_factura_blank                  = CabeceraFactura.where({ numero_factura: data_secuencias[:numero_factura], tipo: params[:tipo], tipo_factura_id: params[:tipo_factura_id], condicion: params[:condicion], serie: params[:serie] })
 
         if num_factura_blank.blank?
 
@@ -75,7 +74,6 @@ class CabeceraFactura < ApplicationRecord
 
           if params[:condicion] == 'Crédito' && ( params[:tipo].downcase != TiposFacturasDescripcion.compra.downcase  && params[:tipo].downcase != TiposFacturasDescripcion.cotizacion.downcase )
             res_valid                      = Cliente.calculate_balance_cliente(params[:cliente_id], params[:total_factura], '+')
-            puts " ---- res_valid ---- ".red + " #{res_valid.to_json}"
           end
 
           if res_valid.status_valid
@@ -134,10 +132,10 @@ class CabeceraFactura < ApplicationRecord
 
               cabecera_factura.identificador      = CabeceraFactura.makeIdentificador(cabecera_factura)
               if cabecera_factura.save!
-
+                
                 if @is_electronica
-                  res_valid                          = DGII_MANAGER.send(cabecera_factura) if @is_electronica && @tipo_de_documento.descripcion != TiposFacturasDescripcion.compra
-                  data_response_dgii                 = res_valid.get_data
+                  @res_valid_dgii                 = DGII_MANAGER.send(cabecera_factura) if @is_electronica && @tipo_de_documento.descripcion != TiposFacturasDescripcion.compra
+                  data_response_dgii              = @res_valid_dgii.get_data
 
                   if data_response_dgii[:secuenciaUtilizada]
                     @increment_secuencia_comprobante = true
@@ -146,13 +144,12 @@ class CabeceraFactura < ApplicationRecord
                   @increment_secuencia_comprobante = true
                 end
 
-                res_valid   = nil
-                res_valid   = CabeceraFactura.update_secuencias(params, data_secuencias) if @increment_secuencia_comprobante
+                res_valid   = CabeceraFactura.update_secuencias(params, data_secuencias)
 
                 res_valid   = cabecera_factura.procesos_cabecera if res_valid&.status_valid || res_valid.nil?
 
                 if res_valid.status_valid
-                  res.set_data(cabecera_factura, {all: true, movimientos_viaje: true})
+                  res.set_data(cabecera_factura, { all: true, movimientos_viaje: true })
 
                   documento =  @tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : @tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
@@ -190,6 +187,8 @@ class CabeceraFactura < ApplicationRecord
 
       raise ActiveRecord::Rollback unless res.status_valid
     end
+
+    res = @res_valid_dgii if !@res_valid_dgii.nil? && !@res_valid_dgii.status_valid
 
     return res
   end
@@ -327,7 +326,7 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
   def self.update_secuencias(params, data_secuencias)
     res   = Response.new
-    puts "@tipo_de_documento.descripcion ".light_yellow + " #{@tipo_de_documento.descripcion}"
+    
     if @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
       # --------- COMPRA ---------
       unless data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
@@ -340,7 +339,16 @@ class CabeceraFactura < ApplicationRecord
       if data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
 
         res_aumento  = nil
-        res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id]) if !data_secuencias[:actual_paquete_comprobante].nil? && data_secuencias[:actual_paquete_comprobante][:is_paquete]
+        puts " "
+        puts " "
+        puts " "
+        puts "@increment_secuencia_comprobante >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{@increment_secuencia_comprobante}"
+        puts " "
+        puts " "
+        puts " "
+        if @increment_secuencia_comprobante
+          res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id]) if !data_secuencias[:actual_paquete_comprobante].nil? && data_secuencias[:actual_paquete_comprobante][:is_paquete]
+        end
 
         unless res_aumento.nil?
           unless res_aumento.status_valid
@@ -640,7 +648,7 @@ class CabeceraFactura < ApplicationRecord
 			end
 
 			dependencias                 = [ {modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: factura} ]
-			puts "params ==> ".red  + " #{params}"
+			
 			res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
 
 				factura.movimientos_viaje  = dependencia_data if key_object == 'movimientos_viaje'

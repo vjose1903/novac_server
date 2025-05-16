@@ -301,8 +301,9 @@ class Reporte < ApplicationRecord
         order        = params["order"]
         tipo         = params["tipo"]
 
-        query        = {}
+        query                      = {}
         query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+        query['estado']            = true
 
         temp = RecibosIngreso.where(query).order("id #{order}").includes(RecibosIngreso.models_includes)
 
@@ -502,6 +503,7 @@ class Reporte < ApplicationRecord
         query['cabecera_facturas.fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
         query['cabecera_facturas.tipo']              = 'venta'
         query['cabecera_facturas.is_nota']           = false
+        query['cabecera_facturas.estado']            = true
 
         TipoArticulo.all.each do | tipo_articulo |
 
@@ -652,6 +654,7 @@ class Reporte < ApplicationRecord
         query['serie']                = serie              if serie != SerieFactura.all
         query['tipo']                 = 'venta'
         query['is_nota']              = false
+        query['estado']               = true
 
         select_ = "cabecera_facturas.id, coalesce(clientes.nombre || ' ' || clientes.apellido,'Cliente contado') as cliente_nombre,
         cabecera_facturas.tipo_factura_id as tipo_factura_id, cabecera_facturas.fecha_equivalente,

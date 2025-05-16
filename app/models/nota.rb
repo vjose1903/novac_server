@@ -282,7 +282,7 @@ class Nota < ApplicationRecord
     end
 
     if notas.length > 0
-      res.set_data(notas, {all: true}, Nota.models_includes)
+      res.set_data(notas, { all: true }, Nota.models_includes)
     else
       res.set_data([])
       cantidad_registros = Nota.where({estado: true}).count
