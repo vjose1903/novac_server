@@ -21,7 +21,7 @@ module DGII_MANAGER
     begin
       response = client.create_one(document_parsed)
     rescue StandardError => e
-      puts "ERROR EN EL MICROSERVICIO DE DGII".red  " #{e.to_json}"
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
       response = e.with_indifferent_access
     end
       puts " "
@@ -242,7 +242,7 @@ module DGII_MANAGER
     begin
       response      = client.create_one(params)
     rescue StandardError => e
-      puts "ERROR EN EL MICROSERVICIO DE DGII".red  " #{e.to_json}"
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
       response = e.with_indifferent_access
     end
 
@@ -265,7 +265,7 @@ module DGII_MANAGER
     begin
       response      = client.create_one(params)
     rescue StandardError => e
-      puts "ERROR EN EL MICROSERVICIO DE DGII".red  " #{e.to_json}"
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
       response = e.with_indifferent_access
     end
 
