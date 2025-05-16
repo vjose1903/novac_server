@@ -108,7 +108,7 @@ export class DgiiEcfService {
               sendResponse = await this.ecf.sendElectronicDocument(signedXml, fileName);
 
               qr_url_dgii_data.rncComprador = factura.ECF.Encabezado?.Comprador?.RNCComprador || '';
-              qr_url_dgii_data.fechaEmision = DateUtils.format({ dateFormat: 'DD-MM-YYYY' });
+              qr_url_dgii_data.fechaEmision = parser.fecha_emision;
               qr_url_dgii_data.fechaFirma = factura.ECF.FechaHoraFirma;
 
               qr_url_dgii = generateEcfQRCodeURL(
