@@ -29,15 +29,17 @@ class NotaSerializer < ActiveModel::Serializer
 
     cliente = {}
     if object.cliente.blank?
-      cliente["nombre"]            = object.no_cliente_nombre
-      cliente["direccion"]         = object.no_cliente_direccion
-      cliente["telefono"]          = "----------"
-      cliente["rnc"]               = "----------"
+      cliente[:nombre]            = object.no_cliente_nombre
+      cliente[:nombre_completo]   = object.no_cliente_nombre
+      cliente[:direccion]         = object.no_cliente_direccion
+      cliente[:telefono]          = "----------"
+      cliente[:rnc]               = "----------"
     else
-      client_                      = object.cliente.attributes
-      cliente["nombre"]            = object.cliente.nombre_completo
-      cliente["telefono"]          = client_["telefono"]
-      cliente["direccion"]         = client_["direccion"]
+      client_                     = object.cliente.attributes
+      cliente[:nombre]            = object.cliente.nombre_completo
+      cliente[:telefono]          = client_[:telefono]
+      cliente[:direccion]         = client_[:direccion]
+      cliente[:nombre_completo]   = object.cliente.nombre_completo
 
       documento                    = object.cliente.documentos_de_identidad.find { |doc| doc.principal == true }
       cliente["rnc"]               = documento.nil? ? "----------" : documento.documento

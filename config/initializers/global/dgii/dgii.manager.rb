@@ -18,7 +18,19 @@ module DGII_MANAGER
 
     client   = BaseRequest::Client.new('novac-dgii')
 
-    response = client.create_one(document_parsed)
+    begin
+      response = client.create_one(document_parsed)
+    rescue StandardError => e
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  " #{e.to_json}"
+      response = e.with_indifferent_access
+    end
+      puts " "
+      puts " "
+      puts " "
+      puts " response >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{response.to_json}"
+      puts " "
+      puts " "
+      puts " "
 
     data_response = response.with_indifferent_access[:data]
 
@@ -26,25 +38,23 @@ module DGII_MANAGER
 
     document.is_aceptada          = estado.nil? ? 'Aceptado' : estado
     document.dgii_message         = response[:message]
-    document.estado               = false  unless document.is_aceptada
+    not_valid                     = document.is_aceptada.downcase == 'rechazado' || document.is_aceptada.nil?
+    
+    document.estado               = false if not_valid
 
-    if data_response[:secuenciaUtilizada] && ((estado && estado.downcase != 'rechazado') || !data_response[:estado].present?)
-      document.fecha_hora_firma   = data_response[:fecha_hora_firma]
-      document.trackId            = data_response[:trackId]
-      document.security_code      = data_response[:security_code]
-      document.xml_file_name      = data_response[:xml_file_name]
-      document.qr_url_dgii        = data_response[:qr_url_dgii]
-      document.razon              = data_response[:razon] if @is_nota &&  data_response[:razon].present?
-
-    end
+    document.fecha_hora_firma   = data_response[:fecha_hora_firma] if data_response[:fecha_hora_firma].present?
+    document.trackId            = data_response[:trackId]          if data_response[:trackId].present?
+    document.security_code      = data_response[:security_code]    if data_response[:security_code].present?
+    document.xml_file_name      = data_response[:xml_file_name]    if data_response[:xml_file_name].present?
+    document.qr_url_dgii        = data_response[:qr_url_dgii]      if data_response[:qr_url_dgii].present?
+    document.razon              = data_response[:razon]            if @is_nota && data_response[:razon].present?
 
     document.save!
-
 
     res.set_data(data_response.with_indifferent_access)
     res.add_msg(response[:message])
 
-    if data_response[:estado].downcase == 'rechazado'
+    if not_valid
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -164,9 +174,10 @@ module DGII_MANAGER
 
     if cliente.nil?
       cliente_attributes          = {}
-      cliente_attributes[:nombre] = document.NoCliente_nombre
+      cliente_attributes[:nombre_completo] = document.NoCliente_nombre
     else
       cliente_attributes                           = cliente.attributes
+      cliente_attributes[:nombre_completo]         = cliente.nombre_completo
       cliente_attributes[:documentos_de_identidad] = cliente.documentos_de_identidad
 
       cliente_attributes[:limite_credito]          = cliente.limite_credito
@@ -228,7 +239,12 @@ module DGII_MANAGER
     client   = BaseRequest::Client.new('novac-dgii-reception')
     
 
-    response      = client.create_one(params)
+    begin
+      response      = client.create_one(params)
+    rescue StandardError => e
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  " #{e.to_json}"
+      response = e.with_indifferent_access
+    end
 
     data_response = response.with_indifferent_access[:data]
 
@@ -246,7 +262,12 @@ module DGII_MANAGER
     res      = Response.new
     client   = BaseRequest::Client.new('novac-dgii-validate-commercial-approval')
 
-    response      = client.create_one(params)
+    begin
+      response      = client.create_one(params)
+    rescue StandardError => e
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  " #{e.to_json}"
+      response = e.with_indifferent_access
+    end
 
     data_response = response.with_indifferent_access[:data]
     

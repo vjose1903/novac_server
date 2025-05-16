@@ -9,9 +9,6 @@ COPY tsconfig.json ./
 # Instalar todas las dependencias (incluyendo devDependencies)
 RUN npm install
 
-# Crear un archivo .env para desarrollo si es necesario
-RUN echo "ENV=DEV" > .env
-
 # Exponer puerto
 EXPOSE 9091
 

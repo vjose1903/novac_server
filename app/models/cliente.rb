@@ -199,10 +199,8 @@ class Cliente < ApplicationRecord
     new_balance                  = eval "#{balance} #{operacion} #{totalFactura.to_f}"
     new_balance                  = new_balance.to_d.truncate(2).to_f
     cliente.balance              = new_balance
-    puts " ---- ANTES ---- #{cliente.to_json}".green
     
     cliente.valid?
-    puts " ---- DESPUES ---- #{cliente.to_json}".red
     
     if !cliente.errors.empty? || !cliente.save!
       res.add_msgs(cliente.errors.to_a)

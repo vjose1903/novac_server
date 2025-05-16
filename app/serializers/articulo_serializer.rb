@@ -167,18 +167,16 @@ class ArticuloSerializer < ActiveModel::Serializer
     historicos  = self.get_param('historicos')
     content     = []
 
-    puts "HISTORICOS ".yellow + " #{historicos.to_json}"
-    puts "HISTORICOS.blank? ".green + " #{historicos.blank?}"
-    puts "HISTORICOS.empty? ".red + " #{historicos.empty?}"
     
     if historicos.blank? || historicos.empty?
+      # SI NO HAY HISTORICOS SE RETORNA EL ACTUAL
       content = object.contenido_articulos           if tipo == 'contenidos'
       content = object.formulas_productos_terminados if tipo == 'formulas'
     else
       articulo  = historicos.find  { | item | item['id'] == object.id }
-      puts "articulo ".magenta + " #{articulo.to_json}"
-      content   = articulo['contenido_articulos']           || articulo[:contenido_articulos]           if tipo == 'contenidos'
-      content   = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados] if tipo == 'formulas'
+      # NO SE POR QUE PERO ASI FUNCIONA CON EL CONTENIDO_ARTICULOS CON '.' Y LAS FORMULAS NO
+      content   = articulo['contenido_articulos']           || articulo[:contenido_articulos] || articulo.contenido_articulos                     if tipo == 'contenidos'
+      content   = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados]  if tipo == 'formulas'
     end
 
     return content.nil? ? [] : content

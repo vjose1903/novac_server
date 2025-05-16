@@ -12,7 +12,7 @@ import { documentTypeE } from '@core/types/document.types';
 import { DateUtils } from '@vjose1903/dateutils';
 import { Detalles } from './detalles';
 import Big from 'big.js';
-import { getCurrentFormattedDateTime } from 'dgii-ecf';
+import { ENVIRONMENT, getCurrentFormattedDateTime } from 'dgii-ecf';
 
 export class ParseDocument {
   private version: string;
@@ -22,6 +22,7 @@ export class ParseDocument {
   private items_per_page: number;
   private items_per_page_credit: number;
   private items_per_page_nota: number;
+  private env: ENVIRONMENT;
 
   private cleanerClass: Clean;
   private totalizacionClass: Totalizacion;
@@ -38,6 +39,7 @@ export class ParseDocument {
     this.items_per_page = this.environment.ITEMS_PER_PAGE || 5;
     this.items_per_page_credit = this.environment.ITEMS_PER_PAGE_CREDIT || 14;
     this.items_per_page_nota = this.environment.ITEMS_PER_PAGE_NOTA || 5;
+    this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
 
     this.cleanerClass = new Clean();
     this.totalizacionClass = new Totalizacion();
@@ -77,6 +79,10 @@ export class ParseDocument {
     return this.document.numero_comprobante;
   }
 
+  get isProd() {
+    return this.env == ENVIRONMENT.PROD;
+  }
+
   get fecha_emision() {
     if (!hasValue(this.document.fecha_equivalente)) return DateUtils.format({ dateFormat: 'DD-MM-YYYY' });
 
@@ -92,7 +98,7 @@ export class ParseDocument {
     console.log(' ');
     console.log(' ');
     console.log(' =========================================');
-    console.log(`       ${this.isFactura ? 'FACTURA' : 'NOTA CREDITO'}`);
+    console.log(`    PARSEANDO   ${this.isFactura ? 'FACTURA' : 'NOTA CREDITO'}`);
     console.log(' =========================================');
     console.log(' ');
     console.log(' ');
@@ -147,7 +153,7 @@ export class ParseDocument {
           Comprador: {
             RNCComprador: null,
             IdentificadorExtranjero: null,
-            RazonSocialComprador: this.document.cliente?.nombre || 'VENTA DE CONTADO',
+            RazonSocialComprador: this.document.cliente?.nombre_completo || 'VENTA DE CONTADO',
             ContactoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, nombre de la persona de contacto con la empresa
             CorreoComprador: null, // TODO: agregar propiedad en la tabla cliente en el backend, correo de la empresa
             DireccionComprador: this.document.cliente?.direccion || null,
@@ -280,24 +286,32 @@ export class ParseDocument {
     }
 
     if (hasValue(this.factura.fecha_vencimiento)) {
-      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
+      let fecha_limite;
 
-      // PARA LA CERTIFICACION -----
-      const fecha_vencimiento_certificacion = DateUtils.addDays(30);
-      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = DateUtils.format({ date: fecha_vencimiento_certificacion, dateFormat: 'DD-MM-YYYY' });
-      // ---------------------------
+      if (this.isProd) {
+        fecha_limite = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
+      } else {
+        // PARA LA CERTIFICACION -----
+        fecha_limite = DateUtils.format({ date: DateUtils.add(30, 'days'), dateFormat: 'DD-MM-YYYY' });
+      }
+
+      document_parsed.ECF.Encabezado.IdDoc.FechaLimitePago = fecha_limite;
     }
 
     const no_fecha_vencimiento = [tipoComprobanteE.factura_de_consumo, tipoComprobanteE.nota_de_credito];
     if (!no_fecha_vencimiento.includes(this.document.TipoeCF)) {
       if (this.isFactura) {
-        document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = this.document.fecha_valida ? DateUtils.format({ date: this.document.fecha_valida, dateFormat: 'DD-MM-YYYY' }) : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
+        let fecha_vencimiento_secuencia;
+        if (this.isProd) {
+          fecha_vencimiento_secuencia = hasValue(this.document.fecha_valida) ? DateUtils.format({ date: this.document.fecha_valida, dateFormat: 'DD-MM-YYYY' }) : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
+        } else {
+          // PARA LA CERTIFICACION -----
+          fecha_vencimiento_secuencia = DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
+        }
+
+        document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = fecha_vencimiento_secuencia;
         document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${this.document.cliente?.limite_credito} días`;
       }
-
-      // PARA LA CERTIFICACION -----
-      document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
-      // ---------------------------
     }
 
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;

@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@types/big.js": "6.2.2",
-    "@vjose1903/dateutils": "1.0.19",
+    "@vjose1903/dateutils": "1.0.20",
     "big.js": "7.0.1",
     "body-parser": "^2.2.0",
     "dgii-ecf": "^1.6.5",
