@@ -1,50 +1,57 @@
 class CabeceraFacturaSerializer < ActiveModel::Serializer
-  attribute :id,                                             if: Proc.new { self.get_param('id') || self.get_param('all') }
-  attribute :tipo_factura_id,                                if: Proc.new { self.get_param('tipo_factura_id') || self.get_param('all') }
-  attribute :suplidor_id,                                    if: Proc.new { self.get_param('suplidor_id') || self.get_param('all') }
-  attribute :cliente_id,                                     if: Proc.new { self.get_param('cliente_id') || self.get_param('all') }
-  attribute :user_id,                                        if: Proc.new { self.get_param('user_id') || self.get_param('all') }
-  attribute :fecha_viaje,                                    if: Proc.new { self.get_param('fecha_viaje') || self.get_param('all') }
-  attribute :fecha_equivalente,                              if: Proc.new { self.get_param('fecha_equivalente') || self.get_param('all') }
-  attribute :fecha_vencimiento,                              if: Proc.new { self.get_param('fecha_vencimiento') || self.get_param('all') }
-  attribute :fecha_valida,                                   if: Proc.new { self.get_param('fecha_valida') || self.get_param('all') }
-  attribute :fecha_completada,                               if: Proc.new { self.get_param('fecha_completada') || self.get_param('all') }
-  attribute :numero_comprobante,                             if: Proc.new { self.get_param('numero_comprobante') || self.get_param('all') }
-  attribute :numero_factura,                                 if: Proc.new { self.get_param('numero_factura') || self.get_param('all') }
-  attribute :condicion,                                      if: Proc.new { self.get_param('condicion') || self.get_param('all') }
-  attribute :forma_pago,                                     if: Proc.new { self.get_param('forma_pago') || self.get_param('all') }
-  attribute :total_factura,                                  if: Proc.new { self.get_param('total_factura') || self.get_param('all') }
-  attribute :itbis,                                          if: Proc.new { self.get_param('itbis') || self.get_param('all') }
-  attribute :descuento,                                      if: Proc.new { self.get_param('descuento') || self.get_param('all') }
-  attribute :Bruto,                                          if: Proc.new { self.get_param('Bruto') || self.get_param('all') }
-  attribute :estado,                                         if: Proc.new { self.get_param('estado') || self.get_param('all') }
-  attribute :tipo,                                           if: Proc.new { self.get_param('tipo') || self.get_param('all') }
-  attribute :NoCliente_nombre,                               if: Proc.new { self.get_param('NoCliente_nombre') || self.get_param('all') }
-  attribute :NoCliente_direccion,                            if: Proc.new { self.get_param('NoCliente_direccion') || self.get_param('all') }
-  attribute :costoYgasto,                                    if: Proc.new { self.get_param('costoYgasto') || self.get_param('all') }
-  attribute :pagada,                                         if: Proc.new { self.get_param('pagada') || self.get_param('all') }
-  attribute :vendedor_id,                                    if: Proc.new { self.get_param('vendedor_id') || self.get_param('all') }
-  attribute :balance,                                        if: Proc.new { self.get_param('balance') || self.get_param('all') }
-  attribute :devuelta,                                       if: Proc.new { self.get_param('devuelta') || self.get_param('all') }
-  attribute :is_adelantada,                                  if: Proc.new { self.get_param('is_adelantada') || self.get_param('all') }
-  attribute :is_nota,                                        if: Proc.new { self.get_param('is_nota') || self.get_param('all') }
-  attribute :is_viaje,                                       if: Proc.new { self.get_param('is_viaje') || self.get_param('all') }
-  attribute :tiene_nota,                                     if: Proc.new { self.get_param('tiene_nota') || self.get_param('all') }
-  attribute :aplicada_a,                                     if: Proc.new { self.get_param('aplicada_a') || self.get_param('all') }
-  attribute :identificador,                                  if: Proc.new { self.get_param('identificador') || self.get_param('all') }
+  attribute :id,                                             if: Proc.new { self.get_param('all') || self.get_param('id')  }
+  attribute :tipo_factura_id,                                if: Proc.new { self.get_param('all') || self.get_param('tipo_factura_id')  }
+  attribute :suplidor_id,                                    if: Proc.new { self.get_param('all') || self.get_param('suplidor_id')  }
+  attribute :cliente_id,                                     if: Proc.new { self.get_param('all') || self.get_param('cliente_id')  }
+  attribute :user_id,                                        if: Proc.new { self.get_param('all') || self.get_param('user_id')  }
+  attribute :fecha_viaje,                                    if: Proc.new { self.get_param('all') || self.get_param('fecha_viaje')  }
+  attribute :fecha_equivalente,                              if: Proc.new { self.get_param('all') || self.get_param('fecha_equivalente')  }
+  attribute :fecha_vencimiento,                              if: Proc.new { self.get_param('all') || self.get_param('fecha_vencimiento')  }
+  attribute :fecha_valida,                                   if: Proc.new { self.get_param('all') || self.get_param('fecha_valida')  }
+  attribute :fecha_completada,                               if: Proc.new { self.get_param('all') || self.get_param('fecha_completada')  }
+  attribute :numero_comprobante,                             if: Proc.new { self.get_param('all') || self.get_param('numero_comprobante')  }
+  attribute :numero_factura,                                 if: Proc.new { self.get_param('all') || self.get_param('numero_factura')  }
+  attribute :condicion,                                      if: Proc.new { self.get_param('all') || self.get_param('condicion')  }
+  attribute :forma_pago,                                     if: Proc.new { self.get_param('all') || self.get_param('forma_pago')  }
+  attribute :total_factura,                                  if: Proc.new { self.get_param('all') || self.get_param('total_factura')  }
+  attribute :itbis,                                          if: Proc.new { self.get_param('all') || self.get_param('itbis')  }
+  attribute :descuento,                                      if: Proc.new { self.get_param('all') || self.get_param('descuento')  }
+  attribute :Bruto,                                          if: Proc.new { self.get_param('all') || self.get_param('Bruto')  }
+  attribute :estado,                                         if: Proc.new { self.get_param('all') || self.get_param('estado')  }
+  attribute :tipo,                                           if: Proc.new { self.get_param('all') || self.get_param('tipo')  }
+  attribute :NoCliente_nombre,                               if: Proc.new { self.get_param('all') || self.get_param('NoCliente_nombre')  }
+  attribute :NoCliente_direccion,                            if: Proc.new { self.get_param('all') || self.get_param('NoCliente_direccion')  }
+  attribute :costoYgasto,                                    if: Proc.new { self.get_param('all') || self.get_param('costoYgasto')  }
+  attribute :pagada,                                         if: Proc.new { self.get_param('all') || self.get_param('pagada')  }
+  attribute :vendedor_id,                                    if: Proc.new { self.get_param('all') || self.get_param('vendedor_id')  }
+  attribute :balance,                                        if: Proc.new { self.get_param('all') || self.get_param('balance')  }
+  attribute :devuelta,                                       if: Proc.new { self.get_param('all') || self.get_param('devuelta')  }
+  attribute :is_adelantada,                                  if: Proc.new { self.get_param('all') || self.get_param('is_adelantada')  }
+  attribute :is_nota,                                        if: Proc.new { self.get_param('all') || self.get_param('is_nota')  }
+  attribute :is_viaje,                                       if: Proc.new { self.get_param('all') || self.get_param('is_viaje')  }
+  attribute :tiene_nota,                                     if: Proc.new { self.get_param('all') || self.get_param('tiene_nota')  }
+  attribute :aplicada_a,                                     if: Proc.new { self.get_param('all') || self.get_param('aplicada_a')  }
+  attribute :identificador,                                  if: Proc.new { self.get_param('all') || self.get_param('identificador')  }
+  attribute :serie,                                          if: Proc.new { self.get_param('all') || self.get_param('serie')  }
+  attribute :fecha_hora_firma,                               if: Proc.new { self.get_param('all') || self.get_param('fecha_hora_firma')  }
+  attribute :qr_url_dgii,                                    if: Proc.new { self.get_param('all') || self.get_param('qr_url_dgii')  }
+  attribute :trackId,                                        if: Proc.new { self.get_param('all') || self.get_param('trackId')  }
+  attribute :security_code,                                  if: Proc.new { self.get_param('all') || self.get_param('security_code')  }
+  attribute :is_aceptada,                                    if: Proc.new { self.get_param('all') || self.get_param('is_aceptada')  }
+  attribute :dgii_message,                                   if: Proc.new { self.get_param('all') || self.get_param('dgii_message')  }
   attribute :movimientos_viaje,                              if: Proc.new { self.get_param('movimientos_viaje') }
 
-  attribute :tipo_factura,                                   if: Proc.new { self.get_param('tipo_factura') || self.get_param('all') }
+  attribute :tipo_factura,                                   if: Proc.new { self.get_param('all') || self.get_param('tipo_factura')  }
 
-  attribute :detalle_facturas,                               if: Proc.new { self.get_param('detalle_facturas') || self.get_param('all') }
-  attribute :cliente,                                        if: Proc.new { (!object.cliente_id.nil? || !object.NoCliente_nombre.nil? ) && (self.get_param('cliente') || self.get_param('all')) }
-  attribute :suplidor,                                       if: Proc.new { !object.suplidor_id.nil? && (self.get_param('suplidor') || self.get_param('all')) }
-  attribute :usuario,                                        if: Proc.new { self.get_param('usuario') || self.get_param('all') }
-  attribute :vendedor,                                       if: Proc.new { self.get_param('vendedor') || self.get_param('all') }
-  attribute :notas,                                          if: Proc.new { self.get_param('notas') || self.get_param('all') }
-  attribute :pagos,                                          if: Proc.new { self.get_param('pagos') || self.get_param('all') }
-  attribute :cotizacion,                                     if: Proc.new { self.get_param('cotizacion') || self.get_param('all') }
-  attribute :pre_factura,                                    if: Proc.new { self.get_param('pre_factura') || self.get_param('all') }
+  attribute :detalle_facturas,                               if: Proc.new { self.get_param('all') || self.get_param('detalle_facturas')  }
+  attribute :cliente,                                        if: Proc.new { (!object.cliente_id.nil? || !object.NoCliente_nombre.nil? ) && ( self.get_param('all') || self.get_param('cliente') ) }
+  attribute :suplidor,                                       if: Proc.new { !object.suplidor_id.nil? && ( self.get_param('all') || self.get_param('suplidor') ) }
+  attribute :usuario,                                        if: Proc.new { self.get_param('all') || self.get_param('usuario')  }
+  attribute :vendedor,                                       if: Proc.new { self.get_param('all') || self.get_param('vendedor')  }
+  attribute :notas,                                          if: Proc.new { self.get_param('all') || self.get_param('notas')  }
+  attribute :pagos,                                          if: Proc.new { self.get_param('all') || self.get_param('pagos')  }
+  attribute :cotizacion,                                     if: Proc.new { self.get_param('all') || self.get_param('cotizacion')  }
+  attribute :pre_factura,                                    if: Proc.new { self.get_param('all') || self.get_param('pre_factura')  }
 
 
   def tipo_factura
@@ -56,8 +63,6 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def cliente
-
-		puts "object.cliente_id.nil? ".red  + " #{ object.cliente_id.nil? }"
     cliente = {}
     if object.cliente.blank?
       cliente["nombre"]            = object.NoCliente_nombre
@@ -117,8 +122,9 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
   end
 
   def pagos
+
     pago_parseo    = []
-    if object.Bruto != nil && ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
+    if object.condicion != 'Contado' || object.is_viaje
       pagos          = object.detalle_recibos
 
       if pagos.length > 0
@@ -145,7 +151,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
 
   def get_param(col)
-    return @instance_options[:"#{col}"]
+    @instance_options[:"#{col}"]
   end
 
 end

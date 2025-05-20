@@ -98,28 +98,59 @@ end
 DOCUMENTOS_DE_IDENTIDAD_VALIDOS = [Documentos.cedula, Documentos.rnc]
 
 module FacturasParams
+  Enum = {
+    todas: 0,
+    cliente_id: 1,
+    numero_comprobante: 2,
+    numero_factura: 3,
+    last_50: 4,
+    suplidor_id: 5,
+    id: 6,
+  }.with_indifferent_access
 
-  CLIENTE_ID = "cliente_id"
-  SUPLIDOR_ID = "suplidor_id"
-  NUMERO_COMPROBANTE = "numero_comprobante"
-  NUMERO_FACTURA = "numero_factura"
-  LAST_50 = "last_50"
-  TODAS = "todas"
+  CLIENTE_ID = 'cliente_id'
+  SUPLIDOR_ID = 'suplidor_id'
+  NUMERO_COMPROBANTE = 'numero_comprobante'
+  NUMERO_FACTURA = 'numero_factura'
+  LAST_50 = 'last_50'
+  ID = 'id'
+  TODAS = 'todas'
 
-  PARAMETROS = { :_0_ => TODAS, :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50, :_5_ => SUPLIDOR_ID }
+  PARAMETROS = { :_0_ => TODAS, :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50, :_5_ => SUPLIDOR_ID, :_6_ => ID }
+
 
   def self.get_campo_by_param(param)
     return PARAMETROS[:"_#{param}_"]
   end
 
-  def self.parse_valor_by_param(param, valor=nil)
-    valor = param == "1" || param == "3" || param == "5" ? valor.to_i : valor.upcase unless param == "4"
-    return valor
+  def self.parse_valor_by_param(param, valor='')
+
+    if param == "#{Enum[:last_50]}"
+      return valor
+
+    elsif FacturasParams.params_to_parse_int.my_includes_str(param.to_i)
+      return valor.to_i
+
+    else
+      return valor.upcase
+    end
   end
 
 
-  def self.cliente_id
+  def self.enum
+    return Enum
+  end
+
+  def self.params_to_parse_int
+    return [ Enum[:cliente_id], Enum[:numero_factura], Enum[:suplidor_id], Enum[:id ] ]
+  end
+
+  def self.suplidor_id
     return CLIENTE_ID
+  end
+
+  def self.cliente_id
+    return SUPLIDOR_ID
   end
 
   def self.numero_comprobante
@@ -134,11 +165,16 @@ module FacturasParams
     return LAST_50
   end
 
+  def self.id
+    return ID
+  end
+
   def self.todas
     return TODAS
   end
-
 end
+
+
 
 module TipoReporteVentas
   VENTAS_HOY      = 'ventas_diarias'
@@ -155,6 +191,26 @@ module TipoReporteVentas
 
   def self.ventas_cliente
     return VENTAS_CLIENTE
+  end
+
+end
+
+module TipoCxC
+  CLIENTE                     = '1'
+  ANTIGUEDAD_SALDO_DETALLADO  = '2'
+  ANTIGUEDAD_SALDO_AGRUPADO   = '3'
+
+
+  def self.cliente
+    return CLIENTE
+  end
+
+  def self.antiguedad_saldo_detallado
+    return ANTIGUEDAD_SALDO_DETALLADO
+  end
+
+  def self.antiguedad_saldo_agrupado
+    return ANTIGUEDAD_SALDO_AGRUPADO
   end
 
 end
@@ -253,69 +309,53 @@ module OperadoresMovimiento
   def self.return_tipo(tipo)
     return tipo == ENTRADA_OPERADOR ? ENTRADA : SALIDA
   end
-
-
-
 end
 
 
+module SerieFactura
+  ELECTRONICA = 'electronica'
+  NORMAL      = 'normal'
+  ALL         = 'all'
+  NO_         = 0
 
-PROVINCIAS_MUNICIPIOS=[
-  { nombre: "Distrito Nacional", municipios: ["Santo Domingo Centro (DN)", "Santo Domingo Este", "Santo Domingo Oeste", "Santo Domingo Norte", "Boca Chica", "San Antonio DE Guerra", "Los Alcarrizos", "Pedro Brand"] },
-  { nombre: "San Pedro de Macorís", municipios: ["San Pedro DE Macoris", "Los Llanos", "Ramon Santana", "Consuelo", "Quisqueya", "Guayacanes"] },
-  { nombre: "La Romana", municipios: ["La Romana", "Guaymate", "Villa Hermosa"] },
-  { nombre: "La Altagracia", municipios: ["Higuey", "San Rafael Del Yuma" ] },
-  { nombre: "El Seibo", municipios: ["El Seibo", "Miches"] },
-  { nombre: "Hato Mayor", municipios: ["Hato Mayor", "Sabana De La Mar", "El Valle"] },
-  { nombre: "Duarte",	municipios: ["San Francisco De Macoris", "Arenoso", "Castillo", "Pimentel", "Villa Riva", "Las Guaranas", "Eugenio Maria De Hostos"] },
-  { nombre: "Samaná",	municipios: ["Samaná", "Sanchez", "Las Terrenas"] },
-  { nombre: "Maria Trinidad Sánchez",	municipios: ["Nagua", "Cabrera", "El Factor", "Rio San Juan"] },
-  { nombre: "Salcedo",	municipios: ["Salcedo", "Tenares", "Villa Tapia"] },
-  { nombre: "La Vega",	municipios: ["La Vega", "Constanza", "Jarabacoa", "Jima Abajo"] },
-  { nombre: "Monseñor Nouel",	municipios: ["Bonao", "Maimon", "Piedra Blanca"] },
-  { nombre: "Sánchez Ramirez",	municipios: ["Cotui", "Cevicos", "Fantino", "La Mata"] },
-  { nombre: "Santiago",	municipios: ["Santiago", "Bisono", "Janico", "Licey Al Medio", "San Jose De Las Matas", "Tamboril", "Villa Gonzalez", "Puñal", "Sabana Iglesia"] },
-  { nombre: "Espaillat",	municipios: ["Moca", "Cayetano Germosen", "Gaspar Hernandez", "Jamao Al Norte"] },
-  { nombre: "Puerto Plata",	municipios: ["Puerto plata", "altamira", "guananico", "imbert", "Los hidalgos", "luperon", "sosua", "Villa isabela", "Villa montellano"] },
-  { nombre: "Valverde",	municipios: ["Mao", "Esperanza", "Laguna Salada"] },
-  { nombre: "Monte Cristi",	municipios: ["Monte Cristi", "Castañuelas", "Guayubin", "Las Matas De Santa Cruz", "Pepillo Salcedo", "Villa Vasquez"] },
-  { nombre: "Dajabón",	municipios: ["Dajabon", "Loma De Cabrera", "Partido", "Restauracion", "El Pino"] },
-  { nombre: "Santiago Rodríguez",	municipios: ["San Ignacio De Sabaneta", "Villa Los Almacigos", "Moncion"] },
-  { nombre: "Azua",	municipios: ["Azua", "Las Charcas", "Las Yayas De Viajama", "Padre Las Casas", "Peralta", "Sabana Yegua", "Pueblo Viejo", "Tabara Arriba", "Guayabal", "Estebania"] },
-  { nombre: "San Juan de la Maguana",	municipios: ["San Juan", "Bohechio", "El Cercado", "Juan De Herrera", "Las Matas De Farfan", "Vallejuelo"] },
-  { nombre: "Elías Piña",	municipios: ["Comendador", "Banica", "El Llano", "Hondo Valle", "Pedro Santana", "Juan Santiago"] },
-  { nombre: "Barahona",	municipios: ["Barahona", "Cabral", "Enriquillo", "Paraiso", "Vicente Noble", "El Peñon", "La Cienaga", "Fundacion", "Las Salinas", "Polo", "Jaquimeyes"] },
-  { nombre: "Bahoruco",	municipios: ["Neiba", "Galvan", "Tamayo", "Villa Jaragua", "Los Rios"] },
-  { nombre: "Independencia",	municipios: ["Jimani", "Duverge", "La Descubierta", "Postrer Rio", "Cristobal", "Mella"] },
-  { nombre: "Perdenales",	municipios: ["Pedernales", "Oviedo"] },
-  { nombre: "San Cristóbal",	municipios: ["San Cristobal", "Sabana Grande De Palenque", "Bajos De Haina", "Cambita Garabitos", "Villa Altagracia", "Yaguate", "San Gregorio De Nigua", "Los Cacaos"] },
-  { nombre: "Monte Plata",	municipios: ["Monte Plata", "Bayaguana", "Sabana Grande De Boya", "Yamasa", "Peralvillo"] },
-  { nombre: "San José de Ocoa",	municipios: ["San Jose De Ocoa", "Sabana Larga", "Rancho Arriba"] },
-  { nombre: "Peravia",	municipios: ["Bani", "Nizao"] }
-]
+  def self.electronica
+    return ELECTRONICA
+  end
 
+  def self.normal
+    return NORMAL
+  end
 
+  def self.all
+    return ALL
+  end
+
+  def self.no
+    return NO_
+  end
+
+end
 module TiposFacturasDescripcion
-  FACTURA_SIN_COMPROBANTE = "Factura sin comprobante"
-  FACTURA_CON_VALOR_FISCAL = "Factura con valor fiscal"
-  FACTURA_DE_CONSUMO = "Factura de consumo"
-  NOTA_DE_DEBITO = "Nota de debito"
-  NOTA_DE_CREDITO = "Nota de credito"
-  COMPROBANTE_DE_COMPRAS = "Comprobante de compras"
-  REGISTRO_DE_UNICO_INGRESO = "Registro de unico ingreso"
-  COMPROBANTE_PARA_GASTOS_MENORES = "Comprobante para gastos menores"
-  COMPROBANTE_DE_REGIMEN_ESPECIALES = "Comprobante de regimen especiales"
-  COMPROBANTE_GUBERNAMENTAL = "Comprobante gubernamental"
-  COMPROBANTE_PARA_EXPORTACIONES = "Comprobante para exportaciones"
-  COMPROBANTES_PARA_PAGO_AL_EXTERIOR = "Comprobantes para pago al exterior"
-  VENTA_CONTADO = "Venta Contado"
-  COMPRA = "Compra"
-  CONDUCE = "Conduce"
-  PRODUCCION = "Produccion"
-  RECIBO_INGRESO = "Recibo_ingreso"
-  VENTA_CREDITO = "Venta Credito"
-  PRE_VENTA = "pre_venta"
-  COTIZACION = "cotizacion"
+  FACTURA_SIN_COMPROBANTE = 'Factura sin comprobante'
+  FACTURA_CON_VALOR_FISCAL = 'Factura con valor fiscal'
+  FACTURA_DE_CONSUMO = 'Factura de consumo'
+  NOTA_DE_DEBITO = 'Nota de debito'
+  NOTA_DE_CREDITO = 'Nota de credito'
+  COMPROBANTE_DE_COMPRAS = 'Comprobante de compras'
+  REGISTRO_DE_UNICO_INGRESO = 'Registro de unico ingreso'
+  COMPROBANTE_PARA_GASTOS_MENORES = 'Comprobante para gastos menores'
+  COMPROBANTE_DE_REGIMEN_ESPECIALES = 'Comprobante de regimen especiales'
+  COMPROBANTE_GUBERNAMENTAL = 'Comprobante gubernamental'
+  COMPROBANTE_PARA_EXPORTACIONES = 'Comprobante para exportaciones'
+  COMPROBANTES_PARA_PAGO_AL_EXTERIOR = 'Comprobantes para pago al exterior'
+  VENTA_CONTADO = 'Venta Contado'
+  COMPRA = 'Compra'
+  CONDUCE = 'Conduce'
+  PRODUCCION = 'Produccion'
+  RECIBO_INGRESO = 'Recibo_ingreso'
+  VENTA_CREDITO = 'Venta Credito'
+  PRE_VENTA = 'pre_venta'
+  COTIZACION = 'cotizacion'
 
   def self.factura_sin_comprobante
     return FACTURA_SIN_COMPROBANTE

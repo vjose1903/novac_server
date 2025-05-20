@@ -1,10 +1,8 @@
-version: "3.8"
-
 services:
   db-dev:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-demo-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     container_name: db-dev
     environment:
       POSTGRES_PASSWORD: N0v@cgu@rd
@@ -12,27 +10,53 @@ services:
     ports:
       - 127.0.0.1:9731:5432
 
-  demo-dev:
+  agrodemi-dev:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
-    container_name: demo-dev
+      dockerfile: docker/Dockerfile
+    container_name: agrodemi-dev
     environment:
-      ALMACEN: "DEMO"
+      ALMACEN: "ADM"
       RAILS_ENV: "development"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
-      MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
+      MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
+      VIRTUAL_HOST: "localhost,novac.loca.lt"
+      API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-dev:9091"
+    expose:
+      - "3000"
     depends_on:
       - db-dev
     volumes:
       - .:/usr/src/novac_server
     command: ["./wait-for-it.sh", "db-dev:5432", "--", "sh", "./run_server.sh"]
 
+  dgii-microservice-dev:
+    build:
+      context: ./dgii_signature_microservice
+      dockerfile: Dockerfile.dev
+    container_name: dgii-microservice-dev
+    env_file:
+      - ./dgii_signature_microservice/.env
+    environment:
+      ENV: "DEV"
+    expose:
+      - "9091"
+    volumes:
+      - ./dgii_signature_microservice/src:/app/src
+      - ./dgii_signature_microservice/tsconfig.json:/app/tsconfig.json
+      - ./dgii_signature_microservice/package.json:/app/package.json
+    restart: unless-stopped
+    depends_on:
+      - db-dev
+
   nginx-proxy-dev:
-    build: ./docker/services/nginx
+    image: jwilder/nginx-proxy
     container_name: nginx-proxy-dev
     ports:
-      - 9093:9093
+      - 9090:80
     depends_on:
-      - demo-dev
+      - agrodemi-dev
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+

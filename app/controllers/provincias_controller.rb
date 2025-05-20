@@ -35,13 +35,33 @@ class ProvinciasController < ApplicationController
   end
 
   def get_parametros_opcionales
-    return {
-      municipios: params['municipios'] || false,
+    optional_params = {
+      all:        validate_optional_param(params, 'all')    ? params['all'].to_boolean    : true,
+      id:         validate_optional_param(params, 'id')     ? params['id'].to_boolean     : false,
+      nombre:     validate_optional_param(params, 'nombre') ? params['nombre'].to_boolean : false,
+      codigo:     validate_optional_param(params, 'codigo') ? params['codigo'].to_boolean : false,
+
     }
+
+    municipios = %w[municipios.id municipios.nombre municipios.codigo municipios.provincia.id municipios.provincia.nombre ]
+    optional_params[:municipios] = {
+      all: false,
+      id:              validate_optional_param(params, 'municipios.id')           ? params['municipios.id'].to_boolean                : false,
+      nombre:          validate_optional_param(params, 'municipios.nombre')       ? params['municipios.nombre'].to_boolean            : false,
+      codigo:          validate_optional_param(params, 'municipios.codigo')       ? params['municipios.codigo'].to_boolean            : false,
+      provincia: {
+        all: false,
+        id:       validate_optional_param(params, 'municipios.provincia.id')      ? params['municipios.provincia.id'].to_boolean      : false,
+        nombre:   validate_optional_param(params, 'municipios.provincia.nombre')  ? params['municipios.provincia.nombre'].to_boolean  : false,
+      }
+    } if municipios.any? { |param| validate_optional_param(params, param) }
+
+    return optional_params
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
+
     def set_provincia
       @provincia = Provincia.find(params[:id])
     end

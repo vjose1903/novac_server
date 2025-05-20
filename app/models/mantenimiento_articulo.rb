@@ -172,7 +172,7 @@ class MantenimientoArticulo < ApplicationRecord
       formulaArticulo
 
       formulas.to_a.each do |f|
-
+        puts "f ==> ".green + " #{f.to_json}"
         obj_formula = f.slice(:articulo_id, :articulo_combo, :cantidad, :costo, :precio, :medida)
         obj_formula["id"]               = f["formula_id"]
 

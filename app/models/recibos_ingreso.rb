@@ -26,30 +26,31 @@ class RecibosIngreso < ApplicationRecord
     res                            = Response.new
     RecibosIngreso.transaction do
 
-			recibo                       = RecibosIngreso.where(:id => params["id"]).first_or_create
+			recibo                       = RecibosIngreso.where(:id => params[:id]).first_or_create
 
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
-      fecha_equivalente            = params["fecha_equivalente"] ? params["fecha_equivalente"] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
-
-
-      recibo.user_id               = get_current_user['id']
+      fecha_equivalente            = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
+      
+      recibo.user_id               = get_current_user[:id]
       recibo.fecha_equivalente     = fecha_equivalente
       recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
-      recibo.cliente_id            = params["cliente_id"]
-      recibo.forma_pago            = params["forma_pago"]
-      recibo.tipo_factura_id       = params["tipo_factura_id"]
-      recibo.estado                = params["estado"]
+      recibo.cliente_id            = params[:cliente_id]
+      recibo.forma_pago            = params[:forma_pago]
+      recibo.tipo_factura_id       = params[:tipo_factura_id]
+      recibo.estado                = params[:estado]
 
-      recibo.devuelta              = params["devuelta"]
-      recibo.total                 = params["total"]
+      recibo.devuelta              = params[:devuelta]
+      recibo.bruto                 = params[:bruto]
+      recibo.mora                  = params[:mora]
+      recibo.total                 = params[:total]
+      recibo.balance_cliente       = params[:balance_cliente]
 
 			recibo.valid?
 
-
       dependencias = [
-        {modelo: DetalleRecibo,  key_object: "detalle_recibos",  padre: recibo},
-        {modelo: Incidencia,     key_object: "incidencias",      padre: recibo},
+        {modelo: DetalleRecibo,  key_object: 'detalle_recibos',  padre: recibo},
+        {modelo: Incidencia,     key_object: 'incidencias',      padre: recibo},
       ]
 
       devoluciones = []
@@ -61,22 +62,16 @@ class RecibosIngreso < ApplicationRecord
       }
 
       if res.status_valid
-        total_por_detalle          = recibo.detalle_recibos.map { |item| item.deposito }
-        total_calculado            = total_por_detalle.inject { |item, acu| item + acu }
-
-        recibo.devuelta            = params["total"] - total_calculado
-        recibo.total               = total_calculado
-
         if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
 
           res_valid                = updateSecuencias(17)
 
           if res_valid.status_valid
-            data = {"recibo": serialize_parser(recibo, {all: true}) }
+            data = {"recibo": serialize_parser(recibo, { all: true }) }
             data = { **data, "devoluciones": devoluciones } unless devoluciones.blank?
 
             res.set_data(data)
-            action = params["id"] ? 'actualizado' : 'creado'
+            action = params[:id] ? 'actualizado' : 'creado'
             res.add_msg("Recibo #{action} correctamente.")
 
           else

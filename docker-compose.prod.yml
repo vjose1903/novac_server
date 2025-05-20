@@ -1,10 +1,8 @@
-version: "3.8"
-
 services:
   db-prod:
     image: postgres:13.7
     volumes:
-      - ./tmp/db-demo-data:/var/lib/postgresql/data
+      - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
     container_name: db-prod
     environment:
       POSTGRES_PASSWORD: N0v@cgu@rd
@@ -13,30 +11,73 @@ services:
       - 127.0.0.1:9731:5432
     restart: always
 
-  demo-prod:
+  agrodemi-dev:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
-    container_name: demo-prod
+      dockerfile: docker/Dockerfile
+    container_name: agrodemi-dev
     environment:
-      ALMACEN: "DEMO"
+      # VIRTUAL_HOST: "adm.inspot-technology.com,admservidor.ddns.net"
+      VIRTUAL_HOST: "adm.inspot-technology.com"
+      # LETSENCRYPT_HOST: "adm.inspot-technology.com,admservidor.ddns.net"
+      LETSENCRYPT_HOST: "adm.inspot-technology.com"
+      LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
+      ALMACEN: "ADM"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
-      MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
+      MONTU: "1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
+      API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-prod:9091"
+    expose:
+      - "3000"
     depends_on:
       - db-prod
     restart: always
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
 
-  nginx-proxy-prod:
-    build: ./docker/services/nginx
-    container_name: nginx-proxy-prod
-    ports:
-      - 9093:9093
-    depends_on:
-      - demo-prod
+  dgii-microservice-prod:
+    build:
+      context: ./dgii_signature_microservice
+      dockerfile: Dockerfile
+    container_name: dgii-microservice-prod
+    env_file:
+      - ./dgii_signature_microservice/.env
+    environment:
+      ENV: "PROD"
+    expose:
+      - "9091"
     restart: always
+    depends_on:
+      - db-prod
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./html:/usr/share/nginx/html
+    restart: unless-stopped
+    depends_on:
+      - db-prod
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-letsencrypt
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      DEFAULT_EMAIL: novacagrodemi@gmail.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./html:/usr/share/nginx/html
+      - ./acme:/etc/acme.sh
+    depends_on:
+      - nginx-proxy
+    restart: unless-stopped

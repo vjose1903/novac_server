@@ -19,6 +19,7 @@ class DetalleFactura < ApplicationRecord
     detalle_factura                           = DetalleFactura.new
 
     detalle_factura.articulo_id               = params[:articulo_id]
+    detalle_factura.codigo                    = params[:codigo]
     detalle_factura.unidad                    = params[:unidad]
     detalle_factura.total                     = params[:total]
     detalle_factura.cantidad                  = params[:cantidad]

@@ -396,7 +396,7 @@ end
 
 def edit_cantidad_unidades
   detalles = DetalleFactura.all.where("detalle_facturas.cantidad = detalle_facturas.cantidad_en_unidades AND detalle_facturas.unidad not in ('Libra', 'Unidad') ").includes([ articulo: [:contenido_articulos] ])
-	puts "ANDO AQUIII".yellow
+
   detalles.each do | detalle |
     contenido            = detalle.articulo.contenido_articulos
     articulo             = detalle.articulo

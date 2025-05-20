@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
+ActiveRecord::Schema[7.0].define(version: 2025_05_15_041433) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -99,6 +99,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "identificador"
     t.integer "pre_factura"
     t.integer "cotizacion"
+    t.string "serie"
+    t.string "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
+    t.string "is_aceptada"
+    t.string "dgii_message"
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
@@ -138,7 +146,26 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.float "balance"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "municipio_id"
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
+    t.index ["municipio_id"], name: "index_clientes_on_municipio_id"
+  end
+
+  create_table "commertial_approval_receptions", force: :cascade do |t|
+    t.bigint "cabecera_factura_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.integer "estado"
+    t.string "fecha_emision"
+    t.string "detalleMotivoRechazo"
+    t.string "xml_file_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "suplidor_id"
+    t.index ["cabecera_factura_id"], name: "index_commertial_approval_receptions_on_cabecera_factura_id"
+    t.index ["suplidor_id"], name: "index_commertial_approval_receptions_on_suplidor_id"
   end
 
   create_table "config_articulos", force: :cascade do |t|
@@ -230,6 +257,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.integer "detalle_factura_nota"
     t.boolean "is_devuelto"
     t.boolean "is_defectuoso"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end
@@ -246,6 +274,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.boolean "is_ultimo"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.float "mora"
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
@@ -268,6 +297,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.float "itbis_real"
     t.float "descuento_real"
     t.bigint "tipo_factura_id"
+    t.float "cantidad_origin"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
@@ -301,6 +332,20 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
+  end
+
+  create_table "ecf_receptions", force: :cascade do |t|
+    t.bigint "suplidor_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.boolean "approved"
+    t.string "fecha_emision"
+    t.string "xml_file_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["suplidor_id"], name: "index_ecf_receptions_on_suplidor_id"
   end
 
   create_table "facturas_aplicadas", force: :cascade do |t|
@@ -450,6 +495,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "nombre"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "codigo"
     t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
   end
 
@@ -468,6 +514,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "fecha_valida", precision: nil
+    t.string "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
+    t.string "serie"
+    t.string "razon"
+    t.float "bruto"
+    t.float "itbis"
+    t.string "is_aceptada"
+    t.string "dgii_message"
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"
@@ -476,10 +533,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   create_table "permisos", force: :cascade do |t|
     t.string "nombre"
     t.string "descripcion"
-    t.string "controlador"
-    t.boolean "mostrar_front"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "controlador"
+    t.boolean "mostrar_front"
   end
 
   create_table "permisos_acciones", force: :cascade do |t|
@@ -505,6 +562,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "nombre"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "codigo"
   end
 
   create_table "recibos_ingresos", force: :cascade do |t|
@@ -522,6 +580,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "estado"
+    t.float "bruto"
+    t.float "mora"
+    t.float "balance_cliente"
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"
@@ -532,11 +593,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "nombre"
     t.string "descripcion"
     t.string "ruta_defecto"
-    t.boolean "estado"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "estado"
     t.string "key"
-    t.index ["nombre", "descripcion", "estado"], name: "index_roles_on_nombre_and_descripcion_and_estado", unique: true, where: "(estado = true)"
   end
 
   create_table "roles_permisos_acciones", force: :cascade do |t|
@@ -595,6 +655,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "descripcion"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "serie"
+    t.string "key"
   end
 
   create_table "users", force: :cascade do |t|
@@ -669,6 +731,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
   add_foreign_key "clientes", "imagenes"
+  add_foreign_key "clientes", "municipios"
+  add_foreign_key "commertial_approval_receptions", "cabecera_facturas"
+  add_foreign_key "commertial_approval_receptions", "suplidores"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"
@@ -689,6 +754,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
+  add_foreign_key "ecf_receptions", "suplidores"
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"

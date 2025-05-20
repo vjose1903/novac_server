@@ -52,14 +52,7 @@ module DeviseTokenAuth
 
         @resource.save
 
-				puts "@resource --> ".green + " #{@resource.to_json}"
-
         hola = sign_in(:user, @resource, store: false, bypass: false)
-				puts "hola --> ".magenta + " #{hola}"
-
-				puts " "
-				puts "ANDO AQUIII".yellow
-				puts " "
 
         yield @resource if block_given?
 
@@ -123,11 +116,9 @@ module DeviseTokenAuth
 
     def render_create_success
       data = resource_data(resource_json: @resource.token_validation_response)
-			puts "data ".green + " #{data.to_json}"
       user = User.find_by_id(data["id"])
 
       @res.set_data(@user_en_turno, {documentos_de_identidad:true, all:true, permisos: true, roles: true})
-
       @res.send_response self
     end
 

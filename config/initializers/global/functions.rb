@@ -120,7 +120,6 @@ class Paginator
   end
 
   def get_per_page
-    puts " @paginate_options ==> " + " #{@paginate_options.to_json}"
     @paginate_options['per_page']
   end
 
@@ -128,8 +127,11 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
-  pde = {"page" => params['page']|| 0, "per_page" => params['per_page'] || 0, "paginado" => params['paginado'].to_boolean || false}
-  return pde
+  return { "page" => params.obj_has?('page') ? params[:page] : 0, "per_page" => params.obj_has?('per_page') ? params[:per_page] : 0, "paginado" => params.obj_has?('paginado') ? params[:paginado].to_boolean : false }
+end
+# ---------------------------------------------------------------------------------------------------------
+def validate_optional_param(params, key)
+  params.obj_has?(key) && ["true", "false"].include?(params[key])
 end
 # ---------------------------------------------------------------------------------------------------------
 
@@ -187,6 +189,27 @@ def borrar_entidad(obj)
   end
   res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
   return res
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def format_rnc(rnc)
+  return rnc unless rnc
+  
+  # Asegurarnos que el RNC sea tratado como string
+  rnc = rnc.to_s
+  
+  # Extraer los primeros 3 dígitos
+  first_part = rnc[0..2]
+  
+  # Extraer los dígitos del medio (todos menos los 3 primeros y el último)
+  middle_part = rnc[3..-2]
+  
+  # Extraer el último dígito
+  last_part = rnc[-1]
+  
+  # Formato: XXX-XXXXX-X
+  "#{first_part}-#{middle_part}-#{last_part}"
 end
 
 # ---------------------------------------------------------------------------------------------------------
@@ -293,10 +316,41 @@ def crear_actualizar_dependencias(dependencias, parametros, save)
   return Response.new
 end
 
+def is_empty?(parametro)
+	# Verifica si el parámetro es nil, un arreglo vacío, una cadena vacía o un hash vacío
+	# Pero devuelve false si el parámetro es un valor booleano
+	return false if parametro.is_a?(TrueClass) || parametro.is_a?(FalseClass)
+
+	(parametro.nil? || (parametro.is_a?(String) && parametro.strip.empty?) || (parametro.is_a?(Hash) && parametro.empty?) || ( ( parametro.is_a?(Hash) || parametro.is_a?(Array) ) && parametro.empty?)  )
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def is_boolean?(param)
+	param.is_a?(TrueClass) || param.is_a?(FalseClass)
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+
+class String
+	def is_number?
+		!!(self =~ /\A\d+\z/)
+	end
+end
+# ---------------------------------------------------------------------------------------------------------
+
+
+class Object
+	def obj_has?(key)
+		self.has_key?(:"#{key}") && !is_empty?(self[:"#{key}"])
+	end
+end
+
 # ---------------------------------------------------------------------------------------------------------
 class Array
   def my_includes_str(str)
-    return  self.any? { |i| [str].include? i }
+    return  self.any? { |item| [str].include? item }
   end
 
   def my_includes_obj(key, value)
