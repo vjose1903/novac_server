@@ -13,3 +13,4 @@ node_modules/*
 # Log files
 logs/
 
+src/utils/xml/*.xml
