@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Nombre: guardarArchivoXML
@@ -9,14 +10,26 @@ import * as fs from 'fs';
  */
 export function guardarArchivoXML(content: string, filePath: string, folder?: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    fs.writeFile(filePath, content, err => {
+    const dirPath = path.dirname(filePath);
+
+    // Crear el directorio si no existe
+    fs.mkdir(dirPath, { recursive: true }, err => {
       if (err) {
-        console.error('Error al escribir el archivo:', err);
+        console.error('Error al crear el directorio:', err);
         reject(err);
-      } else {
-        console.log(`El archivo ${filePath} ha sido creado exitosamente.`);
-        resolve();
+        return;
       }
+
+      // Una vez creado el directorio, escribir el archivo
+      fs.writeFile(filePath, content, err => {
+        if (err) {
+          console.error('Error al escribir el archivo:', err);
+          reject(err);
+        } else {
+          console.log(`El archivo ${filePath} ha sido creado exitosamente.`);
+          resolve();
+        }
+      });
     });
   });
 }
