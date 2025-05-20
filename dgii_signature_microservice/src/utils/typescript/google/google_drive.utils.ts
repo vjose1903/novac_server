@@ -4,9 +4,11 @@ import * as mime from 'mime-types';
 import { google, drive_v3 } from 'googleapis';
 import { guardarArchivoXML, eliminarArchivo } from '../functions';
 import * as os from 'os';
+import { ENVIRONMENT } from 'dgii-ecf';
 
 const rootDir = path.resolve(__dirname, '..', '..');
 const apikeys = require(`${rootDir}/google_api_credentials.json`);
+const localDirXML = `${rootDir}/xml`;
 const SCOPE = ['https://www.googleapis.com/auth/drive'];
 
 interface FileMedia {
@@ -23,6 +25,7 @@ class GoogleDriveUtils {
   private drive?: drive_v3.Drive;
   private static instance: GoogleDriveUtils;
   private initialized: Promise<void>;
+  private env: ENVIRONMENT;
 
   private constructor() {
     this.initialized = this.initialize();
@@ -43,6 +46,7 @@ class GoogleDriveUtils {
   }
 
   private async initialize() {
+    this.env = ENVIRONMENT[process.env.ENV as keyof typeof ENVIRONMENT];
     await this.authorize();
   }
 
@@ -80,29 +84,33 @@ class GoogleDriveUtils {
   }
 
   async uploadFile(folderId: string, fileContent: string, fileName: string): Promise<DriveFile> {
-    const drive = this.getDriveInstance();
-    const fileMetaData = { name: fileName, parents: [folderId] };
-    const filePath = path.resolve(os.tmpdir(), fileName);
+    if (this.env !== ENVIRONMENT.PROD) {
+      guardarArchivoXML(fileContent, `${localDirXML}/${fileName}`);
+    } else {
+      const drive = this.getDriveInstance();
+      const fileMetaData = { name: fileName, parents: [folderId] };
+      const filePath = path.resolve(os.tmpdir(), fileName);
 
-    try {
-      // Escribir el archivo en el directorio temporal del sistema
-      await fs.promises.writeFile(filePath, fileContent);
-
-      const mimeType = mime.lookup(filePath) || 'application/xml';
-      const media = { body: fs.createReadStream(filePath), mimeType };
-
-      // Usar promisify para convertir el callback a promesa
-      const { data } = await drive.files.create({ requestBody: fileMetaData, media, fields: 'id' });
-
-      return data as DriveFile;
-    } catch (error) {
-      throw error;
-    } finally {
-      // Asegurar que el archivo temporal sea eliminado
       try {
-        await fs.promises.unlink(filePath);
-      } catch (err) {
-        console.error(`Error al eliminar archivo temporal ${filePath}:`, err);
+        // Escribir el archivo en el directorio temporal del sistema
+        await fs.promises.writeFile(filePath, fileContent);
+
+        const mimeType = mime.lookup(filePath) || 'application/xml';
+        const media = { body: fs.createReadStream(filePath), mimeType };
+
+        // Usar promisify para convertir el callback a promesa
+        const { data } = await drive.files.create({ requestBody: fileMetaData, media, fields: 'id' });
+
+        return data as DriveFile;
+      } catch (error) {
+        throw error;
+      } finally {
+        // Asegurar que el archivo temporal sea eliminado
+        try {
+          await fs.promises.unlink(filePath);
+        } catch (err) {
+          console.error(`Error al eliminar archivo temporal ${filePath}:`, err);
+        }
       }
     }
   }
