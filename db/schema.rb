@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_05_15_041433) do
+ActiveRecord::Schema[7.0].define(version: 2025_06_06_111336) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -107,6 +107,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_15_041433) do
     t.string "qr_url_dgii"
     t.string "is_aceptada"
     t.string "dgii_message"
+    t.boolean "is_ncf_modificado", default: false
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
@@ -315,6 +316,20 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_15_041433) do
     t.datetime "updated_at", precision: nil, null: false
     t.index ["articulo_id"], name: "index_detalles_produccion_on_articulo_id"
     t.index ["produccion_id"], name: "index_detalles_produccion_on_produccion_id"
+  end
+
+  create_table "document_references", force: :cascade do |t|
+    t.string "document_origin_type", null: false
+    t.bigint "document_origin_id", null: false
+    t.string "document_referenced_type", null: false
+    t.bigint "document_referenced_id", null: false
+    t.datetime "referenced_at"
+    t.bigint "referenced_by_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_origin_type", "document_origin_id"], name: "index_document_references_on_document_origin"
+    t.index ["document_referenced_type", "document_referenced_id"], name: "index_document_references_on_document_referenced"
+    t.index ["referenced_by_id"], name: "index_document_references_on_referenced_by_id"
   end
 
   create_table "documentos_de_identidad", force: :cascade do |t|
@@ -752,6 +767,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_05_15_041433) do
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
+  add_foreign_key "document_references", "users", column: "referenced_by_id"
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
