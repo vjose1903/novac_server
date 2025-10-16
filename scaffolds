@@ -1,0 +1,187 @@
+rails g scaffold suplidor nombre:string telefono:string direccion:string email:string estado:boolean
+rails g scaffold tipo_agencia descripcion:string comentario:string estado:boolean
+rails g scaffold agencia tipo_agencia:references nombre:string direccion:string telefono:string pais:string comentario:string estado:boolean
+rails g scaffold documento_identidad user:references suplidor:references agencia:references descripcion:string documento:string
+rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
+rails g scaffold oferta agencia:references suplidor:references precio:float fecha_inicio:date fecha_fin:date moneda:string cantidad_reservas:integer estado:boolean
+rails g scaffold imagen user:references oferta:references agencia:references descripcion:string fileName:string base_64:string path:string
+rails g scaffold oferta_favorita user:references oferta:references
+rails g scaffold cabecera_factura user:references forma_pago:string numero_factura:integer total_factura:float pagada:boolean balance:float
+rails g scaffold detalle_factura cabecera_factura:references oferta:references cantidad:integer total:float precio:float
+rails g scaffold peticion_personalizada user:references tipo_agencia:references descripcion:string
+rails g scaffold vehiculo user:references marca:string modelo:string cantidad_viajes:integer
+rails g scaffold incidencia referencia:integer descripcion:string
+rails g scaffold marca descripcion:string
+rails g scaffold modelo marca:references descripcion:string
+
+
+
+rails g scaffold produccion user:references numero:integer fecha_equivalente:datetime
+rails g scaffold detalle_produccion produccion:references articulo:references cantidad:float cantidad_en_unidades:integer medida:string
+
+rails g scaffold cuadre_caja user:references total_general:float total_venta_credito:float total_venta_contado:float total_reciboIngreso_ingreso:float  total_anterior:float
+
+rails g migration AddBalanceFacturaToDetalleRecibo balance_factura:float
+
+
+rails g migration AddTieneNotaToCabeceraFactura tiene_nota:boolean
+rails g migration AddRetiradoToDetalleFactura retirado:integer
+rails g migration AddTipoSalidaToMovimientoInventario tipo_salida:string
+rails g migration AddFechaConduceToCabeceraConduce fecha_conduce:datetime
+rails g migration ChangeCantidadToBeFloatInDetalleConduce
+rails g migration AddCantidadEnUnidadesToDetalleConduce cantidad_en_unidades:integer
+rails g migration AddFechaViajesToCabeceraFacturas fecha_viaje:datetime
+rails g migration AddIsUltimoToDetalleRecibo is_ultimo:boolean
+rails g migration AddReferenciaToSecuenciaComprobante referencia:string
+rails g migration AddCamposToVehiculo nombre_no_empleado:string apellido_no_empleado:string telefono_no_empleado:string
+rails g migration AddAnioToVehiculo anio:string
+rails g migration AddEstadoToVehiculo estado:boolean
+rails g migration AddIsMateriaPrimaToArticulo is_materia_prima:boolean
+rails g migration AddIsMateriaPrimaToMantenimientoArticulo is_materia_prima:boolean
+rails g migration AddCalcularSacoToDetalleFactura calcular_saco:boolean
+rails g migration AddCalcularSacoToMantenimientoArticulo calcular_saco:boolean
+rails g migration AddDetalleFacturaToDetalleFactura detalle_factura_nota:integer
+rails g migration AddEstadoToReciboIngreso estado:boolean
+rails g migration AddFechaEquivalenteToCuadreCaja fecha_equivalente:datetime
+rails g migration AddCamposToDetalleDacturasNotas cantidad_origin:float codigo:string
+rails g migration ChangeCamposFacturacionElectronica
+rails g migration ChangeCamposFacturacionElectronicaNota
+rails g migration AddSerieToNotas serie:string
+rails g migration AddKeyToTipoFacturas key:string
+rails g migration AddNCFModificadoToCabeceraFacturas ncf_modificado:string
+
+
+
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+rails g scaffold cabecera_conduce user:references cliente:references numero_conduce:integer
+rails g scaffold detalle_conduce cabecera_conduce:references detalle_factura:references articulo:references cantidad:integer
+
+
+rails g migration AddIdentificadorToCabeceraFacturas identificador:string
+rails g migration AddUnidadToDetalleConduce unidad:string
+rails g migration AddRetiradoEnLaVentaToDetalleFactura retirado_en_venta:integer
+
+rails g migration ChangeIsComboToBeIsComboInArticulos
+
+rails g migration ChangeFileNameToBeFileNameInImagenes
+
+rails g scaffold forma_de_pago cabecera_factura:references forma_pago:string cantidad:float
+
+
+rails g scaffold provincia nombre:string
+rails g model municipio provincia:references nombre:string
+rails g scaffold costo_flete municipio:references costo:float
+rails g migration AddEstadoToCostoFlete
+
+rails g scaffold costo_flete_historial user:references costo_flete:references municipio:integer costo:float estado:boolean
+
+rails g migration AddCamposToSuplidor
+
+rails g model entidad user:references nombre:string apellido:string direccion:string is_user:boolean is_suplidor:boolean is_cliente:boolean estado:boolean
+rails g model telefono entidad:references tipo:string valor:string
+rails g model correo_electronico entidad:references valor:string
+rails g model config_entidad has_user:boolean tipo:string
+
+rails g migration AddEntidadToTablas
+
+
+
+rails generate serializer cliente
+rails generate serializer user
+rails generate serializer documento_de_identidad
+rails generate serializer suplidor
+rails generate serializer recibos_ingreso
+rails generate serializer detalle_recibo
+rails generate serializer cabecera_conduce
+rails generate serializer detalle_conduce
+rails generate serializer cabecera_factura
+rails generate serializer detalle_factura
+
+rails g scaffold configuracion nombre_empresa:string rnc_empresa:string direccion_empresa:string telefono_empresa:string logo_empresa:string color_app:string url_servidor:string url_servidor_respaldo:string puerto_servidor:integer url_servidor_descargas:string
+
+rails generate model permiso descripcion:string
+rails generate model accion descripcion:string
+
+rails generate model permiso_accion permiso:references accion:references
+rails generate model rol_permiso_accion rol:references permiso_accion:references controlador:string metodo:string
+
+rails generate serializer role
+rails generate serializer permiso
+rails generate serializer accion
+rails generate serializer permiso_accion
+
+rails g scaffold nota cliente:references user:references tipo_factura:references total:float identificador:string numero_documento:integer numero_comprobante:string fecha_equivalente:datetime estado:boolean
+rails g scaffold factura_aplicada nota:references cabeza_factura:references total:float
+rails g scaffold detalle_factura_nota factura_aplicada:references articulo:references detalle_factura:references unidad:string cantidad:float cantidad_en_unidades:integer itbis:float costo:float precio:float total:float descuento:float
+
+
+rails g migration EditCamposToNota
+rails g migration AddCamposToNota
+
+rails g migration AddIndexToDocumentosIdentidad
+
+, where: 'name IS NOT NULL'
+
+// ===========================================================================================
+// IDEA PARA OTROS COSTOS
+// ===========================================================================================
+// rails g scaffold otro_costo descripcion:string costo:float
+// rails g model otro_costo_articulo articulo:references otro_costo:references
+// rails g model otro_costo_historial descripcion:string costo:float
+// rails g model otro_costo_mantenimiento_articulo otro_costo_historial:references mantenimiento_articulo_id:references
+
+rails g migration AddCamposToOtrosCostosHistorial
+rails g migration AddCamposToOtrosCostos
+rails g migration AddMasCamposToOtrosCostos
+rails g migration AddPrecioToOtrosCostos
+
+rails g model camion_viaje vehiculo:references cabecera_factura:references
+rails g migration AddRefenceToCamionesViajes
+rails g model chofer_viaje user:references recibos_ingreso:references
+rails generate serializer chofer_viaje
+
+rails g migration AddPre_FacturaToCabeceraFactura
+rails g migration AddIsDefectuosoToDetalleFactura
+rails g migration AddMostrarFrontToAcciones
+rails g migration AddIsDevueltoToDetalleFactura
+rails g migration AddIsDefectuosoToDetalleFactura
+
+
+rails g migration change_secuencua_to_be_string_in_tables
+rails g migration add_formula_id_to_mantenimiento_formula
+rails g migration addMedidaToMantenimientoFormula
+rails g migration addTipoToTipoArticulo
+rails g migration addCodigoToTipoArticulo
+rails g migration addEstadoToCabeceraConduces
+rails g migration addCamposToDetallesFacturasNotas
+rails g migration addMoreCamposToDetallesFacturasNotas
+rails g migration addCamposToFacturasAplicadas
+rails g migration addSerieToTipoFacturas
+rails g migration addSerieToCabeceraFactura
+rails g migration addCamposToReciboIngreso
+rails g migration addCodigoToProvincia
+rails g migration addMunicipioToCliente
+rails g migration addCamposXMLToDocumentos
+rails g migration addCamposMoreXMLToDocumentos
+rails g migration addSuplidorToCommertialApprovalReception
+rails g migration change_is_aceptada_to_be_string
+rails g model document_reference document_origin:references{polymorphic} document_referenced:references{polymorphic} referenced_at:datetime referenced_by:references
+rails generate serializer document_reference
+
+rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
+
+rails g migration changeTipoFacturaToAceptNullNotas
+rails g migration addCotizacionToCabeceraFactura
+
+
+rails g model movimiento_viaje user:references vehiculo:references cabecera_factura:references
+rails generate serializer movimiento_viaje
+
+rails g migration AddKeyToRoles
+rails g scaffold config_articulo porciento_ganancia:float
+
+rails g scaffold ecf_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float approved:boolean
+rails g scaffold commertial_approval_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float estado:integer detalleMotivoRechazo:string cabecera_factura:references

@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  municipio: one
+  costo: 1.5
+
+two:
+  municipio: two
+  costo: 1.5

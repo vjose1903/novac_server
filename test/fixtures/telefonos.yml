@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  entidad: one
+  tipo: MyString
+  valor: MyString
+
+two:
+  entidad: two
+  tipo: MyString
+  valor: MyString

@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  mantenimiento_articulos: one
+  articulo_id: 1
+  cantidad: 1.5
+
+two:
+  mantenimiento_articulos: two
+  articulo_id: 1
+  cantidad: 1.5

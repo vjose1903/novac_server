@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  nota: one
+  cabeza_factura: one
+  total: 1.5
+
+two:
+  nota: two
+  cabeza_factura: two
+  total: 1.5

@@ -1,0 +1,21 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  nombre: MyString
+  apellido: MyString
+  direccion: MyString
+  is_user: false
+  is_suplidor: false
+  is_cliente: false
+  estado: false
+
+two:
+  user: two
+  nombre: MyString
+  apellido: MyString
+  direccion: MyString
+  is_user: false
+  is_suplidor: false
+  is_cliente: false
+  estado: false

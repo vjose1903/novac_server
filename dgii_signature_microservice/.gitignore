@@ -1,0 +1,16 @@
+**/.DS_Store
+.env
+.env.*
+
+# Compiled output
+dist/
+dist/*
+
+# Runtime data
+node_modules/
+node_modules/*
+
+# Log files
+logs/
+
+src/utils/xml/*.xml

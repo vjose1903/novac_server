@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  produccion: one
+  articulo: one
+  cantidad: 1.5
+  cantidad_en_unidades: 1
+  medida: MyString
+
+two:
+  produccion: two
+  articulo: two
+  cantidad: 1.5
+  cantidad_en_unidades: 1
+  medida: MyString

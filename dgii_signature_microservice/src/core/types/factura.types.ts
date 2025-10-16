@@ -1,0 +1,83 @@
+import { condicionT, forma_pagoT, tipoComprobanteE } from '../constants/factura.const';
+import { Articulo, UnidadesI } from './articulo.types';
+import { ClienteI } from './cliente.types';
+import { documentTypeT } from './document.types';
+
+export interface FacturaI {
+  id_documento: string;
+  TipoeCF: tipoComprobanteE;
+  condicion: condicionT;
+  forma_pago: forma_pagoT;
+  fecha_viaje: string | Date;
+  fecha_equivalente: string | Date;
+  fecha_vencimiento?: string | Date;
+  pagada: boolean;
+  balance: number;
+  devuelta: number;
+  fecha_valida: any;
+  tipo_factura_id: number;
+  numero_comprobante: any;
+  costoYgasto: any;
+  numero_factura: any;
+  total_factura: number;
+  Bruto: number;
+  itbis: number;
+  descuento: number;
+  estado: boolean;
+  is_adelantada: boolean;
+  is_viaje: boolean;
+  is_nota: boolean;
+  movimientos_viaje: any[];
+  serie: string;
+  pre_factura: any;
+  cotizacion: any;
+  cliente_id: any;
+  NoCliente_nombre?: string;
+  NoCliente_direccion?: string;
+  detalle_facturas: DetalleFacturaI[];
+  FACTURA_DE: number;
+  tipo: string;
+  tiene_nota: boolean;
+  cliente?: ClienteI | null;
+  document_type: documentTypeT;
+  is_ncf_modificado?: boolean;
+  ncf_modificado?: string;
+  ncf_modificado_por_id?: number;
+  ncf_modificado_at?: Date;
+  [key: string]: any;
+}
+
+export interface DetalleFacturaI {
+  key: string;
+  articulo: Articulo;
+  unidades: UnidadesI[];
+  detalle_id: any;
+  codigo: string;
+  cantidad: number;
+  cantidad_initial: number;
+  cantidad_ant: number;
+  descripcion: string;
+  unidad: string;
+  precio: number;
+  costo: number;
+  descuento_valor: number;
+  total: number;
+  itbis: number;
+  cantidad_en_unidades: number;
+  cantidad_en_unidades_initial: number;
+  calcular_saco: boolean;
+  is_defectuoso: boolean;
+  is_devuelto: boolean;
+  from_pre_factura: boolean;
+  vende_sin_inventario: boolean;
+  is_bad_price: boolean;
+  actual_price: any;
+  actual_price_value: any;
+  key_initial: any;
+  producto_initial: any;
+  articulo_id: number;
+  retirado: number;
+  retirado_en_venta: number;
+  [key: string]: any;
+}
+

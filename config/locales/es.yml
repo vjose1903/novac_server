@@ -1,0 +1,75 @@
+es:
+  ya_existe: &ya_existe "ya existe"
+  ya_existe_descripcion_un: &ya_existe_descripcion_un "%{entidad} registrado con el campo, %{campo} = %{valor}"
+  ya_existe_descripcion_una: &ya_existe_descripcion_una "%{entidad} registrada con el campo, %{campo} = %{valor}"
+
+  no_existe: "%{entidad}%{otro_valor} no existe."
+
+  borrar_un: "%{entidad} borrado correctamente."
+  borrar_una: "%{entidad} borrada correctamente."
+
+  ya_existe_un:
+    - *ya_existe
+    - "un"
+    - *ya_existe_descripcion_un
+
+  ya_existe_una:
+    - *ya_existe
+    - "una"
+    - *ya_existe_descripcion_una
+
+  modelo:
+    costo_fletes: "Costo de flete"
+    costo_fletes_p: "Costos de fletes"
+    cliente: "Cliente"
+    cliente_p: "Clientes"
+    suplidor: "Suplidor"
+    suplidor_p: "Suplidores"
+    user: "Empleado"
+    user_p: "Empleados"
+    articulo: "Articulo"
+    cuadre_caja: "Cuadre de caja"
+    cabecera_factura: "Factura"
+    role: "Rol"
+    nota: "Nota"
+    otro_costo: "Otro costo"
+    marca: "Marca"
+    modelo: "Modelo"
+    secuencia_comprobante: "Paquete de comprobantes"
+
+  errors:
+    format: "%{message}"
+    messages:
+      required: "El campo: '%{attribute}', es requerido."
+      blank: "El campo: '%{attribute}', no puede estar vacio."
+      taken: "" #"it cant be empty"
+
+  # aqui van los mensajes internos que maneja ruby por debajo como son el caso de los belong_to
+  activerecord:
+    errors:
+      models:
+        costo_flete:
+          attributes:
+            costo:
+              not_a_number: "Valor introducido no es un número."
+
+        formulas_productos_terminado:
+          attributes:
+            costo:
+              not_a_number: "Valor introducido no es un número."
+            precio:
+              not_a_number: "Valor introducido no es un número."
+
+        articulo:
+          attributes:
+            costo_principal:
+              not_a_number: "Valor introducido no es un número."
+            precio_principal:
+              not_a_number: "Valor introducido no es un número."
+
+        contenido_articulo:
+          attributes:
+            costo:
+              not_a_number: "Valor introducido no es un número."
+            precio:
+              not_a_number: "Valor introducido no es un número."
