@@ -69,16 +69,17 @@ class Paginator
   end
 
   def set_pagination_options(params)
+    @paginate_options["page"]     = params['page']       if params && !params['page'].nil?
     @paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
     @paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
   end
 
 
   def paginate_data(data, models_includes=nil)
-    
+
     # Aplica includes/preload incluso cuando no hay paginación para evitar N+1
     if models_includes
-      
+
       if data.respond_to?(:includes)
         data = data.includes(models_includes)
       elsif data.is_a?(Array) && !data.empty? && data.first.is_a?(ActiveRecord::Base)
@@ -90,28 +91,62 @@ class Paginator
 
     @data_paginated["data"] = data
     @data_paginated         = paginate(data, models_includes) if @paginate_options["paginado"]
-    
+
   end
 
   def paginate(items, models_includes=nil)
     page      = @paginate_options["page"].to_i
     per_page  = @paginate_options["per_page"].to_i
-    
-    
+
+
     # Asegurar que la página sea al menos 1
     page      = 1 if page <= 0
+    # Evitar división por cero y paginación inválida
+    per_page  = 1 if per_page <= 0
     inicio    = (page - 1) * per_page
 
-    itemsPaginated = items[inicio, per_page] || []
+    # Soporte para ActiveRecord::Relation usando offset/limit
+    if defined?(ActiveRecord::Relation) && items.is_a?(ActiveRecord::Relation)
+
+      # Calcular total de registros sin afectar el relation paginado ni sorting, y evitando duplicados por includes/joins
+      base_relation = items.unscope(:order).limit(nil).offset(nil)
+
+      total_count = begin
+        if base_relation.group_values.present?
+          # Si hay GROUP BY, contamos filas del conjunto agrupado usando subconsulta
+          sql = "SELECT COUNT(*) AS count FROM (#{base_relation.to_sql}) subq"
+          ActiveRecord::Base.connection.exec_query(sql).rows[0][0].to_i
+        else
+          # Sin GROUP BY: contar IDs distintos para evitar duplicados por joins/includes
+          pk = base_relation.klass.primary_key
+          base_relation.reselect(nil).distinct.count(pk)
+        end
+      rescue
+        count_fallback = items.count
+        count_fallback.is_a?(Hash) ? count_fallback.values.sum : count_fallback
+      end
+
+      # Mantener el orden original definido por el caller
+      paginated_relation = items.offset(inicio).limit(per_page)
+      itemsPaginated = paginated_relation.to_a
+
+      total_pag = (total_count.to_f / per_page.to_f).ceil
+      return { "data" => itemsPaginated , "total_registros" => total_count, "total_paginas" => total_pag }
+    end
+
+    # Array/Hash u otros enumerables: usar slice (Hash -> Array de pares)
+    source_items = items.is_a?(Hash) ? items.to_a : items
+    itemsPaginated = source_items[inicio, per_page] || []
 
     # Preload de asociaciones para el slice paginado si es un Array de AR
     if models_includes && itemsPaginated.is_a?(Array) && !itemsPaginated.empty? && itemsPaginated.first.is_a?(ActiveRecord::Base)
       ActiveRecord::Associations::Preloader.new(records: itemsPaginated, associations: models_includes).call
     end
 
-    total_pag = (items.length.to_f / per_page.to_f).ceil
+    total_length = source_items.length
+    total_pag = (total_length.to_f / per_page.to_f).ceil
 
-    return { "data" => itemsPaginated , "total_registros" => items.length, "total_paginas" => total_pag }
+    return { "data" => itemsPaginated , "total_registros" => total_length, "total_paginas" => total_pag }
   end
 
   def is_paginated
