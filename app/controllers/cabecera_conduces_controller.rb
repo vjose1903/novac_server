@@ -13,7 +13,7 @@ class CabeceraConducesController < ApplicationController
 
   def getConducesFiltrados
     arg = params["arg"]
-    resultado = CabeceraConduce.filtrarConduces(arg, set_paginate_options(params))
+    resultado = CabeceraConduce.filtrarConduces(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

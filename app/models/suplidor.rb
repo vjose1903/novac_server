@@ -4,8 +4,8 @@ class Suplidor < ApplicationRecord
   has_many    :documentos_de_identidad,    :as => :origen,         dependent: :destroy, class_name: "DocumentoDeIdentidad"
   has_many    :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
 
-  validates :nombre,     presence: { :message => 'Nombre del suplidor no puede estar vacio.' },      uniqueness: { scope: :estado, case_sensitive: false, :message => 'Suplidor ya está registrado.' }, :if => :estado
-  validates :direccion,  presence: { :message => 'Dirección del suplidor no puede estar vacio.' }
+  validates :nombre,     presence: { :message => 'Nombre del suplidor no puede estar vacío.' },      uniqueness: { scope: :estado, case_sensitive: false, :message => 'Suplidor ya está registrado.' }, :if => :estado
+  validates :direccion,  presence: { :message => 'Dirección del suplidor no puede estar vacío.' }
 
   def otras_validaciones(params, has_contabilidad)
     if has_contabilidad
@@ -44,7 +44,7 @@ class Suplidor < ApplicationRecord
 
     Suplidor.transaction do
 
-      suplidor  = Suplidor.where(:id => params[:id]).first_or_create
+      suplidor                   = Suplidor.where(:id => params[:id]).first_or_initialize
 
       suplidor.divisa_id                       = params[:divisa_id]
       suplidor.nombre                          = params[:nombre]

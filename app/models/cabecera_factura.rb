@@ -1,17 +1,20 @@
 class CabeceraFactura < ApplicationRecord
   belongs_to :tipo_factura
   belongs_to :suplidor, optional: true
-  belongs_to :cliente, optional: true
+  belongs_to :cliente,  optional: true
   belongs_to :user
 
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos, dependent: :destroy
   has_many :pago_factura_detalles, dependent: :destroy
   has_many :facturas_aplicadas
-  # TODO: quitar esto despues de que todo este modificado
-  has_many :camiones_viajes, :as => :origen, dependent: :destroy, class_name: "CamionViaje"
+
+  has_one  :document_reference_as_origin,     :as => :document_origin,     dependent: :destroy, class_name: 'DocumentReference'
+  has_one  :document_reference_as_referenced, :as => :document_referenced, dependent: :destroy, class_name: 'DocumentReference'
+
   has_many :movimientos_viaje, dependent: :destroy
 
+  validates :tipo_factura,              presence: { :message => 'El tipo de la factura no puede estar vacío.' }
 
   # ===================================================================================================================================================
 
@@ -19,8 +22,8 @@ class CabeceraFactura < ApplicationRecord
 
     documento = tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
-    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.total_factura == nil
-    self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.Bruto == nil
+    self.errors.add(:base, "Total de la #{documento} no puede estar vacío.")   if self.total_factura == nil
+    self.errors.add(:base, "Total de la #{documento} no puede estar vacío.")   if self.Bruto == nil
 
     if self.is_viaje && self.cliente_id == nil
       self.errors.add(:base, "Para realizar una factura de viajes, tiene que seleccionar un cliente.")
@@ -40,7 +43,9 @@ class CabeceraFactura < ApplicationRecord
         {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}},
         {detalle_recibos: {recibos_ingreso: :user}},
         {movimientos_viaje: [:vehiculo, :user]},
-        {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]}
+        {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]},
+        :document_reference_as_origin,
+        :document_reference_as_referenced
     ]
     return includes
   end
@@ -55,22 +60,26 @@ class CabeceraFactura < ApplicationRecord
 
   def self.create_factura(params , is_save=false)
     res                                    = Response.new
-    @tipo_de_documento                     = TipoFactura.find_by_id(params['FACTURA_DE'])
-    @tipo_de_factura                       = TipoFactura.find_by_id(params['tipo_factura_id'])
+    @tipo_de_documento                     = TipoFactura.find_by_id(params[:FACTURA_DE])
+    @tipo_de_factura                       = TipoFactura.find_by_id(params[:tipo_factura_id])
+    @increment_secuencia_comprobante       = false
+    @is_electronica                        = params[:serie].present? && params[:serie] == SerieFactura.electronica
+    @res_valid_dgii = nil
 
     CabeceraFactura.transaction do
       res_secuencias                       = CabeceraFactura.find_secuencias(params)
       if res_secuencias.status_valid
 
         data_secuencias                    = res_secuencias.get_data
-        num_factura_blank                  = CabeceraFactura.where({numero_factura: data_secuencias[:numero_factura], tipo: params["tipo"], tipo_factura_id: params["tipo_factura_id"], condicion: params['condicion']})
+
+        num_factura_blank                  = CabeceraFactura.where({ numero_factura: data_secuencias[:numero_factura], tipo: params[:tipo], tipo_factura_id: params[:tipo_factura_id], condicion: params[:condicion], serie: params[:serie] })
 
         if num_factura_blank.blank?
 
           res_valid                        = Response.new
 
-          if params["condicion"] == "Crédito" && params["tipo"] != TiposFacturasDescripcion.compra.downcase
-          res_valid                      = Cliente.calculate_balance_cliente(params["cliente_id"], params["total_factura"], "+")
+          if params[:condicion] == 'Crédito' && ( params[:tipo].downcase != TiposFacturasDescripcion.compra.downcase  && params[:tipo].downcase != TiposFacturasDescripcion.cotizacion.downcase )
+            res_valid                      = Cliente.calculate_balance_cliente(params[:cliente_id], params[:total_factura], '+')
           end
 
           if res_valid.status_valid
@@ -85,33 +94,33 @@ class CabeceraFactura < ApplicationRecord
             cabecera_factura.numero_factura           = data_secuencias[:numero_factura]
             cabecera_factura.estado                   = true
 
-            cabecera_factura.tipo_factura_id          = params["tipo_factura_id"]
-            cabecera_factura.suplidor_id              = params["suplidor_id"]
-            cabecera_factura.cliente_id               = params["cliente_id"]
-            cabecera_factura.fecha_viaje              = params["fecha_viaje"]
-            cabecera_factura.fecha_vencimiento        = params["fecha_vencimiento"]
-            cabecera_factura.fecha_valida             = params["fecha_valida"]
-            cabecera_factura.condicion                = params["condicion"]
-            cabecera_factura.forma_pago               = params["forma_pago"]
-            cabecera_factura.total_factura            = params["total_factura"]
-            cabecera_factura.itbis                    = params["itbis"]
-            cabecera_factura.descuento                = params["descuento"]
-            cabecera_factura.Bruto                    = params["Bruto"]
-            cabecera_factura.tipo                     = params["tipo"]
-            cabecera_factura.NoCliente_nombre         = params["NoCliente_nombre"]
-            cabecera_factura.NoCliente_direccion      = params["NoCliente_direccion"]
-            cabecera_factura.costoYgasto              = params["costoYgasto"]
-            cabecera_factura.pagada                   = params["pagada"]
-            cabecera_factura.vendedor_id              = params["vendedor_id"]
-            cabecera_factura.balance                  = params["balance"]
-            cabecera_factura.devuelta                 = params["devuelta"]
-            cabecera_factura.is_adelantada            = params["is_adelantada"]
-            cabecera_factura.is_nota                  = params["is_nota"]
-            cabecera_factura.is_viaje                 = params["is_viaje"]
-            cabecera_factura.tiene_nota               = params["tiene_nota"]
-            cabecera_factura.pre_factura              = params["pre_factura"]
-            cabecera_factura.cotizacion               = params["cotizacion"]
-            cabecera_factura.serie                    = params["serie"]
+            cabecera_factura.tipo_factura_id          = params[:tipo_factura_id]
+            cabecera_factura.suplidor_id              = params[:suplidor_id]
+            cabecera_factura.cliente_id               = params[:cliente_id]
+            cabecera_factura.fecha_viaje              = params[:fecha_viaje]
+            cabecera_factura.fecha_vencimiento        = params[:fecha_vencimiento]
+            cabecera_factura.fecha_valida             = params[:fecha_valida]
+            cabecera_factura.condicion                = params[:condicion]
+            cabecera_factura.forma_pago               = params[:forma_pago]
+            cabecera_factura.total_factura            = params[:total_factura]
+            cabecera_factura.itbis                    = params[:itbis]
+            cabecera_factura.descuento                = params[:descuento]
+            cabecera_factura.Bruto                    = params[:Bruto]
+            cabecera_factura.tipo                     = params[:tipo]
+            cabecera_factura.NoCliente_nombre         = params[:NoCliente_nombre]
+            cabecera_factura.NoCliente_direccion      = params[:NoCliente_direccion]
+            cabecera_factura.costoYgasto              = params[:costoYgasto]
+            cabecera_factura.pagada                   = params[:pagada]
+            cabecera_factura.vendedor_id              = params[:vendedor_id]
+            cabecera_factura.balance                  = params[:balance]
+            cabecera_factura.devuelta                 = params[:devuelta]
+            cabecera_factura.is_adelantada            = params[:is_adelantada]
+            cabecera_factura.is_nota                  = params[:is_nota]
+            cabecera_factura.is_viaje                 = params[:is_viaje]
+            cabecera_factura.tiene_nota               = params[:tiene_nota]
+            cabecera_factura.pre_factura              = params[:pre_factura]
+            cabecera_factura.cotizacion               = params[:cotizacion]
+            cabecera_factura.serie                    = params[:serie]
             cabecera_factura.can_pagar                = params[:can_pagar]
 
             cabecera_factura.otras_validaciones(params, @tipo_de_factura)
@@ -131,11 +140,23 @@ class CabeceraFactura < ApplicationRecord
               cabecera_factura.identificador      = CabeceraFactura.makeIdentificador(cabecera_factura)
               if cabecera_factura.save!
 
-                res_valid                         = CabeceraFactura.update_secuencias(params, data_secuencias)
-                res_valid                         = cabecera_factura.procesos_cabecera() if res_valid.status_valid
+                if @is_electronica && @tipo_de_documento.descripcion != TiposFacturasDescripcion.compra
+                  @res_valid_dgii                 = DGII_MANAGER.send(cabecera_factura) if @is_electronica
+                  data_response_dgii              = @res_valid_dgii.get_data
+
+                  if data_response_dgii[:secuenciaUtilizada]
+                    @increment_secuencia_comprobante = true
+                  end
+                else
+                  @increment_secuencia_comprobante = true
+                end
+
+                res_valid   = CabeceraFactura.update_secuencias(data_secuencias)
+
+                res_valid   = cabecera_factura.procesos_cabecera if res_valid&.status_valid || res_valid.nil?
 
                 if res_valid.status_valid
-                  res.set_data(cabecera_factura, {all: true, movimientos_viaje: true})
+                  res.set_data(cabecera_factura, { all: true, movimientos_viaje: true })
 
                   documento =  @tipo_de_factura.descripcion == TiposFacturasDescripcion.cotizacion  ? 'Cotización' : @tipo_de_factura.descripcion == TiposFacturasDescripcion.pre_venta ? 'Pre-Venta' : 'Factura'
 
@@ -174,29 +195,23 @@ class CabeceraFactura < ApplicationRecord
       transaction_rollback unless res.status_valid
     end
 
+    res = @res_valid_dgii if !@res_valid_dgii.nil? && !@res_valid_dgii.status_valid
+
     return res
   end
 
   # ===================================================================================================================================================
 
   def self.makeIdentificador(factura)
-    fecha = factura.fecha_equivalente.kind_of?(String) ? DateTime.parse(factura.fecha_equivalente) : factura.fecha_equivalente
+    fecha = factura.fecha_equivalente.is_a?(String) ? DateTime.parse(factura.fecha_equivalente) : factura.fecha_equivalente
 
-    array = [
-      {value: "#{"%04d" % (factura.cliente_id || 0)}".reverse},
-      {value: "#{"%04d" % factura.user_id}"},
-      {value: "#{"%04d" % factura.detalle_facturas.length}".reverse},
-      {value: "#{factura.id} ".reverse},
-      {value: "#{fecha.to_i} ".reverse},
-  ]
+    cliente_id_formatted = ("%04d" % (factura.cliente_id || 0)).reverse
+    user_id_formatted = "%04d" % factura.user_id
+    detalles_count_formatted = ("%04d" % factura.detalle_facturas.length).reverse
+    factura_id_formatted = "#{factura.id} ".reverse
+    fecha_formatted = "#{fecha.to_i} ".reverse
 
-    identificador = ""
-
-    array.each do | item |
-      identificador += "#{item[:value]}"
-    end
-
-    return identificador
+    "#{cliente_id_formatted}#{user_id_formatted}#{detalles_count_formatted}#{factura_id_formatted}#{fecha_formatted}"
   end
 
 
@@ -204,34 +219,30 @@ class CabeceraFactura < ApplicationRecord
 
   def self.comprobar_serial(params)
     res = Response.new
-    serial = params['serial']
-    serial_split = serial.split(' ')
+    serial_split = params[:serial].split(' ')
+    obj = {}
 
-    obj={}
+    if serial_split[0]
+      first_part = serial_split[0]
 
-    serial_split.each_with_index do |serial_part, index|
-      if index == 0
-        cliente_id                    = serial_part[0,4].reverse.to_i
-        obj['cliente']                = cliente_id > 0 ? serialize_parser(Cliente.find_by_id(cliente_id), {nombre_completo: true}) : nil
+      cliente_id = first_part[0,4].reverse.to_i
+      obj[:cliente] = cliente_id > 0 ? serialize_parser(Cliente.find_by_id(cliente_id), { nombre_completo: true }) : nil
 
-        user_id                       = serial_part[4,4].to_i
-        obj['user']                   = serialize_parser(User.find_by_id(user_id), {nombre_completo: true})
+      user_id = first_part[4,4].to_i
+      obj[:user] = serialize_parser(User.find_by_id(user_id), { nombre_completo: true })
 
-        obj['cantidad_de_detalles']   = serial_part[8,4].reverse.to_i
-      else
-        if index == 1
-          obj['factura_id']           = serial_part.reverse
-        elsif index == 2
-          fecha                       = DateTime.parse(calculateDateUTC(Time.at(serial_part.reverse.to_i)))
-          obj['fecha_equivalente']    = "#{fecha.strftime("%d/%m/%Y %I:%M:%S")}"
-        end
-      end
+      obj[:cantidad_de_detalles] = first_part[8,4].reverse.to_i
     end
 
+    obj[:factura_id] = serial_split[1].reverse if serial_split[1]
+
+    if serial_split[2]
+      fecha = DateTime.parse(calculateDateUTC(Time.at(serial_split[2].reverse.to_i)))
+      obj[:fecha_equivalente] = fecha.strftime("%d/%m/%Y %I:%M:%S")
+    end
 
     res.set_data(obj)
-    return res
-
+    res
   end
 
 
@@ -247,20 +258,20 @@ class CabeceraFactura < ApplicationRecord
       :numero_comprobante         => nil,
     }
 
-    if params['tipo'] == 'venta' && @tipo_de_factura.descripcion != TiposFacturasDescripcion.pre_venta
+    if params[:tipo] == 'venta' && @tipo_de_factura.descripcion != TiposFacturasDescripcion.pre_venta
 
-      res_actual_paquete                            = SecuenciaComprobante.get_paquete_rnc_by_estado(params['tipo_factura_id'], true)
+      res_actual_paquete                            = SecuenciaComprobante.get_paquete_rnc_by_estado(params[:tipo_factura_id], true)
 
       return res_actual_paquete unless res_actual_paquete.status_valid
 
       data_secuencias[:actual_paquete_comprobante]  = res_actual_paquete.get_data
-      next_secuencia_comprobante                    = data_secuencias[:actual_paquete_comprobante]['secuencia']
+      next_secuencia_comprobante                    = data_secuencias[:actual_paquete_comprobante][:secuencia]
     end
 
-    entidad_secuencia_id                            = !params['FACTURA_DE'].nil? ? params['FACTURA_DE'] : params['tipo_factura_id']
+    entidad_secuencia_id                            = params[:FACTURA_DE].present? && !params[:FACTURA_DE].nil? ? params[:FACTURA_DE] : params[:tipo_factura_id]
 
     data_secuencias[:actual_secuencia_entidad]      = SecuenciaFactura.find_by_tipo_factura_id(entidad_secuencia_id)
-    data_secuencias[:numero_factura]                = data_secuencias[:actual_secuencia_entidad]['secuencia'] + 1
+    data_secuencias[:numero_factura]                = data_secuencias[:actual_secuencia_entidad][:secuencia] + 1
 
     numero_comprobante                              = CabeceraFactura.format_comprobante(next_secuencia_comprobante, params)
     data_secuencias[:numero_comprobante]            = numero_comprobante
@@ -275,13 +286,13 @@ class CabeceraFactura < ApplicationRecord
   def self.format_comprobante(next_secuencia_comprobante, params)
     comprobante = nil
 
-    if params['tipo'] == 'venta'
-      serie_indicator   = params[:serie] == SerieFactura.electronica ? 'E' : 'B'
-      secuencial_length = params[:serie] == SerieFactura.electronica ? '10' : '8'
+    if params[:tipo] == 'venta'
+      serie_indicator   = @is_electronica ? 'E' : 'B'
+      secuencial_length = @is_electronica ? '10' : '8'
       comprobante       = "#{serie_indicator}#{@tipo_de_factura.referencia}#{"%0#{secuencial_length}d" % next_secuencia_comprobante}"
 
-    elsif params['tipo'] == TiposFacturasDescripcion.compra.downcase
-      comprobante = params['numero_comprobante'].upcase
+    elsif params[:tipo] == TiposFacturasDescripcion.compra.downcase
+      comprobante = params[:numero_comprobante].upcase
     end
 
     comprobante
@@ -289,8 +300,12 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
 
-  def procesos_cabecera()
+  def procesos_cabecera
     res               = Response.new
+
+    unless self.estado
+      return res
+    end
 
     unless self.pre_factura.nil?
       res = CabeceraFactura.payFactura(self.pre_factura, {'deposito' => self.total_factura}, true)
@@ -304,8 +319,9 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # ===================================================================================================================================================
-  def self.update_secuencias(params, data_secuencias)
+  def self.update_secuencias(data_secuencias)
     res   = Response.new
+
     if @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
       # --------- COMPRA ---------
       unless data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
@@ -318,7 +334,16 @@ class CabeceraFactura < ApplicationRecord
       if data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
 
         res_aumento  = nil
-        res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante]["id"]) if !data_secuencias[:actual_paquete_comprobante].nil? &&  data_secuencias[:actual_paquete_comprobante][:is_paquete]
+        puts " "
+        puts " "
+        puts " "
+        puts "@increment_secuencia_comprobante >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{@increment_secuencia_comprobante}"
+        puts " "
+        puts " "
+        puts " "
+        if @increment_secuencia_comprobante
+          res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id]) if !data_secuencias[:actual_paquete_comprobante].nil? && data_secuencias[:actual_paquete_comprobante][:is_paquete]
+        end
 
         unless res_aumento.nil?
           unless res_aumento.status_valid
@@ -380,13 +405,14 @@ class CabeceraFactura < ApplicationRecord
     tipo               = params[:tipo] ? params[:tipo] : 'venta'
     pagada             = params[:pagada] != '0' ? params[:pagada].to_boolean : '0'
     estado             = params[:estado] != '0' ? params[:estado].to_boolean : '0'
+    serie              = params[:serie] ? params[:serie] : SerieFactura.all
 
 
     campo              = FacturasParams.get_campo_by_param(campoNum)
     valor_des          = FacturasParams.parse_valor_by_param(campoNum, valor_des)
     limit_             = campo == FacturasParams.last_50 ? 50 : nil
 
-    valor_where = campo == FacturasParams.cliente_id || campo == FacturasParams.numero_factura ? valor_des : "'#{valor_des}' "
+    valor_where = FacturasParams.params_to_parse_int.my_includes_str(FacturasParams.enum[:"#{campo}"]) ? valor_des : "'#{valor_des}' "
 
     where_ = "cabecera_facturas.tipo = '#{tipo}' "
     where_ += "AND cabecera_facturas.is_adelantada = #{is_adelantada} "                                               if is_adelantada
@@ -395,15 +421,21 @@ class CabeceraFactura < ApplicationRecord
     where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"                                            unless tipo_factura_id == "0"
     where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params.has_key?(:pagada) && pagada != "0"
     where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params.has_key?(:estado) && estado != "0"
+    where_ += "AND cabecera_facturas.serie = '#{serie}' "                                                             if serie != SerieFactura.all
 
     joins_ = 'inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id '
     joins_ += 'inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id ' if is_adelantada
     joins_ += 'inner join articulos on detalle_facturas.articulo_id = articulos.id'                         if is_adelantada
 
-    facturas = CabeceraFactura.joins(joins_).where(where_).order('cabecera_facturas.id DESC').group('cabecera_facturas.id').limit(limit_)
+    facturas = CabeceraFactura.joins(joins_)
+                             .where(where_)
+                             .includes(CabeceraFactura.models_includes)
+                             .order('cabecera_facturas.id DESC')
+                             .group('cabecera_facturas.id')
+                             .limit(limit_)
 
     if facturas.length > 0
-      res.set_data(facturas, {all: true, **parametros_opcionales}, CabeceraFactura.models_includes)
+      res.set_data(facturas, {all: true, **parametros_opcionales})
     else
       cantidad_registros = CabeceraFactura.all.count
 
@@ -420,7 +452,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_viajes_by_completar(params, paginate_options, parametros_opcionales)
     res                  = Response.new(paginate_options)
 
-    palabra_a_buscar     = params['palabra_a_buscar']
+    palabra_a_buscar     = params[:palabra_a_buscar]
     where                = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day - 3.days}' AND '#{DateTime.now.end_of_day}') )"
     joins_               = 'inner join clientes on clientes.id = cabecera_facturas.cliente_id'
 
@@ -444,7 +476,7 @@ class CabeceraFactura < ApplicationRecord
   def self.get_facturas_by_cliente_id_and_estado(params, paginate_options)
     res                          = Response.new(paginate_options)
 
-    where                        = "cliente_id=#{params["cliente_id"]} AND pagada=#{params["pagada"]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
+    where                        = "cliente_id=#{params[:cliente_id]} AND pagada=#{params[:pagada]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
 
     cabeceras                    = CabeceraFactura.where(where).order('cabecera_facturas.id DESC').group('cabecera_facturas.id').to_a
 
@@ -549,7 +581,6 @@ class CabeceraFactura < ApplicationRecord
 
       if res_validado.status_valid
 
-        factura_de         = params['FACTURA_DE']
         factura_nueva      = params
 
         factura_original   = CabeceraFactura.find_by_id(params[:id])
@@ -711,18 +742,14 @@ class CabeceraFactura < ApplicationRecord
   # =====================================================================================================================
 
   def get_total_modificado_por_notas(tipo)
-    aplicaciones_en_notas           = FacturaAplicada.where(cabecera_factura_id: self.id)
+    aplicaciones_en_notas           = FacturaAplicada.where(cabecera_factura_id: self.id).joins(:nota).where(notas: {estado: true})
     total_modificado                = 0
 
-    aplicaciones_en_notas.each do |fact_aplicada|
+    aplicaciones_en_notas.each do | fact_aplicada |
       tipo_nota = fact_aplicada.tipo_nota
 
-      if tipo_nota    == tipo
+      if tipo_nota == tipo
         total_modificado += fact_aplicada.total
-
-      elsif tipo_nota == tipo
-        total_modificado += fact_aplicada.total
-
       end
 
     end
@@ -731,17 +758,16 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.calculateNextBalanceFactura(id, montoRecibido)
+  def self.calculateNextBalanceFactura(id, monto_recibido)
     res = Response.new
 
       factura                     = CabeceraFactura.find_by_id(id)
       balance                     = factura.balance
-      sumatoria                   = 0
 
-      if montoRecibido.to_f > balance
-        res.set_data({ :balance => 0, :balance_anterior => balance, :devolucion => (montoRecibido.to_f - balance), :factura => factura})
+      if monto_recibido.to_f > balance
+        res.set_data({ :balance => 0, :balance_anterior => balance, :devolucion => (monto_recibido.to_f - balance), :factura => factura})
       else
-        sumatoria = (balance - montoRecibido.to_f).to_d.truncate(2).to_f
+        sumatoria = (balance - monto_recibido.to_f).to_d.truncate(2).to_f
         res.set_data({ :balance => sumatoria, :balance_anterior => balance, :devolucion => 0, :factura => factura})
       end
 
@@ -749,7 +775,7 @@ class CabeceraFactura < ApplicationRecord
   end
 
   # =====================================================================================================================
-  def self.agregar_nota_a_CabeceraFactura(factura_aplicada, nota)
+  def self.agregar_nota_a_cabecera_factura(factura_aplicada, nota)
     res                 = Response.new
     factura             = CabeceraFactura.find_by_id(factura_aplicada[:cabecera_factura_id])
     dias_de_creada      = (DateTime.now - Date.parse(factura.fecha_equivalente.to_s)).to_i
@@ -758,8 +784,6 @@ class CabeceraFactura < ApplicationRecord
 
     total_en_favor_factura     = factura.total_factura
     total_en_favor_factura    += factura.get_total_modificado_por_notas(TiposNotas.debito)
-    total_en_favor_factura    -= factura.itbis if dias_de_creada >= 30
-
     total_en_favor_factura    -= factura.itbis if dias_de_creada >= 30
 
     total_en_contra_factura    = factura.get_total_modificado_por_notas(TiposNotas.credito) + (factura_aplicada[:total].to_d).abs
@@ -777,4 +801,181 @@ class CabeceraFactura < ApplicationRecord
     return res
   end
 
+  # =====================================================================================================================
+  def retirar_nota_a_cabecera_factura(factura_aplicada)
+    res               = Response.new
+    operador          = factura_aplicada.tipo_nota == TiposNotas.credito ? '+' : '-'
+
+    self.balance      = eval "#{self.balance} #{operador} #{(factura_aplicada[:total].to_d).abs}" if !self.is_contado || self.is_viaje
+    self.estado       = true
+    self.tiene_nota   = self.facturas_aplicadas.any? { |factura_ap| factura_ap.id != factura_aplicada.id && factura_ap.nota.estado }
+
+    unless self.save!
+      res.add_msgs(self.errors.to_a)
+      res.add_msg('Error removiendo nota de la factura')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+
+    factura_aplicada.detalles_facturas_notas.each do | detalle_nota |
+
+
+      result_revert_detalle = detalle_nota.procesos_remover_detalles_facturas_notas
+
+      return result_revert_detalle unless result_revert_detalle.status_valid
+    end
+
+    return res
+  end
+
+  # =====================================================================================================================
+
+  def equivalent_serie
+    self.serie == SerieFactura.normal ? SerieFactura.electronica : SerieFactura.normal
+  end
+
+  # =====================================================================================================================
+
+  def equivalent_tipo_factura
+    key              = self.tipo_factura.key
+    TipoFactura.find_by(:serie => SerieFactura.electronica, :key => key)
+  end
+
+  # =====================================================================================================================
+
+  def self.encf_remplace(current_factura)
+
+    if current_factura.tipo != 'venta'
+      return Response.new(nil, HTTP_STATUS_CODE[:bad_request], nil, ['Solo se pueden reemplazar facturas de venta'])
+    end
+
+    res = Response.new
+
+    # Establecer variables globales necesarias
+    tipo_factura_descripcion_origin   = current_factura.tipo_factura.descripcion
+    @is_electronica                   = true
+    @tipo_de_factura                  = current_factura.equivalent_tipo_factura
+    @increment_secuencia_comprobante  = false
+
+    key_target  = current_factura.is_contado ? TiposFacturasKey.venta_contado : TiposFacturasKey.venta_credito
+    @tipo_de_documento  = TipoFactura.find_by(:key => key_target, :serie => SerieFactura.electronica)
+
+    if @tipo_de_documento.nil?
+      return Response.new(nil, HTTP_STATUS_CODE[:bad_request], nil, ['Error buscando el tipo tipo_de_documento para reemplazar el comprobante.'])
+    end
+
+    CabeceraFactura.transaction do
+      # Obtener los parámetros necesarios para find_secuencias
+      params_for_secuencias = {
+        tipo:            current_factura.tipo,
+        tipo_factura_id: @tipo_de_factura.id,
+        serie:           SerieFactura.electronica,
+        FACTURA_DE:      @tipo_de_documento.id
+      }
+
+      # Obtener las nuevas secuencias
+      res_secuencias                   = CabeceraFactura.find_secuencias(params_for_secuencias)
+      return res_secuencias unless res_secuencias.status_valid
+
+      data_secuencias                  = res_secuencias.get_data
+
+      # Crear una nueva factura duplicando los atributos del current_factura
+      nueva_factura                    = CabeceraFactura.new
+      nueva_factura.assign_attributes(current_factura.attributes.except('id', 'identificador', 'created_at', 'updated_at'))
+
+      # Asignar los nuevos valores
+      nueva_factura.serie              = SerieFactura.electronica
+      nueva_factura.tipo_factura_id    = @tipo_de_factura.id
+      nueva_factura.numero_comprobante = data_secuencias[:numero_comprobante]
+      nueva_factura.numero_factura     = data_secuencias[:numero_factura]
+      nueva_factura.fecha_valida       = current_factura.fecha_valida.present? ? data_secuencias[:actual_paquete_comprobante]&.fecha_valida : nil
+
+      # Duplicar detalle_facturas sin IDs
+      nuevos_detalles = []
+      current_factura.detalle_facturas.each do | detalle |
+        nuevo_detalle = DetalleFactura.new
+        nuevo_detalle.assign_attributes(detalle.attributes.except('id', 'cabecera_factura_id', 'created_at', 'updated_at'))
+        nuevos_detalles << nuevo_detalle
+      end
+
+      # Duplicar movimientos_viaje sin IDs
+      nuevos_movimientos = []
+      current_factura.movimientos_viaje.each do | movimiento |
+        nuevo_movimiento = MovimientoViaje.new
+        nuevo_movimiento.assign_attributes(movimiento.attributes.except('id', 'cabecera_factura_id', 'created_at', 'updated_at'))
+        nuevos_movimientos << nuevo_movimiento
+      end
+
+      # Asignar las dependencias a la nueva factura
+      nueva_factura.detalle_facturas  = nuevos_detalles
+      nueva_factura.movimientos_viaje = nuevos_movimientos
+
+      # Validar otras validaciones
+      nueva_factura.otras_validaciones(params_for_secuencias, @tipo_de_factura)
+
+      # Verificar errores antes de guardar
+      unless nueva_factura.errors.empty?
+        raise ActiveRecord::Rollback unless nueva_factura.errors.empty?
+        return Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, nueva_factura.errors.to_a)
+      end
+
+      # # Guardar la nueva factura
+      unless nueva_factura.save!
+        raise ActiveRecord::Rollback unless nueva_factura.save!
+        return Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, nueva_factura.errors.to_a)
+      end
+
+      # Generar identificador
+      nueva_factura.identificador = CabeceraFactura.makeIdentificador(nueva_factura)
+      nueva_factura.estado        = true
+
+      unless nueva_factura.save!
+        raise ActiveRecord::Rollback unless nueva_factura.save!
+        return Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, nueva_factura.errors.to_a)
+      end
+
+      current_factura.estado                  = false
+      current_factura.is_ncf_modificado       = true
+
+      unless current_factura.save!
+        raise ActiveRecord::Rollback unless current_factura.save!
+        return Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, current_factura.errors.to_a)
+      end
+
+
+      @res_valid_dgii                 = DGII_MANAGER.send(nueva_factura)
+      data_response_dgii              = @res_valid_dgii.get_data
+
+      if data_response_dgii[:secuenciaUtilizada]
+        @increment_secuencia_comprobante = true
+      end
+
+      res_reference = DocumentReference.create_reference(current_factura, nueva_factura)
+
+      unless res_reference.status_valid
+        raise ActiveRecord::Rollback unless res_reference.status_valid
+        return Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, res_reference.get_msgs.to_a)
+      end
+
+      # Actualizar secuencias
+      res_update_secuencias = CabeceraFactura.update_secuencias(data_secuencias)
+      unless res_update_secuencias.status_valid
+        raise ActiveRecord::Rollback unless res_update_secuencias.status_valid
+        return Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, res_update_secuencias.get_msgs.to_a)
+      end
+
+      res.set_data(nueva_factura, { all: true, movimientos_viaje: true })
+      res.add_msg("#{tipo_factura_descripcion_origin} reemplazada correctamente.")
+    end
+
+    return res
+  end
+
+  # =====================================================================================================================
+  def ncf_modificado
+    return nil if self.document_reference_as_referenced.nil? || !self.document_reference_as_referenced.present?
+
+    self.document_reference_as_referenced.document_origin.numero_comprobante
+  end
+  # =====================================================================================================================
 end

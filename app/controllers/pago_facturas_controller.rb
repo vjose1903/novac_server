@@ -14,7 +14,7 @@ class PagoFacturasController < ApplicationController
 
   def getPagosFiltrados
     arg = params["arg"]
-    resultado = PagoFactura.filtrarPagos(arg, set_paginate_options(params))
+    resultado = PagoFactura.filtrarPagos(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

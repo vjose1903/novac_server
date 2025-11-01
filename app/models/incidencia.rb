@@ -5,7 +5,7 @@ class Incidencia < ApplicationRecord
     def self.crear_actualizar_incidencia(params, padre, is_save=false)
         res = Response.new
 
-        incidencia                = Incidencia.where(:id => params["id"]).first_or_create
+        incidencia                = Incidencia.where(:id => params["id"]).first_or_initialize
 
         incidencia.descripcion    = params["descripcion"]
         incidencia.origen         = padre

@@ -4,9 +4,9 @@ class ApplicationController < ActionController::API
   # protect_from_forgery with: :exception
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  # if ENV["RAILS_ENV"] != "development"
+  if ENV["RAILS_ENV"] != "development"
     before_action :validateUserIsLogging!
-  # end
+  end
 
   around_action :encarsular_variables
 
@@ -41,6 +41,13 @@ class ApplicationController < ActionController::API
     # grupos_parsed = CatalogoCuenta::GrupoCuenta.iterator(grupos)
     # res.set_data(grupos_parsed)
 
+    # fecha            = params[:fecha] ? params[:fecha] : DateTime.now
+    # ventas_contado_total_facturado_    = CabeceraFactura.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado'").sum(:total_factura)
+    # factura = CabeceraFactura.find_by_id(55723)
+    # factura = CabeceraFactura.find_by_id(55736)
+    # ncf_modificado = factura.ncf_modificado
+    #
+    # puts "ncf_modificado ".red + " #{ncf_modificado}"
     # user_id                  = get_current_user[:id]
     # result = Permiso.verificateUserPermiso(user_id, 'pre_venta')
     # result = Permiso.verificateUserPermiso(user_id, 'articulo')
@@ -65,6 +72,17 @@ class ApplicationController < ActionController::API
 				break
 			end
 		end
+    # certification_params = { TipoeCF: 34, numero_comprobante: 'E340000010001' }.with_indifferent_access
+    # document      = Nota.find_by_id(52)
+
+    # certification_params = { TipoeCF: 32, numero_comprobante: 'E320000010002' }.with_indifferent_access
+    # document        = CabeceraFactura.find_by_id(955)
+
+    # document_parsed = DGII_MANAGER.send(document, certification_params)
+    #
+    # res = document_parsed
+    # res.set_data(ventas_contado_total_facturado_)
+
     res.send_response self
 
   end

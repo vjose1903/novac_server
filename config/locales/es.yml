@@ -56,7 +56,7 @@ es:
     format: "%{message}"
     messages:
       required: "El campo: '%{attribute}', es requerido."
-      blank: "El campo: '%{attribute}', no puede estar vacio."
+      blank: "El campo: '%{attribute}', no puede estar vacío."
       taken: "" #"it cant be empty"
 
   # aqui van los mensajes internos que maneja ruby por debajo como son el caso de los belong_to

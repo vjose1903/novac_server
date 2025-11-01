@@ -1,17 +1,17 @@
 class ContenidoArticulo < ApplicationRecord
   belongs_to :articulo
 
-  validates :costo,     presence: { :message => "El costo del contenido no puede estar vacio." }
-  validates :precio,    presence: { :message => "El precio del contenido no puede estar vacio." }
-  validates :cantidad,  presence: { :message => "La cantidad del contenido no puede estar vacio." }, numericality: { greater_than: 0, :message => "La cantidad del contendio del articulo debe de ser mayor a 0." }
-  validates :medida,    presence: { :message => "La medida del contenido no puede estar vacio." },   uniqueness: { scope: [:articulo_id, :condicion], case_sensitive: false, :message => "El articulo ya tiene registrado esta medida << %{value} >>" }
-  validates :condicion, presence: { :message => "La condicion del contenido no puede estar vacio." }
+  validates :costo,     presence: { :message => "El costo del contenido no puede estar vacío." }
+  validates :precio,    presence: { :message => "El precio del contenido no puede estar vacío." }
+  validates :cantidad,  presence: { :message => "La cantidad del contenido no puede estar vacío." }, numericality: { greater_than: 0, :message => "La cantidad del contendio del articulo debe de ser mayor a 0." }
+  validates :medida,    presence: { :message => "La medida del contenido no puede estar vacío." },   uniqueness: { scope: [:articulo_id, :condicion], case_sensitive: false, :message => "El articulo ya tiene registrado esta medida << %{value} >>" }
+  validates :condicion, presence: { :message => "La condicion del contenido no puede estar vacío." }
 
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
     res = Response.new
 
-    contenido                   = ContenidoArticulo.where(:id => params["id"]).first_or_create
+		contenido                   = ContenidoArticulo.where(:id => params["id"]).first_or_initialize
 
     contenido.referencia        = params[:referencia] || nil
     contenido.costo             = params[:costo]

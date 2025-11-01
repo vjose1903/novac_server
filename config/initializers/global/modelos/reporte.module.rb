@@ -4,6 +4,7 @@ module Report
       por_cliente: '1',
       detallado:   '2',
       agrupado:    '3',
+      historico:   '4',
     }
 
     def self.por_cliente
@@ -16,6 +17,10 @@ module Report
 
     def self.agrupado
       return TIPOS[:agrupado]
+    end
+
+    def self.historico
+      return TIPOS[:historico]
     end
 
   end
@@ -68,6 +73,21 @@ module Report
 
     def self.agrupado
       return TIPOS[:agrupado]
+    end
+  end
+  
+  module ReciboBuscarPor
+    TIPOS = {
+      general:        1,
+      por_cliente:    2,
+    }
+
+    def self.general
+      return TIPOS[:general]
+    end
+
+    def self.por_cliente
+      return TIPOS[:por_cliente]
     end
   end
 end

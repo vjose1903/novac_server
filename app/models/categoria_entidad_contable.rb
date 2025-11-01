@@ -61,7 +61,7 @@ class CategoriaEntidadContable < ApplicationRecord
 
   def self.get_all(params)
 
-    paginate_options =  has_paginate_options(params) ? set_paginate_options(params) : nil
+    paginate_options =  has_paginate_options(params) ? parse_pagination_params(params) : nil
     res              = Response.new(paginate_options)
 
     filter_target    = params[:filter_target]

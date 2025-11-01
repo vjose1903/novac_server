@@ -18,7 +18,7 @@ class UsersController < ApplicationController
 
   def getUsuariosFiltrados
     arg = params["arg"]
-    resultado = User.filtrarUsusarios(arg, set_paginate_options(params))
+    resultado = User.filtrarUsusarios(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

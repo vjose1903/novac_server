@@ -13,7 +13,7 @@ class SecuenciaComprobantesController < ApplicationController
 
   def getSecuenciaComprobantesFiltrados
     arg               = params["arg"]
-    resultado         = SecuenciaComprobante.filtrar_ncf(arg, set_paginate_options(params))
+    resultado         = SecuenciaComprobante.filtrar_ncf(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

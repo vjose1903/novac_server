@@ -1,21 +1,26 @@
 class ClienteSerializer < ActiveModel::Serializer
-  attribute :id,                                 if: Proc.new { self.get_param('id')                        || self.get_param('all') }
-  attribute :nombre,                             if: Proc.new { self.get_param('nombre')                    || self.get_param('all') }
-  attribute :estado,                             if: Proc.new { self.get_param('estado')                    || self.get_param('all') }
-  attribute :apellido,                           if: Proc.new { self.get_param('apellido')                  || self.get_param('all') }
-  attribute :limite_credito,                     if: Proc.new { self.get_param('limite_credito')            || self.get_param('all') }
-  attribute :telefono,                           if: Proc.new { self.get_param('telefono')                  || self.get_param('all') }
-  attribute :direccion,                          if: Proc.new { self.get_param('direccion')                 || self.get_param('all') }
-  attribute :sexo,                               if: Proc.new { self.get_param('sexo')                      || self.get_param('all') }
-  attribute :maximo_credito,                     if: Proc.new { self.get_param('maximo_credito')            || self.get_param('all') }
-  attribute :vendedor_id,                        if: Proc.new { self.get_param('vendedor_id')               || self.get_param('all') }
-  attribute :balance,                            if: Proc.new { self.get_param('balance')                   || self.get_param('all') }
-  attribute :vendedor,                           if: Proc.new { self.get_param('vendedor')                  || self.get_param('all') }
-  attribute :nombre_completo
+  attribute :id,                                 if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('id'))}
+  attribute :imagen_id,                          if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('imagen_id'))}
+  attribute :nombre,                             if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('nombre'))}
+  attribute :estado,                             if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('estado'))}
+  attribute :apellido,                           if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('apellido'))}
+  attribute :limite_credito,                     if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('limite_credito'))}
+  attribute :telefono,                           if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('telefono'))}
+  attribute :direccion,                          if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('direccion'))}
+  attribute :sexo,                               if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('sexo'))}
+  attribute :maximo_credito,                     if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('maximo_credito'))}
+  attribute :vendedor_id,                        if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('vendedor_id'))}
+  attribute :balance,                            if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('balance'))}
+  attribute :municipio_id,                       if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('municipio_id'))}
 
-  attribute :documentos_de_identidad,            if: Proc.new { self.get_param('documentos_de_identidad')   || self.get_param('all') }
-  attribute :cuentas_contables,                  if: Proc.new { self.get_param('cuentas_contables')         || self.get_param('all') }
-  attribute :imagen,                           if: Proc.new { self.get_param('imagen')         || self.get_param('all') }
+  attribute :vendedor,                           if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('vendedor'))}
+  attribute :nombre_completo
+  attribute :documentos_de_identidad,            if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('documentos_de_identidad'))}
+  attribute :provincia_id,                       if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('provincia_id'))}
+  attribute :provincia,                          if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('provincia'))}
+  attribute :municipio,                          if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('municipio'))}
+  attribute :cuentas_contables,                  if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('cuentas_contables')) }
+  attribute :imagen,                             if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('imagen')) }
 
   def vendedor
     vendedor = User.find_by_id(object.vendedor_id)
@@ -27,7 +32,22 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def documentos_de_identidad
-    serialize_parser(object.documentos_de_identidad, { all: true })
+    optional_params = parse_serialize_optional_params(self.get_param('documentos_de_identidad'), { all: false, id: true,  descripcion: true, documento: true, principal: true  })
+    serialize_parser(object.documentos_de_identidad, optional_params)
+  end
+
+  def provincia_id
+    object.provincia&.id
+  end
+
+  def provincia
+    optional_params = parse_serialize_optional_params(self.get_param('provincia'), { all: false, id: true, nombre: true, codigo: true })
+    serialize_parser(object.provincia, optional_params)
+  end
+
+  def municipio
+    optional_params = parse_serialize_optional_params(self.get_param('municipio'), { all: false, id: true, nombre: true, codigo: true })
+    serialize_parser(object.municipio, optional_params)
   end
 
   def cuentas_contables

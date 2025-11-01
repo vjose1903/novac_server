@@ -12,7 +12,7 @@ class DepositosController < ApplicationController
   end
 
   def getDepositosFiltrados
-    resultado = Deposito.filtrarDepositos(params, set_paginate_options(params))
+    resultado = Deposito.filtrarDepositos(params, parse_pagination_params(params))
     resultado.send_response self
   end
   def crear_actualizar_deposito

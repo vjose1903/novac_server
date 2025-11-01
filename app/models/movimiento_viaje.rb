@@ -8,7 +8,7 @@ class MovimientoViaje < ApplicationRecord
     res_valid   = Response.new
 
     MovimientoViaje.transaction do
-      movimiento_viaje                         = MovimientoViaje.where(:id => params["id"]).first_or_create
+      movimiento_viaje                         = MovimientoViaje.where(:id => params["id"]).first_or_initialize
 
       movimiento_viaje.vehiculo_id             = params["vehiculo_id"]
       movimiento_viaje.user_id                 = params["user_id"]

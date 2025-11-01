@@ -4,15 +4,15 @@ class DetalleConduce < ApplicationRecord
   belongs_to :articulo
 
 
-  validates :articulo,    presence: { :message => "Articulo no puede estar vacio." }
-  validates :cantidad,    presence: { :message => "Cantidad no puede estar vacio." }, numericality: { greater_than: 0, :message => "La cantidad debe de ser mayor a 0." }
-  validates :unidad,      presence: { :message => "Medida no puede estar vacio." }
+  validates :articulo,    presence: { :message => "Articulo no puede estar vacío." }
+  validates :cantidad,    presence: { :message => "Cantidad no puede estar vacío." }, numericality: { greater_than: 0, :message => "La cantidad debe de ser mayor a 0." }
+  validates :unidad,      presence: { :message => "Medida no puede estar vacío." }
 
 
   def self.crear_actualizar_detalle_conduce(params, padre, is_save=false)
     res = Response.new
 
-    detalle_conduce                        = DetalleConduce.where(:id => params["id"]).first_or_create
+    detalle_conduce                        = DetalleConduce.where(:id => params["id"]).first_or_initialize
 
     detalle_conduce.detalle_factura_id     = params["detalle_factura_id"]
     detalle_conduce.articulo_id            = params["articulo_id"]

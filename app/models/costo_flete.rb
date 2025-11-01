@@ -9,7 +9,7 @@ class CostoFlete < ApplicationRecord
     CostoFlete.transaction do
       historial                 = nil
 
-      costo_flete               = CostoFlete.where(:id => params["id"]).first_or_create
+      costo_flete               = CostoFlete.where(:id => params["id"]).first_or_initialize
 
       costo_flete.municipio_id  = params["municipio_id"]
       costo_flete.costo         = params["costo"]

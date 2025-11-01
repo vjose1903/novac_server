@@ -37,7 +37,8 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def documentos_de_identidad
-    serialize_parser(object.documentos_de_identidad, {all: true})
+    optional_params = parse_serialize_optional_params(self.get_param('documentos_de_identidad'), { all: false, id: true, descripcion: true, documento: true, principal: true  })
+    serialize_parser(object.documentos_de_identidad, optional_params)
   end
 
   def nombre_completo

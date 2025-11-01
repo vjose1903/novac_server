@@ -44,5 +44,8 @@ module ServerRa
     config.middleware.use config.session_store, config.session_options
     config.action_controller.allow_forgery_protection = false if Rails.env.development?
 
+    # Autoload lib/ folder
+    config.paths.add 'lib', eager_load: true
+
   end
 end

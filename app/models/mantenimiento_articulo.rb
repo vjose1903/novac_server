@@ -12,7 +12,7 @@ class MantenimientoArticulo < ApplicationRecord
       secuencia                              = "#{Time.now.to_i}#{parametros["id"]}"
 
       historico.articulo_id                  = parametros["id"]
-      historico.user_id                      = get_current_user['id']
+      historico.user_id                      = get_current_user[:id]
       historico.ant_nombre                   = parametros["nombre"]
       historico.ant_tipoArticuloId           = parametros["tipo_articulo_id"]
       historico.ant_medida                   = parametros["medida"]
@@ -164,26 +164,28 @@ class MantenimientoArticulo < ApplicationRecord
     articuloHistorico['contenido_articulos'] = contents
 
     if historico['ant_isCombo']
-      fomulas = []
+      formulas = []
 
       formulas = MantenimientoFormula.where({secuencia: historico['secuencia']})
-      formulaArticulo
 
-      formulas.to_a.each do | f |
-
+      formulas.to_a.each do |f|
         obj_formula = f.slice(:articulo_id, :articulo_combo, :cantidad, :costo, :precio, :medida)
-        obj_formula[:id]                 = f[:formula_id]
-        obj_formula[:articulo_combo_id]  = f[:articulo_combo]
-        obj_formula.delete("articulo_combo")
-        obj_formula.delete("formula_id") # <--- OJO
+        obj_formula["id"]               = f["formula_id"]
 
-        fomulas.push(FormulasProductosTerminado.new(obj_formula))
+        formulas.push(FormulasProductosTerminado.new(obj_formula))
       end
 
-      articuloHistorico['formulas_productos_terminados'] = fomulas
+      articuloHistorico['formulas_productos_terminados'] = formulas
     end
 
     return articuloHistorico
+  end
+
+  def self.get_multiple_historicos_by_date(fecha, articulo_ids)
+    # Una sola consulta para obtener todos los históricos necesarios
+    where("created_at <= ? AND articulo_id IN (?)", fecha, articulo_ids)
+      .select("DISTINCT ON (articulo_id) *")
+      .order("articulo_id, created_at DESC")
   end
 end
 

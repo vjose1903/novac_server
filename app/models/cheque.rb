@@ -8,7 +8,7 @@ class Cheque < ApplicationRecord
   belongs_to :last_user_update,   class_name: 'User', optional: true
   belongs_to :user_anulador,      class_name: 'User', optional: true
 
-  validates :monto,             presence: { :message => "El monto del cheque no puede estar vacio." }, numericality: { greater_than: 0, :message => "La cantidad del monto del cheque debe de ser mayor a 0." }
+  validates :monto,             presence: { :message => "El monto del cheque no puede estar vacío." }, numericality: { greater_than: 0, :message => "La cantidad del monto del cheque debe de ser mayor a 0." }
   validates :fecha_equivalente, presence: { :message => "Debe de especificar una fecha para el cheque." }
 
   def self.models_includes

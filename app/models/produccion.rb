@@ -11,17 +11,17 @@ class Produccion < ApplicationRecord
 		res                                   = Response.new
     Produccion.transaction do
 
-			produccion                          = Produccion.where(:id => params["id"]).first_or_create
+			produccion                          = Produccion.where(:id => params[:id]).first_or_initialize
 
-      produccion.user_id                  = get_current_user['id']
+      produccion.user_id                  = get_current_user[:id]
       produccion.numero                   = SecuenciaFactura.find_secuencia(16)
-      produccion.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
+      produccion.fecha_equivalente        = params[:fecha_equivalente] ? params[:fecha_equivalente] : DateTime.now
       produccion.valid?
 
-      dependencias = [ {modelo: DetalleProduccion, key_object: "detalles_produccion", padre: produccion} ]
+      dependencias = [ {modelo: DetalleProduccion, key_object: 'detalles_produccion', padre: produccion} ]
 
       res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
-        produccion.detalles_produccion    = dependencia_data if key_object == "detalles_produccion"
+        produccion.detalles_produccion    = dependencia_data if key_object == 'detalles_produccion'
       }
 
       if res.status_valid && produccion.errors.empty? && (!is_save || (is_save && produccion.save!))
@@ -30,7 +30,7 @@ class Produccion < ApplicationRecord
 
         if result.status_valid
           res.set_data( serialize_parser( produccion, { all: true } ))
-          res.add_msg("Produccion creada correctamente.")
+          res.add_msg('Produccion creada correctamente.')
 
         else
           res.add_msgs(result.get_msgs.to_a)

@@ -15,7 +15,7 @@ class RecibosIngresosController < ApplicationController
 
   def getRecibosFiltrados
     arg = params["arg"]
-    resultado = RecibosIngreso.filtrarRecibos(arg, set_paginate_options(params))
+    resultado = RecibosIngreso.filtrarRecibos(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

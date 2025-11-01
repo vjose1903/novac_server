@@ -10,8 +10,8 @@ class CuentaBancaria < ApplicationRecord
   validates :banco,                  presence: { :message => "Debe de seleccionar el banco al cual agregar la cuenta." }
   validates :tipo_cuenta_bancaria,   presence: { :message => "Debe de seleccionar el tipo de cuenta de la cuenta." }
   validates :divisa,                 presence: { :message => "Debe de seleccionar la divisa de la cuenta." }
-  validates :descripcion,            presence: { :message => "Descripcion de la cuenta no puede estar vacio." }
-  validates :numero_cuenta,          presence: { :message => "Número de la cuenta no puede estar vacio." },         uniqueness: { scope: [:estado, :banco_id], case_sensitive: false, :message => "Número de cuenta esta registrado en otra cuenta." }, :if => :estado
+  validates :descripcion,            presence: { :message => "Descripcion de la cuenta no puede estar vacío." }
+  validates :numero_cuenta,          presence: { :message => "Número de la cuenta no puede estar vacío." },         uniqueness: { scope: [:estado, :banco_id], case_sensitive: false, :message => "Número de cuenta esta registrado en otra cuenta." }, :if => :estado
 
   # ============================================================================================================================================
 

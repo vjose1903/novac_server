@@ -20,10 +20,25 @@ class ReportesController < ApplicationController
 
     elsif tipo_reporte == 'cuentas_cobrar'
       # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
-      body   = Reporte.get_cuentas_cobrar(params)
-      titulo = "Cuentas por cobrar #{ params[:tipo] == Report::CxC.por_cliente ? 'por cliente' : '' } #{ params[:tipo] == Report::CxC.por_cliente ? '' : params[:tipo] == Report::CxC.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+      puts "params[:tipo] ==> #{params[:tipo]} ".light_green
+      if params[:tipo] == Report::CxC.historico
+        puts " "
+        puts " "
+        puts " "
+        puts "ANDO AQUIII".yellow
+        puts " "
+        puts " "
+        puts " "
+        body   = Reporte.get_balance_cliente_historico(params)
+        titulo = "Cuentas por cobrar por cliente histórico"
+      else
+        body   = Reporte.get_cuentas_cobrar(params)
+        titulo = "Cuentas por cobrar #{ params[:tipo] == Report::CxC.por_cliente ? 'por cliente' : '' } #{ params[:tipo] == Report::CxC.por_cliente ? '' : params[:tipo] == Report::CxC.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+      end
+
 
       tipo_reporte   = 'cxc'               if params[:tipo] == Report::CxC.por_cliente
+      tipo_reporte   = 'cxc_historico'     if params[:tipo] == Report::CxC.historico
       tipo_reporte   = 'cxc_ant_detallado' if params[:tipo] == Report::CxC.detallado
       tipo_reporte   = 'cxc_ant_agrupado'  if params[:tipo] == Report::CxC.agrupado
 
@@ -35,6 +50,11 @@ class ReportesController < ApplicationController
       tipo_reporte   = 'cxp'               if params[:tipo] == Report::CxP.por_suplidor
       tipo_reporte   = 'cxp_ant_detallado' if params[:tipo] == Report::CxP.detallado
       tipo_reporte   = 'cxp_ant_agrupado'  if params[:tipo] == Report::CxP.agrupado
+      
+    elsif tipo_reporte == 'cxc_historico'
+      # ------------------- REPORTE DE CUENTAS POR COBRAR HISTORICO --------------------
+      body   = Reporte.get_balance_cliente_historico(params)
+      titulo = "Cuentas por cobrar histórico"
 
     elsif tipo_reporte == 'movimientos_vehiculo'
       # ------------------- REPORTE DE MOVIMIENTOS POR VEHICULO --------------------

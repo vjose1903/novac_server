@@ -1,10 +1,18 @@
 {
-  "dependencies": {
-    "chalk": "^4.1.2",
-    "googleapis": "^134.0.0",
-    "mime-types": "^2.1.35"
-  },
-  "devDependencies": {
-    "@types/mime-types": "^2.1.4"
-  }
+	"name": "novac-server",
+	"private": true,
+	"workspaces": [
+		"dgii_signature_microservice"
+	],
+	"scripts": {
+		"test:microservice": "npm --workspace=dgii_signature_microservice test"
+	},
+	"dependencies": {
+		"chalk": "^4.1.2",
+		"googleapis": "^148.0.0",
+		"mime-types": "^3.0.1"
+	},
+	"devDependencies": {
+		"@types/mime-types": "^2.1.4"
+	}
 }

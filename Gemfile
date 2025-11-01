@@ -46,7 +46,7 @@ group :development do
   gem 'spring-watcher-listen'
 end
 
-# gem 'nokogiri'
+gem 'nokogiri'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data'
@@ -60,6 +60,8 @@ gem 'colorize'
 gem 'zlib'
 gem "rolify"
 gem 'mime-types'
+gem 'faraday'
+
 
 # source 'https://rubygems.org'
 # git_source(:github) { |repo| "https://github.com/#{repo}.git" }

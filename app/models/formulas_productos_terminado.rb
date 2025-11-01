@@ -2,8 +2,8 @@ class FormulasProductosTerminado < ApplicationRecord
   belongs_to :articulo
 	belongs_to :articulo_combo, class_name: 'Articulo', optional: false
 
-  validates :costo,     presence: { :message => 'El costo del ingrediente de la formula no puede estar vacio.' },   numericality: { greater_than: 0, :message => 'El costo del ingrediente de la formula debe de ser mayor a 0.' }
-  validates :precio,    presence: { :message => 'El precio del ingrediente de la formula no puede estar vacio.' } , numericality: { greater_than: 0, :message => 'El costo del ingrediente de la formula debe de ser mayor a 0.' }
+  validates :costo,     presence: { :message => 'El costo del ingrediente de la formula no puede estar vacío.' },   numericality: { greater_than: 0, :message => 'El costo del ingrediente de la formula debe de ser mayor a 0.' }
+  validates :precio,    presence: { :message => 'El precio del ingrediente de la formula no puede estar vacío.' } , numericality: { greater_than: 0, :message => 'El costo del ingrediente de la formula debe de ser mayor a 0.' }
 
   def otras_validaciones
     ingrediente = self.articulo_combo
@@ -17,7 +17,7 @@ class FormulasProductosTerminado < ApplicationRecord
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
     res = Response.new
-    formula                     = FormulasProductosTerminado.where(:id => params[:id]).first_or_create
+		formula                   = FormulasProductosTerminado.where(:id => params[:id]).first_or_initialize
 
     formula.cantidad            = params[:cantidad]
     formula.articulo_combo_id   = params[:articulo_combo_id]

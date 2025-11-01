@@ -26,23 +26,25 @@ class RecibosIngreso < ApplicationRecord
     res                            = Response.new
     RecibosIngreso.transaction do
 
-			recibo                       = RecibosIngreso.where(:id => params[:id]).first_or_create
+			recibo                       = RecibosIngreso.where(:id => params[:id]).first_or_initialize
 
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
       fecha_equivalente            = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
-
-
+      
       recibo.user_id               = get_current_user[:id]
       recibo.fecha_equivalente     = fecha_equivalente
       recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
       recibo.cliente_id            = params[:cliente_id]
       recibo.forma_pago            = params[:forma_pago]
       recibo.tipo_factura_id       = params[:tipo_factura_id]
-
       recibo.devuelta              = params[:devuelta]
+      recibo.bruto                 = params[:bruto]
+      recibo.mora                  = params[:mora]
+      recibo.total                 = params[:total]
+      recibo.balance_cliente       = params[:balance_cliente]
       recibo.estado                = params.has_key?(:estado) ? params[:estado] : true
-
+      
 			recibo.valid?
       recibo.errors.delete(:total)
 

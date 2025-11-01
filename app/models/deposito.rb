@@ -6,7 +6,7 @@ class Deposito < ApplicationRecord
   belongs_to :user_anulador,      class_name: 'User', optional: true
   belongs_to :last_user_update,   class_name: 'User', optional: true
 
-  validates :monto,             presence: { :message => "El monto del depósito no puede estar vacio." }, numericality: { greater_than: 0, :message => "La cantidad del monto del depósito debe de ser mayor a 0." }
+  validates :monto,             presence: { :message => "El monto del depósito no puede estar vacío." }, numericality: { greater_than: 0, :message => "La cantidad del monto del depósito debe de ser mayor a 0." }
   validates :fecha_equivalente, presence: { :message => "Debe de especificar una fecha para el depósito." }
 
   # =========================================================================================================================================================

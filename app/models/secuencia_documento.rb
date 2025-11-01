@@ -14,7 +14,7 @@ class SecuenciaDocumento < ApplicationRecord
       secuencia_documento                           = SecuenciaDocumento.find_or_create_by(id: params[:id])
 
       secuencia_documento.secuencia                  = params[:secuencia]                 if params.obj_has?(:secuencia)
-      secuencia_documento.origen_secuencia           = origin                             unless is_empty?(origin)
+      secuencia_documento.origen_secuencia           = origin                             unless isEmpty?(origin)
 
       secuencia_documento.valid?
       secuencia_documento.errors.delete(:origen_secuencia) if !is_save

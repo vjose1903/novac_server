@@ -13,7 +13,7 @@ class ProduccionesController < ApplicationController
 
   def getProduccionesFiltradas
     arg = params["arg"]
-    resultado = Produccion.filtrarProduccion(arg, set_paginate_options(params))
+    resultado = Produccion.filtrarProduccion(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

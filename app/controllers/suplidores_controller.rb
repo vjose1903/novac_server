@@ -17,7 +17,7 @@ class SuplidoresController < ApplicationController
 
   def getSuplidoresFiltrados
     arg = params["arg"]
-    resultado = Suplidor.filtrarSuplidores(arg, set_paginate_options(params))
+    resultado = Suplidor.filtrarSuplidores(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 
@@ -27,7 +27,7 @@ class SuplidoresController < ApplicationController
   end
 
   def getBalances
-    resultado = @suplidor.get_balances_and_facturas(params, set_paginate_options(params))
+    resultado = @suplidor.get_balances_and_facturas(params, parse_pagination_params(params))
     resultado.send_response self
   end
 

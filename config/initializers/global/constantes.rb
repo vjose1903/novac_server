@@ -1,4 +1,3 @@
-
 PROJECT_PATH     = File.join Rails.root, "/"
 PUBLIC_PATH      = File.join Rails.root, "public"
 IMAGES_PATH      = File.join Rails.root, "public/img"
@@ -133,28 +132,59 @@ end
 DOCUMENTOS_DE_IDENTIDAD_VALIDOS = [Documentos.cedula, Documentos.rnc]
 
 module FacturasParams
+  Enum = {
+    todas: 0,
+    cliente_id: 1,
+    numero_comprobante: 2,
+    numero_factura: 3,
+    last_50: 4,
+    suplidor_id: 5,
+    id: 6,
+  }.with_indifferent_access
 
-  CLIENTE_ID = "cliente_id"
-  SUPLIDOR_ID = "suplidor_id"
-  NUMERO_COMPROBANTE = "numero_comprobante"
-  NUMERO_FACTURA = "numero_factura"
-  LAST_50 = "last_50"
-  TODAS = "todas"
+  CLIENTE_ID = 'cliente_id'
+  SUPLIDOR_ID = 'suplidor_id'
+  NUMERO_COMPROBANTE = 'numero_comprobante'
+  NUMERO_FACTURA = 'numero_factura'
+  LAST_50 = 'last_50'
+  ID = 'id'
+  TODAS = 'todas'
 
-  PARAMETROS = { :_0_ => TODAS, :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50, :_5_ => SUPLIDOR_ID }
+  PARAMETROS = { :_0_ => TODAS, :_1_ => CLIENTE_ID, :_2_ => NUMERO_COMPROBANTE, :_3_ => NUMERO_FACTURA, :_4_ => LAST_50, :_5_ => SUPLIDOR_ID, :_6_ => ID }
+
 
   def self.get_campo_by_param(param)
     return PARAMETROS[:"_#{param}_"]
   end
 
-  def self.parse_valor_by_param(param, valor=nil)
-    valor = param == "1" || param == "3" || param == "5" ? valor.to_i : valor.upcase unless param == "4"
-    return valor
+  def self.parse_valor_by_param(param, valor='')
+
+    if param == "#{Enum[:last_50]}"
+      return valor
+
+    elsif FacturasParams.params_to_parse_int.my_includes_str(param.to_i)
+      return valor.to_i
+
+    else
+      return valor.upcase
+    end
   end
 
 
-  def self.cliente_id
+  def self.enum
+    return Enum
+  end
+
+  def self.params_to_parse_int
+    return [ Enum[:cliente_id], Enum[:numero_factura], Enum[:suplidor_id], Enum[:id ] ]
+  end
+
+  def self.suplidor_id
     return CLIENTE_ID
+  end
+
+  def self.cliente_id
+    return SUPLIDOR_ID
   end
 
   def self.numero_comprobante
@@ -169,11 +199,16 @@ module FacturasParams
     return LAST_50
   end
 
+  def self.id
+    return ID
+  end
+
   def self.todas
     return TODAS
   end
-
 end
+
+
 
 module TipoReporteVentas
   VENTAS_HOY      = 'ventas_diarias'
@@ -225,6 +260,28 @@ end
 
 TIPO_ARTICULO_TYPES_VALIDOS = [ TipoArticuloType.venta_normal, TipoArticuloType.servicio ]
 
+
+
+module TiposNotasId
+  def self.credito
+    @credito ||= TipoFactura.find_by(:key => 'nota_de_credito', :serie => SerieFactura.normal)&.id
+  end
+
+  def self.credito_electronica
+    @credito_electronica ||= TipoFactura.find_by(:key => 'nota_de_credito', :serie => SerieFactura.electronica)&.id
+  end
+
+  def self.debito
+    @debito ||= TipoFactura.find_by(:key => 'nota_de_debito', :serie => SerieFactura.normal)&.id
+  end
+
+  def self.debito_electronica
+    @debito_electronica ||= TipoFactura.find_by(:key => 'nota_de_debito', :serie => SerieFactura.electronica)&.id
+  end
+end
+
+
+
 module TiposNotas
 
   CREDITO = "nota_credito"
@@ -239,30 +296,10 @@ module TiposNotas
   end
 
   def self.get_tipo(tipo)
-    return tipo == TiposNotasId.credito ? self.credito : self.debito
+    return tipo == TiposNotasId.credito || tipo == TiposNotasId.credito_electronica ? self.credito : self.debito
   end
 
 end
-
-
-module TiposNotasId
-
-  CREDITO = 5
-  DEBITO  = 4
-
-  def self.credito
-    return CREDITO
-  end
-
-  def self.debito
-    return DEBITO
-  end
-
-  def self.get_id(tipo)
-    return tipo == TiposNotas.credito ? self.credito : self.debito
-  end
-end
-
 
 module OperadoresMovimiento
 
@@ -343,162 +380,38 @@ STATUS_VALIDOS = [ STATUS.active, STATUS.disable, STATUS.delete, STATUS.pending,
 
 
 PROVINCIAS_MUNICIPIOS=[
-  { nombre: 'Distrito Nacional', municipios: ['Santo Domingo Centro (DN)', 'Santo Domingo Este', 'Santo Domingo Oeste', 'Santo Domingo Norte', 'Boca Chica', 'San Antonio DE Guerra', 'Los Alcarrizos', 'Pedro Brand'] },
-  { nombre: 'San Pedro de Macorís', municipios: ['San Pedro DE Macorís', 'Los Llanos', 'Ramon Santana', 'Consuelo', 'Quisqueya', 'Guayacanes'] },
-  { nombre: 'La Romana', municipios: ['La Romana', 'Guaymate', 'Villa Hermosa'] },
-  { nombre: 'La Altagracia', municipios: ['Higüey', 'San Rafael Del Yuma' ] },
-  { nombre: 'El Seibo', municipios: ['El Seibo', 'Miches'] },
-  { nombre: 'Hato Mayor', municipios: ['Hato Mayor', 'Sabana De La Mar', 'El Valle'] },
-  { nombre: 'Duarte',	municipios: ['San Francisco De Macorís', 'Arenoso', 'Castillo', 'Pimentel', 'Villa Riva', 'Las Guaranas', 'Eugenio Maria De Hostos'] },
-  { nombre: 'Samaná',	municipios: ['Samaná', 'Sanchez', 'Las Terrenas'] },
-  { nombre: 'Maria Trinidad Sánchez',	municipios: ['Nagua', 'Cabrera', 'El Factor', 'Rio San Juan'] },
-  { nombre: 'Salcedo',	municipios: ['Salcedo', 'Tenares', 'Villa Tapia'] },
-  { nombre: 'La Vega',	municipios: ['La Vega', 'Constanza', 'Jarabacoa', 'Jima Abajo'] },
-  { nombre: 'Monseñor Nouel',	municipios: ['Bonao', 'Maimon', 'Piedra Blanca'] },
-  { nombre: 'Sánchez Ramirez',	municipios: ['Cotui', 'Cevicos', 'Fantino', 'La Mata'] },
-  { nombre: 'Santiago',	municipios: ['Santiago', 'Bisono', 'Janico', 'Licey Al Medio', 'San Jose De Las Matas', 'Tamboril', 'Villa Gonzalez', 'Puñal', 'Sabana Iglesia'] },
-  { nombre: 'Espaillat',	municipios: ['Moca', 'Cayetano Germosen', 'Gaspar Hernandez', 'Jamao Al Norte'] },
-  { nombre: 'Puerto Plata',	municipios: ['Puerto plata', 'altamira', 'guananico', 'imbert', 'Los hidalgos', 'luperon', 'sosua', 'Villa isabela', 'Villa montellano'] },
-  { nombre: 'Valverde',	municipios: ['Mao', 'Esperanza', 'Laguna Salada'] },
-  { nombre: 'Monte Cristi',	municipios: ['Monte Cristi', 'Castañuelas', 'Guayubin', 'Las Matas De Santa Cruz', 'Pepillo Salcedo', 'Villa Vasquez'] },
-  { nombre: 'Dajabón',	municipios: ['Dajabón', 'Loma De Cabrera', 'Partido', 'Restauración', 'El Pino'] },
-  { nombre: 'Santiago Rodríguez',	municipios: ['San Ignacio De Sabaneta', 'Villa Los Almacigos', 'Monción'] },
-  { nombre: 'Azua',	municipios: ['Azua', 'Las Charcas', 'Las Yayas De Viajama', 'Padre Las Casas', 'Peralta', 'Sabana Yegua', 'Pueblo Viejo', 'Tabara Arriba', 'Guayabal', 'Estebania'] },
-  { nombre: 'San Juan de la Maguana',	municipios: ['San Juan', 'Bohechio', 'El Cercado', 'Juan De Herrera', 'Las Matas De Farfan', 'Vallejuelo'] },
-  { nombre: 'Elías Piña',	municipios: ['Comendador', 'Banica', 'El Llano', 'Hondo Valle', 'Pedro Santana', 'Juan Santiago'] },
-  { nombre: 'Barahona',	municipios: ['Barahona', 'Cabral', 'Enriquillo', 'Paraiso', 'Vicente Noble', 'El Peñón', 'La Cienaga', 'Fundación', 'Las Salinas', 'Polo', 'Jaquimeyes'] },
-  { nombre: 'Bahoruco',	municipios: ['Neiba', 'Galvan', 'Tamayo', 'Villa Jaragua', 'Los Rios'] },
-  { nombre: 'Independencia',	municipios: ['Jimaní', 'Duverge', 'La Descubierta', 'Postrer Rio', 'Cristobal', 'Mella'] },
-  { nombre: 'Perdenales',	municipios: ['Pedernales', 'Oviedo'] },
-  { nombre: 'San Cristóbal',	municipios: ['San Cristobal', 'Sabana Grande De Palenque', 'Bajos De Haina', 'Cambita Garabitos', 'Villa Altagracia', 'Yaguate', 'San Gregorio De Nigua', 'Los Cacaos'] },
-  { nombre: 'Monte Plata',	municipios: ['Monte Plata', 'Bayaguana', 'Sabana Grande De Boya', 'Yamasa', 'Peralvillo'] },
-  { nombre: 'San José de Ocoa',	municipios: ['San Jose De Ocoa', 'Sabana Larga', 'Rancho Arriba'] },
-  { nombre: 'Peravia',	municipios: ['Bani', 'Nizao'] }
+  { nombre: 'Distrito Nacional',         municipios: ['Santo Domingo Centro (DN)', 'Santo Domingo Este', 'Santo Domingo Oeste', 'Santo Domingo Norte', 'Boca Chica', 'San Antonio DE Guerra', 'Los Alcarrizos', 'Pedro Brand'] },
+  { nombre: 'San Pedro de Macorís',      municipios: ['San Pedro DE Macorís', 'Los Llanos', 'Ramon Santana', 'Consuelo', 'Quisqueya', 'Guayacanes'] },
+  { nombre: 'La Romana',                 municipios: ['La Romana', 'Guaymate', 'Villa Hermosa'] },
+  { nombre: 'La Altagracia',             municipios: ['Higüey', 'San Rafael Del Yuma' ] },
+  { nombre: 'El Seibo',                  municipios: ['El Seibo', 'Miches'] },
+  { nombre: 'Hato Mayor',                municipios: ['Hato Mayor', 'Sabana De La Mar', 'El Valle'] },
+  { nombre: 'Duarte',	                   municipios: ['San Francisco De Macorís', 'Arenoso', 'Castillo', 'Pimentel', 'Villa Riva', 'Las Guaranas', 'Eugenio Maria De Hostos'] },
+  { nombre: 'Samaná',	                   municipios: ['Samaná', 'Sanchez', 'Las Terrenas'] },
+  { nombre: 'Maria Trinidad Sánchez',	   municipios: ['Nagua', 'Cabrera', 'El Factor', 'Rio San Juan'] },
+  { nombre: 'Salcedo',	                 municipios: ['Salcedo', 'Tenares', 'Villa Tapia'] },
+  { nombre: 'La Vega',	                 municipios: ['La Vega', 'Constanza', 'Jarabacoa', 'Jima Abajo'] },
+  { nombre: 'Monseñor Nouel',	           municipios: ['Bonao', 'Maimon', 'Piedra Blanca'] },
+  { nombre: 'Sánchez Ramirez',	         municipios: ['Cotui', 'Cevicos', 'Fantino', 'La Mata'] },
+  { nombre: 'Santiago',	                 municipios: ['Santiago', 'Bisono', 'Janico', 'Licey Al Medio', 'San Jose De Las Matas', 'Tamboril', 'Villa Gonzalez', 'Puñal', 'Sabana Iglesia'] },
+  { nombre: 'Espaillat',	               municipios: ['Moca', 'Cayetano Germosen', 'Gaspar Hernandez', 'Jamao Al Norte'] },
+  { nombre: 'Puerto Plata',	             municipios: ['Puerto plata', 'altamira', 'guananico', 'imbert', 'Los hidalgos', 'luperon', 'sosua', 'Villa isabela', 'Villa montellano'] },
+  { nombre: 'Valverde',	                 municipios: ['Mao', 'Esperanza', 'Laguna Salada'] },
+  { nombre: 'Monte Cristi',	             municipios: ['Monte Cristi', 'Castañuelas', 'Guayubin', 'Las Matas De Santa Cruz', 'Pepillo Salcedo', 'Villa Vasquez'] },
+  { nombre: 'Dajabón',	                 municipios: ['Dajabón', 'Loma De Cabrera', 'Partido', 'Restauración', 'El Pino'] },
+  { nombre: 'Santiago Rodríguez',	       municipios: ['San Ignacio De Sabaneta', 'Villa Los Almacigos', 'Monción'] },
+  { nombre: 'Azua',	                     municipios: ['Azua', 'Las Charcas', 'Las Yayas De Viajama', 'Padre Las Casas', 'Peralta', 'Sabana Yegua', 'Pueblo Viejo', 'Tabara Arriba', 'Guayabal', 'Estebania'] },
+  { nombre: 'San Juan de la Maguana',	   municipios: ['San Juan', 'Bohechio', 'El Cercado', 'Juan De Herrera', 'Las Matas De Farfan', 'Vallejuelo'] },
+  { nombre: 'Elías Piña',	               municipios: ['Comendador', 'Banica', 'El Llano', 'Hondo Valle', 'Pedro Santana', 'Juan Santiago'] },
+  { nombre: 'Barahona',	                 municipios: ['Barahona', 'Cabral', 'Enriquillo', 'Paraiso', 'Vicente Noble', 'El Peñón', 'La Cienaga', 'Fundación', 'Las Salinas', 'Polo', 'Jaquimeyes'] },
+  { nombre: 'Bahoruco',	                 municipios: ['Neiba', 'Galvan', 'Tamayo', 'Villa Jaragua', 'Los Rios'] },
+  { nombre: 'Independencia',	           municipios: ['Jimaní', 'Duverge', 'La Descubierta', 'Postrer Rio', 'Cristobal', 'Mella'] },
+  { nombre: 'Perdenales',	               municipios: ['Pedernales', 'Oviedo'] },
+  { nombre: 'San Cristóbal',	           municipios: ['San Cristobal', 'Sabana Grande De Palenque', 'Bajos De Haina', 'Cambita Garabitos', 'Villa Altagracia', 'Yaguate', 'San Gregorio De Nigua', 'Los Cacaos'] },
+  { nombre: 'Monte Plata',	             municipios: ['Monte Plata', 'Bayaguana', 'Sabana Grande De Boya', 'Yamasa', 'Peralvillo'] },
+  { nombre: 'San José de Ocoa',	         municipios: ['San Jose De Ocoa', 'Sabana Larga', 'Rancho Arriba'] },
+  { nombre: 'Peravia',	                 municipios: ['Bani', 'Nizao'] }
 ]
-
-
-module SerieFactura
-  ELECTRONICA = 'electronica'
-  NORMAL = 'normal'
-  NO_ = 0
-
-  def self.electronica
-    return ELECTRONICA
-  end
-
-  def self.normal
-    return NORMAL
-  end
-
-  def self.no
-    return NO_
-  end
-
-end
-module TiposFacturasDescripcion
-  FACTURA_SIN_COMPROBANTE = 'Factura sin comprobante'
-  FACTURA_CON_VALOR_FISCAL = 'Factura con valor fiscal'
-  FACTURA_DE_CONSUMO = 'Factura de consumo'
-  NOTA_DE_DEBITO = 'Nota de debito'
-  NOTA_DE_CREDITO = 'Nota de credito'
-  COMPROBANTE_DE_COMPRAS = 'Comprobante de compras'
-  REGISTRO_DE_UNICO_INGRESO = 'Registro de unico ingreso'
-  COMPROBANTE_PARA_GASTOS_MENORES = 'Comprobante para gastos menores'
-  COMPROBANTE_DE_REGIMEN_ESPECIALES = 'Comprobante de regimen especiales'
-  COMPROBANTE_GUBERNAMENTAL = 'Comprobante gubernamental'
-  COMPROBANTE_PARA_EXPORTACIONES = 'Comprobante para exportaciones'
-  COMPROBANTES_PARA_PAGO_AL_EXTERIOR = 'Comprobantes para pago al exterior'
-  VENTA_CONTADO = 'Venta Contado'
-  COMPRA = 'Compra'
-  CONDUCE = 'Conduce'
-  PRODUCCION = 'Produccion'
-  RECIBO_INGRESO = 'Recibo_ingreso'
-  VENTA_CREDITO = 'Venta Credito'
-  PRE_VENTA = 'pre_venta'
-  COTIZACION = 'cotizacion'
-
-  def self.factura_sin_comprobante
-    return FACTURA_SIN_COMPROBANTE
-  end
-
-  def self.factura_con_valor_fiscal
-    return FACTURA_CON_VALOR_FISCAL
-  end
-
-  def self.factura_de_consumo
-    return FACTURA_DE_CONSUMO
-  end
-
-  def self.nota_de_debito
-    return NOTA_DE_DEBITO
-  end
-
-  def self.nota_de_credito
-    return NOTA_DE_CREDITO
-  end
-
-  def self.comprobante_de_compras
-    return COMPROBANTE_DE_COMPRAS
-  end
-
-  def self.registro_de_unico_ingreso
-    return REGISTRO_DE_UNICO_INGRESO
-  end
-
-  def self.comprobante_para_gastos_menores
-    return COMPROBANTE_PARA_GASTOS_MENORES
-  end
-
-  def self.comprobante_de_regimen_especiales
-    return COMPROBANTE_DE_REGIMEN_ESPECIALES
-  end
-
-  def self.comprobante_gubernamental
-    return COMPROBANTE_GUBERNAMENTAL
-  end
-
-  def self.comprobante_para_exportaciones
-    return COMPROBANTE_PARA_EXPORTACIONES
-  end
-
-  def self.comprobantes_para_pago_al_exterior
-    return COMPROBANTES_PARA_PAGO_AL_EXTERIOR
-  end
-
-  def self.venta_contado
-    return VENTA_CONTADO
-  end
-
-  def self.compra
-    return COMPRA
-  end
-
-  def self.conduce
-    return CONDUCE
-  end
-
-  def self.produccion
-    return PRODUCCION
-  end
-
-  def self.recibo_ingreso
-    return RECIBO_INGRESO
-  end
-
-  def self.venta_credito
-    return VENTA_CREDITO
-  end
-
-  def self.pre_venta
-    return PRE_VENTA
-  end
-
-  def self.cotizacion
-    return COTIZACION
-  end
-
-end
-
 
 G_CATALOGO_DEFAULT = [
   # 1

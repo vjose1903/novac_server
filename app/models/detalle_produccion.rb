@@ -2,13 +2,13 @@ class DetalleProduccion < ApplicationRecord
   belongs_to :produccion
   belongs_to :articulo
 
-  validates :articulo,    presence: { :message => 'Articulo no puede estar vacio.' }
+  validates :articulo,    presence: { :message => 'Articulo no puede estar vacío.' }
   validates :medida,      presence: { :message => 'Medida de los ingredientes no puede estar vacia.' }
-  validates :cantidad,    presence: { :message => 'Cantidad de los ingredientes no puede estar vacio.' }, numericality: { greater_than: 0, :message => 'La cantidad de los ingredientes debe de ser mayor a 0.' }
+  validates :cantidad,    presence: { :message => 'Cantidad de los ingredientes no puede estar vacío.' }, numericality: { greater_than: 0, :message => 'La cantidad de los ingredientes debe de ser mayor a 0.' }
 
   def self.crear_actualizar_detalle_produccion(params, padre, is_save=false)
     res = Response.new
-		detalle_produccion                           = DetalleProduccion.where(:id => params[:id]).first_or_create
+		detalle_produccion                           = DetalleProduccion.where(:id => params[:id]).first_or_initialize
 
     detalle_produccion.articulo_id               = params[:articulo_id]
     detalle_produccion.cantidad                  = params[:cantidad]

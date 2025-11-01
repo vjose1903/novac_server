@@ -12,7 +12,7 @@ class BancosController < ApplicationController
   end
 
   def getBancosFiltrados
-    resultado = Banco.filtrarBancos(params, set_paginate_options(params))
+    resultado = Banco.filtrarBancos(params, parse_pagination_params(params))
     resultado.send_response self
   end
 

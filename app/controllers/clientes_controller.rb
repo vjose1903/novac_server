@@ -14,7 +14,7 @@ class ClientesController < ApplicationController
 
   def getClientesFiltrados
     arg       = params[:arg]
-    resultado = Cliente.filtrarCliente(arg, set_paginate_options(params))
+    resultado = Cliente.filtrarCliente(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 
@@ -25,7 +25,7 @@ class ClientesController < ApplicationController
   end
 
   def getBalances
-    resultado = @cliente.get_balances_and_facturas(params, set_paginate_options(params))
+    resultado = @cliente.get_balances_and_facturas(params, parse_pagination_params(params))
     resultado.send_response self
   end
 

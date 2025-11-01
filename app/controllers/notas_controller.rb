@@ -12,7 +12,7 @@ class NotasController < ApplicationController
 	end
 
 	def getNotasFiltradas
-    resultado = Nota.filtrarNota(params, set_paginate_options(params))
+    resultado = Nota.filtrarNota(params, parse_pagination_params(params))
     resultado.send_response self
   end
 

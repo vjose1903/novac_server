@@ -4,21 +4,19 @@ class User < ApplicationRecord
   rolify
   extend Devise::Models
 
-  has_many    :imagenes,                  :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
-  has_many    :entidad_cuentas_contables, :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
-  has_many    :documentos_de_identidad,   :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
-
-  has_and_belongs_to_many       :roles, join_table: :users_roles
-  has_many    :roles_permisos_acciones, through: :roles
+  has_many  :imagenes,                  :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
+  has_many  :entidad_cuentas_contables, :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
+  has_many  :documentos_de_identidad,   :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
+  has_many  :roles_permisos_acciones,   through: :roles
 
   devise   :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
 
-  validates :usuario,             presence: { :message => 'Usuario no puede estar vacio.' },                  uniqueness: { case_sensitive: false, :message => 'El nombre de usuario ya está registrado' }
-  validates :telefono,            presence: { :message => 'Telefono no puede estar vacio.' }
-  validates :email,               presence: { :message => 'Email no puede estar vacio.' },                    uniqueness: { case_sensitive: false, :message => 'El email introducido ya está registrado' }
-  validates :nombre,              presence: { :message => 'Nombre del empleado no puede estar vacio.' },      uniqueness: { scope: :estado, case_sensitive: false, :message => 'Empleado ya está registrado' }, :if => :estado
-  validates :apellido,            presence: { :message => 'Apellido del empleado no puede estar vacio.' }
-  validates :sexo,                presence: { :message => 'Sexo del empleado no puede estar vacio.' }
+  validates :usuario,             presence: { :message => 'Usuario no puede estar vacío.' },                  uniqueness: { case_sensitive: false, :message => 'El nombre de usuario ya está registrado' }
+  validates :telefono,            presence: { :message => 'Telefono no puede estar vacío.' }
+  validates :email,               presence: { :message => 'Email no puede estar vacío.' },                    uniqueness: { case_sensitive: false, :message => 'El email introducido ya está registrado' }
+  validates :nombre,              presence: { :message => 'Nombre del empleado no puede estar vacío.' },      uniqueness: { scope: :estado, case_sensitive: false, :message => 'Empleado ya está registrado' }, :if => :estado
+  validates :apellido,            presence: { :message => 'Apellido del empleado no puede estar vacío.' }
+  validates :sexo,                presence: { :message => 'Sexo del empleado no puede estar vacío.' }
   validates :fecha_nacimiento,    presence: { :message => 'Fecha de nacimiento del empleado no puede estar vacia.' }
 
   include DeviseTokenAuth::Concerns::User
@@ -82,7 +80,7 @@ class User < ApplicationRecord
     @has_contabilidad             = system_has_contabilidad
 
     User.transaction do
-      user                        = User.where(:id => params[:id]).first_or_create
+      user                        = User.where(:id => params[:id]).first_or_initialize
 
       user.nombre                          = params[:nombre]
       user.apellido                        = params[:apellido]

@@ -6,7 +6,7 @@ class Banco < ApplicationRecord
   validates :rnc,     uniqueness: { scope: [:estado], case_sensitive: false, :message => "RNC ya está registrado, en otro banco." }, if: -> { estado && rnc.present? }
 
   def otras_validaciones(params)
-    if params.obj_has?(:validate_rnc) && params[:validate_rnc] == true && is_empty?(params[:rnc])
+    if params.obj_has?(:validate_rnc) && params[:validate_rnc] == true && isEmpty?(params[:rnc])
       self.errors.add(:rnc, :blank)
     end
   end

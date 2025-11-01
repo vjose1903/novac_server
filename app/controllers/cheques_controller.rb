@@ -12,7 +12,7 @@ class ChequesController < ApplicationController
   end
 
   def getChequesFiltrados
-    resultado = Cheque.filtrarCheques(params, set_paginate_options(params))
+    resultado = Cheque.filtrarCheques(params, parse_pagination_params(params))
     resultado.send_response self
   end
 

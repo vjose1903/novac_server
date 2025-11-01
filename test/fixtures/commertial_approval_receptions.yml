@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  eNCF: MyString
+  rnc_emisor: MyString
+  rnc_comprador: MyString
+  monto_total: 1.5
+  estado: 1
+  detalleMotivoRechazo: MyString
+  cabecera_factura: one
+
+two:
+  eNCF: MyString
+  rnc_emisor: MyString
+  rnc_comprador: MyString
+  monto_total: 1.5
+  estado: 1
+  detalleMotivoRechazo: MyString
+  cabecera_factura: two

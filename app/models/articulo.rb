@@ -14,9 +14,9 @@ class Articulo < ApplicationRecord
 
   accepts_nested_attributes_for :contenido_articulos
 
-  validates :nombre,              presence: { :message => 'Nombre articulo no puede estar vacio.' },         uniqueness: { scope: :estado, case_sensitive: false, :message => 'Articulo ya está registrado' }, :if => :estado
-  validates :costo_principal,     presence: { :message => 'El costo del articulo no puede estar vacio.' }
-  validates :precio_principal,    presence: { :message => 'El precio del articulo no puede estar vacio.' },  numericality: { greater_than: 0, :message => 'El precio del articulo debe de ser mayor a 0.' }
+  validates :nombre,              presence: { :message => 'Nombre articulo no puede estar vacío.' },         uniqueness: { scope: :estado, case_sensitive: false, :message => 'Articulo ya está registrado' }, :if => :estado
+  validates :costo_principal,     presence: { :message => 'El costo del articulo no puede estar vacío.' }
+  validates :precio_principal,    presence: { :message => 'El precio del articulo no puede estar vacío.' },  numericality: { greater_than: 0, :message => 'El precio del articulo debe de ser mayor a 0.' }
 
 
   def otras_validaciones(params)
@@ -24,7 +24,7 @@ class Articulo < ApplicationRecord
     tipo_articulo = TipoArticulo.find_by_id(self.tipo_articulo_id)
 
     if tipo_articulo.tipo == TipoArticuloType.venta_normal
-      self.errors.add(:base, 'Medida articulo no puede estar vacio.')                    if self.medida == nil
+      self.errors.add(:base, 'Medida articulo no puede estar vacío.')                    if self.medida == nil
       self.errors.add(:base, 'Debe de especificar en que medida se vende el articulo.')  if self.vendido_en == nil
       self.errors.add(:base, 'Debe de especificar una medida de alerta en venta.')       if self.medida_alerta == nil
       self.errors.add(:base, 'El costo del articulo debe de ser mayor a 0.')             if self.costo_principal == 0
@@ -71,7 +71,7 @@ class Articulo < ApplicationRecord
       ant_articulo_formula                      =  articulo_antiguo.nil? ? nil : articulo_antiguo.formulas_productos_terminados
 
 
-      articulo                                  = Articulo.where(:id => params[:id]).first_or_create
+      articulo                                  = Articulo.where(:id => params[:id]).first_or_initialize
 
       articulo.tipo_articulo_id                 = params[:tipo_articulo_id]
       articulo.sub_tipo_articulo_id             = params[:sub_tipo_articulo_id]
@@ -92,6 +92,7 @@ class Articulo < ApplicationRecord
       articulo.vendido_en                       = params[:vendido_en]
       articulo.is_materia_prima                 = params[:is_materia_prima]
       articulo.calcular_saco                    = params[:calcular_saco]
+      articulo.imagen_id                        = params[:imagen_id]
 
       articulo.valid?
       articulo.otras_validaciones(params)
@@ -217,62 +218,87 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
 
 
-  def self.filtrarArticulo(params, parametros_opcionales=nil)
-    res              = Response.new(set_paginate_options(params))
-    arg              = params[:arg]
-    fecha            = "#{params[:fecha]}:00"
-    is_compra        = params[:is_compra].to_boolean
-    signo            = is_compra ? "!=" : "="
-    codigo_tipo      = is_compra ? TipoArticulos.producto_terminado : params[:tipo]
+  def self.filtrarArticulo(params)
+    res         = Response.new(parse_pagination_params(params))
+    arg         = params['arg']
+    fecha       = "#{params['fecha']}:00"
+    is_compra   = params['is_compra'].to_boolean
+    signo       = is_compra ? "!=" : "="
+    codigo_tipo = is_compra ? TipoArticulos.producto_terminado : params['tipo']
 
-    where            = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
-
-    where += "AND tipo_articulos.codigo #{signo} '#{codigo_tipo}' #{ is_compra ? "AND tipo_articulos.tipo != '#{TipoArticuloType.servicio}'" : ""} " if params[:tipo] != 'todos' || is_compra
-
-    where += 'OR ( articulos.is_materia_prima = true AND articulos.estado = true) ' if params[:tipo] == TipoArticulos.materia_prima
+    where = "lower(tipo_articulos.descripcion || ' ' || articulos.nombre || ' ' || articulos.codigo ) like lower('%#{arg}%') AND articulos.estado = true "
+    where += "AND tipo_articulos.codigo #{signo} '#{codigo_tipo}' #{ is_compra ? "AND tipo_articulos.tipo != '#{TipoArticuloType.servicio}'" : ""} " if params['tipo'] != "todos" || is_compra
+    where += "OR ( articulos.is_materia_prima = true AND articulos.estado = true) " if params['tipo'] == TipoArticulos.materia_prima
 
     articulos_ = Articulo
-    .joins('inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id')
-    .where(where).includes(Articulo.models_includes)
-    .order('articulos.id ASC')
+      .joins("inner join tipo_articulos on articulos.tipo_articulo_id = tipo_articulos.id")
+      .where(where)
+      .includes(models_includes)
+      .order("articulos.id ASC")
 
-    articulos = []
-    historicos = []
-    articulos_.map { | articulo |
-
-      fecha_ultima_edicion_articulo = calculateDateUTC(articulo['updated_at']).slice(0,17)
-      fecha_ultima_edicion_articulo = "#{fecha_ultima_edicion_articulo}00"
-
-      if fecha < fecha_ultima_edicion_articulo
-
-        hist = MantenimientoArticulo.get_historico_by_date_mayor_or_menor(fecha, articulo.id, '<=', 'DESC')
-
-        if hist.blank?
-          articulos.push(articulo)
-          historicos.push(articulo)
-        else
-          historico = MantenimientoArticulo.crearArticuloHistorico(hist.first, articulo)
-          historicos.push(historico)
-          # TODO: aqui se estan borrando las formulas
-          articulos.push(Articulo.new(historico))
-        end
-      else
-        articulos.push(articulo)
-        historicos.push(articulo)
-      end
-
-    }
-
-    if articulos.length > 0
-
-      articulos = params[:paginado].to_boolean ? articulos : articulos.to_activerecord_relation.includes(Articulo.models_includes)
-      res.set_data(articulos, { all: true, historicos: historicos, **parametros_opcionales }, Articulo.models_includes)
-      # res.set_data(articulos)
-    else
+    if articulos_.empty?
       cantidad_registros = Articulo.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? 'No existen articulos registrados.' : 'No existen articulos con las especificaciones introducidas.')
+      res.add_msg(cantidad_registros == 0 ? "No existen articulos registrados." : "No existen articulos con las especificaciones introducidas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
     end
+
+    # OPTIMIZACIÓN 1: Extraer IDs y fechas en una sola pasada
+    articulos_data = articulos_.map do |articulo|
+      fecha_ultima_edicion = calculateDateUTC(articulo.updated_at).slice(0,17) + "00"
+      {
+        articulo: articulo,
+        id: articulo.id,
+        necesita_historico: fecha < fecha_ultima_edicion
+      }
+    end
+
+    # OPTIMIZACIÓN 2: Obtener todos los históricos necesarios en una sola consulta
+    articulos_que_necesitan_historico = articulos_data.select { |data| data[:necesita_historico] }
+
+    historicos_map = {}
+    if articulos_que_necesitan_historico.any?
+      ids_para_historicos = articulos_que_necesitan_historico.map { |data| data[:id] }
+
+      # Una sola consulta para todos los históricos necesarios
+      historicos_raw = MantenimientoArticulo.get_multiple_historicos_by_date(fecha, ids_para_historicos)
+
+      # Crear mapa de históricos procesados
+      historicos_raw.each do |hist|
+        articulo_original = articulos_data.find { |data| data[:id] == hist.articulo_id }&.dig(:articulo)
+        if articulo_original
+          historico_procesado = MantenimientoArticulo.crearArticuloHistorico(hist, articulo_original)
+          historicos_map[hist.articulo_id] = historico_procesado
+        end
+      end
+    end
+
+    # OPTIMIZACIÓN 3: Construir arrays finales en una sola pasada
+    articulos_finales = []
+    historicos_finales = []
+
+    articulos_data.each do |data|
+      if data[:necesita_historico] && historicos_map[data[:id]]
+        # Usar histórico
+        historico = historicos_map[data[:id]]
+        articulos_finales << Articulo.new(historico)
+        historicos_finales << historico
+      else
+        # Usar actual
+        articulos_finales << data[:articulo]
+        historicos_finales << data[:articulo]
+      end
+    end
+
+    # OPTIMIZACIÓN 4: Crear mapa de históricos optimizado
+    historicos_map_final = {}
+    historicos_finales.each_with_index do |h, index|
+      id = h.respond_to?(:id) ? h.id : h['id']
+      historicos_map_final[id] = h
+    end
+
+
+    res.set_data(articulos_finales, { all: true, historicos_map: historicos_map_final }, Articulo.models_includes)
 
     return res
   end

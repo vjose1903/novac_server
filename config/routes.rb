@@ -35,6 +35,7 @@ Rails.application.routes.draw do
 
 	get "ruta/test"              => "application#testFunction"
 
+
   resources :roles do
     collection do
       get "filtro/:arg"        => "roles#getRolesFiltrados"
@@ -169,7 +170,6 @@ Rails.application.routes.draw do
 
   resources :cabecera_facturas do
     collection do
-
       # cabecera facturas
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
@@ -177,9 +177,11 @@ Rails.application.routes.draw do
       patch ":id/update/movimientos_viaje"                        => "cabecera_facturas#updateMovimientosViaje"
 
       scope "custom" do
-        patch "update/:id"                                   => "cabecera_facturas#update"
-        get ":ruta_complemento"                              => "cabecera_facturas#custom_route"
+        patch "update/:id"                                        => "cabecera_facturas#update"
+        get ":ruta_complemento"                                   => "cabecera_facturas#custom_route"
       end
+
+      patch ":id/dgii/eNCF/replace"                               => "cabecera_facturas#remplace_encf"
     end
   end
 
@@ -192,6 +194,29 @@ Rails.application.routes.draw do
       end
     end
   end
+
+
+  # -------------------------------------------------------------------------------------------------------------------------------
+  # Facturacion Electronica
+  # -------------------------------------------------------------------------------------------------------------------------------
+  scope :fe do
+    post 'recepcion/api/ecf',           to: 'facturacion_electronica#recepcion'
+    post 'aprobacioncomercial/api/ecf', to: 'facturacion_electronica#aprobacion_comercial'
+  end
+
+  scope :dgii do
+    get 'login/prueba',                   to: 'facturacion_electronica#login_prueba'
+  end
+
+  resources :ecf_receptions, only: [:index, :show] do
+    member do
+      post 'approve_deny', to: 'ecf_receptions#approveDenyEcf'
+    end
+  end
+
+  resources :commertial_approval_receptions, only: [:index, :show]
+
+  # -------------------------------------------------------------------------------------------------------------------------------
 
   resources :permisos do
     collection do
@@ -273,9 +298,6 @@ Rails.application.routes.draw do
       end
     end
   end
-
-
-
 
 
   mount_devise_token_auth_for "User", at: "auth", controllers: {

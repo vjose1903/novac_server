@@ -24,7 +24,29 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 /public/**
-/node_modules
 /.idea/*
 /node_modules/*
+/node_modules
 node_modules/*
+node_modules
+**/.DS_Store
+.env
+.env.*
+
+certs/*
+certs
+
+acme/*
+acme
+
+# Ignore fail2ban folder except specific files
+fail2ban/*
+!fail2ban/data/filter.d/nginx-malicious.conf
+!fail2ban/data/jail.d/nginx-proxy.local
+
+# Ignore nginx logs but keep directories
+logs/nginx/*
+!logs/nginx/.gitkeep
+
+
+
