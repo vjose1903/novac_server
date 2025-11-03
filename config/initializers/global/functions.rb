@@ -20,7 +20,6 @@ class Response
   end
 
   def set_data(data, parametros_opcionales=nil, models_includes=nil)
-
     @paginate_class.paginate_data(data, models_includes)
 
     datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
@@ -86,12 +85,13 @@ class Paginator
   def set_pagination_options(params)
     return unless params
 
-    @paginate_options[:page]     = params[:page]     unless params[:page].nil?
-    @paginate_options[:per_page] = params[:per_page] unless params[:per_page].nil?
+    @paginate_options[:page]     = params[:page].is_number? ? params[:page].to_i : params[:page] unless params[:page].nil?
+    @paginate_options[:per_page] = params[:per_page].is_number? ? params[:per_page].to_i : params[:per_page] unless params[:per_page].nil?
 
     unless params[:paginado].nil?
       @paginate_options[:paginado] = params[:paginado].is_a?(String) ? params[:paginado].to_boolean : params[:paginado]
     end
+
   end
 
 
@@ -109,14 +109,14 @@ class Paginator
       end
     end
 
-    @data_paginated["data"] = data
-    @data_paginated         = paginate(data, models_includes) if @paginate_options["paginado"]
+    @data_paginated[:data] = data
+    @data_paginated         = paginate(data, models_includes) if @paginate_options[:paginado]
 
   end
 
   def paginate(items, models_includes=nil)
-    page      = @paginate_options["page"].to_i
-    per_page  = @paginate_options["per_page"].to_i
+    page      = @paginate_options[:page]
+    per_page  = @paginate_options[:per_page]
 
 
     # Asegurar que la página sea al menos 1
@@ -151,7 +151,7 @@ class Paginator
       itemsPaginated = paginated_relation.to_a
 
       total_pag = (total_count.to_f / per_page.to_f).ceil
-      return { "data" => itemsPaginated , "total_registros" => total_count, "total_paginas" => total_pag }
+      return { "data" => itemsPaginated , "total_registros" => total_count, "total_paginas" => total_pag }.with_indifferent_access
     end
 
     # Array/Hash u otros enumerables: usar slice (Hash -> Array de pares)
@@ -166,7 +166,7 @@ class Paginator
     total_length = source_items.length
     total_pag = (total_length.to_f / per_page.to_f).ceil
 
-    return { "data" => itemsPaginated , "total_registros" => total_length, "total_paginas" => total_pag }
+    return { "data" => itemsPaginated , "total_registros" => total_length, "total_paginas" => total_pag }.with_indifferent_access
   end
 
   def is_paginated
@@ -213,7 +213,7 @@ def parse_pagination_params(params)
     "page" => params.obj_has?('page') ? params[:page] : 0,
     "per_page" => params.obj_has?('per_page') ? params[:per_page] : 0,
     "paginado" => params.obj_has?('paginado') ? params[:paginado].to_boolean : false
-}.with_indifferent_access
+  }.with_indifferent_access
 end
 
 # ---------------------------------------------------------------------------------------------------------
