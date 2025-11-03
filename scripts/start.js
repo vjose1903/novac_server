@@ -61,12 +61,13 @@ function dockerCommand(command) {
   console.log(`${white(' ')}`);
 
   const isBackground = command === 'up' && BACKGROUND === 'yes' ? '-d' : '';
+  const bakeEnv = command === 'build' ? 'COMPOSE_BAKE=false ' : '';
 
 	execSync(`cd ..`, { stdio: 'inherit' });
   if (PRODUCTION === 'yes') {
-		execSync(`docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`${bakeEnv}docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
   } else {
-		execSync(`docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`${bakeEnv}docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
   }
 	execSync(`cd scripts`, { stdio: 'inherit' });
 }
