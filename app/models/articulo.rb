@@ -218,7 +218,7 @@ class Articulo < ApplicationRecord
   # =====================================================================================================================
 
 
-  def self.filtrarArticulo(params)
+  def self.filtrarArticulo(params, parametros_opcionales=nil)
     res         = Response.new(parse_pagination_params(params))
     arg         = params['arg']
     fecha       = "#{params['fecha']}:00"
@@ -298,7 +298,7 @@ class Articulo < ApplicationRecord
     end
 
 
-    res.set_data(articulos_finales, { all: true, historicos_map: historicos_map_final }, Articulo.models_includes)
+    res.set_data(articulos_finales, { all: true, historicos_map: historicos_map_final, **parametros_opcionales }, Articulo.models_includes)
 
     return res
   end
