@@ -111,6 +111,7 @@ class Paginator
 
     @data_paginated["data"] = data
     @data_paginated         = paginate(data, models_includes) if @paginate_options["paginado"]
+
   end
 
   def paginate(items, models_includes=nil)
