@@ -42,7 +42,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 	attribute :movimientos_viaje,                              if: Proc.new { self.get_param('movimientos_viaje') }
 	attribute :can_pagar,                                      if: Proc.new { self.get_param('all') || self.get_param('can_pagar') }
 
-	attribute :tipo_factura,                                   if: Proc.new { self.get_param('all') || self.get_param('tipo_factura')  }  
+	attribute :tipo_factura,                                   if: Proc.new { self.get_param('all') || self.get_param('tipo_factura')  }
 	attribute :detalle_facturas,                               if: Proc.new { self.get_param('all') || self.get_param('detalle_facturas')  }
 	attribute :cliente,                                        if: Proc.new { (!object.cliente_id.nil? || !object.NoCliente_nombre.nil? ) && ( self.get_param('all') || self.get_param('cliente') ) }
 	attribute :suplidor,                                       if: Proc.new { !object.suplidor_id.nil? && ( self.get_param('all') || self.get_param('suplidor') ) }
@@ -132,7 +132,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
     def recibos
 		recibo_parseo    = []
-		if object.Bruto != nil && ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado' || object.is_viaje)
+		if object.Bruto != nil && object.balance >= 0.99 && (object.condicion != 'Contado' || object.is_viaje)
 			recibos          = object.detalle_recibos
 
 			if recibos.length > 0
@@ -153,7 +153,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 
     def pagos
 		pago_parseo    = []
-		if object.Bruto != nil && ( object.Bruto - object.descuento ) != object.balance && (object.condicion != 'Contado')
+		if object.Bruto != nil && object.balance >= 0.99 && (object.condicion != 'Contado')
 			pagos          = object.pago_factura_detalles
 
 			if pagos.length > 0
