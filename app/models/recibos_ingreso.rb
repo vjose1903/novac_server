@@ -31,7 +31,7 @@ class RecibosIngreso < ApplicationRecord
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
       fecha_equivalente            = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
-      
+
       recibo.user_id               = get_current_user[:id]
       recibo.fecha_equivalente     = fecha_equivalente
       recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
@@ -208,7 +208,8 @@ class RecibosIngreso < ApplicationRecord
 
     if cabecera_factura.update(obj)
 
-      resultCliente           = Cliente.calculate_balance_cliente(recibo.cliente_id, detalle["deposito"], "+")
+      monto_recibo = (detalle["deposito"] || 0) + (detalle["mora"] || 0)
+      resultCliente           = Cliente.calculate_balance_cliente(recibo.cliente_id, monto_recibo, "+")
       unless resultCliente.status_valid
         res.add_msg(resultCliente.get_msgs.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
