@@ -208,8 +208,8 @@ class RecibosIngreso < ApplicationRecord
 
     if cabecera_factura.update(obj)
 
-      monto_deposito = (detalle['deposito'] || 0) + (detalle['mora'] || 0)
-      resultCliente           = Cliente.calculate_balance_cliente(recibo.cliente_id, monto_deposito, '+')
+      monto_recibo            = (detalle["deposito"] || 0) + (detalle["mora"] || 0)
+      resultCliente           = Cliente.calculate_balance_cliente(recibo.cliente_id, monto_recibo, "+")
       unless resultCliente.status_valid
         res.add_msg(resultCliente.get_msgs.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
