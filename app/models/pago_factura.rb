@@ -23,17 +23,20 @@ class PagoFactura < ApplicationRecord
     res                          = Response.new
     PagoFactura.transaction do
 
+      @tipo_factura_id           = TipoFacturaManagement.get_by_key(TiposFacturasKey.pago_factura)&.id
+
 			pago                       = PagoFactura.where(:id => params[:id]).first_or_create
 
       today_cuadre               = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
       fecha_equivalente          = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
 
+
       pago.user_id               = get_current_user[:id]
       pago.suplidor_id           = params[:suplidor_id]
       pago.tipo_factura_id       = params[:tipo_factura_id]
       pago.fecha_equivalente     = fecha_equivalente
-      pago.numero                = SecuenciaFactura.find_secuencia(22)
+      pago.numero                = SecuenciaFactura.find_secuencia(@tipo_factura_id)
       pago.forma_pago            = params[:forma_pago]
 
 			pago.valid?
@@ -54,7 +57,7 @@ class PagoFactura < ApplicationRecord
 
         if pago.errors.empty? && (!is_save || (is_save && pago.save!))
 
-          result                = updateSecuencias(22)
+          result                = updateSecuencias(@tipo_factura_id)
 
           if result.status_valid
             res.set_data(serialize_parser(pago, {all: true}))

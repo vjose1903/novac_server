@@ -169,6 +169,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 				end
 			end
 		end
+		pago_parseo
 	end
 
 	# def pagos

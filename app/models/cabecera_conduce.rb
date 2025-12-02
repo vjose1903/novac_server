@@ -21,10 +21,10 @@ class CabeceraConduce < ApplicationRecord
   def self.create_update_conduce(params, is_save=false)
     res = Response.new
     CabeceraConduce.transaction do
-
+      @tipo_factura_id           = TipoFacturaManagement.get_by_key(TiposFacturasKey.conduce)&.id
       conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_initialize
 
-      conduce.numero_conduce       = SecuenciaFactura.find_secuencia(15)
+      conduce.numero_conduce       = SecuenciaFactura.find_secuencia(@tipo_factura_id)
       conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       conduce.cliente_id           = params["cliente_id"]
       conduce.user_id              = get_current_user[:id]
@@ -42,7 +42,7 @@ class CabeceraConduce < ApplicationRecord
 
       if res.status_valid && conduce.errors.empty? && (!is_save || (is_save && conduce.save!))
 
-        result                     = updateSecuencias(15)
+        result                     = updateSecuencias(@tipo_factura_id)
 
         if result.status_valid
           res.set_data(serialize_parser(conduce, { all: true }))

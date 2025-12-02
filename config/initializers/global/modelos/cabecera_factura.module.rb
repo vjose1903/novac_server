@@ -45,6 +45,7 @@ module TiposFacturasDescripcion
   VENTA_CREDITO                          = 'Venta Credito'
   PRE_VENTA                              = 'pre_venta'
   COTIZACION                             = 'cotizacion'
+  PAGO_FACTURA                           = 'pago factura'
 
   def self.factura_sin_comprobante
     return FACTURA_SIN_COMPROBANTE
@@ -124,6 +125,10 @@ module TiposFacturasDescripcion
 
   def self.cotizacion
     return COTIZACION
+  end
+
+  def self.pago_factura
+    return PAGO_FACTURA
   end
 
 end
@@ -150,6 +155,7 @@ module TiposFacturasKey
   VENTA_CREDITO                        = 'venta_credito'
   PRE_VENTA                            = 'pre_venta'
   COTIZACION                           = 'cotizacion'
+  PAGO_FACTURA                         = 'pago_factura'
 
   def self.factura_sin_comprobante
     return FACTURA_SIN_COMPROBANTE
@@ -231,4 +237,7 @@ module TiposFacturasKey
     return COTIZACION
   end
 
+  def self.pago_factura
+    return PAGO_FACTURA
+  end
 end

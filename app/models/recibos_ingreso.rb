@@ -25,7 +25,7 @@ class RecibosIngreso < ApplicationRecord
   def self.create_update_recibo(params, is_save=false)
     res                            = Response.new
     RecibosIngreso.transaction do
-
+      @tipo_factura_id             = TipoFacturaManagement.get_by_key(TiposFacturasKey.recibo_ingreso)&.id
 			recibo                       = RecibosIngreso.where(:id => params[:id]).first_or_initialize
 
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
@@ -34,7 +34,7 @@ class RecibosIngreso < ApplicationRecord
 
       recibo.user_id               = get_current_user[:id]
       recibo.fecha_equivalente     = fecha_equivalente
-      recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
+      recibo.numero_recibo         = SecuenciaFactura.find_secuencia(@tipo_factura_id)
       recibo.cliente_id            = params[:cliente_id]
       recibo.forma_pago            = params[:forma_pago]
       recibo.tipo_factura_id       = params[:tipo_factura_id]
@@ -66,7 +66,7 @@ class RecibosIngreso < ApplicationRecord
 				recibo.valid?
 
         if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
-          result                = updateSecuencias(17)
+          result                = updateSecuencias(@tipo_factura_id)
 
           if result.status_valid
             data = {'recibo': serialize_parser(recibo, {all: true}) }

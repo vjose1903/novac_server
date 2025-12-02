@@ -430,10 +430,10 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 
-def updateSecuencias(tipo_secuencia_id)
+def updateSecuencias(tipo_factura_id)
     res                         = Response.new
 
-    secuenciaBackend            = SecuenciaFactura.find_by_id(tipo_secuencia_id)
+    secuenciaBackend            = SecuenciaFactura.find_by_tipo_factura_id(tipo_secuencia_id)
     actual                      = secuenciaBackend.secuencia
     secuenciaBackend.secuencia  = actual + 1
 

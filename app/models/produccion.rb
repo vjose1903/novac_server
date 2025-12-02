@@ -10,11 +10,11 @@ class Produccion < ApplicationRecord
   def self.create_update_produccion(params, is_save=false)
 		res                                   = Response.new
     Produccion.transaction do
-
+      @tipo_factura_id                    = TipoFacturaManagement.get_by_key(TiposFacturasKey.produccion)&.id
 			produccion                          = Produccion.where(:id => params[:id]).first_or_initialize
 
       produccion.user_id                  = get_current_user[:id]
-      produccion.numero                   = SecuenciaFactura.find_secuencia(16)
+      produccion.numero                   = SecuenciaFactura.find_secuencia(@tipo_factura_id)
       produccion.fecha_equivalente        = params[:fecha_equivalente] ? params[:fecha_equivalente] : DateTime.now
       produccion.valid?
 
@@ -26,7 +26,7 @@ class Produccion < ApplicationRecord
 
       if res.status_valid && produccion.errors.empty? && (!is_save || (is_save && produccion.save!))
 
-        result                               = updateSecuencias(16)
+        result                               = updateSecuencias(@tipo_factura_id)
 
         if result.status_valid
           res.set_data( serialize_parser( produccion, { all: true } ))
