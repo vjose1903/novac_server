@@ -58,7 +58,7 @@ export class DgiiAuthService {
         throw new Error(`El archivo de certificado no existe en la ruta: ${certPath}`);
       }
 
-      const reader = new P12Reader('VICVAS01');
+      const reader = new P12Reader(this.environment.SIGNATURE_PSW);
       const certs = reader.getKeyFromFile(certPath);
 
       if (!this.env || typeof this.env !== 'string') {
