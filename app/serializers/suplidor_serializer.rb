@@ -12,7 +12,7 @@ class SuplidorSerializer < ActiveModel::Serializer
 	attribute :divisa,                        if: Proc.new { self.get_param('divisa')                      || self.get_param('all') }
 
   def nombre_completo
-    vendedor = object.nombre_completo
+    object.nombre_completo
   end
 
   def documentos_de_identidad

@@ -15,7 +15,7 @@ class PagoFacturaSerializer < ActiveModel::Serializer
 
 
   def suplidor
-    serialize_parser(object.suplidor, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true, telefono: true})
+    serialize_parser(object.suplidor, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true, telefono: true, nombre_completo: true})
   end
 
   def user
