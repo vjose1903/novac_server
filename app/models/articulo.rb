@@ -111,6 +111,14 @@ class Articulo < ApplicationRecord
           { modelo: Imagen,                     key_object: 'imagenes',                      padre: articulo }
         ]
 
+        puts " "
+        puts " "
+        puts " "
+        puts " params[:entidad_cuentas_contables] ".red + " #{params[:entidad_cuentas_contables]}"
+        puts " "
+        puts " "
+        puts " "
+
         res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
           articulo.formulas_productos_terminados   = dependencia_data if key_object == 'formulas_productos_terminados'
           articulo.contenido_articulos             = dependencia_data if key_object == 'contenido_articulos'
