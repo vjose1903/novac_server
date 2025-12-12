@@ -8,12 +8,15 @@ module BaseRequest
     BASE_URL_PREFIX = 'api'
     BASE_URL_VERSION = 'v1'
 
-    def initialize(path='')
+    def initialize(path='', options = {})
       @path = path
+      timeout      = options[:timeout] || 60       # tiempo total máximo en segundos
+      open_timeout = options[:open_timeout] || 15  # tiempo para establecer conexión
+
       @conn = Faraday.new(url: "#{API_BASE_URL}/#{BASE_URL_PREFIX}/#{BASE_URL_VERSION}") do |f|
         f.request :url_encoded
-        f.options.timeout      = 20  # tiempo total máximo en segundos (default: 20s)
-        f.options.open_timeout = 10  # tiempo para establecer conexión (default: 10s)
+        f.options.timeout      = timeout
+        f.options.open_timeout = open_timeout
         f.adapter Faraday.default_adapter
       end
     end
