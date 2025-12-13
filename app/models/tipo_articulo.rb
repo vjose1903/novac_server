@@ -107,7 +107,8 @@ class TipoArticulo < ApplicationRecord
             cuenta_contable:                   config_articulo.cuenta_contable,
             configuracion_entidad_cuenta_id:   config_articulo.id,
             is_control:                        config_muck[:is_control],
-            has_comun:                         config_articulo.has_comun
+            has_comun:                         config_articulo.has_comun,
+            is_auto_created:                   true
           }.with_indifferent_access)
 
       else
@@ -117,7 +118,8 @@ class TipoArticulo < ApplicationRecord
           descripcion_cuenta:       descripcion_cuenta,
           descripcion_cuenta_comun: descripcion_cuenta_comun,
           has_comun:                cuenta_contable_per_config_key.configuracion_entidad_cuenta.has_comun,
-          is_control:               config_muck[:is_control]
+          is_control:               config_muck[:is_control],
+          is_auto_created:          true
         })
 
       end

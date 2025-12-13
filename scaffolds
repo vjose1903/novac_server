@@ -244,6 +244,7 @@ rails g model detalle_cheque cheque:references comentario:string tasa:float mont
 // rails g migration addCodigoToCabezaAsientoContable
 // rails g migration addHasChequeaToCuentaBancaria
 // rails g migration addFechaUpdateToTransferencia
+// rails g migration addIsAutoCreatedToCuentaContable
 
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------

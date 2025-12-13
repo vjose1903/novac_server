@@ -78,7 +78,7 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
 
   # =========================================================================================================================================================
 
-  def self.molde_cuenta(cuenta_control, descripcion, is_control=false)
+  def self.molde_cuenta(cuenta_control, descripcion, is_control=false, is_auto_created=false)
     return {
       grupo_cuenta_id: cuenta_control.grupo_cuenta_id,
       descripcion: descripcion,
@@ -86,7 +86,8 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
       is_control: is_control,
       origen: cuenta_control.origen,
       tipo: cuenta_control.tipo,
-      action: 'create'
+      action: 'create',
+      is_auto_created: is_auto_created
     }.with_indifferent_access
   end
 

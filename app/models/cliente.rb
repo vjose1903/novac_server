@@ -3,7 +3,7 @@ class Cliente < ApplicationRecord
 
   # belongs_to :imagen,    optional: true
   belongs_to :municipio, optional: true,                  class_name: 'Municipio'
-  
+
   has_many  :documentos_de_identidad,    :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
   has_many  :entidad_cuentas_contables,  :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
   has_many  :imagenes,                   :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
@@ -20,7 +20,7 @@ class Cliente < ApplicationRecord
   validates :municipio,           presence: { :message => 'Municipio del cliente no puede estar vacío.' }, if: -> { create_validations }
 
   attr_accessor :create_validations
-  
+
   # =========================================================================================================================================================
 
   def otras_validaciones(params, has_contabilidad)
@@ -33,7 +33,7 @@ class Cliente < ApplicationRecord
     end
   end
 
-  
+
 
   def init
     self.balance = 0                unless self.balance
@@ -45,7 +45,7 @@ class Cliente < ApplicationRecord
     includes = [
       :documentos_de_identidad,
       :imagenes,
-      :municipio, 
+      :municipio,
       :provincia,
       { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
     ]
@@ -90,7 +90,7 @@ class Cliente < ApplicationRecord
 
       if @has_contabilidad
         cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: cliente.nombre_completo }.with_indifferent_access
-        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if cliente.errors.empty?
+        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true ) if cliente.errors.empty?
       end
 
       if cliente.errors.empty?

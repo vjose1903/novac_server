@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_06_06_111336) do
+ActiveRecord::Schema[7.0].define(version: 2025_12_13_142622) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -395,6 +395,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_06_111336) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "cuenta_control_id"
+    t.boolean "is_auto_created", default: false
     t.index ["grupo_cuenta_id"], name: "index_cuentas_contables_on_grupo_cuenta_id"
   end
 

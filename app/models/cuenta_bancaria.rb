@@ -112,7 +112,7 @@ class CuentaBancaria < ApplicationRecord
       descripcion_cuenta     = "#{banco.nombre} - CTA: #{self.numero_cuenta}"
       descripcion_cuenta    += " PRIMA" if is_prima
 
-      cuenta_contable        = ConfiguracionEntidadCuenta.molde_cuenta(config.cuenta_contable, descripcion_cuenta)
+      cuenta_contable        = ConfiguracionEntidadCuenta.molde_cuenta(config.cuenta_contable, descripcion_cuenta, false, true)
 
       if (is_cuenta_nacional && config.is_nacional) || (!is_cuenta_nacional)
 

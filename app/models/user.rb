@@ -100,7 +100,7 @@ class User < ApplicationRecord
 
       if @has_contabilidad
         cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
-        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if user.errors.empty?
+        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true ) if user.errors.empty?
       end
 
       if user.errors.empty?

@@ -106,6 +106,7 @@ class CuentaContable < ApplicationRecord
         cuenta_contable.origen             = params[:origen]
         cuenta_contable.tipo               = params[:tipo]
         cuenta_contable.is_control         = params[:is_control]
+        cuenta_contable.is_auto_created    = params[:is_auto_created]    if params.obj_has?(:is_auto_created)
 
         result_procesos                    = cuenta_contable.procesos_cuentas(grupo_cuenta, params)
 

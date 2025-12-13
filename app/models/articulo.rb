@@ -100,8 +100,14 @@ class Articulo < ApplicationRecord
       articulo.agregar_cuentas_descuento(params)                           if articulo.errors.empty?
 
       cuentas_config = { view_prima: false, descripcion_cuenta: articulo.nombre }.with_indifferent_access
-      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if articulo.errors.empty?
-
+      EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true) if articulo.errors.empty?
+      puts " "
+      puts " "
+      puts " "
+      puts "params ".red + " #{params}"
+      puts " "
+      puts " "
+      puts " "
       if articulo.errors.empty?
 
         dependencias = [

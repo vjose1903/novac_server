@@ -58,7 +58,7 @@ class Suplidor < ApplicationRecord
 
       if @has_contabilidad
         cuentas_config = { view_prima: true, usa_moneda_nacional: suplidor.divisa.is_principal, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: suplidor.nombre_completo }.with_indifferent_access
-        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config ) if suplidor.errors.empty?
+        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true ) if suplidor.errors.empty?
       end
 
       if suplidor.errors.empty?

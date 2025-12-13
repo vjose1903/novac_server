@@ -45,7 +45,7 @@ class TipoArticuloCuentaContable < ApplicationRecord
 
     if params[:is_control]
       if self.cuenta_contable_control_id.nil?
-        res                                         = CatEntidadContable.createCuenta(params[:cuenta_contable], params[:descripcion_cuenta], true)
+        res                                         = CatEntidadContable.createCuenta(params[:cuenta_contable], params[:descripcion_cuenta], true, params[:is_auto_created])
         cuenta_contable_control                     = res.get_data()
         self.cuenta_contable_control_id             = cuenta_contable_control[:id] if res.status_valid
       else
@@ -60,7 +60,7 @@ class TipoArticuloCuentaContable < ApplicationRecord
         cuenta_control = !self.cuenta_contable_control.nil? ? self.cuenta_contable_control : self.configuracion_entidad_cuenta.cuenta_contable
 
         unless cuenta_control.nil?
-          res                                       = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta_comun], false)
+          res                                       = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta_comun], false, params[:is_auto_created])
           cuenta_contable_auxiliar                  = res.get_data()
           self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
         else

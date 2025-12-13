@@ -11,6 +11,7 @@ class CuentaContableSerializer < ActiveModel::Serializer
   attribute :estado,                 if: Proc.new {  self.get_param('estado')                  || self.get_param('all') }
   attribute :tipo,                   if: Proc.new {  self.get_param('tipo')                    || self.get_param('all') }
   attribute :cuenta_control_id,      if: Proc.new {  self.get_param('cuenta_control_id')       || self.get_param('all') }
+  attribute :is_auto_created,        if: Proc.new {  self.get_param('is_auto_created')         || self.get_param('all') }
 
   attribute :cuentas_contables,      if: Proc.new {  self.get_param('cuentas_contables')}
   attribute :cuenta_control,         if: Proc.new {  self.get_param('cuenta_control')                                     && !object.cuenta_control.nil? }

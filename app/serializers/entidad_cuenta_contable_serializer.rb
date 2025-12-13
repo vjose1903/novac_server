@@ -16,7 +16,11 @@ class EntidadCuentaContableSerializer < ActiveModel::Serializer
   end
 
   def origen_categoria
-    serialize_parser(object.origen_categoria, { id: true, descripcion: true })
+    return nil if object.origen_categoria.nil?
+
+    data = serialize_parser(object.origen_categoria, { id: true, descripcion: true }).as_json
+    data[:table_name] = object.origen_categoria.class.table_name
+    data
   end
 
   def origen_entidad

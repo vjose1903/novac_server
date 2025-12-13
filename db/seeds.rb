@@ -347,7 +347,6 @@ G_CONFIG_ARTICULOS.each do | config |
 
   configuracion_articulo_db =  ConfigArticulo.find_by_id(1)
 
-
   if configuracion_articulo_db.nil?
     configuracion_articulo_db = ConfigArticulo.create(config)
     puts " "

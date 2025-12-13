@@ -117,7 +117,7 @@ class CategoriaEntidadContable < ApplicationRecord
 
     if cuenta_contable_db.nil?
       if self.cuenta_contable_control_id.nil?
-        res                                         = CatEntidadContable.createCuenta(configuracion.cuenta_contable, descripcion_cuenta, true)
+        res                                         = CatEntidadContable.createCuenta(configuracion.cuenta_contable, descripcion_cuenta, true, true)
         cuenta_contable_control                     = res.get_data()
 
         self.cuenta_contable_control_id             = cuenta_contable_control[:id] if res.status_valid
@@ -138,7 +138,7 @@ class CategoriaEntidadContable < ApplicationRecord
 
       if cuenta_contable_db.nil?
         if self.cuenta_contable_auxiliar_id.nil?
-          res                                       = CatEntidadContable.createCuenta(self.cuenta_contable_control, descripcion_cuenta, false)
+          res                                       = CatEntidadContable.createCuenta(self.cuenta_contable_control, descripcion_cuenta, false, true)
           cuenta_contable_auxiliar                  = res.get_data()
           self.cuenta_contable_auxiliar_id          = cuenta_contable_auxiliar[:id]
         else

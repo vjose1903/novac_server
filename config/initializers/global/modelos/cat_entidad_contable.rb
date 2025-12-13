@@ -67,9 +67,9 @@ module CatEntidadContable
 
   # ============================================================================================================================================
 
-  def self.createCuenta(cuenta_control, descripcion, is_control)
+  def self.createCuenta(cuenta_control, descripcion, is_control, is_auto_created=false)
     res = Response.new
-    cuenta_contable              = ConfiguracionEntidadCuenta.molde_cuenta(cuenta_control, descripcion, is_control)
+    cuenta_contable              = ConfiguracionEntidadCuenta.molde_cuenta(cuenta_control, descripcion, is_control, is_auto_created)
     temp_cuenta_contable         = CuentaContable.create_update_cuenta_contable(cuenta_contable, nil, true)
 
     if temp_cuenta_contable.status_valid

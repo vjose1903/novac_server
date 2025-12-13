@@ -11,8 +11,8 @@ class EntidadCuentaContable < ApplicationRecord
   validates :is_comun,                 inclusion: { in: [ true, false ], :message => "Debe de especificar si la cuenta sera común o no." }
 
   @modelo = {
-    tipo_articulo:               TipoArticulo,
-    sub_tipo_articulo:           SubTipoArticulo,
+    tipo_articulos:              TipoArticulo,
+    sub_tipo_articulos:          SubTipoArticulo,
     categoria_entidad_contable:  CategoriaEntidadContable
   }.with_indifferent_access
 
@@ -67,6 +67,15 @@ class EntidadCuentaContable < ApplicationRecord
     entidad_cuenta                  = EntidadCuentaContable.where(:id => params[:id]).first_or_create
     has_cuenta_contable             = entidad_cuenta.has_cuenta_contable
 
+    puts " "
+    puts " "
+    puts " "
+    puts "params ".green + " #{params.to_json}"
+    puts "entidad_cuenta ".yellow + " #{entidad_cuenta.to_json}"
+    puts "entidad_cuenta.configuracion_entidad_cuenta ".red + " #{entidad_cuenta.configuracion_entidad_cuenta.to_json}"
+    puts " "
+    puts " "
+    puts " "
     if !has_cuenta_contable
       entidad_cuenta.configuracion_entidad_cuenta_id    = params[:configuracion_entidad_cuenta_id]
       entidad_cuenta.tipo_agrupacion_contable           = params[:tipo_agrupacion_contable]
@@ -120,12 +129,12 @@ class EntidadCuentaContable < ApplicationRecord
         cuenta_control                   = ( self.tipo_agrupacion_contable == TipoAgrupacionContable.individual ) ? self.configuracion_entidad_cuenta.cuenta_contable : self.origen_categoria.cuenta_contable_control
       end
 
-      res                                = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta], false)
+      res                                = CatEntidadContable.createCuenta(cuenta_control, params[:descripcion_cuenta], false, params[:is_auto_created])
       cuenta_contable_control            = res.get_data()
-      self.cuenta_contable_id            = cuenta_contable_control[:id] if res.status_valid
+      self.cuenta_contable_id            = cuenta_contable_control[:id]     if res.status_valid
     else
 
-      self.cuenta_contable.descripcion   = params[:descripcion_cuenta]
+      self.cuenta_contable.descripcion       = params[:descripcion_cuenta]
       self.cuenta_contable.save!
     end
 
