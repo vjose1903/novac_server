@@ -1,6 +1,7 @@
 import ECF, { ENVIRONMENT, Signature, Transformer, getCodeSixDigitfromSignature, generateFcQRCodeURL, convertECF32ToRFCE, generateEcfQRCodeURL } from 'dgii-ecf';
 import { TrackStatusEnum, TrackingStatusResponse, InvoiceSummaryResponse, InvoiceResponse } from 'dgii-ecf/dist/networking/types';
 import { getProperty, hasValue, isEmpty, retryUntil } from '../../utils/typescript/functions';
+import { customerDirectoryCache } from '../../utils/typescript/cache.utils';
 import Queue from 'queue';
 import { ParseDocument } from '@utils/typescript/parseDocument';
 import { FacturaI } from '@core/types/factura.types';
@@ -17,8 +18,6 @@ export class DgiiEcfService {
   private authService: DgiiAuthService;
   private googleDrive: GoogleDriveUtils;
 
-  private ecf!: ECF;
-  private signature!: Signature;
   private queue: Queue;
   private environment: any;
   private transformer: Transformer;
@@ -28,6 +27,15 @@ export class DgiiEcfService {
   private rnc_emisor: string;
 
   private jsonData: FacturaI | NotaI;
+
+  // Getters dinámicos para obtener siempre las referencias actualizadas
+  private get ecf(): ECF {
+    return this.authService.ecf;
+  }
+
+  private get signature(): Signature {
+    return this.authService.signature;
+  }
 
   private get isFCLessThan250K() {
     return this.jsonData.TipoeCF == tipoComprobanteE.factura_de_consumo && (this.jsonData as FacturaI).total_factura < 250000;
@@ -62,9 +70,6 @@ export class DgiiEcfService {
 
     this.transformer = new Transformer();
 
-    this.ecf = this.authService.ecf;
-    this.signature = this.authService.signature;
-
     this.env = ENVIRONMENT[this.environment.ENV as keyof typeof ENVIRONMENT];
   }
 
@@ -79,16 +84,7 @@ export class DgiiEcfService {
         const qr_url_dgii_data = this.initializeQrData(factura, parser);
         const { signedXml, signedExtendedXml } = await this.signDocuments(factura, qr_url_dgii_data);
 
-        console.log(" . ");
-        console.log(" . ");
-        console.log(" ANTES ");
-        
         const sendResponse = await this.sendDocument(signedXml, fileName);
-        console.log(" . ");
-        console.log(" . ");
-        console.log(" LUEGO ");
-        console.log(" . ");
-        console.log(" . ");
         const qr_url_dgii = this.generateQrUrl(qr_url_dgii_data, factura, parser);
 
         // Subir archivo extendido en background si es necesario
@@ -96,25 +92,19 @@ export class DgiiEcfService {
 
         const response = await this.validateSendResponse(sendResponse);
 
-        // Enviar al comprador si es necesario
-        await this.sendToCustomerIfNeeded(parser, response, signedXml, fileName);
-
         // Subir archivo principal en background
         this.uploadMainFile(fileName, signedXml);
+
+        // Enviar al comprador en BACKGROUND (no bloquea la respuesta)
+        this.sendToCustomerInBackground(parser, response, signedXml, fileName);
 
         const data = this.buildResponseData(factura, qr_url_dgii_data, fileName, qr_url_dgii, response);
         const message = this.getMessage(response);
 
         resolve({ success: true, data, message });
       } catch (error) {
-        console.log(" ");
-        console.log(" ");
-        console.log(" ");
-        console.log("error -----------> ", error);
-        console.log(" ");
-        console.log(" ");
-        console.log(" ");
-        
+        console.error('Error en firmarYEnviarXML:', error);
+
         const raw_msg = this.getMessage(error);
         const msg = hasValue(raw_msg) ? `DGII mensaje: ${raw_msg}` : 'Error al firmar y enviar el XML.';
         reject({ success: false, message: msg, secuenciaUtilizada: false, ...error });
@@ -160,21 +150,29 @@ export class DgiiEcfService {
           return await this.ecf.sendElectronicDocument(signedXml, fileName);
         }
       } catch (error) {
-        // Verificar si es el error código 03 específico
-        const isCode03Error = this.isCode03CertificateError(error);
-        
-        if (isCode03Error && retryCount < maxRetries) {
+        // Verificar si es un error relacionado con autenticación/certificado
+        const isAuthError = this.isCode03CertificateError(error) || this.isAuthenticationError(error);
+
+        if (isAuthError && retryCount < maxRetries) {
           retryCount++;
-          console.log(`Error código 03 detectado. Reintentando envío (${retryCount}/${maxRetries})...`);
-          
+          console.log(`Error de autenticación/certificado detectado. Renovando token y reintentando (${retryCount}/${maxRetries})...`);
+
+          // Forzar renovación del token antes de reintentar
+          try {
+            await this.authService.forceTokenRenewal();
+            console.log('Token renovado exitosamente antes del reintento');
+          } catch (authError) {
+            console.error('Error al renovar token:', authError);
+          }
+
           // Esperar antes del siguiente intento
           await new Promise(resolve => setTimeout(resolve, retryDelay));
-          
+
           // Reintentar
           return attemptSend();
         }
-        
-        // Si no es código 03 o ya agotamos los reintentos, lanzar el error
+
+        // Si no es error de autenticación o ya agotamos los reintentos, lanzar el error
         throw error;
       }
     };
@@ -182,14 +180,20 @@ export class DgiiEcfService {
     return attemptSend();
   }
 
+  private isAuthenticationError(error: any): boolean {
+    if (!error) return false;
+
+    const errorMessage = error?.message?.toLowerCase() || '';
+    const authKeywords = ['unauthorized', '401', 'token', 'expired', 'authentication', 'autenticación'];
+
+    return authKeywords.some(keyword => errorMessage.includes(keyword));
+  }
+
   private isCode03CertificateError(error: any): boolean {
     if (!error || !error.mensajes) return false;
 
     // Verificar si algún mensaje tiene el código '03' y el texto específico
-    return error.mensajes.some((mensaje: any) => 
-      mensaje.codigo === '03' && 
-      mensaje.valor === 'El certificado utilizado no es válido, favor validar su composición y volver a intentarlo.'
-    );
+    return error.mensajes.some((mensaje: any) => mensaje.codigo === '03' && mensaje.valor === 'El certificado utilizado no es válido, favor validar su composición y volver a intentarlo.');
   }
 
   private generateQrUrl(qr_url_dgii_data: QrUrlDgiiData, factura: EcfXmlJson, parser: ParseDocument): string {
@@ -222,26 +226,38 @@ export class DgiiEcfService {
     }
   }
 
-  private async sendToCustomerIfNeeded(parser: ParseDocument, response: any, signedXml: string, fileName: string): Promise<void> {
+  /**
+   * Ejecuta el envío al comprador en background sin bloquear la respuesta
+   */
+  private sendToCustomerInBackground(parser: ParseDocument, response: any, signedXml: string, fileName: string): void {
     if (!parser.rnc_comprador || this.isFCLessThan250K || getProperty(response, 'estado') === TrackStatusEnum.REJECTED) return;
 
-    try {
-      const responseCustomerDirectory = await this.ecf.getCustomerDirectory(parser.rnc_comprador);
-
-      if (responseCustomerDirectory.length > 0 && this.env === ENVIRONMENT.PROD) {
-        const buyerHost = responseCustomerDirectory[0].urlRecepcion;
-
-        if (buyerHost) {
-          const acuseRecepcion = (await this.ecf.sendElectronicDocument(signedXml, fileName, buyerHost)) as string;
-          const acuseFileName = fileName.replace(this.rnc_emisor, `${parser.rnc_comprador}`);
-
-          setTimeout(() => {
-            this.googleDrive.uploadFile(this.acuse_recepcion_folder, acuseRecepcion, acuseFileName).catch(error => console.error('Error al subir acuse de recepción:', error));
-          }, 0);
-        }
+    // Ejecutar en el siguiente tick para no bloquear
+    setImmediate(async () => {
+      try {
+        await this.sendToCustomer(parser, signedXml, fileName);
+      } catch (error) {
+        console.error('Error al enviar documento al comprador (background):', error);
       }
-    } catch (error) {
-      console.error('Error al enviar documento al comprador:', error);
+    });
+  }
+
+  private async sendToCustomer(parser: ParseDocument, signedXml: string, fileName: string): Promise<void> {
+    // Usa el cache centralizado para evitar llamadas repetidas a DGII
+    const responseCustomerDirectory = await customerDirectoryCache.getOrFetch({
+      key: parser.rnc_comprador,
+      fetcher: () => this.ecf.getCustomerDirectory(parser.rnc_comprador),
+    });
+
+    if (responseCustomerDirectory.length > 0 && this.env === ENVIRONMENT.PROD) {
+      const buyerHost = responseCustomerDirectory[0].urlRecepcion;
+
+      if (buyerHost) {
+        const acuseRecepcion = (await this.ecf.sendElectronicDocument(signedXml, fileName, buyerHost)) as string;
+        const acuseFileName = fileName.replace(this.rnc_emisor, `${parser.rnc_comprador}`);
+
+        this.googleDrive.uploadFile(this.acuse_recepcion_folder, acuseRecepcion, acuseFileName).catch(error => console.error('Error al subir acuse de recepción:', error));
+      }
     }
   }
 
@@ -293,12 +309,17 @@ export class DgiiEcfService {
           return;
         }
 
-        const taskGetStatus = () => this.ecf.statusTrackId(sendResponse.trackId);
-        const reintentarSi = (response: TrackingStatusResponse) => response.estado === TrackStatusEnum.IN_PROCESS;
-        const errorFunction = () => reject({ success: false, message: 'Error al obtener el estado de la factura.', secuenciaUtilizada: false });
-        const returnResponse = (response: TrackingStatusResponse) => resolve(response);
-
-        retryUntil(taskGetStatus, reintentarSi, returnResponse.bind(this), errorFunction);
+        // Usar retryUntil con backoff exponencial para respuestas más rápidas
+        retryUntil({
+          task: () => this.ecf.statusTrackId(sendResponse.trackId),
+          retryWhen: (response: TrackingStatusResponse) => response.estado === TrackStatusEnum.IN_PROCESS,
+          onSuccess: resolve,
+          onError: () => reject({ success: false, message: 'Error al obtener el estado de la factura.', secuenciaUtilizada: false }),
+          delayBetweenRetries: 200,
+          retryMax: 15,
+          useBackoff: true,
+          maxBackoffDelay: 2000,
+        });
       } catch (error) {
         reject({ success: false, message: error.message || 'Error al obtener el estado de la factura.' });
       }

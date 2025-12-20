@@ -62,8 +62,8 @@ export class DgiiAuthService {
       const certs = reader.getKeyFromFile(certPath);
 
       if (!this.env || typeof this.env !== 'string') {
-        console.warn('Entorno no válido no se pudo cargar el entorno de la aplicación');
-        throw new Error(`Entorno no válido no se pudo cargar el entorno de la aplicación`);
+        console.warn('Entorno no vรกlido no se pudo cargar el entorno de la aplicaciรณn');
+        throw new Error(`Entorno no vรกlido no se pudo cargar el entorno de la aplicaciรณn`);
       }
 
       this._ecf = new ECF(certs, this.env);
@@ -79,19 +79,24 @@ export class DgiiAuthService {
       clearInterval(this.tokenRefreshIntervalId);
     }
 
+    // Verificar cada 2 minutos (120000ms) en lugar de 10 minutos
+    // Esto asegura que el token se renueve antes de expirar incluso tras inactividad
     this.tokenRefreshIntervalId = setInterval(async () => {
       try {
-        if (this.tokenExpiresInMinutes() < 5) {
-          console.log('Token próximo a expirar, renovando...');
+        const minutesRemaining = this.tokenExpiresInMinutes();
+        
+        // Renovar si expira en menos de 10 minutos o si el token es invรกlido
+        if (this.tokenIsInvalid() || minutesRemaining < 10) {
+          console.log(`Token requiere renovaciรณn (minutos restantes: ${minutesRemaining.toFixed(1)})`);
           await this.authenticate();
-          console.log('Token renovado correctamente');
+          console.log('Token renovado correctamente por intervalo automรกtico');
         }
       } catch (error) {
-        console.error('Error al renovar el token automáticamente:', error);
+        console.error('Error al renovar el token automรกticamente:', error);
       }
-    }, 600000);
+    }, 120000); // 2 minutos
 
-    console.log('Intervalo de renovación de token iniciado');
+    console.log('Intervalo de renovaciรณn de token iniciado (cada 2 minutos)');
   }
 
   private tokenExpiresInMinutes(): number {
@@ -115,7 +120,7 @@ export class DgiiAuthService {
           resolve(response);
         })
         .catch(error => {
-          console.error('Test de autenticación fallido:', error);
+          console.error('Test de autenticaciรณn fallido:', error);
           reject(error);
         });
     });
@@ -130,7 +135,7 @@ export class DgiiAuthService {
 
       this.isAuthenticating = true;
 
-      // Implementar función de reintento
+      // Implementar funciรณn de reintento
       const maxRetries = 3;
       const retryDelay = 2000; // 2 segundos
       let retryCount = 0;
@@ -147,9 +152,9 @@ export class DgiiAuthService {
             resolvePrincipal({ success: true });
           })
           .catch(error => {
-            // Lógica de reintento
+            // Lรณgica de reintento
             if (retryCount < maxRetries) {
-              console.log(`Intento de autenticación falló. Reintentando (${retryCount + 1}/${maxRetries})...`);
+              console.log(`Intento de autenticaciรณn fallรณ. Reintentando (${retryCount + 1}/${maxRetries})...`);
               retryCount++;
               setTimeout(attemptAuthentication, retryDelay);
               return;
@@ -158,7 +163,7 @@ export class DgiiAuthService {
             // Si se han agotado los reintentos, se rechaza la promesa
             const result = {
               success: false,
-              message: error?.message || 'Error de autenticación. Servicio de la DGII no disponible después de varios intentos.',
+              message: error?.message || 'Error de autenticaciรณn. Servicio de la DGII no disponible despuรฉs de varios intentos.',
               rollback: true,
             };
 
@@ -173,32 +178,14 @@ export class DgiiAuthService {
           });
       };
 
-      // Iniciar el proceso de autenticación con reintentos
+      // Iniciar el proceso de autenticaciรณn con reintentos
       attemptAuthentication();
     });
   }
 
   private isTokenExpired(): boolean {
     if (isEmpty(this.authToken)) return true;
-
-    console.log(' ');
-    console.log(' ');
-    console.log('--------------------------------------------------------------');
-    console.log('                 DEPURACION DE TOKEN EXPIRADO                 ');
-    console.log('--------------------------------------------------------------');
-    console.log(' ');
-    console.log('new Date(this.authToken.expira)', new Date(this.authToken.expira));
-    console.log('new Date(this.authToken.expira).getTime()', new Date(this.authToken.expira).getTime());
-    console.log('');
-    console.log('new Date()', new Date());
-    console.log('new Date().getTime()', new Date().getTime());
-    console.log('new Date(this.authToken.expira).getTime() <= new Date().getTime()', new Date(this.authToken.expira).getTime() <= new Date().getTime());
-    console.log(' ');
-    console.log('--------------------------------------------------------------');
-    console.log(' ');
-    console.log(' ');
-
-    return new Date(this.authToken.expira).getTime() <= new Date().getTime();
+    return new Date(this.authToken.expira).getTime() <= Date.now();
   }
 
   private tokenIsInvalid() {
@@ -217,10 +204,33 @@ export class DgiiAuthService {
     try {
       await this.authenticate();
       if (this.tokenIsInvalid()) {
-        throw { success: false, message: 'Error de autenticación. No se pudo obtener un token válido.', secuenciaUtilizada: false };
+        throw { success: false, message: 'Error de autenticaciรณn. No se pudo obtener un token vรกlido.', secuenciaUtilizada: false };
       }
       return { success: true };
     } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Fuerza la renovaciรณn del token independientemente de su estado actual.
+   * ร�til cuando se detectan errores de autenticaciรณn en operaciones.
+   */
+  public async forceTokenRenewal(): Promise<{ success: boolean; message?: string }> {
+    console.log('============================================== FORZANDO RENOVACIร�N DE TOKEN ==============================================');
+    
+    // Invalidar el token actual
+    this.authToken = null;
+    
+    try {
+      await this.authenticate();
+      if (this.tokenIsInvalid()) {
+        throw { success: false, message: 'Error de autenticaciรณn. No se pudo obtener un token vรกlido tras renovaciรณn forzada.', secuenciaUtilizada: false };
+      }
+      console.log('Token renovado exitosamente');
+      return { success: true };
+    } catch (error) {
+      console.error('Error al forzar renovaciรณn del token:', error);
       throw error;
     }
   }

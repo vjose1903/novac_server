@@ -7,12 +7,19 @@ import { AnulacionParams } from '@core/types/anulacion.types';
 
 export class DgiiAnulacionService {
   private static instance: DgiiAnulacionService;
-  private ecf!: ECF;
-  private signature!: Signature;
   private queue: Queue;
   private transformer: Transformer;
 
   private authService: DgiiAuthService;
+
+  // Getters dinámicos para obtener siempre las referencias actualizadas
+  private get ecf(): ECF {
+    return this.authService.ecf;
+  }
+
+  private get signature(): Signature {
+    return this.authService.signature;
+  }
 
   private constructor() {
     this.initialize();
@@ -29,9 +36,6 @@ export class DgiiAnulacionService {
 
     this.authService = DgiiAuthService.getInstance();
     await this.authService.validateToken();
-    
-    this.ecf = this.authService.ecf;
-    this.signature = this.authService.signature;
   }
 
   public async firmarYEnviarXML(anulacionParams: AnulacionParams[]) {
