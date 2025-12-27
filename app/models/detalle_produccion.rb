@@ -57,6 +57,12 @@ class DetalleProduccion < ApplicationRecord
     params[:ingredientes].each do | ingrediente |
       articulo_ingrediente     = Articulo.find_by_id(ingrediente[:articulo_combo_id])
 
+      unless articulo_ingrediente
+        res.add_msg("Ingrediente con id #{ingrediente[:articulo_combo_id]} no encontrado.")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        next
+      end
+
       mov                      = ( articulo_ingrediente.existencia - ingrediente[:cantidad_en_unidades] )
 
       unless articulo_ingrediente.update({ existencia: mov })
