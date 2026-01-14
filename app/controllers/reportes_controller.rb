@@ -79,7 +79,6 @@ class ReportesController < ApplicationController
       # ------------------- REPORTE DE CUENTAS POR COBRAR CLIENTES CON SUS PAGOS --------------------
       body       = Reporte.get_cuentas_con_pagos(params)
       titulo     = 'Facturas a crédito con sus pagos'
-      tipo_tabla = 'agrupado'
 
     elsif tipo_reporte == 'notas'
       # ------------------- REPORTE DE NOTAS --------------------
