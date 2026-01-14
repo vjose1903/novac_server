@@ -90,4 +90,19 @@ module Report
       return TIPOS[:por_cliente]
     end
   end
+
+  module NotaBuscarPor
+    TIPOS = {
+      general:        1,
+      por_cliente:    2,
+    }
+
+    def self.general
+      return TIPOS[:general]
+    end
+
+    def self.por_cliente
+      return TIPOS[:por_cliente]
+    end
+  end
 end

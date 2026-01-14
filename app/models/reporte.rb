@@ -272,29 +272,47 @@ class Reporte < ApplicationRecord
         desde       = params["desde"]
         hasta       = params["hasta"].nil? ? params["desde"] : params["hasta"]
         tipo_nota   = params["tipo_factura_id"].to_i
+        buscar_por  = params[:search_by].present? ? params[:search_by].to_i : Report::NotaBuscarPor.general
+        cliente_id  = params[:cliente_id]
 
+		monto_total = 0
         query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
         query['tipo_factura_id']   = tipo_nota unless tipo_nota == 0
         query['estado']            = true
 
+        query_factura = {}
+        query_factura['cabecera_facturas.cliente_id'] = cliente_id if buscar_por == Report::NotaBuscarPor.por_cliente
+
+        select_ = "facturas_aplicadas.*, cabecera_facturas.numero_comprobante as factura_numero_comprobante,
+                   notas.numero_comprobante as nota_numero_comprobante, notas.fecha_equivalente as nota_fecha,
+                   coalesce(trim(clientes.nombre || ' ' || clientes.apellido), 'Cliente contado') as cliente_nombre"
+
         temp = FacturaAplicada
+        .select(select_)
         .joins("inner join notas on notas.id = facturas_aplicadas.nota_id")
         .joins("inner join cabecera_facturas on cabecera_facturas.id = facturas_aplicadas.cabecera_factura_id")
+        .joins("left join clientes on clientes.id = cabecera_facturas.cliente_id")
         .where(notas: query)
-        .order("id DESC").includes(FacturaAplicada.models_includes)
+        .where(query_factura)
+        .order("facturas_aplicadas.id DESC")
 
         temp.each do | factura_aplicada |
+			monto_total += factura_aplicada.total.abs
 			notas.push({
-				:factura => factura_aplicada.cabecera_factura.numero_comprobante,
-				:numero_comprobante => factura_aplicada.nota.numero_comprobante,
-				:tipo_nota => factura_aplicada.tipo_nota,
-				:fecha => factura_aplicada.nota.fecha_equivalente,
+				:factura => factura_aplicada[:factura_numero_comprobante],
+				:numero_comprobante => factura_aplicada[:nota_numero_comprobante],
+				:tipo_nota => factura_aplicada.tipo_nota.gsub(' ', '').titleize,
+				:fecha => factura_aplicada[:nota_fecha],
 				:monto => factura_aplicada.total.abs,
+				:cliente_nombre => factura_aplicada[:cliente_nombre],
 			})
         end
 
+        cliente    = Cliente.find_by_id(cliente_id) if buscar_por == Report::NotaBuscarPor.por_cliente
         sub_titulo = "Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
-        obj  = { body: notas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
+        sub_titulo = "Cliente: #{cliente.nombre_completo}, " + sub_titulo if buscar_por == Report::NotaBuscarPor.por_cliente
+
+        obj  = { body: notas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: monto_total, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
 	end
 
 	# ---------------------------------------------------------------------------------------------------------
@@ -523,74 +541,6 @@ class Reporte < ApplicationRecord
 		{ body: movimientos, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0, facturado: 0 }, sub_t: sub_titulo }
 	end
 
-	def self.get_cuentas_con_pagos_old(params)
-		longitud      = 100
-
-		query                       = {}
-		query['estado']             = true
-		query['fecha_equivalente']  = (Date.parse params["desde"]).beginning_of_day..(Date.parse params["hasta"]).end_of_day
-		query['tipo']               = 'venta'
-		query['condicion']          = 'Crédito'
-		query['is_nota']            = false
-		query['cliente_id']         = params['cliente_id']
-
-		total_cuentas = 0
-		facturas      = []
-		cliente = nil
-
-		CabeceraFactura.where(query).order("cabecera_facturas.fecha_equivalente ASC").includes([{detalle_recibos: [:recibos_ingreso]}, {facturas_aplicadas: [:nota]}, :cliente]).each do | cabeza_factura |
-            pagos_notas  = []
-
-            total_cuentas += cabeza_factura.total_factura
-
-            cabeza_factura.detalle_recibos.each do | detalle_recibo |
-				recibo = detalle_recibo.recibos_ingreso
-
-				pagos_notas.push({
-					numero_documento: "%08d" % recibo.numero_recibo,
-					tipo:             'Recibo ingreso',
-					fecha:            recibo.fecha_equivalente,
-					total:            detalle_recibo.deposito
-                })
-			end
-
-            facturas_aplicadas = cabeza_factura.facturas_aplicadas.select { |factura_aplicada| factura_aplicada.nota.estado == true }
-
-            facturas_aplicadas.each do | fectura_aplicada |
-				nota = fectura_aplicada.nota
-
-                pagos_notas.push({
-					numero_documento: nota.numero_comprobante,
-					tipo:             fectura_aplicada.tipo_factura.descripcion,
-					fecha:            nota.fecha_equivalente,
-					total:            fectura_aplicada.total
-	            })
-            end
-
-
-            contenido_titulo = []
-			contenido_titulo.push({
-                fecha_equivalente:  cabeza_factura["fecha_equivalente"],
-                numero_comprobante: cabeza_factura["numero_comprobante"],
-                total_factura:      cabeza_factura["total_factura"],
-                balance:            cabeza_factura["balance"],
-            })
-
-            facturas.push({
-                contenido_titulo:   contenido_titulo,
-                contenido_grupo:    pagos_notas.sort_by! { |item| item[:fecha].to_i }
-            })
-
-            cliente = cabeza_factura.cliente
-		end
-
-
-		cliente = Cliente.find_by_id(params['cliente_id']) if cliente == nil
-
-		sub_titulo = "Cliente: #{ cliente.nombre_completo }, Desde: #{formatearFecha(params["desde"], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}"
-		obj = { body: facturas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_cuentas, devuelto: 0, facturado: 0 }, sub_t: sub_titulo}
-		return obj
-	end
 	# ---------------------------------------------------------------------------------------------------------
 
 	# ---------------------------------------------------------------------------------------------------------
