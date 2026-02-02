@@ -20,15 +20,7 @@ class ReportesController < ApplicationController
 
     elsif tipo_reporte == 'cuentas_cobrar'
       # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
-      puts "params[:tipo] ==> #{params[:tipo]} ".light_green
       if params[:tipo] == Report::CxC.historico
-        puts " "
-        puts " "
-        puts " "
-        puts "ANDO AQUIII".yellow
-        puts " "
-        puts " "
-        puts " "
         body   = Reporte.get_balance_cliente_historico(params)
         titulo = "Cuentas por cobrar por cliente histórico"
       else
@@ -79,7 +71,6 @@ class ReportesController < ApplicationController
       # ------------------- REPORTE DE CUENTAS POR COBRAR CLIENTES CON SUS PAGOS --------------------
       body       = Reporte.get_cuentas_con_pagos(params)
       titulo     = 'Facturas a crédito con sus pagos'
-      tipo_tabla = 'agrupado'
 
     elsif tipo_reporte == 'notas'
       # ------------------- REPORTE DE NOTAS --------------------
