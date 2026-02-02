@@ -477,7 +477,6 @@ class Reporte < ApplicationRecord
 					tipo:                       'Recibo ingreso',
 					fecha:                      recibo.fecha_equivalente,
 					total:                      detalle_recibo.deposito,
-					es_nota_debito:             false,
 					factura_numero_comprobante: cabeza_factura.numero_comprobante,
 					factura_fecha:              cabeza_factura.fecha_equivalente,
 					factura_total:              cabeza_factura.total_factura,
