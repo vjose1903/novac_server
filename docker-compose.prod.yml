@@ -17,18 +17,18 @@ services:
       dockerfile: docker/Dockerfile
     container_name: demo-dev
     environment:
-      VIRTUAL_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net,10.0.0.9"
-      LETSENCRYPT_HOST: "agrodemi.inspot-technology.com,admservidor.ddns.net"
-      LETSENCRYPT_EMAIL: "novacagrodemi@gmail.com"
-      ALMACEN: "ADM"
+      VIRTUAL_HOST: "8n3mw1zq-9093.use2.devtunnels.ms,8n3mw1zq-9093.use2.devtunnels.ms,10.0.0.9"
+      LETSENCRYPT_HOST: "8n3mw1zq-9093.use2.devtunnels.ms,8n3mw1zq-9093.use2.devtunnels.ms"
+      LETSENCRYPT_EMAIL: "novacdemo@gmail.com"
+      ALMACEN: "DEMO"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
       MONTU: "1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
-      API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-prod:9091"
-      DGII_CERTIFICATION_DATE: "2025-05-15"
+      API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-prod:9094"
+      DGII_CERTIFICATION_DATE: ""
     expose:
       - "3003"
     depends_on:
