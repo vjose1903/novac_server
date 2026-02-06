@@ -1,4 +1,3 @@
-
 PROJECT_PATH     = File.join Rails.root, "/"
 PUBLIC_PATH      = File.join Rails.root, "public"
 ENCRIPT_SECRET   = "1234567890ABCDEF"
@@ -246,6 +245,28 @@ end
 
 TIPO_ARTICULO_TYPES_VALIDOS = [ TipoArticuloType.venta_normal, TipoArticuloType.servicio ]
 
+
+
+module TiposNotasId
+  def self.credito
+    @credito ||= TipoFactura.find_by(:key => 'nota_de_credito', :serie => SerieFactura.normal)&.id
+  end
+
+  def self.credito_electronica
+    @credito_electronica ||= TipoFactura.find_by(:key => 'nota_de_credito', :serie => SerieFactura.electronica)&.id
+  end
+
+  def self.debito
+    @debito ||= TipoFactura.find_by(:key => 'nota_de_debito', :serie => SerieFactura.normal)&.id
+  end
+
+  def self.debito_electronica
+    @debito_electronica ||= TipoFactura.find_by(:key => 'nota_de_debito', :serie => SerieFactura.electronica)&.id
+  end
+end
+
+
+
 module TiposNotas
 
   CREDITO = "nota_credito"
@@ -260,30 +281,10 @@ module TiposNotas
   end
 
   def self.get_tipo(tipo)
-    return tipo == TiposNotasId.credito ? self.credito : self.debito
+    return tipo == TiposNotasId.credito || tipo == TiposNotasId.credito_electronica ? self.credito : self.debito
   end
 
 end
-
-
-module TiposNotasId
-
-  CREDITO = 5
-  DEBITO  = 4
-
-  def self.credito
-    return CREDITO
-  end
-
-  def self.debito
-    return DEBITO
-  end
-
-  def self.get_id(tipo)
-    return tipo == TiposNotas.credito ? self.credito : self.debito
-  end
-end
-
 
 module OperadoresMovimiento
 
@@ -311,133 +312,6 @@ module OperadoresMovimiento
   end
 end
 
-
-module SerieFactura
-  ELECTRONICA = 'electronica'
-  NORMAL      = 'normal'
-  ALL         = 'all'
-  NO_         = 0
-
-  def self.electronica
-    return ELECTRONICA
-  end
-
-  def self.normal
-    return NORMAL
-  end
-
-  def self.all
-    return ALL
-  end
-
-  def self.no
-    return NO_
-  end
-
-end
-module TiposFacturasDescripcion
-  FACTURA_SIN_COMPROBANTE = 'Factura sin comprobante'
-  FACTURA_CON_VALOR_FISCAL = 'Factura con valor fiscal'
-  FACTURA_DE_CONSUMO = 'Factura de consumo'
-  NOTA_DE_DEBITO = 'Nota de debito'
-  NOTA_DE_CREDITO = 'Nota de credito'
-  COMPROBANTE_DE_COMPRAS = 'Comprobante de compras'
-  REGISTRO_DE_UNICO_INGRESO = 'Registro de unico ingreso'
-  COMPROBANTE_PARA_GASTOS_MENORES = 'Comprobante para gastos menores'
-  COMPROBANTE_DE_REGIMEN_ESPECIALES = 'Comprobante de regimen especiales'
-  COMPROBANTE_GUBERNAMENTAL = 'Comprobante gubernamental'
-  COMPROBANTE_PARA_EXPORTACIONES = 'Comprobante para exportaciones'
-  COMPROBANTES_PARA_PAGO_AL_EXTERIOR = 'Comprobantes para pago al exterior'
-  VENTA_CONTADO = 'Venta Contado'
-  COMPRA = 'Compra'
-  CONDUCE = 'Conduce'
-  PRODUCCION = 'Produccion'
-  RECIBO_INGRESO = 'Recibo_ingreso'
-  VENTA_CREDITO = 'Venta Credito'
-  PRE_VENTA = 'pre_venta'
-  COTIZACION = 'cotizacion'
-
-  def self.factura_sin_comprobante
-    return FACTURA_SIN_COMPROBANTE
-  end
-
-  def self.factura_con_valor_fiscal
-    return FACTURA_CON_VALOR_FISCAL
-  end
-
-  def self.factura_de_consumo
-    return FACTURA_DE_CONSUMO
-  end
-
-  def self.nota_de_debito
-    return NOTA_DE_DEBITO
-  end
-
-  def self.nota_de_credito
-    return NOTA_DE_CREDITO
-  end
-
-  def self.comprobante_de_compras
-    return COMPROBANTE_DE_COMPRAS
-  end
-
-  def self.registro_de_unico_ingreso
-    return REGISTRO_DE_UNICO_INGRESO
-  end
-
-  def self.comprobante_para_gastos_menores
-    return COMPROBANTE_PARA_GASTOS_MENORES
-  end
-
-  def self.comprobante_de_regimen_especiales
-    return COMPROBANTE_DE_REGIMEN_ESPECIALES
-  end
-
-  def self.comprobante_gubernamental
-    return COMPROBANTE_GUBERNAMENTAL
-  end
-
-  def self.comprobante_para_exportaciones
-    return COMPROBANTE_PARA_EXPORTACIONES
-  end
-
-  def self.comprobantes_para_pago_al_exterior
-    return COMPROBANTES_PARA_PAGO_AL_EXTERIOR
-  end
-
-  def self.venta_contado
-    return VENTA_CONTADO
-  end
-
-  def self.compra
-    return COMPRA
-  end
-
-  def self.conduce
-    return CONDUCE
-  end
-
-  def self.produccion
-    return PRODUCCION
-  end
-
-  def self.recibo_ingreso
-    return RECIBO_INGRESO
-  end
-
-  def self.venta_credito
-    return VENTA_CREDITO
-  end
-
-  def self.pre_venta
-    return PRE_VENTA
-  end
-
-  def self.cotizacion
-    return COTIZACION
-  end
-
-end
 
 # G_OTROS_COSTOS=[
 # 	{descripcion:"Saco 100 libras", key: "saco_100", costo:9, precio:20 },

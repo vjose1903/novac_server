@@ -8,9 +8,9 @@ class FacturaAplicada < ApplicationRecord
 
   def self.models_includes
     includes = [
-      {nota: [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, :facturas_aplicadas, :detalles_facturas_notas]},
+      { nota: [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, :facturas_aplicadas, :detalles_facturas_notas] },
       :cabecera_factura,
-      {detalles_facturas_notas: [:articulo, :detalle_factura]}
+      { detalles_facturas_notas: [:articulo, :detalle_factura] }
     ]
     return includes
   end
@@ -51,7 +51,7 @@ class FacturaAplicada < ApplicationRecord
   #  --------------------------------------------------------------------------------------------------------------------------------
   def procesos_facturas_aplicadas(params, nota)
     res                = Response.new
-    res_valid          = CabeceraFactura.agregar_nota_a_CabeceraFactura(params, nota)
+    res_valid          = CabeceraFactura.agregar_nota_a_cabecera_factura(params, nota)
 
     unless res_valid.status_valid
       res.add_msgs(res_valid.get_msgs.to_a)
@@ -89,7 +89,7 @@ class FacturaAplicada < ApplicationRecord
 
     facturas_aplicadas = {}
     ids                = params[:ids].split(",").map(&:to_i)
-    facturas           = FacturaAplicada.where(cabecera_factura_id: ids).includes(FacturaAplicada.models_includes)
+    facturas = FacturaAplicada.where(cabecera_factura_id: ids).joins(:nota).where(notas: {estado: true}).includes(FacturaAplicada.models_includes)
 
 
     facturas.each do |fact_aplicada|
@@ -110,5 +110,9 @@ class FacturaAplicada < ApplicationRecord
   # ===================================================================================================================================================
   def tipo_nota
     return TiposNotas.get_tipo(self.tipo_factura_id)
+  end
+
+  def fecha_equivalente
+    return self.nota.fecha_equivalente
   end
 end

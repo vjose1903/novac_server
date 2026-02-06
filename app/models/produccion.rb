@@ -11,9 +11,9 @@ class Produccion < ApplicationRecord
 		res                                   = Response.new
     Produccion.transaction do
 
-			produccion                          = Produccion{}.where(:id => params["id"]).first_or_create
+			produccion                          = Produccion.where(:id => params["id"]).first_or_initialize
 
-      produccion.user_id                  = get_current_user['id']
+      produccion.user_id                  = get_current_user[:id]
       produccion.numero                   = SecuenciaFactura.find_secuencia(16)
       produccion.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       produccion.valid?

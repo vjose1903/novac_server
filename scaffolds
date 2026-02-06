@@ -48,6 +48,7 @@ rails g migration ChangeCamposFacturacionElectronica
 rails g migration ChangeCamposFacturacionElectronicaNota
 rails g migration AddSerieToNotas serie:string
 rails g migration AddKeyToTipoFacturas key:string
+rails g migration AddNCFModificadoToCabeceraFacturas ncf_modificado:string
 
 
 
@@ -167,6 +168,8 @@ rails g migration addCamposXMLToDocumentos
 rails g migration addCamposMoreXMLToDocumentos
 rails g migration addSuplidorToCommertialApprovalReception
 rails g migration change_is_aceptada_to_be_string
+rails g model document_reference document_origin:references{polymorphic} document_referenced:references{polymorphic} referenced_at:datetime referenced_by:references
+rails generate serializer document_reference
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 

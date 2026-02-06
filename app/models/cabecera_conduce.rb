@@ -22,12 +22,12 @@ class CabeceraConduce < ApplicationRecord
     res = Response.new
     CabeceraConduce.transaction do
 
-      conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_create
+      conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_initialize
 
       conduce.numero_conduce       = SecuenciaFactura.find_secuencia(15)
       conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       conduce.cliente_id           = params["cliente_id"]
-      conduce.user_id              = get_current_user['id']
+      conduce.user_id              = get_current_user[:id]
 			conduce.estado               = true
 
       conduce.valid?

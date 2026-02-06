@@ -286,10 +286,16 @@ export class ParseDocument {
     }
 
     if (hasValue(this.factura.fecha_vencimiento)) {
-      let fecha_limite;
+      let fecha_limite = null;
 
       if (this.isProd) {
-        fecha_limite = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' });
+        const fechaVencimiento = DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'YYYY-MM-DD' });
+        // TODO: Revisar esto
+        const fechaActual = DateUtils.format({ date: this.fecha_emision, dateFormat: 'YYYY-MM-DD' });
+        const esFechaValida = DateUtils.compareDates(fechaActual, fechaVencimiento) >= 0;
+
+        // si la fecha de vencimiento es mayor o igual a la fecha actual, se asigna la fecha de vencimiento de lo contrario se asigna la fecha actual
+        fecha_limite = esFechaValida ? DateUtils.format({ date: this.factura.fecha_vencimiento, dateFormat: 'DD-MM-YYYY' }) : this.fecha_emision;
       } else {
         // PARA LA CERTIFICACION -----
         fecha_limite = DateUtils.format({ date: DateUtils.add(30, 'days'), dateFormat: 'DD-MM-YYYY' });
@@ -299,7 +305,8 @@ export class ParseDocument {
     }
 
     const no_fecha_vencimiento = [tipoComprobanteE.factura_de_consumo, tipoComprobanteE.nota_de_credito];
-    if (!no_fecha_vencimiento.includes(this.document.TipoeCF)) {
+
+    if (!no_fecha_vencimiento.map(tipo => tipo.toString()).includes(this.document.TipoeCF.toString())) {
       if (this.isFactura) {
         let fecha_vencimiento_secuencia;
         if (this.isProd) {
@@ -352,6 +359,19 @@ export class ParseDocument {
         FechaNCFModificado: DateUtils.format({ date: this.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }),
         CodigoModificacion: codigo_modificacion,
       };
+    }
+
+    if (this.isFactura) {
+      const NCFModificado = getProperty(this.document, 'ncf_modificado');
+
+      if (hasValue(NCFModificado)) {
+        document_parsed.ECF.InformacionReferencia = {
+          NCFModificado: NCFModificado,
+          RNCOtroContribuyente: null,
+          FechaNCFModificado: DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }),
+          CodigoModificacion: codigo_modificacionE.reemplazo_contingencia,
+        };
+      }
     }
 
     document_parsed.ECF.FechaHoraFirma = getCurrentFormattedDateTime();

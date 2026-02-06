@@ -5,7 +5,7 @@ module DGII_MANAGER
 
   # ========================================================================================================
   # ENVIAR FACTURAS Y NOTAS A DGII
-  # ========================================================================================================  
+  # ========================================================================================================
 
   def self.send(document, certification_params = nil)
     DGII_MANAGER.determinate_document(document)
@@ -36,10 +36,10 @@ module DGII_MANAGER
 
     estado = data_response[:estado].present? ? data_response[:estado] : nil
 
-    document.is_aceptada          = estado.nil? ? 'Aceptado' : estado
+    document.is_aceptada          = estado.nil? ? response.with_indifferent_access[:status] == 200 ? 'Aceptado' : 'Rechazado' : estado
     document.dgii_message         = response[:message]
     not_valid                     = document.is_aceptada.downcase == 'rechazado' || document.is_aceptada.nil?
-    
+
     document.estado               = false if not_valid
 
     document.fecha_hora_firma   = data_response[:fecha_hora_firma] if data_response[:fecha_hora_firma].present?
@@ -63,7 +63,7 @@ module DGII_MANAGER
   end
 
   def self.determinate_document(document)
-    model_name = document.model_name.element
+    model_name  = document.model_name.element
 
     @is_nota    = model_name == 'nota'
     @is_factura = model_name == 'cabecera_factura'
@@ -74,6 +74,7 @@ module DGII_MANAGER
 
     process[:cliente]           = parse_cliente(document)
     process[:fecha_vencimiento] = validate_fecha_vencimiento(document)
+    process[:ncf_modificado]    = document.ncf_modificado
 
     return parse_factura(process, document) if @is_factura
     return parse_nota(process, document)    if @is_nota
@@ -174,7 +175,7 @@ module DGII_MANAGER
 
     if cliente.nil?
       cliente_attributes          = {}
-      cliente_attributes[:nombre_completo] = document.NoCliente_nombre
+      cliente_attributes[:nombre_completo] = @is_factura ? document.NoCliente_nombre : document.no_cliente_nombre
     else
       cliente_attributes                           = cliente.attributes
       cliente_attributes[:nombre_completo]         = cliente.nombre_completo
@@ -231,13 +232,13 @@ module DGII_MANAGER
 
 
   # ========================================================================================================
-  # RECEPCION DE FACTURAS 
-  # ========================================================================================================  
+  # RECEPCION DE FACTURAS
+  # ========================================================================================================
 
   def self.reception(params)
     res      = Response.new
     client   = BaseRequest::Client.new('novac-dgii-reception')
-    
+
 
     begin
       response      = client.create_one(params)
@@ -256,7 +257,7 @@ module DGII_MANAGER
 
   # ========================================================================================================
   # VALIDATE COMMERCIAL APPROVAL
-  # ========================================================================================================  
+  # ========================================================================================================
 
   def self.validate_commercial_approval(params)
     res      = Response.new
@@ -270,7 +271,30 @@ module DGII_MANAGER
     end
 
     data_response = response.with_indifferent_access[:data]
-    
+
+    res.set_data(data_response.with_indifferent_access)
+
+    return res
+  end
+
+
+  # ========================================================================================================
+  # AUTHENTICATION TEST
+  # ========================================================================================================
+
+  def self.auth_test
+    res      = Response.new
+    client   = BaseRequest::Client.new('novac-dgii-test-authentication')
+
+    begin
+      response      = client.get_all()
+    rescue StandardError => e
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
+      response = e.with_indifferent_access
+    end
+
+    data_response = response.with_indifferent_access[:data]
+
     res.set_data(data_response.with_indifferent_access)
 
     return res

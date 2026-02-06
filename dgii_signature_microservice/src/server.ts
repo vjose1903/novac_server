@@ -1,13 +1,12 @@
 import express from 'express';
 import http from 'http';
 import { DgiiEcfService } from '@core/services/DgiiEcf.service'; // Importamos el servicio
-import { handleNovacDgiiReception, handleNovacDgiiRequest, handleNovacDgiiValidateCommercialApproval } from '@controllers/dgiiController';
+import { DgiiController } from '@controllers/dgiiController';
 import { DgiiAuthService } from '@core/services/DgiiAuth.service';
 import { ENVIRONMENT } from 'dgii-ecf';
 import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
 import { DgiiReceptionService } from '@core/services/DgiiReception.service';
 import { DgiiCommercialApprovalService } from '@core/services/DgiiCommercialApproval.service';
-
 
 if (process.env.ENV !== 'PROD') {
   printEnvironment(`DESARROLLO: ${ENVIRONMENT[process.env.ENV]}`);
@@ -28,7 +27,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Inicializar los servicios DGII en orden correcto
-DgiiAuthService.getInstance(); 
+DgiiAuthService.getInstance();
 DgiiEcfService.getInstance();
 
 DgiiReceptionService.getInstance();
@@ -41,9 +40,10 @@ app.use(express.json());
 const apiV1Router = express.Router();
 
 // Definir la ruta novac-dgii dentro del router /api/v1
-apiV1Router.post('/novac-dgii', handleNovacDgiiRequest);
-apiV1Router.post('/novac-dgii-reception', handleNovacDgiiReception);
-apiV1Router.post('/novac-dgii-validate-commercial-approval', handleNovacDgiiValidateCommercialApproval);
+apiV1Router.post('/novac-dgii', DgiiController.handleNovacDgiiRequest);
+apiV1Router.post('/novac-dgii-reception', DgiiController.handleNovacDgiiReception);
+apiV1Router.post('/novac-dgii-validate-commercial-approval', DgiiController.handleNovacDgiiValidateCommercialApproval);
+apiV1Router.get('/novac-dgii-test-authentication', DgiiController.handleNovacDgiiTestAuthentication);
 
 // Usar el router con el prefijo /api/v1
 app.use('/api/v1', apiV1Router);

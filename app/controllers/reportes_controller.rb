@@ -20,13 +20,24 @@ class ReportesController < ApplicationController
 
     elsif tipo_reporte == 'cuentas_cobrar'
       # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
-      body   = Reporte.get_cuentas_cobrar(params)
-      titulo = "Cuentas por cobrar #{ params[:tipo] == Report::CxC.por_cliente ? 'por cliente' : '' } #{ params[:tipo] == Report::CxC.por_cliente ? '' : params[:tipo] == Report::CxC.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+      if params[:tipo] == Report::CxC.historico
+        body   = Reporte.get_balance_cliente_historico(params)
+        titulo = "Cuentas por cobrar por cliente histórico"
+      else
+        body   = Reporte.get_cuentas_cobrar(params)
+        titulo = "Cuentas por cobrar #{ params[:tipo] == Report::CxC.por_cliente ? 'por cliente' : '' } #{ params[:tipo] == Report::CxC.por_cliente ? '' : params[:tipo] == Report::CxC.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+      end
+
 
       tipo_reporte   = 'cxc'               if params[:tipo] == Report::CxC.por_cliente
+      tipo_reporte   = 'cxc_historico'     if params[:tipo] == Report::CxC.historico
       tipo_reporte   = 'cxc_ant_detallado' if params[:tipo] == Report::CxC.detallado
       tipo_reporte   = 'cxc_ant_agrupado'  if params[:tipo] == Report::CxC.agrupado
 
+    elsif tipo_reporte == 'cxc_historico'
+      # ------------------- REPORTE DE CUENTAS POR COBRAR HISTORICO --------------------
+      body   = Reporte.get_balance_cliente_historico(params)
+      titulo = "Cuentas por cobrar histórico"
 
     elsif tipo_reporte == 'movimientos_vehiculo'
       # ------------------- REPORTE DE MOVIMIENTOS POR VEHICULO --------------------
@@ -60,7 +71,6 @@ class ReportesController < ApplicationController
       # ------------------- REPORTE DE CUENTAS POR COBRAR CLIENTES CON SUS PAGOS --------------------
       body       = Reporte.get_cuentas_con_pagos(params)
       titulo     = 'Facturas a crédito con sus pagos'
-      tipo_tabla = 'agrupado'
 
     elsif tipo_reporte == 'notas'
       # ------------------- REPORTE DE NOTAS --------------------

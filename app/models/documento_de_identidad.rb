@@ -12,7 +12,7 @@ class DocumentoDeIdentidad < ApplicationRecord
   def self.crear_actualizar_documento(params, padre, is_save=false)
     res = Response.new
 
-    documento                = DocumentoDeIdentidad.where(:id => params[:id]).first_or_create
+    documento                = DocumentoDeIdentidad.where(:id => params[:id]).first_or_initialize
 
     documento.descripcion    = params[:descripcion]
     documento.documento      = params[:documento]

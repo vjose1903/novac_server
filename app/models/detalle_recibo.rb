@@ -7,7 +7,7 @@ class DetalleRecibo < ApplicationRecord
   def self.crear_actualizar_detalle_recibo(params, padre, is_save=false)
     res = Response.new
 
-    detalle_recibo                              = DetalleRecibo.where(:id => params[:id]).first_or_create
+    detalle_recibo                              = DetalleRecibo.where(:id => params[:id]).first_or_initialize
 
     res_valid                                   = CabeceraFactura.calculateNextBalanceFactura(params[:cabecera_factura_id], params[:deposito])
     calculo_cabecera                            = res_valid.get_data

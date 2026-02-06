@@ -148,6 +148,7 @@ Rails.application.routes.draw do
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
       get "custom/:ruta_complemento"                              => "cabecera_facturas#custom_route"
       patch ":id/update/movimientos_viaje"                        => "cabecera_facturas#updateMovimientosViaje"
+      patch ":id/dgii/eNCF/replace"                               => "cabecera_facturas#remplace_encf"
     end
   end
 
@@ -166,7 +167,11 @@ Rails.application.routes.draw do
     post 'recepcion/api/ecf',           to: 'facturacion_electronica#recepcion'
     post 'aprobacioncomercial/api/ecf', to: 'facturacion_electronica#aprobacion_comercial'
   end
-  
+
+  scope :dgii do
+    get 'login/prueba',                   to: 'facturacion_electronica#login_prueba'
+  end
+
   resources :ecf_receptions, only: [:index, :show] do
     member do
       post 'approve_deny', to: 'ecf_receptions#approveDenyEcf'

@@ -19,6 +19,8 @@ const setup = {
     FRONTEND_HOST_SECONDARY: '8n3mw1zq-9093.use2.devtunnels.ms',
     EMAIL: 'novacdemo@gmail.com',
     MONTU: '1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn',
+		DGII_DATE: '',
+    HOST_ID: '10.0.0.9'
   },
   agrodemi: {
     ALMACEN: 'ADM',
@@ -29,10 +31,12 @@ const setup = {
     CORS_PORT: '5220',
     FRONT_PORT: '9090',
     DGII_MICROSERVICE_PORT: '9091',
-    FRONTEND_HOST: 'adm.inspot-technology.com',
+    FRONTEND_HOST: 'agrodemi.inspot-technology.com',
     FRONTEND_HOST_SECONDARY: 'admservidor.ddns.net',
     EMAIL: 'novacagrodemi@gmail.com',
     MONTU: '1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a',
+		DGII_DATE: '2025-05-15',
+		HOST_ID: '10.0.0.9'
   },
   brendy: {
     ALMACEN: 'panaderia_brendy',
@@ -47,6 +51,8 @@ const setup = {
     FRONTEND_HOST_SECONDARY: 'novac-brendy.ddns.net',
     EMAIL: 'novacbrendy@gmail.com',
     MONTU: '1C96yS20EDDyX7rgi2Y5OQju_4FQ8G5_C',
+		DGII_DATE: '',
+    HOST_ID: '10.0.0.9'
   },
   vasquez: {
     ALMACEN: 'vasquez_services',
@@ -61,6 +67,8 @@ const setup = {
     FRONTEND_HOST_SECONDARY: 'novac-vasquez.ddns.net',
     EMAIL: 'novacvasquez@gmail.com',
     MONTU: '17pDTnH139lHpSRj3_xoPWP8jJYHR0roa',
+		DGII_DATE: '',
+    HOST_ID: '10.0.0.9'
   },
 };
 

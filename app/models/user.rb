@@ -9,8 +9,8 @@ class User < ApplicationRecord
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
   accepts_nested_attributes_for :documentos_de_identidad
 
-  has_many :users_roles, dependent: :destroy
-  has_and_belongs_to_many :roles, join_table: :users_roles
+  # has_many :users_roles, dependent: :destroy
+  # has_and_belongs_to_many :roles, join_table: :users_roles
 
   has_many :roles_permisos_acciones, through: :roles
 
@@ -74,7 +74,7 @@ class User < ApplicationRecord
   def self.crear_actualizar_user(params , is_save=false)
     res                           = Response.new
     User.transaction do
-      user                        = User.where(:id => params["id"]).first_or_create
+      user                        = User.where(:id => params["id"]).first_or_initialize
 
       user.nombre                 = params["nombre"]
       user.apellido               = params["apellido"]

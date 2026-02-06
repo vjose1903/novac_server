@@ -1,5 +1,5 @@
 def pasar_notas
-  notas                    = CabeceraFactura.where({tipo_factura_id: [TiposNotasId.credito, TiposNotasId.debito]})
+  notas                    = CabeceraFactura.where({tipo_factura_id: [TiposNotasId.credito, TiposNotasId.debito, TiposNotasId.credito_electronica, TiposNotasId.debito_electronica]})
   notas.each do |nota|
 
     factura_aplicada       = CabeceraFactura.find_by_numero_comprobante(nota.aplicada_a)

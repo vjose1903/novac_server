@@ -48,20 +48,45 @@ class DetalleFacturaNota < ApplicationRecord
   def procesos_detalles_facturas_notas(params, nota)
     res                = Response.new
 
-		if nota.tipo_nota == TiposNotas.credito
-			operador         = nota["tipo_factura_id"] == TiposNotasId.credito ? "+" : "-"
-			fecha            = nota["fecha_equivalente"]
-			accion           = TiposNotas.get_tipo(nota["tipo_factura_id"])
+    tipos_nota_credito = [TiposNotasId.credito, TiposNotasId.credito_electronica]
 
-			if params['cantidad_en_unidades'] > 0
-				res_valid        = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, nota )
+		if tipos_nota_credito.include?(nota[:tipo_factura_id]) && params['cantidad_en_unidades'] > 0
+			operador         = '+'
+			fecha            = nota[:fecha_equivalente]
+			accion           = TiposNotas.get_tipo(nota[:tipo_factura_id])
 
-				unless res_valid.status_valid
-					res.add_msgs(res_valid.get_msgs.to_a)
-					res.set_status(HTTP_STATUS_CODE[:conflict])
-				end
-			end
+      res_valid        = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, nota )
+
+      unless res_valid.status_valid
+        res.add_msgs(res_valid.get_msgs.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
 		end
+
+    return res
+  end
+
+  #  --------------------------------------------------------------------------------------------------------------------------------
+
+  def procesos_remover_detalles_facturas_notas
+    res                = Response.new
+
+    tipo_nota = self.tipo_nota
+
+    if tipo_nota == TiposNotas.credito && self.cantidad_en_unidades > 0
+      operador         = '-'
+      fecha            = self.factura_aplicada.nota.fecha_equivalente
+      accion           = "devolución de #{TiposNotas.get_tipo(self.tipo_factura_id)}"
+
+      res_valid        = MovimientosInventario.movimientos_de_inventario(self, operador, fecha, accion, self.factura_aplicada.nota )
+
+      unless res_valid.status_valid
+        res.add_msgs(res_valid.get_msgs.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+    end
+
+    # TODO: colocar condicion para notas de debito
 
     return res
   end

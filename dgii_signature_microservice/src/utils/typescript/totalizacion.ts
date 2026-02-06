@@ -31,14 +31,19 @@ export class Totalizacion {
     if (totales.MontoGravadoI1) totales.MontoGravadoTotal = totales.MontoGravadoI1;
     totales.TotalITBIS = totales.TotalITBIS1;
 
-    totales.MontoTotal = Number(redondearNum((totales.MontoGravadoTotal || 0) + (totales.MontoExento || 0) + (totales.TotalITBIS || 0)));
+    totales.MontoTotal = (totales.MontoGravadoTotal || 0) + (totales.MontoExento || 0) + (totales.TotalITBIS || 0);
     // totales.ValorPagar = totales.MontoTotal;
+
+    for (const key in totales) {
+      if (totales[key] !== null) {
+        totales[key] = Number(redondearNum(totales[key]));
+      }
+    }
 
     return totales;
   }
 
   evaluateFactura(items_itbis: DetalleFacturaI[], items_no_itbis: DetalleFacturaI[], totales: TotalI) {
-
     if (items_itbis.length > 0) {
       totales.MontoGravadoI1 = items_itbis.reduce((acc, item) => acc + (item.precio * item.cantidad - item.descuento_valor), 0);
 

@@ -16,7 +16,7 @@ class FormulasProductosTerminado < ApplicationRecord
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
     res = Response.new
-		formula                   = FormulasProductosTerminado.where(:id => params["id"]).first_or_create
+		formula                   = FormulasProductosTerminado.where(:id => params["id"]).first_or_initialize
 
     formula.cantidad          = params["cantidad"]
     formula.articulo_combo    = params["articulo_combo"]

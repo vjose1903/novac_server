@@ -3,12 +3,12 @@ class RolesController < ApplicationController
 
   # GET /roles
   def index
-    return Response.new(params, nil, Role.all.order('id DESC'), nil, get_parametros_opcionales).send_response self
+    return Response.new(params, nil, Role.all.order('id DESC'), nil, get_parametros_opcionales, Role.models_includes).send_response self
   end
 
 	# GET /roles/1
 	def show
-		return Response.new(params, nil, @role, nil, get_parametros_opcionales).send_response self
+		return Response.new(params, nil, @role, nil, get_parametros_opcionales, Role.models_includes).send_response self
 	end
 
   def getRolesFiltrados

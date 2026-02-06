@@ -5,7 +5,7 @@ class ChoferViaje < ApplicationRecord
   def self.crear_actualizar_chofer_viaje(params, padre, is_save=false)
     res = Response.new
 
-    chofer_viaje                = ChoferViaje.where(:id => params["id"]).first_or_create
+    chofer_viaje                = ChoferViaje.where(:id => params["id"]).first_or_initialize
 
     chofer_viaje.user_id        = params["user_id"]
     chofer_viaje.valid?

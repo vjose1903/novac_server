@@ -19,7 +19,7 @@ class Suplidor < ApplicationRecord
     res                          = Response.new
     Suplidor.transaction do
 
-      suplidor                   = Suplidor.where(:id => params["id"]).first_or_create
+      suplidor                   = Suplidor.where(:id => params["id"]).first_or_initialize
 
       suplidor.nombre            = params["nombre"]
       suplidor.telefono          = params["telefono"]

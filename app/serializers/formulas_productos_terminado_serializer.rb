@@ -12,27 +12,22 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   attribute :contenido,                 if: Proc.new { self.get_param('contenido') || self.get_param('all') }
 
   def articulo_combo
-    begin
-      @articulo_combo = Articulo.find_by_id(object.articulo_combo)
-    rescue
-      @articulo_combo = Articulo.find_by_id(object.articulo_combo_id)
-    end
-
-    @articulo_combo
+    object.articulo_combo
   end
 
   def nombre
-    @articulo_combo.nombre
+    articulo_combo_object&.nombre
   end
 
   def existencia
-    calcularCantidades(@articulo_combo)
+    return {} unless articulo_combo_object
+    calcularCantidades(articulo_combo_object)
   end
 
   def contenido
-    calcularContenidos(@articulo_combo)
+    return {} unless articulo_combo_object
+    calcularContenidos(articulo_combo_object)
   end
-
 
   def calcularContenidos(articulo, sacos = true)
 
@@ -96,6 +91,16 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
     return cantidades
   end
 
+  private
+
+  def articulo_combo_object
+    # Cache por thread para evitar consultas repetidas del mismo artículo
+    Thread.current[:articulos_cache] ||= {}
+    
+    return Thread.current[:articulos_cache][object.articulo_combo] if Thread.current[:articulos_cache].key?(object.articulo_combo)
+    
+    Thread.current[:articulos_cache][object.articulo_combo] = Articulo.find_by_id(object.articulo_combo)
+  end
 
   def get_param(col)
     return @instance_options[:"#{col}"]

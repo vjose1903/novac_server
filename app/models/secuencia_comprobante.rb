@@ -19,7 +19,7 @@ class SecuenciaComprobante < ApplicationRecord
     res_valid                  = Response.new
     SecuenciaComprobante.transaction do
 
-      ncf                      = SecuenciaComprobante.where(:id => params[:id]).first_or_create
+      ncf                      = SecuenciaComprobante.where(:id => params[:id]).first_or_initialize
 
       if ncf.estado && params[:desde] != ncf.desde
         res.add_msg("Este paquete ya esta en uso no puede cambiar el inicio del paquete.")

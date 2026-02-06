@@ -19,27 +19,27 @@ class Role < ApplicationRecord
   def self.create_update_role(params)
     res = Response.new
 
-    role                = Role.where(:id => params["id"]).first_or_create
+    role                = Role.where(:id => params[:id]).first_or_initialize
 
-    role.nombre         = params["nombre"]
-    role.descripcion    = params["descripcion"]
-    role.ruta_defecto   = params["ruta_defecto"] || nil
-    role.estado         = params["estado"]
+    role.nombre         = params[:nombre]
+    role.descripcion    = params[:descripcion]
+    role.ruta_defecto   = params[:ruta_defecto] || nil
+    role.estado         = params[:estado]
 
     role.valid?
 
-    params["roles_permisos_acciones"]  = []
+    params[:roles_permisos_acciones]  = []
 
-    params["permisos_acciones"].each do | item |
-      rol_permiso_accion_created     = RolPermisoAccion.find_by({"role_id": role.id, "permiso_accion_id": item})
-      role_permiso_accion_en_turno   = role.id  && !rol_permiso_accion_created.nil? ? rol_permiso_accion_created : {"role_id": nil, "permiso_accion_id": item}
+    params[:permisos_acciones].each do | item |
+      rol_permiso_accion_created     = RolPermisoAccion.find_by({'role_id': role.id, 'permiso_accion_id': item})
+      role_permiso_accion_en_turno   = role.id  && !rol_permiso_accion_created.nil? ? rol_permiso_accion_created : {'role_id': nil, 'permiso_accion_id': item}
 
-      params["roles_permisos_acciones"].push(role_permiso_accion_en_turno)
+      params[:roles_permisos_acciones].push(role_permiso_accion_en_turno)
     end
 
 
     dependencias = [
-      {modelo: RolPermisoAccion, key_object: "roles_permisos_acciones", padre: role},
+      {modelo: RolPermisoAccion, key_object: 'roles_permisos_acciones', padre: role},
     ]
 
     res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
@@ -47,9 +47,9 @@ class Role < ApplicationRecord
     }
 
     if res.status_valid && role.errors.empty? && role.valid? && role.save!
-      action = params["id"] ? 'actualizado' : 'creado'
+      action = params[:id] ? 'actualizado' : 'creado'
       res.add_msg("Rol #{action} correctamente.")
-      res.set_data(role)
+      res.set_data(role, { all: true, permisos_acciones: true }, Role.models_includes)
     else
       res.add_msgs(role.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -65,14 +65,14 @@ class Role < ApplicationRecord
 
     roles = Role
     .where("lower(roles.nombre || ' ' || roles.descripcion) like lower('%#{arg}%')  AND roles.estado = true")
-    .order("roles.id ASC")
+    .order('roles.id ASC')
 
     if roles.length > 0
       res.set_data(roles, {permisos_acciones: true, all:true}, Role.models_includes)
     else
       res.set_data([])
       cantidad_registros = Role.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen roles registrados." : "No existen roles con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? 'No existen roles registrados.' : 'No existen roles con las especificaciones introducidas')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

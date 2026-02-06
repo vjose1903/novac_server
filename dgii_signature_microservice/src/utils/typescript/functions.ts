@@ -159,32 +159,73 @@ export function getProperty(obj: any, prop: string) {
   return value ?? null;
 }
 
+interface RetryUntilParams {
+  task: () => Promise<any>;
+  retryWhen: (response: any) => boolean;
+  onSuccess: (response: any) => void;
+  onError: () => void;
+  delayBetweenRetries?: number;
+  retryMax?: number;
+  retryCount?: number;
+  logError?: boolean;
+  useBackoff?: boolean;
+  maxBackoffDelay?: number;
+}
+
 /**
  * Nombre: retryUntil
  * Descripción: Esta función reintenta una tarea hasta que se cumpla una condición o se alcance un número máximo de intentos.
- * @param task La función asíncrona que ejecuta la tarea.
- * @param retryWhen Función que determina si se debe reintentar (retorna true para reintentar).
- * @param actionAfterRetry Función a ejecutar cuando la tarea es exitosa.
- * @param actionIfNoSuccess Función a ejecutar si se alcanza el número máximo de intentos sin éxito.
- * @param delayBetweenRetries Tiempo de espera entre reintentos en milisegundos (por defecto 500).
- * @param retryMax Número máximo de reintentos (por defecto 20).
- * @param retryCount Contador actual de reintentos (por defecto 0).
- * @param logError Indica si se deben registrar errores en consola (por defecto false).
- * @example retryUntil(fetchData, res => !res.data, data => processData(data), () => handleError(), 1000, 5)
+ * @param params Objeto con los parámetros:
+ *   - task: Función asíncrona que ejecuta la tarea
+ *   - retryWhen: Función que determina si se debe reintentar (retorna true para reintentar)
+ *   - onSuccess: Función a ejecutar cuando la tarea es exitosa
+ *   - onError: Función a ejecutar si se alcanza el máximo de intentos sin éxito
+ *   - delayBetweenRetries: Tiempo base entre reintentos en ms (default: 500)
+ *   - retryMax: Número máximo de reintentos (default: 20)
+ *   - retryCount: Contador actual de reintentos (default: 0) - uso interno
+ *   - logError: Registrar errores en consola (default: false)
+ *   - useBackoff: Usar backoff exponencial (default: false)
+ *   - maxBackoffDelay: Delay máximo en backoff exponencial en ms (default: 2000)
+ * @example retryUntil({ task: fetchData, retryWhen: res => !res.data, onSuccess: processData, onError: handleError, useBackoff: true })
  */
-export function retryUntil(task: any, retryWhen: any, actionAfterRetry: any, actionIfNoSuccess: any, delayBetweenRetries = 500, retryMax = 20, retryCount = 0, logError = false) {
-  task().then((response: any) => {
-    const hasRetries = retryCount < retryMax;
+export function retryUntil(params: RetryUntilParams) {
+  const { task, retryWhen, onSuccess, onError, delayBetweenRetries = 500, retryMax = 20, retryCount = 0, logError = false, useBackoff = false, maxBackoffDelay = 2000 } = params;
 
-    if (hasRetries && retryWhen(response)) {
-      setTimeout(() => {
-        retryUntil(task, retryWhen, actionAfterRetry, actionIfNoSuccess, delayBetweenRetries, retryMax, ++retryCount, logError);
-      }, delayBetweenRetries);
-    } else if (!hasRetries) {
-      if (logError) console.error('Max numbers of retries -');
-      actionIfNoSuccess();
-    } else {
-      actionAfterRetry(response);
-    }
-  });
+  const calculateDelay = (count: number): number => {
+    if (!useBackoff) return delayBetweenRetries;
+    // Backoff exponencial: delayBase * 2^retryCount, con máximo
+    return Math.min(delayBetweenRetries * Math.pow(1.25, count), maxBackoffDelay);
+  };
+
+  const scheduleRetry = () => {
+    const delay = calculateDelay(retryCount);
+    setTimeout(() => {
+      retryUntil({ ...params, retryCount: retryCount + 1 });
+    }, delay);
+  };
+
+  task()
+    .then((response: any) => {
+      const hasRetries = retryCount < retryMax;
+
+      if (hasRetries && retryWhen(response)) {
+        scheduleRetry();
+      } else if (!hasRetries) {
+        if (logError) console.error('Max numbers of retries reached');
+        onError();
+      } else {
+        onSuccess(response);
+      }
+    })
+    .catch((error: any) => {
+      const hasRetries = retryCount < retryMax;
+
+      if (logError) console.error('Error in retry task:', error);
+
+      if (hasRetries) {
+        scheduleRetry();
+      } else {
+        onError();
+      }
+    });
 }

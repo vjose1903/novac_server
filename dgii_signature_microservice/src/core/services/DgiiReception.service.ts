@@ -10,16 +10,23 @@ import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
 
 export class DgiiReceptionService {
   private static instance: DgiiReceptionService;
-  private ecf!: ECF;
-  private signature!: Signature;
   private queue: Queue;
   private environment: any;
   private received_folder: string;
   private acuse_emitted_folder: string;
-  
+
   private senderReceiver: SenderReceiver;
   private authService: DgiiAuthService;
   private googleDrive: GoogleDriveUtils;
+
+  // Getters dinámicos para obtener siempre las referencias actualizadas
+  private get ecf(): ECF {
+    return this.authService.ecf;
+  }
+
+  private get signature(): Signature {
+    return this.authService.signature;
+  }
 
   private constructor() {
     this.initialize();
@@ -41,10 +48,6 @@ export class DgiiReceptionService {
 
     this.googleDrive = await GoogleDriveUtils.getInstance();
 
-    this.ecf = this.authService.ecf;
-    this.signature = this.authService.signature;
-
-
     this.senderReceiver = new SenderReceiver();
   }
 
@@ -54,17 +57,15 @@ export class DgiiReceptionService {
         .validateToken()
         .then(async () => {
           try {
-
             const xml = data.xml;
             const fileName = data.fileName;
 
-            
             const ecfData = this.senderReceiver.getECFDataFromXML(xml, this.environment.RNC_EMISOR, ReceivedStatus['e-CF Recibido']);
             const signedXml = this.signature.signXml(ecfData, rootElNameE.ARECF);
-            
+
             await this.googleDrive.uploadFile(this.received_folder, xml, fileName);
             await this.googleDrive.uploadFile(this.acuse_emitted_folder, signedXml, fileName.replace('.xml', '_emitted.xml'));
-            
+
             resolve({ success: true, data: signedXml, message: '' });
           } catch (error) {
             console.error('error =================> ', error);
@@ -99,12 +100,16 @@ export class DgiiReceptionService {
           return;
         }
 
-        const taskGetStatus = () => this.ecf.statusTrackId(sendResponse.trackId);
-        const reintentarSi = (response: TrackingStatusResponse) => response.estado === TrackStatusEnum.IN_PROCESS;
-        const errorFunction = () => reject({ success: false, message: 'Error al obtener el estado de la factura.', secuenciaUtilizada: false });
-        const returnResponse = (response: TrackingStatusResponse) => resolve(response);
-
-        retryUntil(taskGetStatus, reintentarSi, returnResponse.bind(this), errorFunction);
+        retryUntil({
+          task: () => this.ecf.statusTrackId(sendResponse.trackId),
+          retryWhen: (response: TrackingStatusResponse) => response.estado === TrackStatusEnum.IN_PROCESS,
+          onSuccess: resolve,
+          onError: () => reject({ success: false, message: 'Error al obtener el estado de la factura.', secuenciaUtilizada: false }),
+          delayBetweenRetries: 200,
+          retryMax: 15,
+          useBackoff: true,
+          maxBackoffDelay: 2000,
+        });
       } catch (error) {
         reject({ success: false, message: error.message || 'Error al obtener el estado de la factura.' });
       }

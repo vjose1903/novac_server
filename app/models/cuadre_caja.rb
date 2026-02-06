@@ -5,7 +5,7 @@ class CuadreCaja < ApplicationRecord
     res              = Response.new
     current_user     = get_current_user
 
-    fecha            = params["fecha"] ? params["fecha"] : DateTime.now
+    fecha            = params[:fecha] ? params[:fecha] : DateTime.now
     cuadre           = CuadreCaja.where("fecha_equivalente::date='#{fecha}'").includes(:user)
 
 
@@ -13,9 +13,33 @@ class CuadreCaja < ApplicationRecord
       ventas_credito_total_facturado_ = 0
       ventas_contado_total_facturado_ = 0
 
-      ventas_contado_total_facturado_    = CabeceraFactura.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado'").sum(:total_factura)
-      ventas_credito_total_facturado_    = CabeceraFactura.where("fecha_equivalente::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='crédito'").sum(:total_factura)
-      recibos_ingresos_                  = RecibosIngreso.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}'").sum(:total)
+      # Totales base de facturas
+      ventas_contado_total_facturado_    = CabeceraFactura.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado' AND estado=true").sum(:total_factura)
+      ventas_credito_total_facturado_    = CabeceraFactura.where("fecha_equivalente::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='crédito' AND estado=true").sum(:total_factura)
+
+      # Ajustes por notas de crédito/débito en una consulta SQL directa
+      ajuste_contado = FacturaAplicada.joins(:cabecera_factura, :tipo_factura)
+        .where("cabecera_facturas.forma_pago IN ('Efectivo', 'Cheque', 'Tarjeta', 'Transferencia') 
+                AND cabecera_facturas.fecha_equivalente::date = '#{fecha}' 
+                AND cabecera_facturas.fecha_completada::date = '#{fecha}' 
+                AND LOWER(cabecera_facturas.tipo) = 'venta' 
+                AND LOWER(cabecera_facturas.condicion) = 'contado' 
+                AND cabecera_facturas.estado = true
+                AND tipo_facturas.key IN ('nota_de_credito', 'nota_de_debito')")
+        .sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
+
+      ajuste_credito = FacturaAplicada.joins(:cabecera_factura, :tipo_factura)
+        .where("cabecera_facturas.fecha_equivalente::date = '#{fecha}' 
+                AND LOWER(cabecera_facturas.tipo) = 'venta' 
+                AND LOWER(cabecera_facturas.condicion) = 'crédito' 
+                AND cabecera_facturas.estado = true
+                AND tipo_facturas.key IN ('nota_de_credito', 'nota_de_debito')")
+        .sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
+
+      ventas_contado_total_facturado_ += ajuste_contado || 0
+      ventas_credito_total_facturado_ += ajuste_credito || 0
+
+      recibos_ingresos_                  = RecibosIngreso.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}' AND estado=true").sum(:total)
 
       obj = {
         user_id:              current_user.id,

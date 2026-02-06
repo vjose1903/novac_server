@@ -44,11 +44,6 @@ class String
   end
 end
 
-# ---------------------------------------------------------------------------------------------------------
-def calculateDateUTC(dateTime)
-  return "#{dateTime.getlocal.strftime("%Y-%m-%d")} #{dateTime.getlocal.strftime("%H:%M:%S")}"
-end
-
 def pruebaArchivo()
 	archivo = "#{PROJECT_PATH}prueba.rb"
 

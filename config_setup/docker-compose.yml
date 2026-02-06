@@ -21,8 +21,9 @@ services:
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
       MONTU: "$$MONTU$$"
-      VIRTUAL_HOST: "localhost,novac.loca.lt"
+      VIRTUAL_HOST: "localhost,novac.loca.lt,10.0.0.252"
       API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-dev:$$DGII_MICROSERVICE_PORT$$"
+      DGII_CERTIFICATION_DATE: "$$DGII_DATE$$"
     expose:
       - "$$DB_PORT$$"
     depends_on:
@@ -40,6 +41,8 @@ services:
       - ./dgii_signature_microservice/.env
     environment:
       ENV: "DEV"
+      NODE_ENV: "development"
+      NODE_OPTIONS: "--trace-deprecation"
     expose:
       - "9091"
     volumes:
@@ -59,4 +62,25 @@ services:
       - $$ENVIRONMENT_NAME_IMG$$
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./logs/nginx:/var/log/nginx
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  fail2ban:
+    image: crazymax/fail2ban:latest
+    container_name: fail2ban
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./fail2ban/data:/data
+      - ./logs/nginx:/var/log/nginx:ro 
+      - /etc/localtime:/etc/localtime:ro 
+    environment:
+      TZ: "America/Santo_Domingo"
+    restart: unless-stopped
 

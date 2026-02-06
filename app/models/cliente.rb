@@ -1,4 +1,5 @@
 class Cliente < ApplicationRecord
+  after_initialize :init, if: :new_record?
 
   belongs_to :imagen,    optional: true
   belongs_to :municipio, optional: true,                  class_name: 'Municipio'
@@ -42,7 +43,7 @@ class Cliente < ApplicationRecord
     res                            = Response.new
     Cliente.transaction do
 
-      cliente                      = Cliente.where(:id => params[:id]).first_or_create
+      cliente                      = Cliente.where(:id => params[:id]).first_or_initialize
 
       cliente.imagen_id            = params[:imagen_id]                       if params.obj_has?(:imagen_id)
       cliente.nombre               = params[:nombre]                          if params.obj_has?(:nombre)
@@ -146,9 +147,13 @@ class Cliente < ApplicationRecord
       data['balances']['total_facturado'] += factura.total_factura
       data['balances']['debiendo']        += factura.balance
 
-      facturas_aplicadas                   = factura.facturas_aplicadas
-      notas_credito                        = facturas_aplicadas.select { | factura_aplicada | factura_aplicada.nota.tipo_factura_id == TiposNotasId.credito }
-      notas_debito                         = facturas_aplicadas.select { | factura_aplicada | factura_aplicada.nota.tipo_factura_id == TiposNotasId.debito }
+      facturas_aplicadas = factura.facturas_aplicadas.select { |factura_aplicada| factura_aplicada.nota.estado }
+
+      tipos_nota_credito = [TiposNotasId.credito, TiposNotasId.credito_electronica]
+      notas_credito      = facturas_aplicadas.select { | factura_aplicada | tipos_nota_credito.include?(factura_aplicada.nota.tipo_factura_id) }
+
+      tipos_nota_debito  = [TiposNotasId.debito, TiposNotasId.debito_electronica]
+      notas_debito       = facturas_aplicadas.select { | factura_aplicada | tipos_nota_debito.include?(factura_aplicada.nota.tipo_factura_id) }
 
       data['balances']['notas_credito']   += notas_credito.reduce(0) { | acu, item |  (item.total).abs + acu }
       data['balances']['notas_debito']    += notas_debito.reduce(0) { | acu, item |  (item.total).abs + acu }
@@ -199,16 +204,16 @@ class Cliente < ApplicationRecord
     new_balance                  = eval "#{balance} #{operacion} #{totalFactura.to_f}"
     new_balance                  = new_balance.to_d.truncate(2).to_f
     cliente.balance              = new_balance
-    
+
     cliente.valid?
-    
+
     if !cliente.errors.empty? || !cliente.save!
       res.add_msgs(cliente.errors.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-    
+
     return res
   end
-  
+
   private
 end

@@ -12,7 +12,7 @@ class MantenimientoArticulo < ApplicationRecord
       secuencia                              = "#{Time.now.to_i}#{parametros["id"]}"
 
       historico.articulo_id                  = parametros["id"]
-      historico.user_id                      = get_current_user['id']
+      historico.user_id                      = get_current_user[:id]
       historico.ant_nombre                   = parametros["nombre"]
       historico.ant_tipoArticuloId           = parametros["tipo_articulo_id"]
       historico.ant_medida                   = parametros["medida"]
@@ -172,7 +172,6 @@ class MantenimientoArticulo < ApplicationRecord
       formulaArticulo
 
       formulas.to_a.each do |f|
-        puts "f ==> ".green + " #{f.to_json}"
         obj_formula = f.slice(:articulo_id, :articulo_combo, :cantidad, :costo, :precio, :medida)
         obj_formula["id"]               = f["formula_id"]
 
@@ -183,6 +182,13 @@ class MantenimientoArticulo < ApplicationRecord
     end
 
     return articuloHistorico
+  end
+
+  def self.get_multiple_historicos_by_date(fecha, articulo_ids)
+    # Una sola consulta para obtener todos los históricos necesarios
+    where("created_at <= ? AND articulo_id IN (?)", fecha, articulo_ids)
+      .select("DISTINCT ON (articulo_id) *")
+      .order("articulo_id, created_at DESC")
   end
 end
 

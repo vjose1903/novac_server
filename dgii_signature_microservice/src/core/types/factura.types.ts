@@ -40,6 +40,10 @@ export interface FacturaI {
   tiene_nota: boolean;
   cliente?: ClienteI | null;
   document_type: documentTypeT;
+  is_ncf_modificado?: boolean;
+  ncf_modificado?: string;
+  ncf_modificado_por_id?: number;
+  ncf_modificado_at?: Date;
   [key: string]: any;
 }
 

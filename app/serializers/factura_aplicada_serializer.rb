@@ -1,9 +1,10 @@
 class FacturaAplicadaSerializer < ActiveModel::Serializer
-	attribute :id,                            if: Proc.new { self.get_param('id') || self.get_param('all') }
-	attribute :total,                         if: Proc.new { self.get_param('total') || self.get_param('all') }
-	attribute :cabecera_factura,              if: Proc.new { self.get_param('cabecera_factura') || self.get_param('all') }
-	attribute :detalles_facturas_notas,       if: Proc.new { self.get_param('detalles_facturas_notas') || self.get_param('all') }
-
+	attribute :id,                            if: Proc.new { self.get_param('all') || self.get_param('id')  }
+	attribute :total,                         if: Proc.new { self.get_param('all') || self.get_param('total')  }
+	attribute :cabecera_factura,              if: Proc.new { self.get_param('all') || self.get_param('cabecera_factura')  }
+	attribute :detalles_facturas_notas,       if: Proc.new { self.get_param('all') || self.get_param('detalles_facturas_notas')  }
+	attribute :fecha_equivalente,             if: Proc.new { self.get_param('all') || self.get_param('fecha_equivalente') }
+	
 	attribute :numero_comprobante,            if: Proc.new { self.get_param('numero_comprobante') }
 	attribute :user_id,                       if: Proc.new { self.get_param('user_id') }
 	attribute :estado,                        if: Proc.new { self.get_param('estado') }
@@ -18,9 +19,14 @@ class FacturaAplicadaSerializer < ActiveModel::Serializer
 		serialize_parser(object.detalles_facturas_notas, {all: true})
 	end
 
+	def fecha_equivalente
+		object.nota.fecha_equivalente
+	end
+	
 	def numero_comprobante
 		object.nota.numero_comprobante
 	end
+
 
 	def user_id
 		object.nota.user_id

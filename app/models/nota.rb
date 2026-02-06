@@ -3,11 +3,15 @@ class Nota < ApplicationRecord
   belongs_to :user
   belongs_to :tipo_factura
 
+  has_many :facturas_aplicadas,      dependent: :destroy
+  has_many :detalles_facturas_notas, through: :facturas_aplicadas, dependent: :destroy
+
+  has_one  :document_reference_as_origin,     :as => :document_origin,     dependent: :destroy, class_name: 'DocumentReference'
+  has_one  :document_reference_as_referenced, :as => :document_referenced, dependent: :destroy, class_name: 'DocumentReference'
+
   validates :user,      presence: { :message => 'Falta el usuario creador de la nota.' }
   validates :total,     presence: { :message => 'El total de la nota no puede estar vacio.' }
 
-  has_many :facturas_aplicadas, dependent: :destroy
-  has_many :detalles_facturas_notas, through: :facturas_aplicadas, dependent: :destroy
 
   def self.models_includes
     includes = [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, {facturas_aplicadas: :cabecera_factura}, {detalles_facturas_notas: [:articulo, :detalle_factura]} ]
@@ -15,7 +19,12 @@ class Nota < ApplicationRecord
   end
 
   def self.create_nota(params)
-    res                                     = Response.new
+    res                                    = Response.new
+    @tipo_de_factura                       = TipoFactura.find_by_id(params[:tipo_factura_id])
+    @is_electronica                        = params[:serie].present? && params[:serie] == SerieFactura.electronica
+    @increment_secuencia_comprobante       = false
+    @res_valid_dgii                        = nil
+
     Nota.transaction do
 
       res_check_facturas                    = Nota.check_facturas(params)
@@ -35,13 +44,15 @@ class Nota < ApplicationRecord
             res_valid                       = Response.new
 
             # NOTA DE CREDITO
-            if params[:cliente_id] && params[:tipo_factura_id] == TiposNotasId.credito
+            tipos_nota_credito = [TiposNotasId.credito, TiposNotasId.credito_electronica]
+            if params[:cliente_id] && tipos_nota_credito.include?(params[:tipo_factura_id])
               res_valid                     = Cliente.calculate_balance_cliente(params[:cliente_id], params[:total].to_f.abs, '-', true)
             end
 
 
             # NOTA DE DEBITO
-            if res_valid.status_valid && params[:cliente_id] && params[:tipo_factura_id] == TiposNotasId.debito
+            tipos_nota_debito = [TiposNotasId.debito, TiposNotasId.debito_electronica]
+            if res_valid.status_valid && params[:cliente_id] && tipos_nota_debito.include?(params[:tipo_factura_id])
               res_valid                     = Cliente.calculate_balance_cliente(params[:cliente_id], params[:total].to_f.abs, '+')
             end
 
@@ -78,13 +89,30 @@ class Nota < ApplicationRecord
                 nota.identificador          = Nota.makeIdentificador(nota)
 
                 if nota.save!
+                  if @is_electronica
+                    @res_valid_dgii                 = DGII_MANAGER.send(nota) if @is_electronica
+                    
+                    data_response_dgii              = @res_valid_dgii.get_data
+
+                    if data_response_dgii[:secuenciaUtilizada]
+                      @increment_secuencia_comprobante = true
+                    else
+                      result_revert = nota.revert_movimientos_facturas
+
+                      unless result_revert.status_valid
+                        return result_revert
+                      end
+                    end
+                  else
+                    @increment_secuencia_comprobante = true
+                  end
 
                   res_valid                 = Nota.update_secuencias(data_secuencias)
 
                   if res_valid.status_valid
                     res.set_data(nota, {all: true})
 
-                    realizando = params[:tipo_factura_id] == TiposNotasId.credito ? 'Nota de crédito' : 'Nota de debito'
+                    realizando = nota.tipo_factura.descripcion
                     res.add_msg("#{realizando} creada correctamente.")
                   else
                     res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -123,9 +151,23 @@ class Nota < ApplicationRecord
       end
 
       raise ActiveRecord::Rollback unless res.status_valid
-
     end
+
+    res = @res_valid_dgii if !@res_valid_dgii.nil? && !@res_valid_dgii.status_valid
+
     return res
+  end
+
+  # ===================================================================================================================================================
+
+  def revert_movimientos_facturas
+    self.facturas_aplicadas.each do | factura_aplicada |
+      factura_aplicada.cabecera_factura.reload
+      result_revert = factura_aplicada.cabecera_factura.retirar_nota_a_cabecera_factura(factura_aplicada)
+      return result_revert unless result_revert.status_valid
+    end
+
+    return Response.new
   end
 
   # ===================================================================================================================================================
@@ -187,7 +229,7 @@ class Nota < ApplicationRecord
       :numero_comprobante         => nil,
     }
 
-    tipoFactura                                   = TipoFactura.find_by_id(params[:tipo_factura_id])
+
     res_actual_paquete                            = SecuenciaComprobante.get_paquete_rnc_by_estado(params[:tipo_factura_id], true)
 
     return res_actual_paquete unless res_actual_paquete.status_valid
@@ -196,13 +238,30 @@ class Nota < ApplicationRecord
     next_secuencia_comprobante                    = data_secuencias[:actual_paquete_comprobante][:secuencia]
 
 
-    data_secuencias[:actual_secuencia_nota]       = tipoFactura.secuencia_factura
+    data_secuencias[:actual_secuencia_nota]       = @tipo_de_factura.secuencia_factura
     data_secuencias[:numero_documento]            = data_secuencias[:actual_secuencia_nota][:secuencia] + 1
 
-    data_secuencias[:numero_comprobante]          = "B#{tipoFactura.referencia}#{"%08d" % next_secuencia_comprobante}"
+    numero_comprobante                            = Nota.format_comprobante(next_secuencia_comprobante, params)
+    data_secuencias[:numero_comprobante]          = numero_comprobante
+
+    
 
     res.set_data(data_secuencias)
     return res
+  end
+
+  # ===================================================================================================================================================
+
+  def self.format_comprobante(next_secuencia_comprobante, params)
+    comprobante = nil
+
+    serie_indicator                        = @is_electronica ? 'E' : 'B'
+    secuencial_length                      = @is_electronica ? '10' : '8'
+
+    # data_secuencias[:numero_comprobante]   = "B#{@tipo_de_factura.referencia}#{"%08d" % next_secuencia_comprobante}"
+    comprobante                            = "#{serie_indicator}#{@tipo_de_factura.referencia}#{"%0#{secuencial_length}d" % next_secuencia_comprobante}"
+
+    comprobante
   end
 
   # ===================================================================================================================================================
@@ -231,18 +290,28 @@ class Nota < ApplicationRecord
   def self.update_secuencias(data_secuencias)
     res   = Response.new
 
-    res_aumento  = nil
-    res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id]) if data_secuencias[:actual_paquete_comprobante][:is_paquete]
+    if data_secuencias[:actual_secuencia_nota].update({ secuencia: data_secuencias[:numero_documento] })
+      res_aumento  = nil
+      puts " "
+      puts " "
+      puts " "
+      puts "@increment_secuencia_comprobante >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{@increment_secuencia_comprobante}"
+      puts " "
+      puts " "
+      puts " "
+      if @increment_secuencia_comprobante
+        res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id]) if data_secuencias[:actual_paquete_comprobante][:is_paquete]
+      end
 
-    if !res_aumento.nil? && res_aumento.status_valid
-
-      unless data_secuencias[:actual_secuencia_nota].update({ secuencia: data_secuencias[:numero_documento] })
-        res.add_msg('Error actualizando la tabla de secuencia de notas.')
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+      unless res_aumento.nil?
+        unless res_aumento.status_valid
+          res.add_msgs(res_aumento.get_msgs.to_a)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
       end
 
     else
-      res.add_msgs(!res_aumento.nil? ? res_aumento.get_msgs.to_a : "Error creando la nota.")
+      res.add_msg("Error actualizando la tabla de secuencia de notas")
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -264,12 +333,12 @@ class Nota < ApplicationRecord
     arg         = params[:arg]
     tipo_nota   = params[:tipo_nota] || nil
 
-    query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')  AND notas.estado = true"
-    
+    query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')"
+
     if tipo_nota.present?
       referencias = tipo_nota.split(',').map(&:strip)
       query += " AND tipo_facturas.referencia IN (?)"
-      
+
       notas = Nota
         .joins('left join clientes on clientes.id = notas.cliente_id inner join tipo_facturas on tipo_facturas.id = notas.tipo_factura_id')
         .where(query, referencias)
@@ -285,12 +354,20 @@ class Nota < ApplicationRecord
       res.set_data(notas, { all: true }, Nota.models_includes)
     else
       res.set_data([])
-      cantidad_registros = Nota.where({estado: true}).count
+      cantidad_registros = Nota.count
       res.add_msg(cantidad_registros == 0 ? "No existen notas registradas." : 'No existen notas con las especificaciones introducidas')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
     return res
   end
+
+  # =====================================================================================================================
+  def ncf_modificado
+    return nil if self.document_reference_as_referenced.nil? || !self.document_reference_as_referenced.present?
+
+    self.document_reference_as_referenced.document_origin.numero_comprobante
+  end
+  # =====================================================================================================================
 
 end

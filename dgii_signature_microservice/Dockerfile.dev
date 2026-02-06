@@ -1,4 +1,4 @@
-FROM node:22.13.1-alpine
+FROM node:20.19.2-alpine
 
 WORKDIR /app
 
@@ -9,11 +9,13 @@ COPY tsconfig.json ./
 # Instalar todas las dependencias (incluyendo devDependencies)
 RUN npm install
 
+# Instala ts-node-dev globalmente (opcional)
+RUN npm install -g ts-node-dev
+
+
 # Exponer puerto
 EXPOSE 9091
 
-# Montar el código fuente (se hará mediante un volumen en docker-compose)
-# No es necesario copiar el código fuente aquí ya que se montará como volumen
 
 # Comando para iniciar el servicio en modo desarrollo
 CMD ["npm", "run", "start:dev"] 

@@ -8,7 +8,7 @@ class DetalleProduccion < ApplicationRecord
 
   def self.crear_actualizar_detalle_produccion(params, padre, is_save=false)
     res = Response.new
-		detalle_produccion                           = DetalleProduccion.where(:id => params["id"]).first_or_create
+		detalle_produccion                           = DetalleProduccion.where(:id => params["id"]).first_or_initialize
 
     detalle_produccion.articulo_id               = params["articulo_id"]
     detalle_produccion.cantidad                  = params["cantidad"]

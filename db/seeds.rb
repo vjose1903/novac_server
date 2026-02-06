@@ -85,7 +85,6 @@ tipos_factura = [
   { "referencia": nil,  "serie": 'electronica', key: 'venta_contado',                  "descripcion": 'Venta Contado' },
   { "referencia": nil,  "serie": 'electronica', key: 'compra',                         "descripcion": 'Compra' },
   { "referencia": nil,  "serie": 'electronica', key: 'venta_credito',                  "descripcion": 'Venta Credito' },
-  { "referencia": nil,  "serie": 'electronica', key: 'pre_venta',                      "descripcion": 'pre_venta' },
 ]
 
 tipos_factura.each do |tipo_fac|

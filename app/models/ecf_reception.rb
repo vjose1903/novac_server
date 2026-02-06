@@ -10,7 +10,7 @@ class EcfReception < ApplicationRecord
   def self.create_new(params, is_save=false)
     res = Response.new
 
-    ecf_reception                = EcfReception.where(:id => params[:id]).first_or_create
+    ecf_reception                = EcfReception.where(:id => params[:id]).first_or_initialize
 
     ecf_reception.eNCF           = params[:eNCF]           if params.obj_has?(:eNCF)
     ecf_reception.rnc_emisor     = params[:rnc_emisor]     if params.obj_has?(:rnc_emisor)

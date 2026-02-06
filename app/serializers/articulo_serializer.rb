@@ -46,12 +46,17 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def contenido_articulos
     contenido = getContentHistorico('contenidos')
-
+    # OPTIMIZACIÓN: Solo serializar si hay contenido
+    return [] if contenido.empty?
+    
     serialize_parser(contenido, { all: true })
   end
 
   def formulas_productos_terminados
     formulas = getContentHistorico('formulas')
+    # OPTIMIZACIÓN: Solo serializar si hay fórmulas
+    return [] if formulas.empty?
+    
     serialize_parser(formulas, { all: true })
   end
 
@@ -163,20 +168,35 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def getContentHistorico(tipo)
+    # OPTIMIZACIÓN: Usar mapa en lugar de array para acceso O(1)
+    historicos_map = self.get_param('historicos_map')
+    content = []
 
-    historicos  = self.get_param('historicos')
-    content     = []
-
-    
-    if historicos.blank? || historicos.empty?
+    if historicos_map.blank? || historicos_map.empty?
       # SI NO HAY HISTORICOS SE RETORNA EL ACTUAL
       content = object.contenido_articulos           if tipo == 'contenidos'
       content = object.formulas_productos_terminados if tipo == 'formulas'
     else
-      articulo  = historicos.find  { | item | item['id'] == object.id }
-      # NO SE POR QUE PERO ASI FUNCIONA CON EL CONTENIDO_ARTICULOS CON '.' Y LAS FORMULAS NO
-      content   = articulo['contenido_articulos']           || articulo[:contenido_articulos] || articulo.contenido_articulos                     if tipo == 'contenidos'
-      content   = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados]  if tipo == 'formulas'
+      # Acceso O(1) al histórico específico
+      articulo = historicos_map[object.id]
+      
+      if articulo
+        if tipo == 'contenidos'
+          content = articulo['contenido_articulos'] || articulo[:contenido_articulos]
+          content = articulo.contenido_articulos if content.nil? && articulo.respond_to?(:contenido_articulos)
+          content ||= []
+        end
+        
+        if tipo == 'formulas'
+          content = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados]
+          content = articulo.formulas_productos_terminados if content.nil? && articulo.respond_to?(:formulas_productos_terminados)
+          content ||= []
+        end
+      else
+        # Si no se encuentra en históricos, usar el actual
+        content = object.contenido_articulos           if tipo == 'contenidos'
+        content = object.formulas_productos_terminados if tipo == 'formulas'
+      end
     end
 
     return content.nil? ? [] : content

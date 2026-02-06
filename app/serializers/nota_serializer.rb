@@ -19,6 +19,8 @@ class NotaSerializer < ActiveModel::Serializer
 	attribute :qr_url_dgii,               if: Proc.new { self.get_param('all') || self.get_param('qr_url_dgii')  }
 	attribute :trackId,                   if: Proc.new { self.get_param('all') || self.get_param('trackId')  }
 	attribute :security_code,             if: Proc.new { self.get_param('all') || self.get_param('security_code')  }
+	attribute :is_aceptada,               if: Proc.new { self.get_param('all') || self.get_param('is_aceptada')  }
+	attribute :dgii_message,              if: Proc.new { self.get_param('all') || self.get_param('dgii_message')  }
 
 	attribute :cliente,                   if: Proc.new { self.get_param('all') || self.get_param('cliente') }
 	attribute :usuario,                   if: Proc.new { self.get_param('all') || self.get_param('usuario') }

@@ -16,7 +16,6 @@ class ArticulosController < ApplicationController
   end
 
   def getActualPriceDetalles
-
 		resultado = Articulo.get_actual_price_detalles(params, get_parametros_opcionales)
 		resultado.send_response self
   end
