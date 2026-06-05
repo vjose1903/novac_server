@@ -4,6 +4,20 @@ class FormulasProductosTerminado < ApplicationRecord
   validates :costo,     presence: { :message => "El costo del ingrediente de la formula no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
   validates :precio,    presence: { :message => "El precio del ingrediente de la formula no puede estar vacio." } , numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
 
+  def articulo_combo
+    return self[:articulo_combo] if has_attribute?(:articulo_combo)
+
+    articulo_combo_id
+  end
+
+  def articulo_combo=(value)
+    if has_attribute?(:articulo_combo)
+      self[:articulo_combo] = value
+    else
+      self.articulo_combo_id = value
+    end
+  end
+
   def otras_validaciones
     ingrediente = Articulo.find_by_id(self.articulo_combo)
 

@@ -12,7 +12,7 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   attribute :contenido,                 if: Proc.new { self.get_param('contenido') || self.get_param('all') }
 
   def articulo_combo
-    object.articulo_combo
+    object.articulo_combo_id
   end
 
   def nombre
@@ -97,9 +97,9 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
     # Cache por thread para evitar consultas repetidas del mismo artículo
     Thread.current[:articulos_cache] ||= {}
     
-    return Thread.current[:articulos_cache][object.articulo_combo] if Thread.current[:articulos_cache].key?(object.articulo_combo)
-    
-    Thread.current[:articulos_cache][object.articulo_combo] = Articulo.find_by_id(object.articulo_combo)
+    return Thread.current[:articulos_cache][object.articulo_combo_id] if Thread.current[:articulos_cache].key?(object.articulo_combo_id)
+
+    Thread.current[:articulos_cache][object.articulo_combo_id] = Articulo.find_by_id(object.articulo_combo_id)
   end
 
   def get_param(col)
