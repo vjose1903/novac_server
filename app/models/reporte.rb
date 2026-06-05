@@ -193,6 +193,7 @@ class Reporte < ApplicationRecord
 								.select(select_)
 								.where(query)
 								.where(facturas_pagadas_where)
+								.where(clientes: { estado: true })
 								.group(group_by)
 								.order(order_by)
 
@@ -466,7 +467,10 @@ class Reporte < ApplicationRecord
 		movimientos   = []
 		cliente       = nil
 
-		CabeceraFactura.where(query).order("cabecera_facturas.fecha_equivalente ASC").includes([{detalle_recibos: [:recibos_ingreso]}, {facturas_aplicadas: [:nota, :tipo_factura]}, :cliente]).each do |cabeza_factura|
+		CabeceraFactura.joins(:cliente).where(query)
+                       .where(clientes: { estado: true })
+                       .order("cabecera_facturas.fecha_equivalente ASC")
+                       .includes([{detalle_recibos: [:recibos_ingreso]}, {facturas_aplicadas: [:nota, :tipo_factura]}, :cliente]).each do |cabeza_factura|
 			items_factura = []
 
 			cabeza_factura.detalle_recibos.each do |detalle_recibo|
@@ -778,6 +782,12 @@ class Reporte < ApplicationRecord
         desde      = params[:desde]
         hasta      = params[:hasta] || params[:desde]
 
+        return {
+			body: [],
+			totalizacion: { balance: 0, facturado: 0, pagado: 0 },
+			sub_t: 'Cliente inactivo'
+		} unless Cliente.where(id: cliente_id, estado: true).exists?
+
         # Convertir fechas para comparaciones
         fecha_hasta = (Date.parse hasta).end_of_day
 
@@ -797,7 +807,7 @@ class Reporte < ApplicationRecord
         total_balance = 0
 
         # Obtener facturas a crédito del cliente
-        CabeceraFactura.where(query)
+        CabeceraFactura.joins(:cliente).where(query).where(clientes: { estado: true })
                         .order('fecha_equivalente ASC')
                         .includes([
                             :cliente,
