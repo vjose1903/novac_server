@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
 
   get "up" => "health#show"
+  get "up/dgii" => "health#dgii"
 
   resources :costos_fletes_historiales
   resources :provincias

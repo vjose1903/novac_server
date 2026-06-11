@@ -287,15 +287,18 @@ module DGII_MANAGER
     client   = BaseRequest::Client.new('novac-dgii-test-authentication')
 
     begin
-      response      = client.get_all()
+      response = client.get_all()
     rescue StandardError => e
       puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
       response = e.with_indifferent_access
     end
 
-    data_response = response.with_indifferent_access[:data]
+    response = response.with_indifferent_access
+    data_response = response[:data].is_a?(Hash) ? response[:data].with_indifferent_access : {}
 
-    res.set_data(data_response.with_indifferent_access)
+    res.set_data(data_response)
+    res.add_msg(response[:message]) if response[:message].present?
+    res.set_status(response[:status].to_i == 200 && data_response[:token].present? ? HTTP_STATUS_CODE[:ok] : HTTP_STATUS_CODE[:conflict])
 
     return res
   end
