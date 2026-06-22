@@ -308,15 +308,17 @@ export class ParseDocument {
 
     if (!no_fecha_vencimiento.map(tipo => tipo.toString()).includes(this.document.TipoeCF.toString())) {
       if (this.isFactura) {
-        let fecha_vencimiento_secuencia;
-        if (this.isProd) {
-          fecha_vencimiento_secuencia = hasValue(this.document.fecha_valida) ? DateUtils.format({ date: this.document.fecha_valida, dateFormat: 'DD-MM-YYYY' }) : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
-        } else {
-          // PARA LA CERTIFICACION -----
-          fecha_vencimiento_secuencia = DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
-        }
+        const fecha_vencimiento_secuencia = hasValue(this.document.fecha_valida)
+          ? DateUtils.format({ date: this.document.fecha_valida, dateFormat: 'DD-MM-YYYY' })
+          : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
 
         document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = fecha_vencimiento_secuencia;
+        console.log('DGII FechaVencimientoSecuencia asignada >>>', {
+          eNCF: this.document.numero_comprobante,
+          fecha_valida_recibida: this.document.fecha_valida,
+          FechaVencimientoSecuencia: fecha_vencimiento_secuencia,
+          env: this.env,
+        });
         document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${this.document.cliente?.limite_credito} días`;
       }
     }

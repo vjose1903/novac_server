@@ -1,6 +1,7 @@
 import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
 import { validateXMLCertificate } from 'dgii-ecf';
 import Queue from 'queue';
+import { resolveFolderId } from '@utils/typescript/folder.utils';
 
 export class DgiiCommercialApprovalService {
   private static instance: DgiiCommercialApprovalService;
@@ -23,7 +24,7 @@ export class DgiiCommercialApprovalService {
   private async initialize() {
     this.queue = new Queue({ concurrency: 5, autostart: true });
     this.environment = process.env;
-    this.approve_received_folder = this.environment.APPROVE_RECEIVED_FOLDER_ID;
+    this.approve_received_folder = resolveFolderId(this.environment, 'APPROVE_RECEIVED_FOLDER_ID');
 
     this.googleDrive = await GoogleDriveUtils.getInstance();
   }

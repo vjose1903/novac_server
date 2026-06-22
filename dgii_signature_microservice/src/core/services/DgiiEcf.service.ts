@@ -12,6 +12,7 @@ import { rootElNameE } from '@core/constants/xml.const';
 import { QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DgiiAuthService } from './DgiiAuth.service';
 import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
+import { resolveFolderId } from '@utils/typescript/folder.utils';
 
 export class DgiiEcfService {
   private static instance: DgiiEcfService;
@@ -59,8 +60,8 @@ export class DgiiEcfService {
   private async initialize() {
     this.queue = new Queue({ concurrency: 3, autostart: true });
     this.environment = process.env;
-    this.emitted_folder = this.environment.EMITTED_FOLDER_ID;
-    this.acuse_recepcion_folder = this.environment.ACUSE_RECEIVED_FOLDER_ID;
+    this.emitted_folder = resolveFolderId(this.environment, 'EMITTED_FOLDER_ID');
+    this.acuse_recepcion_folder = resolveFolderId(this.environment, 'ACUSE_RECEIVED_FOLDER_ID');
     this.rnc_emisor = this.environment.RNC_EMISOR;
 
     this.authService = DgiiAuthService.getInstance();

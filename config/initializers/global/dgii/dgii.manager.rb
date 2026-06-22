@@ -16,6 +16,11 @@ module DGII_MANAGER
 
     document_parsed       = DGII_MANAGER.parse(document)
 
+    puts " "
+    puts "DGII fecha_valida enviada desde Rails >>> ".yellow + "#{document_parsed[:fecha_valida]}"
+    puts "DGII numero_comprobante enviado >>> ".yellow + "#{document_parsed[:numero_comprobante]}"
+    puts " "
+
     client   = BaseRequest::Client.new('novac-dgii')
 
     begin

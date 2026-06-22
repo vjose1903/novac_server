@@ -7,6 +7,7 @@ import { EcfXmlJson } from '@core/types/xml/xml_json';
 import { rootElNameE } from '@core/constants/xml.const';
 import { DgiiAuthService } from './DgiiAuth.service';
 import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
+import { resolveFolderId } from '@utils/typescript/folder.utils';
 
 export class DgiiReceptionService {
   private static instance: DgiiReceptionService;
@@ -40,8 +41,8 @@ export class DgiiReceptionService {
   private async initialize() {
     this.queue = new Queue({ concurrency: 5, autostart: true });
     this.environment = process.env;
-    this.received_folder = this.environment.RECEIVED_FOLDER_ID;
-    this.acuse_emitted_folder = this.environment.ACUSE_EMITTED_FOLDER_ID;
+    this.received_folder = resolveFolderId(this.environment, 'RECEIVED_FOLDER_ID');
+    this.acuse_emitted_folder = resolveFolderId(this.environment, 'ACUSE_EMITTED_FOLDER_ID');
 
     this.authService = DgiiAuthService.getInstance();
     await this.authService.validateToken();
