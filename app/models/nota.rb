@@ -178,7 +178,7 @@ class Nota < ApplicationRecord
   # ===================================================================================================================================================
   def self.check_facturas(params)
     res            = Response.new
-    obj_response   = {:no_cliente_nombre => nil, :no_cliente_direccion => nil, :is_same_client => true, :all_facturas_active => true }
+    obj_response   = {:no_cliente_nombre => nil, :no_cliente_direccion => nil, :no_cliente_rnc => nil, :is_same_client => true, :all_facturas_active => true }
 
 
     for factura_aplicada in params[:facturas_aplicadas]
@@ -194,13 +194,18 @@ class Nota < ApplicationRecord
         end
 
         if !cabecera.NoCliente_nombre.nil?
+          documento_actual = normalizar_documento_cliente_casual(cabecera.NoCliente_rnc)
+          documento_actual = nil if documento_actual.blank?
+          documento_previo = normalizar_documento_cliente_casual(obj_response[:no_cliente_rnc])
+          documento_previo = nil if documento_previo.blank?
 
-          if !obj_response[:no_cliente_nombre].nil? && cabecera.NoCliente_nombre != obj_response[:no_cliente_nombre]
+          if !obj_response[:no_cliente_nombre].nil? && (cabecera.NoCliente_nombre != obj_response[:no_cliente_nombre] || (documento_actual.present? && documento_previo.present? && documento_actual != documento_previo))
             obj_response[:is_same_client]         = false
             break
           else
             obj_response[:no_cliente_nombre]      = cabecera.NoCliente_nombre
             obj_response[:no_cliente_direccion]   = cabecera.NoCliente_direccion
+            obj_response[:no_cliente_rnc]         = cabecera.NoCliente_rnc if cabecera.NoCliente_rnc.present?
           end
 
         end
@@ -215,6 +220,10 @@ class Nota < ApplicationRecord
 
     res.set_data(obj_response)
     return res
+  end
+
+  def self.normalizar_documento_cliente_casual(documento)
+    documento.to_s.gsub(/[^0-9]/, '')
   end
 
   # ===================================================================================================================================================

@@ -70,7 +70,7 @@ class Reporte < ApplicationRecord
 		else
 			if !factura["NoCliente_nombre"].nil?
 				cliente["nombre"] = factura["NoCliente_nombre"]
-				cliente["rnc"] = "-------------"
+				cliente["rnc"] = factura["NoCliente_rnc"].present? ? factura["NoCliente_rnc"] : "-------------"
 			end
 		end
 
@@ -286,7 +286,7 @@ class Reporte < ApplicationRecord
 
         select_ = "facturas_aplicadas.*, cabecera_facturas.numero_comprobante as factura_numero_comprobante,
                    notas.numero_comprobante as nota_numero_comprobante, notas.fecha_equivalente as nota_fecha,
-                   coalesce(trim(clientes.nombre || ' ' || clientes.apellido), 'Cliente contado') as cliente_nombre"
+                   coalesce(trim(clientes.nombre || ' ' || clientes.apellido), cabecera_facturas.\"NoCliente_nombre\", 'Cliente contado') as cliente_nombre"
 
         temp = FacturaAplicada
         .select(select_)
@@ -717,7 +717,7 @@ class Reporte < ApplicationRecord
 
 		tipos_nota_credito = [TiposNotasId.credito, TiposNotasId.credito_electronica]
 
-		select_ = "cabecera_facturas.id, coalesce(clientes.nombre || ' ' || clientes.apellido,'Cliente contado') as cliente_nombre,
+		select_ = "cabecera_facturas.id, coalesce(clientes.nombre || ' ' || clientes.apellido, cabecera_facturas.\"NoCliente_nombre\", 'Cliente contado') as cliente_nombre,
 		cabecera_facturas.tipo_factura_id as tipo_factura_id, cabecera_facturas.fecha_equivalente,
 		cabecera_facturas.numero_comprobante, cabecera_facturas.condicion,
 		cabecera_facturas.total_factura, cabecera_facturas.itbis, cabecera_facturas.descuento,

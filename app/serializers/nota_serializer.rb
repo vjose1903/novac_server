@@ -35,7 +35,7 @@ class NotaSerializer < ActiveModel::Serializer
       cliente[:nombre_completo]   = object.no_cliente_nombre
       cliente[:direccion]         = object.no_cliente_direccion
       cliente[:telefono]          = "----------"
-      cliente[:rnc]               = "----------"
+      cliente[:rnc]               = cliente_casual_rnc || "----------"
     else
       client_                     = object.cliente.attributes
       cliente[:nombre]            = object.cliente.nombre_completo
@@ -47,6 +47,10 @@ class NotaSerializer < ActiveModel::Serializer
       cliente["rnc"]               = documento.nil? ? "----------" : documento.documento
     end
     cliente
+  end
+
+  def cliente_casual_rnc
+    object.facturas_aplicadas.first&.cabecera_factura&.NoCliente_rnc
   end
 
 	def usuario

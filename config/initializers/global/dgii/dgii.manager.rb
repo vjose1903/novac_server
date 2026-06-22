@@ -174,8 +174,18 @@ module DGII_MANAGER
     cliente            = document.cliente || nil
 
     if cliente.nil?
-      cliente_attributes          = {}
-      cliente_attributes[:nombre_completo] = @is_factura ? document.NoCliente_nombre : document.no_cliente_nombre
+      cliente_attributes                    = {}
+      cliente_attributes[:nombre_completo]  = cliente_casual_nombre(document)
+      cliente_attributes[:direccion]        = cliente_casual_direccion(document)
+
+      documento       = cliente_casual_documento(document)
+      tipo_documento  = tipo_documento_identidad(documento)
+
+      if documento.present? && tipo_documento.present?
+        cliente_attributes[:documentos_de_identidad] = [
+          { descripcion: tipo_documento, documento: documento, principal: true }
+        ]
+      end
     else
       cliente_attributes                           = cliente.attributes
       cliente_attributes[:nombre_completo]         = cliente.nombre_completo
@@ -187,6 +197,38 @@ module DGII_MANAGER
     end
 
     return cliente_attributes
+  end
+
+  def self.cliente_casual_nombre(document)
+    return document.NoCliente_nombre if @is_factura
+
+    document.no_cliente_nombre
+  end
+
+  def self.cliente_casual_direccion(document)
+    return document.NoCliente_direccion if @is_factura
+
+    document.no_cliente_direccion
+  end
+
+  def self.cliente_casual_documento(document)
+    if @is_factura
+      return document.NoCliente_rnc.presence if document.respond_to?(:NoCliente_rnc)
+      return nil
+    end
+
+    return document.no_cliente_rnc.presence if document.respond_to?(:no_cliente_rnc)
+
+    document.facturas_aplicadas.first&.cabecera_factura&.NoCliente_rnc.presence
+  end
+
+  def self.tipo_documento_identidad(documento)
+    digitos = documento.to_s.gsub(/[^0-9]/, '').length
+
+    return Documentos.rnc    if digitos == 9
+    return Documentos.cedula if digitos == 11
+
+    nil
   end
 
   def self.add_articulo(detalle_parsed, articulo)

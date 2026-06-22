@@ -175,6 +175,7 @@ rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesPr
 
 rails g migration changeTipoFacturaToAceptNullNotas
 rails g migration addCotizacionToCabeceraFactura
+rails g migration addNoClienteRNCToCabeceraFactura
 
 
 rails g model movimiento_viaje user:references vehiculo:references cabecera_factura:references

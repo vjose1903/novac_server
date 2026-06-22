@@ -21,6 +21,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 	attribute :tipo,                                           if: Proc.new { self.get_param('all') || self.get_param('tipo')  }
 	attribute :NoCliente_nombre,                               if: Proc.new { self.get_param('all') || self.get_param('NoCliente_nombre')  }
 	attribute :NoCliente_direccion,                            if: Proc.new { self.get_param('all') || self.get_param('NoCliente_direccion')  }
+	attribute :NoCliente_rnc,                                  if: Proc.new { self.get_param('all') || self.get_param('NoCliente_rnc')  }
 	attribute :costoYgasto,                                    if: Proc.new { self.get_param('all') || self.get_param('costoYgasto')  }
 	attribute :pagada,                                         if: Proc.new { self.get_param('all') || self.get_param('pagada')  }
 	attribute :vendedor_id,                                    if: Proc.new { self.get_param('all') || self.get_param('vendedor_id')  }
@@ -73,7 +74,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 			cliente[:nombre_completo]   = object.NoCliente_nombre
 			cliente[:direccion]         = object.NoCliente_direccion
 			cliente[:telefono]          = '----------'
-			cliente[:rnc]               = '----------'
+			cliente[:rnc]               = object.NoCliente_rnc || '----------'
 		else
 			client_                     = object.cliente.attributes
 			cliente[:nombre]            = object.cliente.nombre_completo

@@ -172,6 +172,7 @@ class CabeceraFactura < ApplicationRecord
     cabecera_factura.tipo                     = params[:tipo]
     cabecera_factura.NoCliente_nombre         = params[:NoCliente_nombre]
     cabecera_factura.NoCliente_direccion      = params[:NoCliente_direccion]
+    cabecera_factura.NoCliente_rnc            = params[:NoCliente_rnc]
     cabecera_factura.costoYgasto              = params[:costoYgasto]
     cabecera_factura.pagada                   = params[:pagada]
     cabecera_factura.vendedor_id              = params[:vendedor_id]
