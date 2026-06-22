@@ -11,6 +11,7 @@ class NotaSerializer < ActiveModel::Serializer
 	attribute :fecha_valida,              if: Proc.new { self.get_param('all') || self.get_param('fecha_valida') }
 	attribute :no_cliente_nombre,         if: Proc.new { self.get_param('all') || self.get_param('no_cliente_nombre') }
 	attribute :no_cliente_direccion,      if: Proc.new { self.get_param('all') || self.get_param('no_cliente_direccion') }
+	attribute :no_cliente_rnc,            if: Proc.new { self.get_param('all') || self.get_param('no_cliente_rnc') }
 	attribute :estado,                    if: Proc.new { self.get_param('all') || self.get_param('estado') }
 	attribute :tipo_factura_id,           if: Proc.new { self.get_param('all') || self.get_param('tipo_factura_id') }
 	attribute :serie,                     if: Proc.new { self.get_param('all') || self.get_param('serie') }
