@@ -313,12 +313,6 @@ export class ParseDocument {
           : DateUtils.getLastDayOfYear({ format: 'DD-MM-YYYY' });
 
         document_parsed.ECF.Encabezado.IdDoc.FechaVencimientoSecuencia = fecha_vencimiento_secuencia;
-        console.log('DGII FechaVencimientoSecuencia asignada >>>', {
-          eNCF: this.document.numero_comprobante,
-          fecha_valida_recibida: this.document.fecha_valida,
-          FechaVencimientoSecuencia: fecha_vencimiento_secuencia,
-          env: this.env,
-        });
         document_parsed.ECF.Encabezado.IdDoc.TerminoPago = `${this.document.cliente?.limite_credito} días`;
       }
     }

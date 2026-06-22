@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_06_22_160011) do
+ActiveRecord::Schema[7.0].define(version: 2026_06_22_210115) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -829,6 +829,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_22_160011) do
     t.float "itbis"
     t.string "is_aceptada"
     t.string "dgii_message"
+    t.string "no_cliente_rnc"
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"

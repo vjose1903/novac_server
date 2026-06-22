@@ -75,6 +75,7 @@ class Nota < ApplicationRecord
               nota.estado                   = true
               nota.no_cliente_nombre        = data_facturas[:no_cliente_nombre]
               nota.no_cliente_direccion     = data_facturas[:no_cliente_direccion]
+              nota.no_cliente_rnc           = data_facturas[:no_cliente_rnc]
               nota.valid?
 
               dependencias                  = [ {modelo: FacturaAplicada, key_object: 'facturas_aplicadas', padre: nota} ]
