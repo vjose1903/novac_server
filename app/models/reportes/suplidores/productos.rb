@@ -3,7 +3,7 @@ module Reportes
     module Productos
       extend self
 
-      def call(params)
+      def get_suplidores_por_producto(params)
         articulo_id = params['articulo_id']
         desde = params['desde']
         hasta = params['hasta']
@@ -19,13 +19,12 @@ module Reportes
                              .joins(:cabecera_factura)
                              .where(cabecera_facturas: query_join)
                              .order('detalle_facturas.id ASC')
-                             .includes([{ cabecera_factura: [{ suplidor: [:documentos_de_identidad] }] }])
+                             .includes([{ cabecera_factura: [:suplidor] }])
 
         contenido = []
         temp.each do |detalle|
           att = detalle.attributes
-          suplidor = Reportes::Shared::CommonHelpers.buscar_suplidor(detalle.cabecera_factura.suplidor)
-          att['suplidor_nombre'] = suplidor['nombre']
+          att['suplidor_nombre'] = detalle.cabecera_factura.suplidor.nombre_completo
           contenido.push(att)
         end
 
@@ -36,6 +35,8 @@ module Reportes
           sub_t: "Producto: #{articulo.nombre}"
         }
       end
+
+      alias call get_suplidores_por_producto
     end
   end
 end

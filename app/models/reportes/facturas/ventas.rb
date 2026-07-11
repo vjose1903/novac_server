@@ -3,7 +3,7 @@ module Reportes
     module Ventas
       extend self
 
-      def call(params)
+      def get_ventas(params)
         tipo_reporte = params[:tipo_reporte]
         tipo = params[:tipo]
         tipo_factura_id = params[:tipo_factura_id]
@@ -78,6 +78,12 @@ module Reportes
         ventas = sum_by_day(ventas) if tipo == 'agrupado'
 
         { body: ventas, totalizacion: { bruto: bruto, descuento: descuento, itbis: itbis, total: total_ventas, devuelto: total_devuelto, facturado: 0 }, sub_t: sub_titulo }
+      end
+
+      alias call get_ventas
+
+      def sum_by_day_ventas(records)
+        sum_by_day(records)
       end
 
       def sum_by_day(records)

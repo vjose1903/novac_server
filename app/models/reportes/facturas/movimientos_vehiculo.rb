@@ -3,9 +3,10 @@ module Reportes
     module MovimientosVehiculo
       extend self
 
-      def call(params)
+      def get_movimientos_vehiculo(params)
         viajes_por_vehiculo = []
         total_fletes = 0
+        vehiculo_id = params[:vehiculo_id].to_i
 
         query = {}
         query['estado'] = true
@@ -14,9 +15,13 @@ module Reportes
         query['is_viaje'] = true
         query['is_nota'] = false
 
-        all_viajes = CabeceraFactura.where(query).order('cabecera_facturas.fecha_equivalente DESC').includes([{ movimientos_viaje: [:vehiculo, :user] }, { detalle_facturas: [:articulo] }])
-        all_viajes_por_vehiculo = all_viajes.select { |viaje| viaje.movimientos_viaje.to_a.my_includes_obj('vehiculo_id', params[:vehiculo_id].to_i) }
-        vehiculo = Vehiculo.find_by_id(params[:vehiculo_id].to_i)
+        all_viajes_por_vehiculo = CabeceraFactura.joins(:movimientos_viaje)
+                                                  .where(query)
+                                                  .where(movimientos_viaje: { vehiculo_id: vehiculo_id })
+                                                  .distinct
+                                                  .order('cabecera_facturas.fecha_equivalente DESC')
+                                                  .includes([{ movimientos_viaje: [:vehiculo, :user] }, { detalle_facturas: [:articulo] }])
+        vehiculo = Vehiculo.find_by_id(vehiculo_id)
 
         all_viajes_por_vehiculo.each do |viaje|
           chofer = if viaje.movimientos_viaje.length == 0
@@ -51,6 +56,8 @@ module Reportes
           sub_t: sub_titulo
         }
       end
+
+      alias call get_movimientos_vehiculo
     end
   end
 end

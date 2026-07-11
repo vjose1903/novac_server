@@ -3,7 +3,7 @@ module Reportes
     module Notas
       extend self
 
-      def call(params)
+      def get_notas(params)
         notas = []
         query = {}
         desde = params['desde']
@@ -51,6 +51,8 @@ module Reportes
 
         { body: notas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: monto_total, devuelto: 0, facturado: 0 }, sub_t: sub_titulo }
       end
+
+      alias call get_notas
     end
   end
 end

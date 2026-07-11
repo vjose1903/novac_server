@@ -3,7 +3,7 @@ module Reportes
     module Recibos
       extend self
 
-      def call(params)
+      def get_recibos(params)
         recibos = []
         desde = params[:desde]
         hasta = params[:hasta].nil? ? params[:desde] : params[:hasta]
@@ -17,7 +17,11 @@ module Reportes
         query['estado'] = true
         query['cliente_id'] = cliente_id if buscar_por == Report::ReciboBuscarPor.por_cliente
 
-        temp = RecibosIngreso.where(query).order("id #{order}").includes(RecibosIngreso.models_includes)
+        temp = RecibosIngreso
+               .select("recibos_ingresos.*, trim(clientes.nombre || ' ' || clientes.apellido) as cliente_nombre")
+               .joins(:cliente)
+               .where(query)
+               .order("recibos_ingresos.id #{order}")
 
         total_recibido = 0
         total_mora = 0
@@ -28,11 +32,8 @@ module Reportes
           total_bruto += recibo['bruto']
           total_mora += recibo['mora']
           total_recibido += recibo['total']
-
-          client = Reportes::Shared::CommonHelpers.buscar_cliente(recibo, 55, ['nombre'])
-          att['cliente_nombre'] = client['nombre']
           recibos.push(att.with_indifferent_access)
-        end
+		end
 
         recibos = sum_by_day(recibos) if tipo == Report::ReciboIngreso.agrupado
         cliente = Cliente.find_by_id(cliente_id) if buscar_por == Report::ReciboBuscarPor.por_cliente
@@ -43,13 +44,19 @@ module Reportes
         { body: recibos, totalizacion: { bruto: total_bruto, mora: total_mora, total: total_recibido, devuelto: 0, facturado: 0 }, sub_t: sub_titulo }
       end
 
+      alias call get_recibos
+
+      def sum_by_day_recibos(records)
+        sum_by_day(records)
+      end
+
       def sum_by_day(records)
         records.group_by { |record| record[:fecha_equivalente].to_date }.map do |date, group|
           {
             fecha: formatearFecha(date.to_s, TipoFecha.sin_hora),
-            total_bruto: group.reduce(0) { |acu, item| item[:bruto] + acu },
-            total_mora: group.reduce(0) { |acu, item| item[:mora] + acu },
-            total_general: group.reduce(0) { |acu, item| item[:total] + acu }
+            total_bruto: group.sum { |item| item[:bruto] },
+            total_mora: group.sum { |item| item[:mora] },
+            total_general: group.sum { |item| item[:total] }
           }
         end
       end

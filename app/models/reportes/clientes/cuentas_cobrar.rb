@@ -3,7 +3,7 @@ module Reportes
     module CuentasCobrar
       extend self
 
-      def call(params)
+      def get_cuentas_cobrar(params)
         current_user = get_current_user
         has_permiso_pre_venta = current_user.verificateHasPermiso('pre_venta').status_valid
 
@@ -132,12 +132,18 @@ module Reportes
         }
       end
 
+      alias call get_cuentas_cobrar
+
       def sustituir_monto(detalle, columnas_antiguedad = nil)
         columnas_antiguedad ||= antiguedad_bucket_keys
         columnas_antiguedad.each do |item|
           detalle[item] = detalle[item] >= 1 ? detalle['numero_documento'] : 0
         end
         detalle
+      end
+
+      def sustituirMonto(detalle, columnas_antiguedad = nil)
+        sustituir_monto(detalle, columnas_antiguedad)
       end
 
       def antiguedad_bucket_definitions

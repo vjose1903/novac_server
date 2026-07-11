@@ -3,17 +3,18 @@ module Reportes
     module BalanceHistorico
       extend self
 
-      def call(params)
+      def get_balance_cliente_historico(params)
         cliente_id = params[:cliente_id]
         desde = params[:desde]
         hasta = params[:hasta] || params[:desde]
 
         return { body: [], totalizacion: { balance: 0, facturado: 0, pagado: 0 }, sub_t: 'Cliente inactivo' } unless Cliente.where(id: cliente_id, estado: true).exists?
 
+        fecha_desde = Date.parse(desde).beginning_of_day
         fecha_hasta = Date.parse(hasta).end_of_day
         query = {
           'cliente_id' => cliente_id,
-          'fecha_equivalente' => Date.parse(desde).beginning_of_day..fecha_hasta,
+          'fecha_equivalente' => fecha_desde..fecha_hasta,
           'tipo' => 'venta',
           'condicion' => 'Crédito',
           'estado' => true,
@@ -25,25 +26,35 @@ module Reportes
         total_pagado = 0
         total_balance = 0
 
-        CabeceraFactura.joins(:cliente).where(query).where(clientes: { estado: true })
-                        .order('fecha_equivalente ASC')
-                        .includes([
-                          :cliente,
-                          { detalle_recibos: [:recibos_ingreso] },
-                          { facturas_aplicadas: [:nota] }
-                        ]).each do |factura|
-          pagos_recibos = factura.detalle_recibos
-                                 .joins(:recibos_ingreso)
-                                 .where('recibos_ingresos.fecha_equivalente <= ?', fecha_hasta)
-                                 .where(recibos_ingresos: { estado: true })
-                                 .sum(:deposito)
+        facturas = CabeceraFactura.joins(:cliente).where(query).where(clientes: { estado: true }).order('fecha_equivalente ASC').to_a
+        factura_ids = facturas.map(&:id)
 
-          notas_credito = factura.facturas_aplicadas
-                                 .joins(:nota)
-                                 .where('notas.fecha_equivalente <= ?', fecha_hasta)
-                                 .where(notas: { estado: true })
-                                 .where(tipo_factura_id: [TiposNotasId.credito, TiposNotasId.credito_electronica])
-                                 .sum(:total)
+        pagos_por_factura = if factura_ids.empty?
+          {}
+        else
+          DetalleRecibo.joins(:recibos_ingreso)
+                       .where(cabecera_factura_id: factura_ids)
+                       .where('recibos_ingresos.fecha_equivalente <= ?', fecha_hasta)
+                       .where(recibos_ingresos: { estado: true })
+                       .group(:cabecera_factura_id)
+                       .sum(:deposito)
+        end
+
+        notas_por_factura = if factura_ids.empty?
+          {}
+        else
+          FacturaAplicada.joins(:nota)
+                         .where(cabecera_factura_id: factura_ids)
+                         .where('notas.fecha_equivalente <= ?', fecha_hasta)
+                         .where(notas: { estado: true })
+                         .where(tipo_factura_id: [TiposNotasId.credito, TiposNotasId.credito_electronica])
+                         .group(:cabecera_factura_id)
+                         .sum(:total)
+        end
+
+        facturas.each do |factura|
+          pagos_recibos = pagos_por_factura[factura.id] || 0
+          notas_credito = notas_por_factura[factura.id] || 0
 
           total_pagos_factura = pagos_recibos + notas_credito
           balance_factura = factura.total_factura - total_pagos_factura
@@ -72,6 +83,8 @@ module Reportes
           sub_t: sub_titulo
         }
       end
+
+      alias call get_balance_cliente_historico
     end
   end
 end

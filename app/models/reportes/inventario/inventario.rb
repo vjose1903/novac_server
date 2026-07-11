@@ -3,7 +3,7 @@ module Reportes
     module Inventario
       extend self
 
-      def call(_params)
+      def get_inventario(_params)
         inventario_temp = Articulo.all.where(estado: true).order('nombre ASC').includes(Articulo.models_includes)
         inventario_temp = Reportes::Shared::CommonHelpers.calcular_cantidades(inventario_temp)
         cantidad_articulos = inventario_temp.length
@@ -15,6 +15,8 @@ module Reportes
           sub_t: "Cantidad de productos en inventario: #{cantidad_articulos}"
         }
       end
+
+      alias call get_inventario
     end
   end
 end

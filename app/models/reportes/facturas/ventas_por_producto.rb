@@ -3,10 +3,12 @@ module Reportes
     module VentasPorProducto
       extend self
 
-      def call(params)
+      def get_ventas_por_producto(params)
         ventas = []
         desde = params['desde']
         hasta = params['hasta'].nil? ? params['desde'] : params['hasta']
+        fecha_desde = Date.parse(desde).beginning_of_day
+        fecha_hasta = Date.parse(hasta).end_of_day
 
         sub_titulo = desde == hasta ? "Fecha: #{formatearFecha(desde, TipoFecha.sin_hora)}" : "Entre las fechas: #{formatearFecha(desde, TipoFecha.sin_hora)} y #{formatearFecha(hasta, TipoFecha.sin_hora)}"
         total_venta = 0
@@ -14,7 +16,7 @@ module Reportes
 
         tipo_factura_nota_credito = TipoFactura.find_by_descripcion(TiposFacturasDescripcion.nota_de_credito)
 
-        query['cabecera_facturas.fecha_equivalente'] = Date.parse(desde).beginning_of_day..Date.parse(hasta).end_of_day
+        query['cabecera_facturas.fecha_equivalente'] = fecha_desde..fecha_hasta
         query['cabecera_facturas.tipo'] = 'venta'
         query['cabecera_facturas.is_nota'] = false
         query['cabecera_facturas.estado'] = true
@@ -33,19 +35,34 @@ module Reportes
           joins_ = "INNER JOIN cabecera_facturas ON cabecera_facturas.id = detalle_facturas.cabecera_factura_id
 					INNER JOIN articulos ON articulos.id = detalle_facturas.articulo_id"
 
-          DetalleFactura.select(select_).joins(joins_).where(query).order('articulo_id ASC').group('detalle_facturas.articulo_id')
-                        .includes([{ articulo: [:contenido_articulos, :tipo_articulo] }]).each do |df|
-            query_nota = {}
-            query_nota['detalles_facturas_notas.articulo_id'] = df.articulo_id
-            query_nota['detalles_facturas_notas.tipo_factura_id'] = tipo_factura_nota_credito.id
-            query_nota['notas.fecha_equivalente'] = Date.parse(desde).beginning_of_day..Date.parse(hasta).end_of_day
+          detalles_agrupados = DetalleFactura.select(select_).joins(joins_).where(query).order('articulo_id ASC').group('detalle_facturas.articulo_id')
+                                            .includes([{ articulo: [:contenido_articulos, :tipo_articulo] }]).to_a
+          articulo_ids = detalles_agrupados.map(&:articulo_id)
 
-            select_notas = 'coalesce( SUM (detalles_facturas_notas.cantidad_en_unidades), 0) as cantidad_devuelto, coalesce( SUM (detalles_facturas_notas.total), 0) as total_devuelto'
-            joins_notas = "INNER JOIN facturas_aplicadas ON facturas_aplicadas.id = detalles_facturas_notas.factura_aplicada_id
-                        INNER JOIN notas ON notas.id = facturas_aplicadas.nota_id"
+          notas_por_articulo = if articulo_ids.empty?
+            {}
+          else
+            DetalleFacturaNota.joins('INNER JOIN facturas_aplicadas ON facturas_aplicadas.id = detalles_facturas_notas.factura_aplicada_id
+                                      INNER JOIN notas ON notas.id = facturas_aplicadas.nota_id')
+                              .where(detalles_facturas_notas: { articulo_id: articulo_ids, tipo_factura_id: tipo_factura_nota_credito.id })
+                              .where(notas: { fecha_equivalente: fecha_desde..fecha_hasta })
+                              .group('detalles_facturas_notas.articulo_id')
+                              .pluck(
+                                'detalles_facturas_notas.articulo_id',
+                                'coalesce(SUM(detalles_facturas_notas.cantidad_en_unidades), 0)',
+                                'coalesce(SUM(detalles_facturas_notas.total), 0)'
+                              )
+                              .each_with_object({}) do |(articulo_id, cantidad_devuelto, total_devuelto), memo|
+                                memo[articulo_id] = {
+                                  'cantidad_devuelto' => cantidad_devuelto,
+                                  'total_devuelto' => total_devuelto
+                                }
+                              end
+          end
 
-            notas = DetalleFacturaNota.select(select_notas).joins(joins_notas).where(query_nota)[0]
+          detalles_agrupados.each do |df|
             detalle = df.attributes
+            notas = notas_por_articulo[df.articulo_id] || { 'cantidad_devuelto' => 0, 'total_devuelto' => 0 }
 
             detalle['cantidad_devuelto'] = notas['cantidad_devuelto']
             detalle['total_devuelto'] = notas['total_devuelto']
@@ -75,6 +92,8 @@ module Reportes
 
         { body: ventas, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: total_venta, devuelto: 0, facturado: 0 }, sub_t: sub_titulo }
       end
+
+      alias call get_ventas_por_producto
 
       def calcular_cantidad_proporcional(detalle)
         plural = {

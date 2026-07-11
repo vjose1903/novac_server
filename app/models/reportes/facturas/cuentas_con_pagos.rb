@@ -3,7 +3,7 @@ module Reportes
     module CuentasConPagos
       extend self
 
-      def call(params)
+      def get_cuentas_con_pagos(params)
         query = {}
         query['estado'] = true
         query['fecha_equivalente'] = Date.parse(params['desde']).beginning_of_day..Date.parse(params['hasta']).end_of_day
@@ -86,6 +86,8 @@ module Reportes
 
         { body: movimientos, totalizacion: { bruto: 0, descuento: 0, itbis: 0, total: 0, devuelto: 0, facturado: 0 }, sub_t: sub_titulo }
       end
+
+      alias call get_cuentas_con_pagos
     end
   end
 end
