@@ -36,10 +36,7 @@ class CabeceraFactura < ApplicationRecord
 
     self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.total_factura == nil
     self.errors.add(:base, "Total de la #{documento} no puede estar vacio.")   if self.Bruto == nil
-
-    if self.is_viaje && self.cliente_id == nil
-      self.errors.add(:base, "Para realizar una factura de viajes, tiene que seleccionar un cliente.")
-    end
+    self.errors.add(:base, "Para realizar una factura de viajes, tiene que seleccionar un cliente.") if self.is_viaje && self.cliente_id == nil
 
   end
 
@@ -71,12 +68,12 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
 
   def self.create_factura(params, is_save = false)
-    res                            = Response.new
-    @tipo_de_documento             = TipoFactura.find_by_id(params[:FACTURA_DE])
-    @tipo_de_factura               = TipoFactura.find_by_id(params[:tipo_factura_id])
+    res                              = Response.new
+    @tipo_de_documento               = TipoFactura.find_by_id(params[:FACTURA_DE])
+    @tipo_de_factura                 = TipoFactura.find_by_id(params[:tipo_factura_id])
     @increment_secuencia_comprobante = false
-    @is_electronica                = params[:serie].present? && params[:serie] == SerieFactura.electronica
-    @res_valid_dgii                = nil
+    @is_electronica                  = params[:serie].present? && params[:serie] == SerieFactura.electronica
+    @res_valid_dgii                  = nil
 
     CabeceraFactura.transaction do
       res = validar_y_crear_factura(params, is_save)
@@ -88,53 +85,46 @@ class CabeceraFactura < ApplicationRecord
   
 
   def self.validar_y_crear_factura(params, is_save)
-    res = Response.new
-
-    # Validar secuencias
     res_secuencias = CabeceraFactura.find_secuencias(params)
-    return set_error_response(res, res_secuencias.get_msgs.to_a) unless res_secuencias.status_valid
+    return set_error_response(Response.new, res_secuencias.get_msgs.to_a) unless res_secuencias.status_valid
 
     data_secuencias = res_secuencias.get_data
 
-    # Validar que no exista la factura
-    factura_existente = CabeceraFactura.exists?(
+    return set_error_response(Response.new, "El número de factura ya existe.") if factura_existente?(params, data_secuencias)
+
+    res_balance = validar_balance_credito(params)
+    return set_error_response(Response.new, res_balance.get_msgs.to_a) unless res_balance.status_valid
+
+    cabecera_factura = build_cabecera_factura(params, data_secuencias)
+
+    res = crear_dependencias_factura(cabecera_factura, params)
+    return set_error_response(res, cabecera_factura.errors.to_a) unless res.status_valid && cabecera_factura.errors.empty?
+
+    return set_error_response(res, cabecera_factura.errors.to_a) unless cabecera_factura.save!
+
+    procesar_dgii(cabecera_factura)
+
+    res_valid = finalizar_cabecera_factura(cabecera_factura, data_secuencias)
+
+    return set_error_response(res, res_valid.get_msgs.to_a) unless res_valid.status_valid
+
+    success_create_response(cabecera_factura)
+  end
+
+  private_class_method def self.factura_existente?(params, data_secuencias)
+    CabeceraFactura.exists?(
       numero_factura: data_secuencias[:numero_factura],
       tipo: params[:tipo],
       tipo_factura_id: params[:tipo_factura_id],
       condicion: params[:condicion],
       serie: params[:serie]
     )
-    return set_error_response(res, "El número de factura ya existe.") if factura_existente
+  end
 
-    # Validar balance del cliente si es crédito
-    if requiere_validacion_credito?(params)
-      res_balance = Cliente.calculate_balance_cliente(params[:cliente_id], params[:total_factura], '+')
-      return set_error_response(res, res_balance.get_msgs.to_a) unless res_balance.status_valid
-    end
+  private_class_method def self.validar_balance_credito(params)
+    return Response.new unless requiere_validacion_credito?(params)
 
-    # Crear cabecera
-    cabecera_factura = build_cabecera_factura(params, data_secuencias)
-
-    # Crear dependencias
-    res = crear_dependencias_factura(cabecera_factura, params)
-    return set_error_response(res, cabecera_factura.errors.to_a) unless res.status_valid && cabecera_factura.errors.empty?
-
-    # Guardar factura (el identificador se genera automáticamente via after_create)
-    return set_error_response(res, cabecera_factura.errors.to_a) unless cabecera_factura.save!
-
-    # Procesar DGII si aplica
-    procesar_dgii(cabecera_factura)
-
-    # Actualizar secuencias y procesos
-    res_valid = CabeceraFactura.update_secuencias(data_secuencias)
-    res_valid = cabecera_factura.procesos_cabecera if res_valid&.status_valid || res_valid.nil?
-
-    return set_error_response(res, res_valid.get_msgs.to_a) unless res_valid.status_valid
-
-    # Respuesta exitosa
-    res.set_data(cabecera_factura, { all: true, movimientos_viaje: true })
-    res.add_msg("#{nombre_documento} creada correctamente.")
-    res
+    Cliente.calculate_balance_cliente(params[:cliente_id], params[:total_factura], '+')
   end
 
   private_class_method def self.requiere_validacion_credito?(params)
@@ -206,14 +196,28 @@ class CabeceraFactura < ApplicationRecord
 
   private_class_method def self.procesar_dgii(cabecera_factura)
     es_compra = @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
-
-    if @is_electronica && !es_compra
-      @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
-      data_response_dgii = @res_valid_dgii.get_data
-      @increment_secuencia_comprobante = data_response_dgii[:secuenciaUtilizada] == true
-    else
+    unless @is_electronica && !es_compra
       @increment_secuencia_comprobante = true
+      return
     end
+
+    @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
+    data_response_dgii = @res_valid_dgii.get_data
+    @increment_secuencia_comprobante = data_response_dgii[:secuenciaUtilizada] == true
+  end
+
+  private_class_method def self.finalizar_cabecera_factura(cabecera_factura, data_secuencias)
+    res_secuencias = CabeceraFactura.update_secuencias(data_secuencias)
+    return res_secuencias unless res_secuencias&.status_valid || res_secuencias.nil?
+
+    cabecera_factura.procesos_cabecera
+  end
+
+  private_class_method def self.success_create_response(cabecera_factura)
+    res = Response.new
+    res.set_data(cabecera_factura, { all: true, movimientos_viaje: true })
+    res.add_msg("#{nombre_documento} creada correctamente.")
+    res
   end
 
   private_class_method def self.nombre_documento
@@ -315,18 +319,15 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
 
   def self.format_comprobante(next_secuencia_comprobante, params)
-    comprobante = nil
-
     if params[:tipo] == 'venta'
       serie_indicator   = @is_electronica ? 'E' : 'B'
       secuencial_length = @is_electronica ? '10' : '8'
-      comprobante       = "#{serie_indicator}#{@tipo_de_factura.referencia}#{"%0#{secuencial_length}d" % next_secuencia_comprobante}"
-
-    elsif params[:tipo] == TiposFacturasDescripcion.compra.downcase
-      comprobante = params[:numero_comprobante].upcase
+      return "#{serie_indicator}#{@tipo_de_factura.referencia}#{"%0#{secuencial_length}d" % next_secuencia_comprobante}"
     end
 
-    comprobante
+    return params[:numero_comprobante].upcase if params[:tipo] == TiposFacturasDescripcion.compra.downcase
+
+    nil
   end
 
   # ===================================================================================================================================================
@@ -351,46 +352,54 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   def self.update_secuencias(data_secuencias)
-    res   = Response.new
+    return update_secuencia_compra(data_secuencias) if @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
 
-    if @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
-      # --------- COMPRA ---------
-      unless data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
-        res.add_msg("Error actualizando la tabla de secuencia de Factura Compra")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
-    else
-      # --------- VENTA / NOTA ---------
+    update_secuencia_venta(data_secuencias)
+  end
 
-      if data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
+  private_class_method def self.update_secuencia_compra(data_secuencias)
+    res = Response.new
+    return res if data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
 
-        res_aumento  = nil
-        puts " "
-        puts " "
-        puts " "
-        puts "@increment_secuencia_comprobante >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{@increment_secuencia_comprobante}"
-        puts " "
-        puts " "
-        puts " "
-        if @increment_secuencia_comprobante
-          res_aumento  = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id]) if !data_secuencias[:actual_paquete_comprobante].nil? && data_secuencias[:actual_paquete_comprobante][:is_paquete]
-        end
+    res.add_msg("Error actualizando la tabla de secuencia de Factura Compra")
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
+  end
 
-        unless res_aumento.nil?
-          unless res_aumento.status_valid
-            res.add_msgs(res_aumento.get_msgs.to_a)
-            res.set_status(HTTP_STATUS_CODE[:conflict])
-          end
-        end
+  private_class_method def self.update_secuencia_venta(data_secuencias)
+    res = Response.new
 
-      else
-        res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
-
+    unless data_secuencias[:actual_secuencia_entidad].update({ secuencia: data_secuencias[:numero_factura] })
+      res.add_msg("Error actualizando la tabla de secuencia de Factura Venta")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
     end
 
-    return res
+    log_increment_secuencia_comprobante
+    return res unless debe_aumentar_paquete_comprobante?(data_secuencias)
+
+    res_aumento = SecuenciaComprobante.aumentar_secuencia_comprobante(data_secuencias[:actual_paquete_comprobante][:id])
+    return res if res_aumento.status_valid
+
+    res.add_msgs(res_aumento.get_msgs.to_a)
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
+  end
+
+  private_class_method def self.debe_aumentar_paquete_comprobante?(data_secuencias)
+    @increment_secuencia_comprobante &&
+      !data_secuencias[:actual_paquete_comprobante].nil? &&
+      data_secuencias[:actual_paquete_comprobante][:is_paquete]
+  end
+
+  private_class_method def self.log_increment_secuencia_comprobante
+    puts " "
+    puts " "
+    puts " "
+    puts "@increment_secuencia_comprobante >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{@increment_secuencia_comprobante}"
+    puts " "
+    puts " "
+    puts " "
   end
 
 

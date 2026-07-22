@@ -92,31 +92,25 @@ class SecuenciaComprobante < ApplicationRecord
     paquete = SecuenciaComprobante
     .select("secuencia_comprobantes.* ,true as is_paquete")
     .where("estado = #{estado} AND usado = false AND tipo_factura_id = #{tipo_factura_id}")
-    .order("created_at ASC").limit(1)
+    .order("created_at ASC").first
 
-    if paquete.blank?
-      res_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
-
-      if res_siguientes.status_valid
-        res_activar = activar_nuevo_paquete(tipo_factura_id, res_siguientes.get_data)
-        return res_activar
-      end
-
-      res_anteriores = ver_si_existen_paquetes_previos(tipo_factura_id)
-
-      if res_anteriores.status_valid
-        res.add_msg("Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de solicitar mas.")
-      else
-        res.add_msg("No se han solicitado paquetes de comprobantes para #{tipoFac["descripcion"]}.")
-      end
-
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-      return res
-    else
-      res.set_data(paquete.first)
+    if paquete.present?
+      res.set_data(paquete)
       return res
     end
 
+    res_siguientes = ver_si_existen_paquetes_posteriores(tipo_factura_id)
+    return activar_nuevo_paquete(tipo_factura_id, res_siguientes.get_data) if res_siguientes.status_valid
+
+    res_anteriores = ver_si_existen_paquetes_previos(tipo_factura_id)
+    if res_anteriores.status_valid
+      res.add_msg("Los paquete de comprobantes para #{tipoFac["descripcion"]}, se han agotado debe de solicitar mas.")
+    else
+      res.add_msg("No se han solicitado paquetes de comprobantes para #{tipoFac["descripcion"]}.")
+    end
+
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
   end
 
   # ============================================================================================================================================================
@@ -126,15 +120,15 @@ class SecuenciaComprobante < ApplicationRecord
     paquete = SecuenciaComprobante
     .select("secuencia_comprobantes.* ,true as is_paquete")
     .where("estado = false AND usado = false AND tipo_factura_id = #{tipo_factura_id}")
-    .order("created_at ASC").limit(1)
+    .order("created_at ASC").first
 
-    unless paquete.blank?
-      res.set_data(paquete.first)
-    else
+    if paquete.blank?
       res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
     end
 
-    return res
+    res.set_data(paquete)
+    res
   end
 
   # ============================================================================================================================================================
@@ -143,48 +137,48 @@ class SecuenciaComprobante < ApplicationRecord
 
     paquete          = SecuenciaComprobante.find_by_id(paquete_id)
 
-    if paquete["secuencia"] == paquete["hasta"]
-      res_nuevo      = get_paquetes_por_activar(paquete["tipo_factura_id"])
+    return cerrar_paquete_actual_y_activar_siguiente(paquete, res) if paquete["secuencia"] == paquete["hasta"]
 
-      if res_nuevo.status_valid
-        newPac       = res_nuevo.get_data
+    unless paquete.update({ secuencia: paquete[:secuencia] + 1 })
+      res.add_msg("Error aumentando el paquete de comprobantes.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
 
-        unless newPac.update({ estado: true })
-          res.add_msg("Error activando nuevo paquete de comprobantes.")
-          res.set_status(HTTP_STATUS_CODE[:conflict])
-        end
-      end
+    res
+  end
 
-      paquete.update({ estado: false, usado: true })
-    else
-      unless paquete.update({ secuencia: paquete[:secuencia] + 1 })
-        res.add_msg("Error aumentando el paquete de comprobantes.")
+  private_class_method def self.cerrar_paquete_actual_y_activar_siguiente(paquete, res)
+    res_nuevo = get_paquetes_por_activar(paquete["tipo_factura_id"])
+
+    if res_nuevo.status_valid
+      newPac = res_nuevo.get_data
+      unless newPac.update({ estado: true })
+        res.add_msg("Error activando nuevo paquete de comprobantes.")
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     end
 
-    return res
+    paquete.update({ estado: false, usado: true })
+    res
   end
 
   # ============================================================================================================================================================
   def self.activar_nuevo_paquete(tipo_factura, nuevo_paquete = {})
     res = Response.new
 
-
     res_nuevo = get_paquetes_por_activar(tipo_factura) if nuevo_paquete.blank?
+    return res if nuevo_paquete.blank? && !res_nuevo.status_valid
 
-    if !nuevo_paquete.blank? || res_nuevo.status_valid
-      newPac = nuevo_paquete.blank? ? res_nuevo.get_data : nuevo_paquete
+    newPac = nuevo_paquete.blank? ? res_nuevo.get_data : nuevo_paquete
 
-      if newPac.update({ estado: true })
-        res.set_data(newPac)
-      else
-        res.add_msg("Error activando el siguiente paquete de comprobantes registrado.")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-      end
+    if newPac.update({ estado: true })
+      res.set_data(newPac)
+      return res
     end
 
-    return res
+    res.add_msg("Error activando el siguiente paquete de comprobantes registrado.")
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
   end
 
   # ============================================================================================================================================================

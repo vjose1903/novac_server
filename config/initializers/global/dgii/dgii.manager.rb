@@ -10,31 +10,16 @@ module DGII_MANAGER
   def self.send(document, certification_params = nil)
     DGII_MANAGER.determinate_document(document)
 
-    res = Response.new
-
     @certification_params = certification_params
 
     document_parsed       = DGII_MANAGER.parse(document)
 
     puts "DGII numero_comprobante enviado >>> ".yellow + "#{document_parsed[:numero_comprobante]}"
 
-    client   = BaseRequest::Client.new('novac-dgii')
+    response = send_document_to_dgii(document_parsed)
+    log_dgii_response(response)
 
-    begin
-      response = client.create_one(document_parsed)
-    rescue StandardError => e
-      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
-      response = e.with_indifferent_access
-    end
-      puts " "
-      puts " "
-      puts " "
-      puts " response >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{response.to_json}"
-      puts " "
-      puts " "
-      puts " "
-
-    data_response = response.with_indifferent_access[:data]
+    data_response = response.with_indifferent_access[:data].with_indifferent_access
 
     estado = data_response[:estado].present? ? data_response[:estado] : nil
 
@@ -44,24 +29,49 @@ module DGII_MANAGER
 
     document.estado               = false if not_valid
 
+    assign_dgii_response_data(document, data_response)
+
+    document.save!
+
+    res = build_dgii_response(data_response, response[:message], not_valid)
+
+    # TODO: SI GET_DATA DEL RES TIENE LA PROPIEDAD 'secuenciaUtilizada' independientemente del estado tengo que sumar la secuencia
+    return res
+  end
+
+  def self.send_document_to_dgii(document_parsed)
+    client = BaseRequest::Client.new('novac-dgii')
+    client.create_one(document_parsed)
+  rescue StandardError => e
+    puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
+    e.with_indifferent_access
+  end
+
+  def self.log_dgii_response(response)
+    puts " "
+    puts " "
+    puts " "
+    puts " response >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{response.to_json}"
+    puts " "
+    puts " "
+    puts " "
+  end
+
+  def self.assign_dgii_response_data(document, data_response)
     document.fecha_hora_firma   = data_response[:fecha_hora_firma] if data_response[:fecha_hora_firma].present?
     document.trackId            = data_response[:trackId]          if data_response[:trackId].present?
     document.security_code      = data_response[:security_code]    if data_response[:security_code].present?
     document.xml_file_name      = data_response[:xml_file_name]    if data_response[:xml_file_name].present?
     document.qr_url_dgii        = data_response[:qr_url_dgii]      if data_response[:qr_url_dgii].present?
     document.razon              = data_response[:razon]            if @is_nota && data_response[:razon].present?
+  end
 
-    document.save!
-
-    res.set_data(data_response.with_indifferent_access)
-    res.add_msg(response[:message])
-
-    if not_valid
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
-    # TODO: SI GET_DATA DEL RES TIENE LA PROPIEDAD 'secuenciaUtilizada' independientemente del estado tengo que sumar la secuencia
-    return res
+  def self.build_dgii_response(data_response, message, not_valid)
+    res = Response.new
+    res.set_data(data_response)
+    res.add_msg(message)
+    res.set_status(HTTP_STATUS_CODE[:conflict]) if not_valid
+    res
   end
 
   def self.determinate_document(document)
@@ -175,30 +185,36 @@ module DGII_MANAGER
   def self.parse_cliente(document)
     cliente            = document.cliente || nil
 
-    if cliente.nil?
-      cliente_attributes                    = {}
-      cliente_attributes[:nombre_completo]  = cliente_casual_nombre(document)
-      cliente_attributes[:direccion]        = cliente_casual_direccion(document)
+    return parse_cliente_registrado(cliente) unless cliente.nil?
 
-      documento       = cliente_casual_documento(document)
-      tipo_documento  = tipo_documento_identidad(documento)
+    parse_cliente_casual(document)
+  end
 
-      if documento.present? && tipo_documento.present?
-        cliente_attributes[:documentos_de_identidad] = [
-          { descripcion: tipo_documento, documento: documento, principal: true }
-        ]
-      end
-    else
-      cliente_attributes                           = cliente.attributes
-      cliente_attributes[:nombre_completo]         = cliente.nombre_completo
-      cliente_attributes[:documentos_de_identidad] = cliente.documentos_de_identidad
+  def self.parse_cliente_casual(document)
+    cliente_attributes                    = {}
+    cliente_attributes[:nombre_completo]  = cliente_casual_nombre(document)
+    cliente_attributes[:direccion]        = cliente_casual_direccion(document)
 
-      cliente_attributes[:limite_credito]          = cliente.limite_credito
-      cliente_attributes[:municipio]               = cliente.municipio
-      cliente_attributes[:provincia]               = cliente.provincia
+    documento       = cliente_casual_documento(document)
+    tipo_documento  = tipo_documento_identidad(documento)
+
+    if documento.present? && tipo_documento.present?
+      cliente_attributes[:documentos_de_identidad] = [
+        { descripcion: tipo_documento, documento: documento, principal: true }
+      ]
     end
 
-    return cliente_attributes
+    cliente_attributes
+  end
+
+  def self.parse_cliente_registrado(cliente)
+    cliente_attributes                           = cliente.attributes
+    cliente_attributes[:nombre_completo]         = cliente.nombre_completo
+    cliente_attributes[:documentos_de_identidad] = cliente.documentos_de_identidad
+    cliente_attributes[:limite_credito]          = cliente.limite_credito
+    cliente_attributes[:municipio]               = cliente.municipio
+    cliente_attributes[:provincia]               = cliente.provincia
+    cliente_attributes
   end
 
   def self.cliente_casual_nombre(document)

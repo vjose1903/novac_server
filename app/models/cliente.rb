@@ -186,24 +186,18 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.calculate_balance_cliente(id, totalFactura, operacion, ignoreMontoMayor=false)
-
     res = Response.new
 
     cliente          = Cliente.find_by_id(id)
     balance          = cliente.balance.nil? ? 0 : cliente.balance
 
-
-    if operacion == '-' && totalFactura.to_f > balance
-      unless ignoreMontoMayor
-        res.add_msg('El monto ingresado es mayor al balance del cliente')
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-        return res
-      end
+    if monto_mayor_al_balance?(operacion, totalFactura, balance, ignoreMontoMayor)
+      res.add_msg('El monto ingresado es mayor al balance del cliente')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
     end
 
-    new_balance                  = eval "#{balance} #{operacion} #{totalFactura.to_f}"
-    new_balance                  = new_balance.to_d.truncate(2).to_f
-    cliente.balance              = new_balance
+    cliente.balance = nuevo_balance_cliente(balance, totalFactura, operacion)
 
     cliente.valid?
 
@@ -213,6 +207,15 @@ class Cliente < ApplicationRecord
     end
 
     return res
+  end
+
+  def self.monto_mayor_al_balance?(operacion, totalFactura, balance, ignoreMontoMayor)
+    operacion == '-' && totalFactura.to_f > balance && !ignoreMontoMayor
+  end
+
+  def self.nuevo_balance_cliente(balance, totalFactura, operacion)
+    new_balance = operacion == '-' ? balance - totalFactura.to_f : balance + totalFactura.to_f
+    new_balance.to_d.truncate(2).to_f
   end
 
   private
