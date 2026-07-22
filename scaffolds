@@ -177,6 +177,7 @@ rails g migration changeTipoFacturaToAceptNullNotas
 rails g migration addCotizacionToCabeceraFactura
 rails g migration addNoClienteRNCToCabeceraFactura
 rails g migration addNoClienteRNCToNota
+rails g migration addIsExternalToCabeceraFactura
 
 
 rails g model movimiento_viaje user:references vehiculo:references cabecera_factura:references
@@ -187,3 +188,5 @@ rails g scaffold config_articulo porciento_ganancia:float
 
 rails g scaffold ecf_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float approved:boolean
 rails g scaffold commertial_approval_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float estado:integer detalleMotivoRechazo:string cabecera_factura:references
+
+

@@ -175,6 +175,7 @@ class CabeceraFactura < ApplicationRecord
     cabecera_factura.pre_factura              = params[:pre_factura]
     cabecera_factura.cotizacion               = params[:cotizacion]
     cabecera_factura.serie                    = params[:serie]
+    cabecera_factura.is_external              = params[:is_external] if params.key?(:is_external)
 
     cabecera_factura.otras_validaciones(params, @tipo_de_factura)
     cabecera_factura
@@ -195,8 +196,7 @@ class CabeceraFactura < ApplicationRecord
   end
 
   private_class_method def self.procesar_dgii(cabecera_factura)
-    es_compra = @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
-    unless @is_electronica && !es_compra
+    unless enviar_a_dgii?(cabecera_factura)
       @increment_secuencia_comprobante = true
       return
     end
@@ -204,6 +204,12 @@ class CabeceraFactura < ApplicationRecord
     @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
     data_response_dgii = @res_valid_dgii.get_data
     @increment_secuencia_comprobante = data_response_dgii[:secuenciaUtilizada] == true
+  end
+
+  private_class_method def self.enviar_a_dgii?(cabecera_factura)
+    es_compra = @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
+
+    @is_electronica && !es_compra && cabecera_factura.is_external == false
   end
 
   private_class_method def self.finalizar_cabecera_factura(cabecera_factura, data_secuencias)
@@ -320,6 +326,8 @@ class CabeceraFactura < ApplicationRecord
 
   def self.format_comprobante(next_secuencia_comprobante, params)
     if params[:tipo] == 'venta'
+      return "%013d" % next_secuencia_comprobante if @tipo_de_factura.key == TiposFacturasKey.factura_sin_comprobante
+
       serie_indicator   = @is_electronica ? 'E' : 'B'
       secuencial_length = @is_electronica ? '10' : '8'
       return "#{serie_indicator}#{@tipo_de_factura.referencia}#{"%0#{secuencial_length}d" % next_secuencia_comprobante}"
