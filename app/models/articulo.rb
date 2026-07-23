@@ -1,4 +1,6 @@
 class Articulo < ApplicationRecord
+  include ArticuloFiltering
+
   belongs_to :tipo_articulo
   belongs_to :imagen, optional: true
 
@@ -40,15 +42,6 @@ class Articulo < ApplicationRecord
 
     end
 
-  end
-
-  def self.models_includes
-    includes = [
-      :tipo_articulo,
-      :contenido_articulos,
-      { formulas_productos_terminados: { articulo_combo_articulo: [:tipo_articulo, :contenido_articulos] } }
-    ]
-    return includes
   end
 
   def self.create_update_articulo(params, articulo_antiguo, is_save=false)
@@ -155,147 +148,6 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
 
-
-  def self.filtrarArticulo(params)
-    res = Response.new
-    relation = filtrar_articulo_relation(params)
-    paginacion = paginacion_articulos(params)
-
-    total_registros = nil
-    if paginacion[:paginado]
-      total_registros = relation.unscope(:order).distinct.count("articulos.id")
-      relation = relation.offset(paginacion[:offset]).limit(paginacion[:per_page])
-    end
-
-    articulos = relation.preload(models_includes).to_a
-
-    if articulos.empty? && paginacion[:paginado] && total_registros.to_i > 0
-      res.set_data([], { all: true, historicos_map: {} })
-      res.set_pagination_metadata(total_registros, paginas_articulos(total_registros, paginacion[:per_page]))
-      return res
-    end
-
-    if articulos.empty?
-      cantidad_registros = Articulo.where({ estado: true }).count
-      res.add_msg(cantidad_registros == 0 ? "No existen articulos registrados." : "No existen articulos con las especificaciones introducidas")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-      return res
-    end
-
-    articulos_finales, historicos_map = aplicar_historicos_filtrados(articulos, fecha_filtro_articulo(params))
-    precargar_articulos_combo(historicos_map.values)
-
-    res.set_data(articulos_finales, { all: true, historicos_map: historicos_map }, Articulo.models_includes)
-    res.set_pagination_metadata(total_registros, paginas_articulos(total_registros, paginacion[:per_page])) if paginacion[:paginado]
-
-    return res
-  end
-
-  def self.filtrar_articulo_relation(params)
-    arg = ActiveRecord::Base.sanitize_sql_like(params["arg"].to_s.strip)
-    tipo = params["tipo"].presence || "todos"
-    is_compra = params["is_compra"].to_s.to_boolean
-
-    relation = Articulo
-      .joins(:tipo_articulo)
-      .where(articulos: { estado: true })
-      .where(
-        "lower(coalesce(tipo_articulos.descripcion, '') || ' ' || coalesce(articulos.nombre, '') || ' ' || coalesce(articulos.codigo, '')) LIKE lower(?)",
-        "%#{arg}%"
-      )
-
-    return relation.where.not(tipo_articulos: { codigo: TipoArticulos.producto_terminado }).where.not(tipo_articulos: { tipo: TipoArticuloType.servicio }).order("articulos.id ASC") if is_compra
-    return relation.order("articulos.id ASC") if tipo == "todos"
-
-    if tipo == TipoArticulos.materia_prima
-      relation = relation.where("(tipo_articulos.codigo = ? OR articulos.is_materia_prima = ?)", tipo, true)
-    else
-      relation = relation.where(tipo_articulos: { codigo: tipo })
-    end
-
-    relation.order("articulos.id ASC")
-  end
-
-  def self.aplicar_historicos_filtrados(articulos, fecha)
-    articulos_data = articulos.map do |articulo|
-      fecha_ultima_edicion = calculateDateUTC(articulo.updated_at).slice(0, 17) + "00"
-      {
-        articulo: articulo,
-        id: articulo.id,
-        necesita_historico: fecha < fecha_ultima_edicion
-      }
-    end
-
-    articulos_por_id = articulos_data.index_by { |data| data[:id] }
-    ids_para_historicos = articulos_data.select { |data| data[:necesita_historico] }.map { |data| data[:id] }
-    historicos = {}
-
-    if ids_para_historicos.any?
-      MantenimientoArticulo.get_multiple_historicos_by_date(fecha, ids_para_historicos).each do |hist|
-        articulo_original = articulos_por_id[hist.articulo_id]&.dig(:articulo)
-        historicos[hist.articulo_id] = MantenimientoArticulo.crearArticuloHistorico(hist, articulo_original) if articulo_original
-      end
-    end
-
-    articulos_finales = []
-    historicos_map = {}
-
-    articulos_data.each do |data|
-      historico = historicos[data[:id]]
-      articulo_final = historico ? Articulo.new(historico) : data[:articulo]
-
-      articulos_finales << articulo_final
-      historicos_map[data[:id]] = historico || data[:articulo]
-    end
-
-    [articulos_finales, historicos_map]
-  end
-
-  def self.fecha_filtro_articulo(params)
-    fecha = params["fecha"].presence || Time.current.strftime("%Y-%m-%d %H:%M")
-    "#{fecha}:00"
-  end
-
-  def self.paginacion_articulos(params)
-    paginado = params["paginado"].to_s.to_boolean
-    page = params["page"].to_i
-    per_page = params["per_page"].to_i
-
-    page = 1 if page <= 0
-    per_page = 1 if per_page <= 0
-
-    {
-      paginado: paginado,
-      page: page,
-      per_page: per_page,
-      offset: (page - 1) * per_page
-    }
-  end
-
-  def self.paginas_articulos(total_registros, per_page)
-    (total_registros.to_f / per_page.to_f).ceil
-  end
-
-  def self.precargar_articulos_combo(articulos)
-    combo_ids = articulos.flat_map do |articulo|
-      formulas = if articulo.respond_to?(:formulas_productos_terminados)
-        articulo.formulas_productos_terminados
-      else
-        articulo["formulas_productos_terminados"] || articulo[:formulas_productos_terminados] || []
-      end
-
-      formulas.map { |formula| formula.respond_to?(:articulo_combo) ? formula.articulo_combo : formula["articulo_combo"] || formula[:articulo_combo] }
-    end.compact.uniq
-
-    return if combo_ids.empty?
-
-    Thread.current[:articulos_cache] ||= {}
-    Articulo.where(id: combo_ids).preload(models_includes).each do |articulo|
-      Thread.current[:articulos_cache][articulo.id] = articulo
-    end
-  end
-
-  private_class_method :filtrar_articulo_relation, :aplicar_historicos_filtrados, :fecha_filtro_articulo, :paginacion_articulos, :paginas_articulos, :precargar_articulos_combo
 
   # =====================================================================================================================
   def self.parseal(objeto)
