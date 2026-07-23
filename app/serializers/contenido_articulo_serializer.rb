@@ -9,16 +9,13 @@ class ContenidoArticuloSerializer < ActiveModel::Serializer
   attribute :condicion,                  if: Proc.new { self.get_param('condicion') || self.get_param('all') }
   attribute :calcular_itbis,             if: Proc.new { self.get_param('calcular_itbis') || self.get_param('all') }
 
-  def precio
-
-    object.precio
-  end
-
   def calcular_itbis
-    object.calcular_itbis || false
+    return false if object.calcular_itbis.nil?
+
+    object.calcular_itbis
   end
 
   def get_param(col)
-    return @instance_options[:"#{col}"]
+    @instance_options[col.to_sym]
   end
 end

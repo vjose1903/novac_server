@@ -20,69 +20,73 @@ class FormulasProductosTerminado < ApplicationRecord
   end
 
   def otras_validaciones
-    ingrediente = Articulo.find_by_id(self.articulo_combo)
+    ingrediente = articulo_combo_articulo || Articulo.find_by_id(self.articulo_combo)
+    nombre_ingrediente = ingrediente&.nombre || "ingrediente"
 
-    if self.cantidad.nil?
-      self.errors.add(:base, "Debe introducir la cantidad necesaria de #{ingrediente.nombre}, para completar la formula.")
-    else
-      self.errors.add(:base, "La cantidad de #{ingrediente.nombre}, debe se ser mayor a 0") if self.cantidad <= 0
-    end
+    return self.errors.add(:base, "Debe introducir la cantidad necesaria de #{nombre_ingrediente}, para completar la formula.") if self.cantidad.nil?
+
+    self.errors.add(:base, "La cantidad de #{nombre_ingrediente}, debe se ser mayor a 0") if self.cantidad <= 0
   end
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
-    res = Response.new
-		formula                   = FormulasProductosTerminado.where(:id => params["id"]).first_or_initialize
-
-    formula.cantidad          = params["cantidad"]
-    formula.articulo_combo    = params["articulo_combo"]
-    formula.precio            = params["precio"]
-    formula.costo             = params["costo"]
-    formula.medida            = params["medida"]
+    formula = build_from_params(params)
     formula.valid?
     formula.otras_validaciones
+    formula.errors.delete(:articulo) unless is_save
 
-    formula.errors.delete(:articulo) if !is_save
+    return response_with_data(formula) if valid_or_saved?(formula, is_save)
 
-    if formula.errors.empty? && (!is_save || (is_save && formula.save!))
-      res.set_data(formula)
-    else
-      res.add_msgs(formula.errors.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
-    return res
+    response_with_errors(formula.errors.to_a)
   end
 
   def self.validar_e_inicializar(items, padre, save)
-    res_valid = Response.new
-    array_valid=[]
+    formulas = []
 
     items.each do |item|
+      next unless formula_item_present?(item)
 
-			if !item['articulo_combo'].nil? && !item['cantidad'].nil?
-				res_temp = self.crear_actualizar_contenido_articulo(item, padre, !item[:id].nil?)
+      res_temp = crear_actualizar_contenido_articulo(item, padre, item_id?(item))
+      return res_temp unless res_temp.status_valid
 
-				if res_temp.status_valid
-					puts "::::::::::::::::::::::::::::".green
-					puts "::::::::::::::::::::::::::::".green
-					puts ":::::::   CONTINUAR  :::::::".green
-					puts "::::::::::::::::::::::::::::".green
-					puts "::::::::::::::::::::::::::::".green
-					array_valid.push(res_temp.get_data)
-				else
-					puts "::::::::::::::::::::::::::::".red
-					puts "::::::::::::::::::::::::::::".red
-					puts "::::::: EXISTE ERROR :::::::".red
-					puts "::::::::::::::::::::::::::::".red
-					puts "::::::::::::::::::::::::::::".red
-					return res_temp
-				end
-			end
+      formulas.push(res_temp.get_data)
     end
 
-    res_valid.set_data array_valid
-    return res_valid
+    response_with_data(formulas)
   end
 
+  def self.build_from_params(params)
+    FormulasProductosTerminado.where(:id => params["id"]).first_or_initialize.tap do |formula|
+      formula.cantidad          = params["cantidad"]
+      formula.articulo_combo    = params["articulo_combo"]
+      formula.precio            = params["precio"]
+      formula.costo             = params["costo"]
+      formula.medida            = params["medida"]
+    end
+  end
+
+  def self.formula_item_present?(item)
+    !item["articulo_combo"].nil? && !item["cantidad"].nil?
+  end
+
+  def self.item_id?(item)
+    item[:id].present? || item["id"].present?
+  end
+
+  def self.valid_or_saved?(record, is_save)
+    record.errors.empty? && (!is_save || record.save!)
+  end
+
+  def self.response_with_data(data)
+    Response.new.tap { |res| res.set_data(data) }
+  end
+
+  def self.response_with_errors(errors)
+    Response.new.tap do |res|
+      res.add_msgs(errors)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+  end
+
+  private_class_method :build_from_params, :formula_item_present?, :item_id?, :valid_or_saved?, :response_with_data, :response_with_errors
 
 end

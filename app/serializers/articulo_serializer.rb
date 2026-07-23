@@ -45,19 +45,11 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def contenido_articulos
-    contenido = getContentHistorico('contenidos')
-    # OPTIMIZACIÓN: Solo serializar si hay contenido
-    return [] if contenido.empty?
-    
-    serialize_parser(contenido, { all: true })
+    serialize_content(content_historico('contenidos'))
   end
 
   def formulas_productos_terminados
-    formulas = getContentHistorico('formulas')
-    # OPTIMIZACIÓN: Solo serializar si hay fórmulas
-    return [] if formulas.empty?
-    
-    serialize_parser(formulas, { all: true })
+    serialize_content(content_historico('formulas'))
   end
 
   def descripcion
@@ -65,140 +57,53 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def contenido
-    calcularContenidos(object, true)
+    Articulo.contenidos_calculados(object, true)
   end
 
   def cantidades
-    calcularCantidades(object)
+    Articulo.cantidades_calculadas(object)
   end
 
 
   def get_param(col)
-    return @instance_options[:"#{col}"]
-  end
-
-  def calcularContenidos(articulo, sacos)
-
-    contenidos = {}
-
-    if sacos && articulo['vendido_en'] == 'Saco' && articulo["calcular_saco"]
-      [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c
-      end
-    end
-
-    articulo['medida']                                      = articulo['medida'] == "N/A" || articulo['medida'] == nil ? object.tipo_articulo.tipo.titleize : articulo['medida']
-    contenidos[articulo['medida']]                          = object.contenido_articulos.length == 0 ? 1 : object.contenido_articulos.first['cantidad']
-    contenidos[object.contenido_articulos.first['medida']]  = 1 if object.contenido_articulos.length > 0
-
-
-    if object.contenido_articulos.length == 2
-
-      cantPrincipal  = 1
-      cantHijo       = 1
-      cantPadre      = 1
-
-      object.contenido_articulos.each do |conte|
-        cantPrincipal *= conte['cantidad']
-        cantPadre = conte['cantidad'] if conte['referencia'] != nil
-      end
-
-      contenidos[articulo['medida']]                      = cantPrincipal
-      contenidos[object.contenido_articulos[0]['medida']] = cantPadre
-      contenidos[object.contenido_articulos[1]['medida']] = cantHijo
-    end
-    contenidos
-  end
-
-  def calcularCantidades(articulo)
-
-    existencia = articulo['existencia'].nil? ? 0 : articulo['existencia']
-
-    cantidades = {}.with_indifferent_access
-
-    articulo['medida']                                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? object.tipo_articulo.tipo.titleize : articulo['medida']
-    cantidades[articulo['medida']]                         = object.contenido_articulos.length == 0 ? existencia : (existencia / object.contenido_articulos.first['cantidad'])
-    cantidades[object.contenido_articulos.first['medida']] = existencia if object.contenido_articulos.length > 0
-
-    if object.contenido_articulos.length == 2
-
-      maxCant   = 1
-      cantPadre = 1
-
-      object.contenido_articulos.each do | conte |
-        maxCant   = conte['cantidad'] * maxCant
-        cantPadre = conte['cantidad'] if conte['condicion'] == 'hijo'
-      end
-
-      cantidades[articulo['medida']]                      = (existencia / maxCant)
-      cantidades[object.contenido_articulos[0]['medida']] = (existencia / cantPadre)
-      cantidades[object.contenido_articulos[1]['medida']] = existencia
-    end
-
-    return cantidades
+    @instance_options[col.to_sym]
   end
 
   def costos
-		obj = {}.with_indifferent_access
-
-    obj["#{object.medida}"]            = {}.with_indifferent_access
-    obj["#{object.medida}"]['costo']   = object.costo_principal
-    obj["#{object.medida}"]['precio']  = object.precio_principal
-
-    object.contenido_articulos.each do | conte |
-      obj["#{conte.medida}"]           = {}
-      obj["#{conte.medida}"]['costo']  = conte.costo
-      obj["#{conte.medida}"]['precio'] = conte.precio
-    end
-
-    if object.calcular_saco && ( obj['Quintal'].present? && !obj['Quintal'].nil?)
-      [100, 50, 25].each do | peso |
-
-        obj["Saco_#{peso}"]              = {}.with_indifferent_access
-        obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * obj['Quintal']['costo']
-        obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * obj['Quintal']['precio']
-      end
-    end
-
-    obj
+    Articulo.costos_calculados(object)
   end
 
   def tipo_articulo
     object.tipo_articulo
   end
 
-  def getContentHistorico(tipo)
-    # OPTIMIZACIÓN: Usar mapa en lugar de array para acceso O(1)
-    historicos_map = self.get_param('historicos_map')
-    content = []
+  def content_historico(tipo)
+    historicos_map = get_param('historicos_map')
+    return current_content(tipo) if historicos_map.blank?
 
-    if historicos_map.blank? || historicos_map.empty?
-      # SI NO HAY HISTORICOS SE RETORNA EL ACTUAL
-      content = object.contenido_articulos           if tipo == 'contenidos'
-      content = object.formulas_productos_terminados if tipo == 'formulas'
-    else
-      # Acceso O(1) al histórico específico
-      articulo = historicos_map[object.id]
-      
-      if articulo
-        if tipo == 'contenidos'
-          content = articulo['contenido_articulos'] || articulo[:contenido_articulos]
-          content = articulo.contenido_articulos if content.nil? && articulo.respond_to?(:contenido_articulos)
-          content ||= []
-        end
-        
-        if tipo == 'formulas'
-          content = articulo['formulas_productos_terminados'] || articulo[:formulas_productos_terminados]
-          content = articulo.formulas_productos_terminados if content.nil? && articulo.respond_to?(:formulas_productos_terminados)
-          content ||= []
-        end
-      else
-        # Si no se encuentra en históricos, usar el actual
-        content = object.contenido_articulos           if tipo == 'contenidos'
-        content = object.formulas_productos_terminados if tipo == 'formulas'
-      end
-    end
+    articulo = historicos_map[object.id]
+    return current_content(tipo) unless articulo
 
-    return content.nil? ? [] : content
+    historico_content(articulo, tipo)
+  end
+
+  def current_content(tipo)
+    return object.contenido_articulos if tipo == 'contenidos'
+    return object.formulas_productos_terminados if tipo == 'formulas'
+
+    []
+  end
+
+  def historico_content(articulo, tipo)
+    key = tipo == 'contenidos' ? 'contenido_articulos' : 'formulas_productos_terminados'
+    content = articulo[key] || articulo[key.to_sym]
+    content = articulo.public_send(key) if content.nil? && articulo.respond_to?(key)
+    content || []
+  end
+
+  def serialize_content(content)
+    return [] if content.empty?
+
+    serialize_parser(content, { all: true })
   end
 end

@@ -1,4 +1,5 @@
 class Articulo < ApplicationRecord
+  include ArticuloMedidas
   include ArticuloFiltering
 
   belongs_to :tipo_articulo
@@ -181,37 +182,7 @@ class Articulo < ApplicationRecord
   end
 
   def self.calcularContenidos(articulo, sacos = true )
-
-    contenido = articulo.contenido_articulos
-    contenidos = {}
-
-    if sacos && articulo["vendido_en"] == 'Saco' && articulo['calcular_saco']
-      [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c
-      end
-    end
-
-    articulo['medida']                     = articulo['medida'] == 'N/A' || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
-    contenidos[articulo['medida']]         = contenido.length == 0 ? 1 : contenido.first['cantidad']
-    contenidos[contenido.first['medida']]  = 1 if contenido.length > 0
-
-
-    if contenido.length == 2
-
-      cantPrincipal = 1
-      cantHijo      = 1
-      cantPadre     = 1
-
-      contenido.each do |conte|
-        cantPrincipal *= conte['cantidad']
-        cantPadre      = conte['cantidad'] if conte['referencia'] != nil
-      end
-
-      contenidos[articulo['medida']]     = cantPrincipal
-      contenidos[contenido[0]['medida']] = cantPadre
-      contenidos[contenido[1]['medida']] = cantHijo
-    end
-    contenidos.with_indifferent_access
+    contenidos_calculados(articulo, sacos).with_indifferent_access
   end
 
   # =====================================================================================================================
@@ -229,31 +200,6 @@ class Articulo < ApplicationRecord
 
   # =====================================================================================================================
   def self.calcularCantidades(articulo)
-    contenido = articulo.contenido_articulos
-
-    existencia = articulo['existencia'].nil? ? 0 : articulo['existencia']
-
-    cantidades = {}
-
-    articulo['medida']                     = articulo['medida'] == 'N/A' || articulo['medida'] == nil ? articulo.tipo_articulo.tipo.titleize : articulo['medida']
-    cantidades[articulo['medida']]         = contenido.length == 0 ? existencia : (existencia / contenido.first['cantidad'])
-    cantidades[contenido.first['medida']]  = existencia if contenido.length > 0
-
-    if contenido.length == 2
-
-      maxCant   = 1
-      cantPadre = 1
-
-      contenido.each do |conte|
-        maxCant   = conte['cantidad'] * maxCant
-        cantPadre = conte['cantidad'] if conte['condicion'] == 'hijo'
-      end
-
-      cantidades[articulo['medida']]     = (existencia / maxCant)
-      cantidades[contenido[0]['medida']] = (existencia / cantPadre)
-      cantidades[contenido[1]['medida']] = existencia
-    end
-
-    return cantidades.with_indifferent_access
+    cantidades_calculadas(articulo).with_indifferent_access
   end
 end

@@ -63,21 +63,18 @@ class ConfigArticulo < ApplicationRecord
       return res
     end
 
-    # Optimizar consulta base según el tipo
     lista_articulo = if tipo == 'producto_terminado'
       Articulo.joins(:formulas_productos_terminados)
-              .includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}])
+              .preload(Articulo.models_includes_by_mode("formula"))
               .distinct
     else
       Articulo.left_outer_joins(:formulas_productos_terminados)
               .where(formulas_productos_terminados: { id: nil })
-              .includes([{contenido_articulos: :articulo}, {formulas_productos_terminados: :articulo}])
+              .preload(Articulo.models_includes_by_mode("formula"))
     end
 
-    # Precargar todos los artículos combo y contenidos de referencia para evitar consultas N+1
     precargar_datos_relacionados(lista_articulo)
 
-    # Procesar artículos en lotes para mejor rendimiento
     lista_articulo.find_each(batch_size: 100) do |articulo|
       begin
         procesar_articulo(articulo, params)
@@ -93,7 +90,6 @@ class ConfigArticulo < ApplicationRecord
   private
 
   def self.precargar_datos_relacionados(lista_articulo)
-    # Obtener todos los IDs de artículos combo únicos
     articulos_combo_ids = []
     contenidos_referencia_ids = []
     
@@ -107,37 +103,29 @@ class ConfigArticulo < ApplicationRecord
       end
     end
 
-    # Precargar artículos combo con sus contenidos
     @articulos_combo_cache = {}
-    if articulos_combo_ids.any?
-      Articulo.includes(:contenido_articulos)
-              .where(id: articulos_combo_ids.uniq)
-              .each do |articulo|
-        @articulos_combo_cache[articulo.id] = articulo
-      end
+    Articulo.preload(:contenido_articulos)
+            .where(id: articulos_combo_ids.uniq)
+            .each do |articulo|
+      @articulos_combo_cache[articulo.id] = articulo
     end
 
-    # Precargar contenidos de referencia
     @contenidos_referencia_cache = {}
-    if contenidos_referencia_ids.any?
-      ContenidoArticulo.where(id: contenidos_referencia_ids.uniq)
-                      .each do |contenido|
-        @contenidos_referencia_cache[contenido.id] = contenido
-      end
+    ContenidoArticulo.where(id: contenidos_referencia_ids.uniq)
+                    .each do |contenido|
+      @contenidos_referencia_cache[contenido.id] = contenido
     end
   end
 
   def self.procesar_articulo(articulo, params)
-    # Procesar combos si es necesario
-    if articulo.is_combo && articulo.formulas_productos_terminados.any?
-      procesar_articulo_combo(articulo)
-    end
+    procesar_articulo_combo(articulo) if articulo_combo?(articulo)
 
-    # Calcular nuevo precio
     calcular_nuevo_precio(articulo, params)
-
-    # Actualizar contenidos del artículo
     actualizar_contenidos_articulo(articulo)
+  end
+
+  def self.articulo_combo?(articulo)
+    articulo.is_combo && articulo.formulas_productos_terminados.any?
   end
 
   def self.procesar_articulo_combo(articulo)
@@ -147,15 +135,11 @@ class ConfigArticulo < ApplicationRecord
     articulo.formulas_productos_terminados.each do |formula|
       articulo_combo = @articulos_combo_cache[formula.articulo_combo]
       
-      unless articulo_combo
-        raise "No se encontró el artículo combo con ID: #{formula.articulo_combo}"
-      end
+      raise "No se encontró el artículo combo con ID: #{formula.articulo_combo}" unless articulo_combo
 
       contenido_minimo = articulo_combo.contenido_articulos.find { |contenido| unidades_minimas.my_includes_str(contenido.medida) }
       
-      unless contenido_minimo
-        raise "No se encontró contenido mínimo para el artículo combo #{articulo_combo.nombre} con medidas: #{unidades_minimas.join(', ')}"
-      end
+      raise "No se encontró contenido mínimo para el artículo combo #{articulo_combo.nombre} con medidas: #{unidades_minimas.join(', ')}" unless contenido_minimo
 
       formula.costo = contenido_minimo.costo
       formula.precio = contenido_minimo.precio
@@ -169,10 +153,7 @@ class ConfigArticulo < ApplicationRecord
   end
 
   def self.calcular_nuevo_precio(articulo, params)
-    # Validar que el artículo tenga costo principal
-    unless articulo.costo_principal.present? && articulo.costo_principal > 0
-      raise "El artículo #{articulo.nombre} no tiene un costo principal válido"
-    end
+    raise "El artículo #{articulo.nombre} no tiene un costo principal válido" unless articulo.costo_principal.present? && articulo.costo_principal > 0
 
     factor_ganancia = (100 - params[:porciento_ganancia]).to_f / 100
     new_precio = articulo.costo_principal / factor_ganancia
@@ -182,30 +163,28 @@ class ConfigArticulo < ApplicationRecord
 
   def self.actualizar_contenidos_articulo(articulo)
     articulo.contenido_articulos.each do |contenido|
-      precio_referencial = articulo.precio_principal
-      costo_referencial = articulo.costo_principal
+      valores_referenciales = valores_referenciales_contenido(articulo, contenido)
+      raise "El contenido del artículo #{articulo.nombre} no tiene una cantidad válida" unless contenido.cantidad.present? && contenido.cantidad > 0
 
-      if contenido.referencia.present?
-        contenido_referencia = @contenidos_referencia_cache[contenido.referencia]
-        
-        if contenido_referencia
-          precio_referencial = contenido_referencia.precio
-          costo_referencial = contenido_referencia.costo
-        else
-          # Si no encuentra la referencia, usar los valores del artículo principal
-          Rails.logger.warn("No se encontró contenido de referencia con ID: #{contenido.referencia}")
-        end
-      end
-
-      # Validar que la cantidad sea mayor a 0
-      unless contenido.cantidad.present? && contenido.cantidad > 0
-        raise "El contenido del artículo #{articulo.nombre} no tiene una cantidad válida"
-      end
-
-      contenido.costo = costo_referencial / contenido.cantidad
-      contenido.precio = precio_referencial / contenido.cantidad
+      contenido.costo = valores_referenciales[:costo] / contenido.cantidad
+      contenido.precio = valores_referenciales[:precio] / contenido.cantidad
       contenido.save!
     end
+  end
+
+  def self.valores_referenciales_contenido(articulo, contenido)
+    valores = {
+      precio: articulo.precio_principal,
+      costo: articulo.costo_principal
+    }
+
+    return valores unless contenido.referencia.present?
+
+    contenido_referencia = @contenidos_referencia_cache[contenido.referencia]
+    return valores.merge(precio: contenido_referencia.precio, costo: contenido_referencia.costo) if contenido_referencia
+
+    Rails.logger.warn("No se encontró contenido de referencia con ID: #{contenido.referencia}")
+    valores
   end
 
 end
