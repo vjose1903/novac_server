@@ -96,10 +96,17 @@ class FormulasProductosTerminadoSerializer < ActiveModel::Serializer
   def articulo_combo_object
     # Cache por thread para evitar consultas repetidas del mismo artículo
     Thread.current[:articulos_cache] ||= {}
-    
-    return Thread.current[:articulos_cache][object.articulo_combo] if Thread.current[:articulos_cache].key?(object.articulo_combo)
+    combo_id = object.articulo_combo
+    return nil if combo_id.nil?
 
-    Thread.current[:articulos_cache][object.articulo_combo] = Articulo.find_by_id(object.articulo_combo)
+    return Thread.current[:articulos_cache][combo_id] if Thread.current[:articulos_cache].key?(combo_id)
+
+    if object.respond_to?(:association) && object.association(:articulo_combo_articulo).loaded?
+      Thread.current[:articulos_cache][combo_id] = object.articulo_combo_articulo
+      return Thread.current[:articulos_cache][combo_id]
+    end
+
+    Thread.current[:articulos_cache][combo_id] = object.articulo_combo_articulo
   end
 
   def get_param(col)

@@ -1,5 +1,6 @@
 class FormulasProductosTerminado < ApplicationRecord
   belongs_to :articulo
+  belongs_to :articulo_combo_articulo, class_name: "Articulo", foreign_key: "articulo_combo", optional: true
 
   validates :costo,     presence: { :message => "El costo del ingrediente de la formula no puede estar vacio." },   numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }
   validates :precio,    presence: { :message => "El precio del ingrediente de la formula no puede estar vacio." } , numericality: { greater_than: 0, :message => "El costo del ingrediente de la formula debe de ser mayor a 0." }

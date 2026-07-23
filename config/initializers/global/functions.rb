@@ -41,6 +41,11 @@ class Response
     @res[:status]
   end
 
+  def set_pagination_metadata(total_registros, total_paginas)
+    @res[:total_registros] = total_registros
+    @res[:total_paginas] = total_paginas
+  end
+
   def add_msg(msg)
     @res[:msg].push(msg) if msg.length > 0
   end
