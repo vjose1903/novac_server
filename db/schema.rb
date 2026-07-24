@@ -10,9 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_07_22_152050) do
+ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_trgm"
   enable_extension "plpgsql"
+  enable_extension "unaccent"
 
   create_table "acciones", force: :cascade do |t|
     t.string "nombre"
@@ -150,8 +152,11 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_22_152050) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.bigint "municipio_id"
+    t.index "immutable_unaccent((apellido)::text) gin_trgm_ops", name: "index_clientes_on_unaccent_apellido_trgm", using: :gin
+    t.index "immutable_unaccent((nombre)::text) gin_trgm_ops", name: "index_clientes_on_unaccent_nombre_trgm", using: :gin
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
     t.index ["municipio_id"], name: "index_clientes_on_municipio_id"
+    t.index ["nombre", "apellido"], name: "index_clientes_on_nombre_apellido"
   end
 
   create_table "commertial_approval_receptions", force: :cascade do |t|
@@ -345,6 +350,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_22_152050) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "origen_type"
     t.bigint "origen_id"
+    t.index "immutable_unaccent((documento)::text) gin_trgm_ops", name: "index_documentos_identidad_on_unaccent_documento_trgm", using: :gin
     t.index ["cliente_id"], name: "index_documentos_de_identidad_on_cliente_id"
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
@@ -658,6 +664,10 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_22_152050) do
     t.boolean "estado"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.index "immutable_unaccent((direccion)::text) gin_trgm_ops", name: "index_suplidores_on_unaccent_direccion_trgm", using: :gin
+    t.index "immutable_unaccent((email)::text) gin_trgm_ops", name: "index_suplidores_on_unaccent_email_trgm", using: :gin
+    t.index "immutable_unaccent((nombre)::text) gin_trgm_ops", name: "index_suplidores_on_unaccent_nombre_trgm", using: :gin
+    t.index ["nombre"], name: "index_suplidores_on_nombre"
   end
 
   create_table "tipo_articulos", force: :cascade do |t|

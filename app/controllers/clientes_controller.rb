@@ -13,7 +13,7 @@ class ClientesController < ApplicationController
 
   def getClientesFiltrados
     arg       = params[:arg]
-    resultado = Cliente.filtrarCliente(arg, set_paginate_options(params))
+    resultado = Cliente.filtrarCliente(arg, set_paginate_options(params).merge("order_by" => params[:order_by]))
     resultado.send_response self
   end
 

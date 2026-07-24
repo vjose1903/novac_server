@@ -17,7 +17,7 @@ class SuplidoresController < ApplicationController
 
   def getSuplidoresFiltrados
     arg = params["arg"]
-    resultado = Suplidor.filtrarSuplidores(arg, set_paginate_options(params))
+    resultado = Suplidor.filtrarSuplidores(arg, set_paginate_options(params).merge("order_by" => params[:order_by]))
     resultado.send_response self
   end
 

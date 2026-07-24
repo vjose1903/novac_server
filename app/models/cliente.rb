@@ -30,6 +30,25 @@ class Cliente < ApplicationRecord
     return includes
   end
 
+  def self.filter_order_columns
+    {
+      "id" => "clientes.id",
+      "nombre" => "clientes.nombre",
+      "apellido" => "clientes.apellido",
+      "telefono" => "clientes.telefono",
+      "direccion" => "clientes.direccion",
+      "limite_credito" => "clientes.limite_credito",
+      "maximo_credito" => "clientes.maximo_credito",
+      "balance" => "clientes.balance",
+      "created_at" => "clientes.created_at",
+      "updated_at" => "clientes.updated_at"
+    }
+  end
+
+  def self.parse_filter_order(order_by)
+    ORDER_MANAGER.parse_safe(order_by, filter_order_columns, "clientes.id ASC")
+  end
+
   def nombre_completo
     nombre    = self.nombre.capitalize
     nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
@@ -92,38 +111,35 @@ class Cliente < ApplicationRecord
 
   def self.filtrarCliente(arg, params)
     res = Response.new(params)
-    # Divide la búsqueda en palabras individuales
-    palabras_busqueda = arg.to_s.downcase.split
 
-    # Empieza con todos los clientes activos
-    query = Cliente.where(estado: true)
-                   .joins("LEFT JOIN documentos_de_identidad ON clientes.id = documentos_de_identidad.origen_id
-            AND documentos_de_identidad.origen_type = 'Cliente'
-            AND documentos_de_identidad.principal = true")
+    clientes = Cliente
+      .where(estado: true)
+      .where('clientes.sexo IS NOT NULL')
+      .joins("LEFT JOIN documentos_de_identidad ON clientes.id = documentos_de_identidad.origen_id
+        AND documentos_de_identidad.origen_type = 'Cliente'
+        AND documentos_de_identidad.principal = true")
+      .distinct
 
-    # Aplica cada palabra como un filtro separado
-    palabras_busqueda.each do |palabra|
-      query = query.where("
-      lower(clientes.nombre) LIKE :palabra OR
-      lower(clientes.apellido) LIKE :palabra OR
-      lower(COALESCE(documentos_de_identidad.documento, '')) LIKE :palabra",
-                          palabra: "%#{palabra}%"
+    arg.to_s.downcase.split.each do |palabra|
+      palabra = "%#{ActiveRecord::Base.sanitize_sql_like(palabra)}%"
+      clientes = clientes.where(
+        "immutable_unaccent(clientes.nombre) ILIKE immutable_unaccent(:palabra)
+          OR immutable_unaccent(clientes.apellido) ILIKE immutable_unaccent(:palabra)
+          OR immutable_unaccent(documentos_de_identidad.documento) ILIKE immutable_unaccent(:palabra)",
+        palabra: palabra
       )
     end
 
-    # Ordena los resultados
-    clientes = query.where('clientes.sexo IS NOT NULL').order("clientes.id ASC")
+    clientes = clientes.order(Arel.sql(parse_filter_order(params["order_by"])))
 
-    if clientes.length > 0
-      res.set_data(clientes, {all: true}, Cliente.models_includes)
-    else
-      res.set_data([])
-      cantidad_registros = Cliente.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? 'No existen clientes registrados.' : 'No existe cliente con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
+    return res.tap { |response| response.set_data(clientes, {all: true}, Cliente.models_includes) } if clientes.exists?
 
-    return res
+    res.set_data([])
+    cantidad_registros = Cliente.where(estado: true).count
+    res.add_msg(cantidad_registros == 0 ? 'No existen clientes registrados.' : 'No existe cliente con las especificaciones introducidas')
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+
+    res
   end
 
 
