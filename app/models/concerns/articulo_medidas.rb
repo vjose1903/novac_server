@@ -15,7 +15,8 @@ module ArticuloMedidas
       return contenidos if contenido.length != 2
 
       cant_principal = contenido.reduce(1) { |total, conte| total * conte["cantidad"] }
-      cant_padre = contenido.find { |conte| conte["referencia"] }&.dig("cantidad") || 1
+      cant_padre_obj = contenido.find { |conte| conte["referencia"] }
+      cant_padre = cant_padre_obj ? cant_padre_obj["cantidad"] : 1
 
       contenidos[medida] = cant_principal
       contenidos[contenido[0]["medida"]] = cant_padre
@@ -35,7 +36,8 @@ module ArticuloMedidas
       return cantidades if contenido.length != 2
 
       max_cantidad = contenido.reduce(1) { |total, conte| total * conte["cantidad"] }
-      cantidad_padre = contenido.find { |conte| conte["condicion"] == "hijo" }&.dig("cantidad") || 1
+      cantidad_padre_obj = contenido.find { |conte| conte["condicion"] == "hijo" }
+      cantidad_padre = cantidad_padre_obj ? cantidad_padre_obj["cantidad"] : 1
 
       cantidades[medida] = existencia / max_cantidad
       cantidades[contenido[0]["medida"]] = existencia / cantidad_padre
