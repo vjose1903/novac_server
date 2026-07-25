@@ -147,6 +147,8 @@ G_PERMISOS = [
   { nombre: 'vehiculos',                     mostrar_front: true,     descripcion: 'vehiculo',                          controlador: 'Vehiculos',                      acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getVehiculosFiltrados'}  ]},
   { nombre: 'sesion de usuario',             mostrar_front: true,     descripcion: 'device',                            controlador: 'devise_token_auth/sessions',     acciones: [{nombre:'iniciar sesión', mostrar_front: true, descripcion: 'login', metodo: 'create'}]},
   { nombre: 'roles',                         mostrar_front: true,     descripcion: 'role',                              controlador: 'Roles',                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getRolesFiltrados'}]},
+  { nombre: 'divisa',                        mostrar_front: true,     descripcion: 'divisa',                            controlador: 'Divisa',                         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'tasa de cambio',                mostrar_front: true,     descripcion: 'tasa_cambio',                       controlador: 'TasaCambio',                     acciones: [ {nombre:'ver todos', mostrar_front: true, descripcion: 'read_all', metodo: 'index'}, {nombre:'buscar uno', mostrar_front: true, descripcion: 'read_one', metodo: 'show'}, {nombre:'editar', mostrar_front: true, descripcion: 'update', metodo: 'update'}, {nombre:'obtener historicos de tasas de cambio', mostrar_front: true, descripcion: 'get_history_changes', metodo: 'getHistoryChanges'} ]},
   { nombre: 'Recepcion Ecf',                 mostrar_front: true,     descripcion: 'ecf_reception',                     controlador: 'EcfReception',                   acciones: [READ_ALL_ACTION, READ_ONE_ACTION, { nombre: 'Responder recibo de factura', mostrar_front: true, descripcion: 'response_receive', metodo: 'approveDenyEcf'}]},
   { nombre: 'Aprobaciónes comerciales',      mostrar_front: true,     descripcion: 'commertial_approval_reception',     controlador: 'CommertialApprovalReception',    acciones: [READ_ALL_ACTION, READ_ONE_ACTION]}
 ]
@@ -159,5 +161,10 @@ G_ROLES_CUSTOM = [
 ]
 
 G_CONFIG_ARTICULOS = [
-	{ porciento_ganancia: 15}
+		{ porciento_ganancia: 15}
+]
+
+G_DIVISA_DEFAULT = [
+  { nombre: 'Peso Dominicano',      simbolo: 'RD$', is_principal: true,  estado: true, current_tasa: 1,  predeterminado: true, imagenes: [{ file_name: 'peso_dominicano', base_64: G_IMG_PESO }] },
+  { nombre: 'Dolar Estadounidense', simbolo: 'US$', is_principal: false, estado: true, current_tasa: 56, predeterminado: true, imagenes: [{ file_name: 'dolar_estadounidense', base_64: G_IMG_DOLAR }] },
 ]

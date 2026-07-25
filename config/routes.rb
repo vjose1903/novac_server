@@ -2,6 +2,7 @@ Rails.application.routes.draw do
 
   get "up" => "health#show"
   get "up/dgii" => "health#dgii"
+  get "api/dashboard" => "dashboard#index"
 
   resources :costos_fletes_historiales
   resources :provincias
@@ -190,6 +191,19 @@ Rails.application.routes.draw do
   resources :permisos do
     collection do
       get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
+    end
+  end
+
+  resources :tasas_de_cambio do
+    collection do
+      get "custom/get_history_changes" => "tasas_de_cambio#getHistoryChanges"
+    end
+  end
+
+  resources :divisas do
+    collection do
+      patch ":id/deactivate_or_reactivate" => "divisas#deactivateOrReactivate"
+      get "custom/get_principal"           => "divisas#getPrincipalDivisa"
     end
   end
 

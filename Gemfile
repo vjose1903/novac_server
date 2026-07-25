@@ -57,6 +57,7 @@ gem 'rack-cors'
 gem 'colorize'
 gem 'zlib'
 gem "rolify"
+gem 'mime-types'
 gem 'faraday'
 
 

@@ -325,6 +325,17 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
     t.index ["produccion_id"], name: "index_detalles_produccion_on_produccion_id"
   end
 
+  create_table "divisas", force: :cascade do |t|
+    t.string "nombre"
+    t.string "simbolo"
+    t.boolean "is_principal"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.float "current_tasa", default: 1.0
+    t.boolean "predeterminado", default: false
+  end
+
   create_table "document_references", force: :cascade do |t|
     t.string "document_origin_type", null: false
     t.bigint "document_origin_id", null: false
@@ -409,9 +420,12 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
   create_table "imagenes", force: :cascade do |t|
     t.string "file_name"
     t.string "base_64"
-    t.string "path"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "origen_img_type"
+    t.bigint "origen_img_id"
+    t.string "file_hash"
+    t.index ["origen_img_type", "origen_img_id"], name: "index_imagenes_on_origen"
   end
 
   create_table "incidencias", force: :cascade do |t|
@@ -670,6 +684,20 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
     t.index ["nombre"], name: "index_suplidores_on_nombre"
   end
 
+  create_table "tasas_de_cambio", force: :cascade do |t|
+    t.bigint "divisa_id", null: false
+    t.bigint "user_id"
+    t.bigint "last_user_update_id"
+    t.date "fecha_equivalente"
+    t.float "valor", default: 0.0
+    t.integer "secuencia", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["divisa_id"], name: "index_tasas_de_cambio_on_divisa_id"
+    t.index ["last_user_update_id"], name: "index_tasas_de_cambio_on_last_user_update_id"
+    t.index ["user_id"], name: "index_tasas_de_cambio_on_user_id"
+  end
+
   create_table "tipo_articulos", force: :cascade do |t|
     t.text "descripcion"
     t.datetime "created_at", precision: nil, null: false
@@ -812,6 +840,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
   add_foreign_key "roles_permisos_acciones", "roles"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
+  add_foreign_key "tasas_de_cambio", "divisas"
+  add_foreign_key "tasas_de_cambio", "users"
+  add_foreign_key "tasas_de_cambio", "users", column: "last_user_update_id"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

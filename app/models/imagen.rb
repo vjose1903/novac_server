@@ -1,15 +1,102 @@
 
 require "fileutils"
+require "mime/types"
+require "digest"
 
 class Imagen < ApplicationRecord
-  def self.saveFileInThisServer(fileName, base_64)
-    _path = File.join Rails.root, "public/img"
+  belongs_to :origen_img, polymorphic: true, optional: true
 
-    FileUtils.mkdir_p(_path) unless File.exist?(_path)
-    File.open(File.join(_path, "#{fileName}"), "wb") do |file|
-      file.write(Base64.decode64(base_64))
-      # file.puts f.read
+  def self.create_update_imagen(params, padre, is_save=false)
+    res = Response.new
+
+    imagen = Imagen.where(id: params[:id]).first_or_create
+    imagen_original = imagen.attributes.with_indifferent_access unless params[:id].nil?
+    imagen_info = Imagen.saveFileInThisServer(params)
+
+    imagen.file_name = imagen_info[:file_name]
+    imagen.base_64 = params[:base_64]
+    imagen.file_hash = imagen_info[:file_hash]
+    imagen.origen_img = padre
+
+    imagen.valid?
+
+    if imagen.errors.empty? && (!is_save || (is_save && imagen.save!))
+      Imagen.removeFileInThisServer(imagen_original) unless params[:id].nil?
+      res.set_data(imagen)
+    else
+      res.add_msgs(imagen.errors.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
-    return _path
+
+    return res
+  end
+
+  def self.validar_e_inicializar(items, padre, save=false)
+    res_valid = Response.new
+    array_valid = []
+
+    items.each do |item|
+      item = item.with_indifferent_access unless item.is_a?(ActionController::Parameters)
+      res_temp = create_update_imagen(item, padre, !item[:id].nil?)
+
+      if res_temp.status_valid
+        array_valid.push(res_temp.get_data)
+      else
+        return res_temp
+      end
+    end
+
+    res_valid.set_data array_valid
+    return res_valid
+  end
+
+  def self.removeFileInThisServer(imagen_original)
+    existing_image = Imagen.where(file_hash: imagen_original[:file_hash])
+    return unless existing_image.empty?
+
+    file_path = Imagen.getFilePathInThisServ(imagen_original[:file_hash])
+    FileUtils.remove_file(file_path) unless file_path.nil?
+  end
+
+  def self.saveFileInThisServer(params_or_file_name, base_64=nil)
+    return save_legacy_file(params_or_file_name, base_64) unless base_64.nil?
+
+    file_name = params_or_file_name[:file_name]
+    base64_string = params_or_file_name[:base_64]
+
+    FileUtils.mkdir_p(IMAGES_PATH) unless File.exist?(IMAGES_PATH)
+
+    encoded_image = base64_string.split(",")[1]
+    image_data = Base64.decode64(encoded_image)
+    content_type = base64_string.split(";")[0].split(":")[1]
+    extension = MIME::Types[content_type].first.extensions.first
+    new_image_hash = Digest::SHA256.hexdigest(image_data)
+    existing_image = Imagen.find_by_file_hash(new_image_hash)
+    file_path = Imagen.getFilePathInThisServ(new_image_hash)
+
+    if existing_image.nil? || file_path.nil?
+      File.open(File.join(IMAGES_PATH, "#{file_name}.#{extension}"), "wb") { |file| file.write image_data }
+      return { file_name: "#{file_name}.#{extension}", file_hash: new_image_hash }.with_indifferent_access
+    end
+
+    return { file_name: existing_image.file_name, file_hash: existing_image.file_hash }.with_indifferent_access
+  end
+
+  def self.save_legacy_file(file_name, base_64)
+    FileUtils.mkdir_p(IMAGES_PATH) unless File.exist?(IMAGES_PATH)
+    File.open(File.join(IMAGES_PATH, file_name.to_s), "wb") do |file|
+      file.write(Base64.decode64(base_64))
+    end
+    return IMAGES_PATH
+  end
+
+  def self.getFilePathInThisServ(file_hash)
+    _file_path = nil
+    Dir.glob(Pathname.new(IMAGES_PATH).join("*.{jpg,jpeg,png,gif}")).each do |file_path|
+      existing_image_data = File.read(file_path)
+      existing_image_hash = Digest::SHA256.hexdigest(existing_image_data)
+      _file_path = file_path if existing_image_hash == file_hash
+    end
+    return _file_path
   end
 end

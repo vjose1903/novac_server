@@ -358,6 +358,21 @@ G_CONFIG_ARTICULOS.each do |config|
 
 end
 
+G_DIVISA_DEFAULT.each do |divisa|
+  divisa_db = Divisa.find_by(nombre: divisa[:nombre], estado: true)
+  if divisa_db.nil?
+    divisa['action'] = 'create'
+    resultado = Divisa.create_update_divisa(divisa.with_indifferent_access, true)
+    divisa_db = resultado.get_data
+    puts " "
+    puts "------".cyan * 8
+    puts "CREANDO DIVISA"
+    puts "------".cyan * 8
+    puts " "
+    puts "ERROR- divisa_db: ".red + "#{resultado.get_msgs.to_json}" unless resultado.status_valid
+  end
+end
+
 
 # G_OTROS_COSTOS.each do | otro_costo |
 # 	otro_costo_backend = OtroCosto.find_by_key(otro_costo[:key])

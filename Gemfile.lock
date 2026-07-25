@@ -147,6 +147,9 @@ GEM
     marcel (1.0.2)
     memoist (0.16.2)
     method_source (1.0.0)
+    mime-types (3.4.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2023.0218.1)
     mini_mime (1.1.2)
     minitest (5.16.3)
     msgpack (1.5.6)
@@ -255,6 +258,7 @@ DEPENDENCIES
   faraday
   google-api-client
   listen
+  mime-types
   nokogiri
   pg
   puma
