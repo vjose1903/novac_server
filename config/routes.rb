@@ -2,7 +2,10 @@ Rails.application.routes.draw do
 
   get "up" => "health#show"
   get "up/dgii" => "health#dgii"
-  get "api/dashboard" => "dashboard#index"
+
+  scope :api do
+    get "dashboard" => "dashboard#index", as: :api_dashboard
+  end
 
   resources :costos_fletes_historiales
   resources :provincias
