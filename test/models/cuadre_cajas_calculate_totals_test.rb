@@ -1,6 +1,10 @@
 require 'test_helper'
 
 class CuadreCajasCalculateTotalsTest < ActiveSupport::TestCase
+  setup do
+    @principal_divisa = Divisa.create!(nombre: 'Peso test', simbolo: 'DOP', estado: true, is_principal: true, current_tasa: 1)
+  end
+
   test 'calcula el cuadre detallado con los valores del Excel' do
     denominaciones = [
       bill(50, 34),
@@ -49,13 +53,16 @@ class CuadreCajasCalculateTotalsTest < ActiveSupport::TestCase
   end
 
   test 'convierte moneda extranjera y aplica tolerancia' do
+    divisa = Divisa.create!(nombre: 'Dolar test', simbolo: 'USD', estado: true, is_principal: false, current_tasa: 60)
+    TasaCambio.create!(divisa: divisa, fecha_equivalente: Date.new(2026, 7, 24), valor: 58.90)
+
     denominacion = CuadreCajaDenominacion.new(
       denomination_type: 'foreign_currency',
-      currency_code: 'USD',
+      divisa_id: divisa.id,
       denomination_value: 100,
-      quantity: 2,
-      exchange_rate: 58.90
+      quantity: 2
     )
+    denominacion.closing_date = Date.new(2026, 7, 24)
     denominacion.valid?
 
     totals = CuadreCajas::CalculateTotals.call(
@@ -66,8 +73,47 @@ class CuadreCajasCalculateTotalsTest < ActiveSupport::TestCase
     )
 
     assert_equal BigDecimal('11780.00'), totals[:foreign_currency_total]
+    assert_equal BigDecimal('58.900000'), denominacion.exchange_rate
+    assert_equal divisa.id, denominacion.divisa_id
     assert_equal BigDecimal('0.00'), totals[:difference_amount]
     assert_equal true, totals[:considered_balanced]
+  end
+
+  test 'rechaza denominacion sin divisa registrada' do
+    denominacion = CuadreCajaDenominacion.new(
+      denomination_type: 'bill',
+      currency_code: 'DOP',
+      denomination_value: 100,
+      quantity: 1
+    )
+
+    assert_not denominacion.valid?
+    assert_includes denominacion.errors[:divisa], 'debe estar registrada para usar denominaciones'
+  end
+
+  test 'rechaza billetes o monedas con divisa no principal' do
+    divisa = Divisa.create!(nombre: 'Euro test', simbolo: 'EUR', estado: true, is_principal: false, current_tasa: 63)
+    denominacion = CuadreCajaDenominacion.new(
+      denomination_type: 'bill',
+      divisa_id: divisa.id,
+      denomination_value: 100,
+      quantity: 1
+    )
+
+    assert_not denominacion.valid?
+    assert_includes denominacion.errors[:divisa], 'debe ser la divisa principal para billetes y monedas locales'
+  end
+
+  test 'rechaza moneda extranjera con divisa principal' do
+    denominacion = CuadreCajaDenominacion.new(
+      denomination_type: 'foreign_currency',
+      divisa_id: @principal_divisa.id,
+      denomination_value: 100,
+      quantity: 1
+    )
+
+    assert_not denominacion.valid?
+    assert_includes denominacion.errors[:divisa], 'no puede ser la divisa principal para moneda extranjera'
   end
 
   private
@@ -83,7 +129,7 @@ class CuadreCajasCalculateTotalsTest < ActiveSupport::TestCase
   def denomination(type, value, quantity)
     item = CuadreCajaDenominacion.new(
       denomination_type: type,
-      currency_code: CuadreCaja::LOCAL_CURRENCY_CODE,
+      divisa_id: @principal_divisa.id,
       denomination_value: value,
       quantity: quantity
     )

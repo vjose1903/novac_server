@@ -89,6 +89,8 @@ class CuadreCaja < ApplicationRecord
       source: 'calculated',
       closing_date: closing_date,
       system_income: system_income,
+      divisa_principal: principal_currency_payload,
+      divisas: available_foreign_currencies_payload(closing_date),
       denominations: empty_denominations_payload,
       movements: empty_movements_payload(system_income),
       totals: initial_totals_payload(system_income)
@@ -221,7 +223,7 @@ class CuadreCaja < ApplicationRecord
   def self.save_detailed_closing(cuadre_caja, attrs, current_user, res, event_type)
     closing_date = Date.parse((attrs[:closing_date] || attrs[:fecha]).to_s)
     tolerance = attrs[:reconciliation_tolerance] || attrs[:tolerancia] || 0
-    denominaciones = build_denominaciones(attrs)
+    denominaciones = build_denominaciones(attrs, closing_date)
     movimientos = build_movimientos(attrs)
     system_income = CuadreCajas::SystemIncomeCalculator.call(closing_date)
     totals = CuadreCajas::CalculateTotals.call(
@@ -274,17 +276,19 @@ class CuadreCaja < ApplicationRecord
     res
   end
 
-  def self.build_denominaciones(attrs)
+  def self.build_denominaciones(attrs, closing_date=nil)
     items = []
     raw_denominations(attrs).each_with_index do |data, index|
       item = CuadreCajaDenominacion.new(
         denomination_type: data[:denomination_type] || data[:tipo] || data[:type],
+        divisa_id: data[:divisa_id],
         currency_code: data[:currency_code] || data[:moneda] || data[:currency] || LOCAL_CURRENCY_CODE,
         denomination_value: data[:denomination_value] || data[:denominacion] || data[:valor],
         quantity: data[:quantity] || data[:cantidad] || 0,
         exchange_rate: data[:exchange_rate] || data[:tasa] || data[:tasa_cambio] || 1,
         position: data[:position] || index
       )
+      item.closing_date = closing_date
       item.valid?
       items << item
     end
@@ -351,16 +355,51 @@ class CuadreCaja < ApplicationRecord
   end
 
   def self.empty_denominations_payload
+    principal_divisa = principal_currency
+
     {
-      bills: [50, 100, 200, 500, 1000, 2000].map { |value| empty_denomination('bill', value) },
-      coins: [5, 10, 25].map { |value| empty_denomination('coin', value) },
+      bills: [50, 100, 200, 500, 1000, 2000].map { |value| empty_denomination('bill', value, principal_divisa) },
+      coins: [5, 10, 25].map { |value| empty_denomination('coin', value, principal_divisa) },
       foreign_currency: []
     }
   end
 
-  def self.empty_denomination(type, value)
+  def self.principal_currency
+    Divisa.find_by(is_principal: true, estado: true) || Divisa.find_by(predeterminado: true, estado: true)
+  end
+
+  def self.principal_currency_payload
+    divisa = principal_currency
+    return nil unless divisa
+
+    {
+      id: divisa.id,
+      nombre: divisa.nombre,
+      simbolo: divisa.simbolo,
+      code: divisa.code,
+      current_tasa: format('%.6f', BigDecimal((divisa.current_tasa || 1).to_s))
+    }
+  end
+
+  def self.available_foreign_currencies_payload(closing_date)
+    Divisa.where(estado: true, is_principal: [false, nil]).order(:nombre).map do |divisa|
+      tasa = divisa.getMontoTasa(closing_date)
+      {
+        id: divisa.id,
+        nombre: divisa.nombre,
+        simbolo: divisa.simbolo,
+        code: divisa.code,
+        current_tasa: format('%.6f', BigDecimal((tasa&.valor || divisa.current_tasa || 0).to_s)),
+        tasa_cambio_id: tasa&.id,
+        fecha_equivalente: closing_date
+      }
+    end
+  end
+
+  def self.empty_denomination(type, value, divisa=nil)
     {
       denomination_type: type,
+      divisa_id: divisa&.id,
       currency_code: LOCAL_CURRENCY_CODE,
       denomination_value: format('%.2f', BigDecimal(value.to_s)),
       quantity: '0.00',

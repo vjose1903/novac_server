@@ -3,6 +3,7 @@ require 'test_helper'
 class CuadreCajasControllerTest < ActionDispatch::IntegrationTest
   setup do
     @cuadre_caja = cuadre_cajas(:one)
+    @principal_divisa = Divisa.create!(nombre: 'Peso controller test', simbolo: 'DOP', estado: true, is_principal: true, current_tasa: 1)
   end
 
   test "should get index" do
@@ -52,7 +53,7 @@ class CuadreCajasControllerTest < ActionDispatch::IntegrationTest
         closing_date: closing_date,
         user_id: @cuadre_caja.user_id,
         denominaciones: [
-          { denomination_type: 'bill', currency_code: 'DOP', denomination_value: 100, quantity: 1 }
+          { denomination_type: 'bill', divisa_id: @principal_divisa.id, denomination_value: 100, quantity: 1 }
         ],
         movimientos: [
           { movement_group: 'other_payment_methods', payment_method: 'card', description: 'Tarjeta', amount: 100 }

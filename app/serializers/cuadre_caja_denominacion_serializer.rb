@@ -1,6 +1,9 @@
 class CuadreCajaDenominacionSerializer < ActiveModel::Serializer
   attribute :id, if: Proc.new { get_param('id') || get_param('all') }
   attribute :denomination_type, if: Proc.new { get_param('denomination_type') || get_param('all') }
+  attribute :divisa_id, if: Proc.new { get_param('divisa_id') || get_param('all') }
+  attribute :divisa, if: Proc.new { get_param('divisa') || get_param('all') }
+  attribute :tasa_cambio_id, if: Proc.new { get_param('tasa_cambio_id') || get_param('all') }
   attribute :currency_code, if: Proc.new { get_param('currency_code') || get_param('all') }
   attribute :denomination_value, if: Proc.new { get_param('denomination_value') || get_param('all') }
   attribute :quantity, if: Proc.new { get_param('quantity') || get_param('all') }
@@ -11,6 +14,10 @@ class CuadreCajaDenominacionSerializer < ActiveModel::Serializer
 
   def denomination_value
     decimal_string(object.denomination_value)
+  end
+
+  def divisa
+    serialize_parser(object.divisa, { id: true, nombre: true, simbolo: true, code: true, is_principal: true }) if object.divisa
   end
 
   def quantity

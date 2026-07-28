@@ -22,6 +22,7 @@ class Divisa < ApplicationRecord
 
       divisa.nombre               = params[:nombre]
       divisa.simbolo              = params[:simbolo]
+      divisa.code                 = params[:code].to_s.upcase if params.has_key?(:code)
       divisa.is_principal         = params[:is_principal]   if params.has_key?(:is_principal)
       divisa.current_tasa         = params[:current_tasa]   if params.has_key?(:current_tasa)
       divisa.predeterminado       = params[:predeterminado] if params.has_key?(:predeterminado)
@@ -87,8 +88,8 @@ class Divisa < ApplicationRecord
   # =========================================================================================================================================================
 
   def getMontoTasa(fecha)
-    current_tasa        = self.tasas_de_cambio.find_by({ fecha_equivalente: formatearFecha(fecha.to_s, TipoFecha.sin_hora) })
-    return current_tasa
+    fecha_tasa = Date.parse(fecha.to_s)
+    tasas_de_cambio.find_by(fecha_equivalente: fecha_tasa)
   end
 
 end

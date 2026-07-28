@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_07_28_090300) do
+ActiveRecord::Schema[7.0].define(version: 2026_07_28_090500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -229,8 +229,12 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_28_090300) do
     t.integer "position", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "divisa_id"
+    t.bigint "tasa_cambio_id"
     t.index ["cuadre_caja_id", "denomination_type", "currency_code", "denomination_value"], name: "idx_cuadre_denominaciones_unique", unique: true
     t.index ["cuadre_caja_id"], name: "index_cuadre_caja_denominaciones_on_cuadre_caja_id"
+    t.index ["divisa_id"], name: "index_cuadre_caja_denominaciones_on_divisa_id"
+    t.index ["tasa_cambio_id"], name: "index_cuadre_caja_denominaciones_on_tasa_cambio_id"
   end
 
   create_table "cuadre_caja_eventos", force: :cascade do |t|
@@ -422,6 +426,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_28_090300) do
     t.datetime "updated_at", null: false
     t.float "current_tasa", default: 1.0
     t.boolean "predeterminado", default: false
+    t.string "code"
+    t.index ["code"], name: "index_divisas_on_code"
   end
 
   create_table "document_references", force: :cascade do |t|
@@ -883,6 +889,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_28_090300) do
   add_foreign_key "costos_fletes_historiales", "costo_fletes"
   add_foreign_key "costos_fletes_historiales", "users"
   add_foreign_key "cuadre_caja_denominaciones", "cuadre_cajas"
+  add_foreign_key "cuadre_caja_denominaciones", "divisas"
+  add_foreign_key "cuadre_caja_denominaciones", "tasas_de_cambio"
   add_foreign_key "cuadre_caja_eventos", "cuadre_cajas"
   add_foreign_key "cuadre_caja_eventos", "users"
   add_foreign_key "cuadre_caja_movimientos", "cuadre_cajas"

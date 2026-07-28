@@ -370,6 +370,8 @@ G_DIVISA_DEFAULT.each do |divisa|
     puts "------".cyan * 8
     puts " "
     puts "ERROR- divisa_db: ".red + "#{resultado.get_msgs.to_json}" unless resultado.status_valid
+  elsif divisa_db.code != divisa[:code]
+    divisa_db.update(code: divisa[:code])
   end
 end
 
