@@ -49,6 +49,15 @@ Rails.application.routes.draw do
     collection do
       post "custom"            => "cuadre_cajas#create"
       get "check_today_cuadre" => "cuadre_cajas#checkTodayCuadre"
+      get "system_income_preview" => "cuadre_cajas#systemIncomePreview"
+      post "prepare"           => "cuadre_cajas#prepare"
+    end
+    member do
+      post "submit"            => "cuadre_cajas#submit"
+      post "review"            => "cuadre_cajas#review"
+      post "approve"           => "cuadre_cajas#approve"
+      post "reject"            => "cuadre_cajas#reject"
+      post "reopen"            => "cuadre_cajas#reopen"
     end
   end
 

@@ -12,10 +12,18 @@ class CuadreCajasControllerTest < ActionDispatch::IntegrationTest
 
   test "should create cuadre_caja" do
     assert_difference('CuadreCaja.count') do
-      post cuadre_cajas_url, params: { cuadre_caja: { total_anterior: @cuadre_caja.total_anterior, total_general: @cuadre_caja.total_general, total_recibo_ingreso: @cuadre_caja.total_recibo_ingreso, total_venta_contado: @cuadre_caja.total_venta_contado, total_venta_credito: @cuadre_caja.total_venta_credito, user_id: @cuadre_caja.user_id } }, as: :json
+      post cuadre_cajas_url, params: detailed_params('2026-07-26'), as: :json
     end
 
-    assert_response 201
+    assert_response :success
+  end
+
+  test "should prepare cuadre without creating it" do
+    assert_no_difference('CuadreCaja.count') do
+      post prepare_cuadre_cajas_url, params: { closing_date: '2026-07-27' }, as: :json
+    end
+
+    assert_response :success
   end
 
   test "should show cuadre_caja" do
@@ -24,8 +32,8 @@ class CuadreCajasControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update cuadre_caja" do
-    patch cuadre_caja_url(@cuadre_caja), params: { cuadre_caja: { total_anterior: @cuadre_caja.total_anterior, total_general: @cuadre_caja.total_general, total_recibo_ingreso: @cuadre_caja.total_recibo_ingreso, total_venta_contado: @cuadre_caja.total_venta_contado, total_venta_credito: @cuadre_caja.total_venta_credito, user_id: @cuadre_caja.user_id } }, as: :json
-    assert_response 200
+    patch cuadre_caja_url(@cuadre_caja), params: detailed_params(@cuadre_caja.closing_date), as: :json
+    assert_response :success
   end
 
   test "should destroy cuadre_caja" do
@@ -34,5 +42,22 @@ class CuadreCajasControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response 204
+  end
+
+  private
+
+  def detailed_params(closing_date)
+    {
+      cuadre_caja: {
+        closing_date: closing_date,
+        user_id: @cuadre_caja.user_id,
+        denominaciones: [
+          { denomination_type: 'bill', currency_code: 'DOP', denomination_value: 100, quantity: 1 }
+        ],
+        movimientos: [
+          { movement_group: 'other_payment_methods', payment_method: 'card', description: 'Tarjeta', amount: 100 }
+        ]
+      }
+    }
   end
 end

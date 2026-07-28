@@ -2,6 +2,11 @@
 
 one:
   user: one
+  closing_date: 2026-07-24
+  status: draft
+  closing_version: legacy
+  source_type: system
+  currency_code: DOP
   total_general: 1.5
   total_venta_credito: 1.5
   total_venta_contado: 1.5
@@ -10,6 +15,11 @@ one:
 
 two:
   user: two
+  closing_date: 2026-07-25
+  status: draft
+  closing_version: legacy
+  source_type: system
+  currency_code: DOP
   total_general: 1.5
   total_venta_credito: 1.5
   total_venta_contado: 1.5

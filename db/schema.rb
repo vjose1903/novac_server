@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
+ActiveRecord::Schema[7.0].define(version: 2026_07_28_090300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -217,6 +217,54 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
     t.index ["user_id"], name: "index_costos_fletes_historiales_on_user_id"
   end
 
+  create_table "cuadre_caja_denominaciones", force: :cascade do |t|
+    t.bigint "cuadre_caja_id", null: false
+    t.string "denomination_type", null: false
+    t.string "currency_code", default: "DOP", null: false
+    t.decimal "denomination_value", precision: 18, scale: 2, null: false
+    t.decimal "quantity", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "exchange_rate", precision: 18, scale: 6, default: "1.0", null: false
+    t.decimal "foreign_amount", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "local_currency_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuadre_caja_id", "denomination_type", "currency_code", "denomination_value"], name: "idx_cuadre_denominaciones_unique", unique: true
+    t.index ["cuadre_caja_id"], name: "index_cuadre_caja_denominaciones_on_cuadre_caja_id"
+  end
+
+  create_table "cuadre_caja_eventos", force: :cascade do |t|
+    t.bigint "cuadre_caja_id", null: false
+    t.bigint "user_id"
+    t.string "event_type", null: false
+    t.string "from_status"
+    t.string "to_status"
+    t.text "reason"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuadre_caja_id", "created_at"], name: "idx_cuadre_eventos_fecha"
+    t.index ["cuadre_caja_id"], name: "index_cuadre_caja_eventos_on_cuadre_caja_id"
+    t.index ["user_id"], name: "index_cuadre_caja_eventos_on_user_id"
+  end
+
+  create_table "cuadre_caja_movimientos", force: :cascade do |t|
+    t.bigint "cuadre_caja_id", null: false
+    t.string "movement_group", null: false
+    t.string "payment_method", null: false
+    t.string "description", null: false
+    t.string "reference"
+    t.string "counterparty_name"
+    t.string "bank_name"
+    t.decimal "amount", precision: 18, scale: 2, default: "0.0", null: false
+    t.integer "position", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuadre_caja_id", "movement_group"], name: "idx_cuadre_movimientos_group"
+    t.index ["cuadre_caja_id"], name: "index_cuadre_caja_movimientos_on_cuadre_caja_id"
+  end
+
   create_table "cuadre_cajas", force: :cascade do |t|
     t.bigint "user_id"
     t.float "total_general"
@@ -228,6 +276,46 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "fecha_equivalente", precision: nil
+    t.date "closing_date", null: false
+    t.string "status", default: "draft", null: false
+    t.string "closing_version", default: "legacy", null: false
+    t.string "source_type", default: "system", null: false
+    t.string "currency_code", default: "DOP", null: false
+    t.bigint "prepared_by_id"
+    t.bigint "reviewed_by_id"
+    t.bigint "approved_by_id"
+    t.bigint "submitted_by_id"
+    t.bigint "rejected_by_id"
+    t.bigint "reopened_by_id"
+    t.datetime "submitted_at"
+    t.datetime "reviewed_at"
+    t.datetime "approved_at"
+    t.datetime "rejected_at"
+    t.datetime "reopened_at"
+    t.decimal "local_bills_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "local_coins_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "foreign_currency_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "physical_cash_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "other_payment_methods_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "additional_transfers_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "operational_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "final_consumer_invoices_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "income_receipts_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "system_income_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "difference_amount", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "reconciliation_tolerance", precision: 18, scale: 2, default: "0.0", null: false
+    t.boolean "considered_balanced", default: false, null: false
+    t.jsonb "system_income_details", default: {}, null: false
+    t.text "notes"
+    t.text "rejection_reason"
+    t.text "reopen_reason"
+    t.index ["approved_by_id"], name: "index_cuadre_cajas_on_approved_by_id"
+    t.index ["closing_date"], name: "idx_cuadre_cajas_unique_active_closing_date", unique: true, where: "((status)::text <> 'cancelled'::text)"
+    t.index ["prepared_by_id"], name: "index_cuadre_cajas_on_prepared_by_id"
+    t.index ["rejected_by_id"], name: "index_cuadre_cajas_on_rejected_by_id"
+    t.index ["reopened_by_id"], name: "index_cuadre_cajas_on_reopened_by_id"
+    t.index ["reviewed_by_id"], name: "index_cuadre_cajas_on_reviewed_by_id"
+    t.index ["submitted_by_id"], name: "index_cuadre_cajas_on_submitted_by_id"
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
 
@@ -794,7 +882,17 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_24_131000) do
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"
   add_foreign_key "costos_fletes_historiales", "users"
+  add_foreign_key "cuadre_caja_denominaciones", "cuadre_cajas"
+  add_foreign_key "cuadre_caja_eventos", "cuadre_cajas"
+  add_foreign_key "cuadre_caja_eventos", "users"
+  add_foreign_key "cuadre_caja_movimientos", "cuadre_cajas"
   add_foreign_key "cuadre_cajas", "users"
+  add_foreign_key "cuadre_cajas", "users", column: "approved_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "prepared_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "rejected_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "reopened_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "reviewed_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "submitted_by_id"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"
