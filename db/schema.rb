@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_07_28_090500) do
+ActiveRecord::Schema[7.0].define(version: 2026_08_04_100400) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
+  enable_extension "pgcrypto"
   enable_extension "plpgsql"
   enable_extension "unaccent"
 
@@ -116,6 +117,82 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_28_090500) do
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_cabecera_facturas_on_user_id"
+  end
+
+  create_table "calendar_event_links", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "calendar_event_id", null: false
+    t.string "linkable_type", null: false
+    t.bigint "linkable_id", null: false
+    t.string "label"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_event_id", "linkable_type", "linkable_id"], name: "idx_calendar_event_links_unique_link", unique: true
+    t.index ["calendar_event_id"], name: "index_calendar_event_links_on_calendar_event_id"
+    t.index ["linkable_type", "linkable_id"], name: "index_calendar_event_links_on_linkable_type_and_linkable_id"
+  end
+
+  create_table "calendar_event_types", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.string "color", null: false
+    t.boolean "is_system", default: false, null: false
+    t.boolean "active", default: true, null: false
+    t.integer "sort_order", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_calendar_event_types_on_active"
+    t.index ["slug"], name: "index_calendar_event_types_on_slug", unique: true
+    t.index ["sort_order"], name: "index_calendar_event_types_on_sort_order"
+  end
+
+  create_table "calendar_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.bigint "calendar_event_type_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.string "location"
+    t.string "color"
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.date "start_date", null: false
+    t.date "end_date", null: false
+    t.boolean "all_day", default: false, null: false
+    t.string "timezone", default: "America/Santo_Domingo", null: false
+    t.string "recurrence_type", default: "none", null: false
+    t.text "recurrence_rule"
+    t.integer "recurrence_interval", default: 1, null: false
+    t.string "recurrence_days", default: [], array: true
+    t.date "recurrence_until"
+    t.integer "recurrence_count"
+    t.string "google_uid"
+    t.string "ical_uid"
+    t.string "source", default: "manual", null: false
+    t.boolean "is_global", default: false, null: false
+    t.boolean "is_holiday", default: false, null: false
+    t.string "holiday_key"
+    t.bigint "created_by_id"
+    t.bigint "updated_by_id"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_working_day", default: true, null: false
+    t.index ["calendar_event_type_id"], name: "index_calendar_events_on_calendar_event_type_id"
+    t.index ["created_by_id"], name: "index_calendar_events_on_created_by_id"
+    t.index ["deleted_at"], name: "index_calendar_events_on_deleted_at"
+    t.index ["end_date"], name: "index_calendar_events_on_end_date"
+    t.index ["ends_at"], name: "index_calendar_events_on_ends_at"
+    t.index ["google_uid"], name: "index_calendar_events_on_google_uid", where: "(google_uid IS NOT NULL)"
+    t.index ["holiday_key"], name: "idx_calendar_events_unique_global_holiday", unique: true, where: "((is_global = true) AND (is_holiday = true) AND (deleted_at IS NULL))"
+    t.index ["holiday_key"], name: "index_calendar_events_on_holiday_key"
+    t.index ["ical_uid"], name: "index_calendar_events_on_ical_uid", unique: true, where: "(ical_uid IS NOT NULL)"
+    t.index ["is_global", "start_date", "end_date"], name: "index_calendar_events_on_is_global_and_start_date_and_end_date"
+    t.index ["is_holiday"], name: "index_calendar_events_on_is_holiday"
+    t.index ["is_working_day"], name: "index_calendar_events_on_is_working_day"
+    t.index ["source"], name: "index_calendar_events_on_source"
+    t.index ["start_date", "end_date"], name: "index_calendar_events_on_start_date_and_end_date"
+    t.index ["start_date"], name: "index_calendar_events_on_start_date"
+    t.index ["starts_at"], name: "index_calendar_events_on_starts_at"
+    t.index ["updated_by_id"], name: "index_calendar_events_on_updated_by_id"
   end
 
   create_table "camiones_viajes", force: :cascade do |t|
@@ -313,6 +390,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_28_090500) do
     t.text "notes"
     t.text "rejection_reason"
     t.text "reopen_reason"
+    t.decimal "opening_cash_fund", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "next_day_cash_fund", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "expected_total", precision: 18, scale: 2, default: "0.0", null: false
     t.index ["approved_by_id"], name: "index_cuadre_cajas_on_approved_by_id"
     t.index ["closing_date"], name: "idx_cuadre_cajas_unique_active_closing_date", unique: true, where: "((status)::text <> 'cancelled'::text)"
     t.index ["prepared_by_id"], name: "index_cuadre_cajas_on_prepared_by_id"
@@ -498,6 +578,27 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_28_090500) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "medida"
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
+  end
+
+  create_table "global_holidays", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "country_code", default: "DO", null: false
+    t.string "holiday_key", null: false
+    t.string "name", null: false
+    t.date "date", null: false
+    t.date "observed_date"
+    t.integer "year", null: false
+    t.string "source", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_working_day", default: false, null: false
+    t.index ["country_code", "date", "name"], name: "index_global_holidays_on_country_code_and_date_and_name", unique: true
+    t.index ["country_code", "holiday_key"], name: "index_global_holidays_on_country_code_and_holiday_key", unique: true
+    t.index ["country_code"], name: "index_global_holidays_on_country_code"
+    t.index ["date"], name: "index_global_holidays_on_date"
+    t.index ["is_working_day"], name: "index_global_holidays_on_is_working_day"
+    t.index ["observed_date"], name: "index_global_holidays_on_observed_date"
+    t.index ["year"], name: "index_global_holidays_on_year"
   end
 
   create_table "historico_producciones", force: :cascade do |t|
@@ -877,6 +978,10 @@ ActiveRecord::Schema[7.0].define(version: 2026_07_28_090500) do
   add_foreign_key "cabecera_facturas", "suplidores"
   add_foreign_key "cabecera_facturas", "tipo_facturas"
   add_foreign_key "cabecera_facturas", "users"
+  add_foreign_key "calendar_event_links", "calendar_events"
+  add_foreign_key "calendar_events", "calendar_event_types"
+  add_foreign_key "calendar_events", "users", column: "created_by_id"
+  add_foreign_key "calendar_events", "users", column: "updated_by_id"
   add_foreign_key "camiones_viajes", "vehiculos"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"

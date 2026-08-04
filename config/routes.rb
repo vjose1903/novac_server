@@ -7,6 +7,12 @@ Rails.application.routes.draw do
     get "dashboard" => "dashboard#index", as: :api_dashboard
   end
 
+  namespace :calendar do
+    resources :events, only: [:index, :create, :update, :destroy]
+    resources :event_types, only: [:index, :create, :update, :destroy]
+    get "linkables/search" => "linkables#search"
+  end
+
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios

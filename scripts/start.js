@@ -81,11 +81,14 @@ function execCommandInContainer(commandKey) {
 		rollback: 'rollback'
 	}
 	const railsCommands = { console: 'c' }
+	const systemCommands = { 'cron-update': 'whenever --update-crontab' }
 
 	if (commandKey in rakeCommands) {
 		execDockerContainer(`rake db:${rakeCommands[commandKey]}`)
 	} else if (commandKey in railsCommands) {
 		execDockerContainer(`rails ${railsCommands[commandKey]}`)
+	} else if (commandKey in systemCommands) {
+		execDockerContainer(systemCommands[commandKey])
 	}
 }
 
@@ -150,7 +153,7 @@ async function processArgs() {
 
 					console.log("command ==> ", command);
 					if (command !== undefined) {
-						if (["migrate", "seed", "create", "migrate-status", "drop", "console", "rollback"].includes(command)) {
+						if (["migrate", "seed", "create", "migrate-status", "drop", "console", "rollback", "cron-update"].includes(command)) {
 							execCommandInContainer(command);
 						} else {
 							console.log(`${red("************************************")}`);

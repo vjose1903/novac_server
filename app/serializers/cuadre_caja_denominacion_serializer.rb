@@ -21,7 +21,7 @@ class CuadreCajaDenominacionSerializer < ActiveModel::Serializer
   end
 
   def quantity
-    decimal_string(object.quantity)
+    BigDecimal(object.quantity.to_s.presence || '0').to_i.to_s
   end
 
   def exchange_rate

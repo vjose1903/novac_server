@@ -13,14 +13,23 @@ class CuadreCajaSerializer < ActiveModel::Serializer
   attribute :denominations, if: Proc.new { get_param('denominations') || get_param('all') }
   attribute :movements, if: Proc.new { get_param('movements') || get_param('all') }
   attribute :prepared_by, if: Proc.new { get_param('prepared_by') || get_param('all') }
+  attribute :submitted_by, if: Proc.new { get_param('submitted_by') || get_param('all') }
   attribute :reviewed_by, if: Proc.new { get_param('reviewed_by') || get_param('all') }
   attribute :approved_by, if: Proc.new { get_param('approved_by') || get_param('all') }
+  attribute :rejected_by, if: Proc.new { get_param('rejected_by') || get_param('all') }
+  attribute :reopened_by, if: Proc.new { get_param('reopened_by') || get_param('all') }
+  attribute :audit_dates, if: Proc.new { get_param('audit_dates') || get_param('all') }
   attribute :notes, if: Proc.new { get_param('notes') || get_param('all') }
+  attribute :rejection_reason, if: Proc.new { get_param('rejection_reason') || get_param('all') }
+  attribute :reopen_reason, if: Proc.new { get_param('reopen_reason') || get_param('all') }
   attribute :system_income_details, if: Proc.new { get_param('system_income_details') || get_param('all') }
   attribute :eventos, if: Proc.new { get_param('eventos') || get_param('all') }
 
   def totals
     {
+      opening_cash_fund: decimal_string(object.opening_cash_fund),
+      next_day_cash_fund: decimal_string(object.next_day_cash_fund),
+      expected_total: decimal_string(object.expected_total),
       local_bills_total: decimal_string(object.local_bills_total),
       local_coins_total: decimal_string(object.local_coins_total),
       foreign_currency_total: decimal_string(object.foreign_currency_total),
@@ -65,12 +74,34 @@ class CuadreCajaSerializer < ActiveModel::Serializer
     serialize_user(object.prepared_by)
   end
 
+  def submitted_by
+    serialize_user(object.submitted_by)
+  end
+
   def reviewed_by
     serialize_user(object.reviewed_by)
   end
 
   def approved_by
     serialize_user(object.approved_by)
+  end
+
+  def rejected_by
+    serialize_user(object.rejected_by)
+  end
+
+  def reopened_by
+    serialize_user(object.reopened_by)
+  end
+
+  def audit_dates
+    {
+      submitted_at: object.submitted_at,
+      reviewed_at: object.reviewed_at,
+      approved_at: object.approved_at,
+      rejected_at: object.rejected_at,
+      reopened_at: object.reopened_at
+    }
   end
 
   def eventos

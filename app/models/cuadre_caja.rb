@@ -24,9 +24,11 @@ class CuadreCaja < ApplicationRecord
   end
 
   def self.listado(params)
-    relation = CuadreCaja.all
+    relation = CuadreCaja.includes(:user, :prepared_by)
     search = params[:search].to_s.strip
+    closing_date = params[:fecha] || params[:closing_date]
 
+    relation = apply_date_filter(relation, closing_date) if closing_date.present?
     relation = apply_list_search(relation, search) if search.present?
 
     relation = relation.order(closing_date: :desc, id: :desc)
@@ -54,6 +56,15 @@ class CuadreCaja < ApplicationRecord
     end
 
     relation.where(conditions.reduce { |query, condition| query.or(condition) })
+  end
+
+  def self.apply_date_filter(relation, date)
+    parsed_date = Date.parse(date.to_s)
+
+    relation.where(closing_date: parsed_date)
+      .or(relation.where(fecha_equivalente: parsed_date.beginning_of_day..parsed_date.end_of_day))
+  rescue ArgumentError
+    relation
   end
 
   def self.prepare_closing(params)
@@ -86,6 +97,7 @@ class CuadreCaja < ApplicationRecord
       return res
     end
 
+    opening_cash_fund = previous_cash_fund_for(closing_date)
     system_income = CuadreCajas::SystemIncomeCalculator.call(closing_date)
     res.set_data({
       exists_cuadre: false,
@@ -96,7 +108,7 @@ class CuadreCaja < ApplicationRecord
       divisas: available_foreign_currencies_payload(closing_date),
       denominations: empty_denominations_payload,
       movements: empty_movements_payload(system_income),
-      totals: initial_totals_payload(system_income)
+      totals: initial_totals_payload(system_income, opening_cash_fund)
     })
     res
   end
@@ -175,9 +187,13 @@ class CuadreCaja < ApplicationRecord
     system_total = amount_string(read_attribute(:system_income_total) || decimal_value(total_venta_contado) + decimal_value(total_recibo_ingreso))
     operational = amount_string(read_attribute(:operational_total) || total_general)
     diff = amount_string(read_attribute(:difference_amount) || BigDecimal(operational) - BigDecimal(system_total))
+    closing_user = detailed? ? prepared_by || user : user
 
     {
       id: id,
+      user_id: closing_user&.id,
+      usuario: closing_user&.nombre_completo,
+      prepared_by: closing_user ? serialize_parser(closing_user, { id: true, nombre: true, apellido: true, nombre_completo: true }) : nil,
       closing_date: closing_day,
       fecha: closing_day,
       status: current_status,
@@ -250,6 +266,8 @@ class CuadreCaja < ApplicationRecord
   def self.save_detailed_closing(cuadre_caja, attrs, current_user, res, event_type)
     closing_date = Date.parse((attrs[:closing_date] || attrs[:fecha]).to_s)
     tolerance = attrs[:reconciliation_tolerance] || attrs[:tolerancia] || 0
+    opening_cash_fund = cuadre_caja.persisted? ? cuadre_caja.opening_cash_fund : previous_cash_fund_for(closing_date)
+    next_day_cash_fund = attrs[:next_day_cash_fund] || attrs[:fondo_caja_siguiente] || attrs[:fondo_para_siguiente_dia] || 0
     denominaciones = build_denominaciones(attrs, closing_date)
     movimientos = build_movimientos(attrs)
     system_income = CuadreCajas::SystemIncomeCalculator.call(closing_date)
@@ -257,7 +275,9 @@ class CuadreCaja < ApplicationRecord
       denominaciones: denominaciones,
       movimientos: movimientos,
       system_income: system_income,
-      tolerance: tolerance
+      tolerance: tolerance,
+      opening_cash_fund: opening_cash_fund,
+      next_day_cash_fund: next_day_cash_fund
     )
 
     transaction do
@@ -381,6 +401,21 @@ class CuadreCaja < ApplicationRecord
     'submitted'
   end
 
+  def self.previous_cash_fund_for(closing_date)
+    previous_detailed_closing(closing_date)&.next_day_cash_fund || 0
+  end
+
+  def self.previous_detailed_closing(closing_date)
+    # TODO: cuando exista el calendario laboral/feriados, esta busqueda debe respetar
+    # el ultimo dia laborable configurado y no solo el ultimo cuadre registrado.
+    CuadreCaja
+      .where(closing_version: 'detailed')
+      .where.not(status: 'cancelled')
+      .where(closing_date: ...closing_date)
+      .order(closing_date: :desc, id: :desc)
+      .first
+  end
+
   def self.empty_denominations_payload
     principal_divisa = principal_currency
 
@@ -429,7 +464,7 @@ class CuadreCaja < ApplicationRecord
       divisa_id: divisa&.id,
       currency_code: LOCAL_CURRENCY_CODE,
       denomination_value: format('%.2f', BigDecimal(value.to_s)),
-      quantity: '0.00',
+      quantity: '0',
       exchange_rate: '1.000000',
       local_currency_total: '0.00'
     }
@@ -462,16 +497,23 @@ class CuadreCaja < ApplicationRecord
     }
   end
 
-  def self.initial_totals_payload(system_income)
+  def self.initial_totals_payload(system_income, opening_cash_fund=0)
+    opening_cash_fund = BigDecimal(opening_cash_fund.to_s.presence || '0')
+    system_income_total = BigDecimal(system_income[:system_income_total].to_s)
+    expected_total = system_income_total + opening_cash_fund
+
     {
+      opening_cash_fund: format('%.2f', opening_cash_fund),
+      next_day_cash_fund: '0.00',
+      expected_total: format('%.2f', expected_total),
       physical_cash_total: '0.00',
       other_payment_methods_total: '0.00',
       additional_transfers_total: '0.00',
       operational_total: '0.00',
       final_consumer_invoices_total: format('%.2f', BigDecimal(system_income[:final_consumer_invoices_total].to_s)),
       income_receipts_total: format('%.2f', BigDecimal(system_income[:income_receipts_total].to_s)),
-      system_income_total: format('%.2f', BigDecimal(system_income[:system_income_total].to_s)),
-      difference_amount: format('%.2f', -BigDecimal(system_income[:system_income_total].to_s)),
+      system_income_total: format('%.2f', system_income_total),
+      difference_amount: format('%.2f', -expected_total),
       balanced: false
     }
   end
@@ -497,22 +539,22 @@ class CuadreCaja < ApplicationRecord
 
     case target_status
     when 'submitted'
-      self.submitted_by = user
-      self.submitted_at = Time.zone.now
+      self.submitted_by ||= user
+      self.submitted_at ||= Time.zone.now
     when 'reviewed'
-      self.reviewed_by = user
-      self.reviewed_at = Time.zone.now
+      self.reviewed_by ||= user
+      self.reviewed_at ||= Time.zone.now
     when 'approved'
-      self.approved_by = user
-      self.approved_at = Time.zone.now
+      self.approved_by ||= user
+      self.approved_at ||= Time.zone.now
     when 'rejected'
-      self.rejected_by = user
-      self.rejected_at = Time.zone.now
-      self.rejection_reason = reason
+      self.rejected_by ||= user
+      self.rejected_at ||= Time.zone.now
+      self.rejection_reason ||= reason
     when 'reopened'
-      self.reopened_by = user
-      self.reopened_at = Time.zone.now
-      self.reopen_reason = reason
+      self.reopened_by ||= user
+      self.reopened_at ||= Time.zone.now
+      self.reopen_reason ||= reason
     end
   end
 

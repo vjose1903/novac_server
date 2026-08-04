@@ -3,7 +3,8 @@ FROM ruby:3.0.4
 RUN apt-get update -qq && apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
 
-RUN apt-get install -y build-essential apt-utils postgresql-client git yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron nodejs
+RUN apt-get update -qq && apt-get install -y build-essential apt-utils postgresql-client git yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron nodejs python3 python3-pip
+RUN python3 -m pip install --no-cache-dir holidays
 
 RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata

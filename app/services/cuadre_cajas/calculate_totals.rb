@@ -1,14 +1,16 @@
 module CuadreCajas
   class CalculateTotals
-    def self.call(denominaciones:, movimientos:, system_income:, tolerance:)
-      new(denominaciones, movimientos, system_income, tolerance).call
+    def self.call(denominaciones:, movimientos:, system_income:, tolerance:, opening_cash_fund: 0, next_day_cash_fund: 0)
+      new(denominaciones, movimientos, system_income, tolerance, opening_cash_fund, next_day_cash_fund).call
     end
 
-    def initialize(denominaciones, movimientos, system_income, tolerance)
+    def initialize(denominaciones, movimientos, system_income, tolerance, opening_cash_fund, next_day_cash_fund)
       @denominaciones = denominaciones
       @movimientos = movimientos
       @system_income = system_income
       @tolerance = decimal(tolerance)
+      @opening_cash_fund = decimal(opening_cash_fund)
+      @next_day_cash_fund = decimal(next_day_cash_fund)
     end
 
     def call
@@ -20,9 +22,13 @@ module CuadreCajas
       additional_transfers_total = sum_movements('additional_transfers')
       operational_total = physical_cash_total + other_payment_methods_total + additional_transfers_total
       system_income_total = decimal(@system_income[:system_income_total])
-      difference_amount = operational_total - system_income_total
+      expected_total = system_income_total + @opening_cash_fund
+      difference_amount = operational_total - expected_total
 
       {
+        opening_cash_fund: money(@opening_cash_fund),
+        next_day_cash_fund: money(@next_day_cash_fund),
+        expected_total: money(expected_total),
         local_bills_total: money(local_bills_total),
         local_coins_total: money(local_coins_total),
         foreign_currency_total: money(foreign_currency_total),
