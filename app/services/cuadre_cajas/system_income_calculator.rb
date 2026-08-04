@@ -17,12 +17,12 @@ module CuadreCajas
       receipt_breakdown = receipts_by_payment_method
 
       {
-        final_consumer_invoices_total: money(invoices_total),
-        income_receipts_total: money(receipts_total),
-        system_income_total: money(invoices_total + receipts_total),
+        final_consumer_invoices_total: decimal_string(invoices_total),
+        income_receipts_total: decimal_string(receipts_total),
+        system_income_total: decimal_string(invoices_total + receipts_total),
         payment_methods: payment_methods_summary(invoice_breakdown, receipt_breakdown),
-        invoice_payment_methods: invoice_breakdown,
-        receipt_payment_methods: receipt_breakdown,
+        invoice_payment_methods: format_payment_methods(invoice_breakdown),
+        receipt_payment_methods: format_payment_methods(receipt_breakdown),
         invoices: invoice_documents,
         receipts: receipt_documents,
         details: {
@@ -44,7 +44,7 @@ module CuadreCajas
     def income_receipts_total
       RecibosIngreso
         .where(forma_pago: PAYMENT_METHODS, estado: true)
-        .where("fecha_equivalente::date = ?", @closing_date)
+        .where(fecha_equivalente: closing_day_range)
         .sum(:total)
     end
 
@@ -64,7 +64,7 @@ module CuadreCajas
       result = empty_payment_methods
       RecibosIngreso
         .where(forma_pago: PAYMENT_METHODS, estado: true)
-        .where("fecha_equivalente::date = ?", @closing_date)
+        .where(fecha_equivalente: closing_day_range)
         .group(:forma_pago)
         .sum(:total)
         .each do |payment_method, total|
@@ -90,7 +90,7 @@ module CuadreCajas
     def receipt_documents
       RecibosIngreso
         .where(forma_pago: PAYMENT_METHODS, estado: true)
-        .where("fecha_equivalente::date = ?", @closing_date)
+        .where(fecha_equivalente: closing_day_range)
         .order('id ASC')
         .map do |receipt|
           {
@@ -105,56 +105,47 @@ module CuadreCajas
 
     def payment_methods_summary(invoice_breakdown, receipt_breakdown)
       empty_payment_methods.keys.each_with_object({}) do |key, result|
-        result[key] = money(invoice_breakdown[key] + receipt_breakdown[key])
+        result[key] = decimal_string(invoice_breakdown[key] + receipt_breakdown[key])
       end
+    end
+
+    def format_payment_methods(payment_methods)
+      payment_methods.transform_values { |value| decimal_string(value) }
     end
 
     def invoice_scope
       scope = CabeceraFactura
         .where(forma_pago: PAYMENT_METHODS, estado: true)
-        .where("fecha_equivalente::date = ?", @closing_date)
-        .where("fecha_completada::date = ?", @closing_date)
+        .where(fecha_equivalente: closing_day_range)
         .where("LOWER(tipo) = 'venta'")
         .where("LOWER(condicion) = 'contado'")
-
-      final_consumer_ids.any? ? scope.where(tipo_factura_id: final_consumer_ids) : scope
     end
 
     def invoice_notes_adjustment
       scope = FacturaAplicada.joins(:cabecera_factura, :tipo_factura)
         .where(cabecera_facturas: { forma_pago: PAYMENT_METHODS, estado: true })
-        .where("cabecera_facturas.fecha_equivalente::date = ?", @closing_date)
-        .where("cabecera_facturas.fecha_completada::date = ?", @closing_date)
+        .where(cabecera_facturas: { fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'contado'")
         .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
 
-      scope = scope.where(cabecera_facturas: { tipo_factura_id: final_consumer_ids }) if final_consumer_ids.any?
       scope.sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
     end
 
     def invoice_notes_adjustment_by_payment_method
       scope = FacturaAplicada.joins(:cabecera_factura, :tipo_factura)
         .where(cabecera_facturas: { forma_pago: PAYMENT_METHODS, estado: true })
-        .where("cabecera_facturas.fecha_equivalente::date = ?", @closing_date)
-        .where("cabecera_facturas.fecha_completada::date = ?", @closing_date)
+        .where(cabecera_facturas: { fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'contado'")
         .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
 
-      scope = scope.where(cabecera_facturas: { tipo_factura_id: final_consumer_ids }) if final_consumer_ids.any?
       scope.group("cabecera_facturas.forma_pago")
         .sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
     end
 
-    def final_consumer_ids
-      @final_consumer_ids ||= TipoFactura
-        .where("LOWER(COALESCE(key, '') || ' ' || COALESCE(descripcion, '')) LIKE ?", "%consumo%")
-        .pluck(:id)
-    end
-
     def invoice_criteria
-      final_consumer_ids.any? ? 'tipo_factura_consumo' : 'venta_contado_fallback'
+      'venta_contado_fecha_equivalente'
     end
 
     def empty_payment_methods
@@ -182,6 +173,10 @@ module CuadreCajas
 
     def decimal_string(value)
       format('%.2f', money(value))
+    end
+
+    def closing_day_range
+      @closing_day_range ||= @closing_date.beginning_of_day..@closing_date.end_of_day
     end
   end
 end

@@ -70,7 +70,7 @@ class CuadreCaja < ApplicationRecord
     existing_closing = CuadreCaja
       .where("closing_date = ? OR fecha_equivalente::date = ?", closing_date, closing_date)
       .where.not(status: 'cancelled')
-      .includes(:denominaciones, :movimientos, :eventos)
+      .includes(:user, :denominaciones, :movimientos, :eventos)
       .first
 
     if existing_closing
@@ -78,7 +78,10 @@ class CuadreCaja < ApplicationRecord
         exists_cuadre: true,
         source: 'stored',
         closing_date: closing_date,
-        cuadre: serialize_parser(existing_closing, { all: true })
+        is_new_flow: existing_closing.detailed?,
+        flow_type: existing_closing.detailed? ? 'new' : 'legacy',
+        closing_version: existing_closing.closing_version.presence || 'legacy',
+        cuadre: existing_closing.prepare_payload
       })
       return res
     end
@@ -191,6 +194,30 @@ class CuadreCaja < ApplicationRecord
         operational_total: operational,
         difference: diff
       }
+    }
+  end
+
+  def prepare_payload
+    return serialize_parser(self, { all: true }) if detailed?
+
+    {
+      id: id,
+      user_id: user_id,
+      usuario: user&.nombre_completo,
+      fecha_equivalente: fecha_equivalente,
+      closing_date: closing_date || fecha_equivalente&.to_date,
+      numero_reporte: numero_reporte,
+      reimprimir: true,
+      closing_version: closing_version.presence || 'legacy',
+      flow_type: 'legacy',
+      is_new_flow: false,
+      contenido_reporte: [
+        { descripcion: 'facturas_contado', titulo: 'Total facturado a contado', valor: amount_string(total_venta_contado) },
+        { descripcion: 'recibos_ingresos', titulo: 'Total recibo de ingreso', valor: amount_string(total_recibo_ingreso) },
+        { descripcion: 'total_anterior', titulo: 'Total anterior', valor: amount_string(total_anterior) },
+        { descripcion: 'total_general', titulo: 'Total en caja', valor: amount_string(total_general) },
+        { descripcion: 'facturas_credito', titulo: 'Total facturado a crédito', valor: amount_string(total_venta_credito) },
+      ]
     }
   end
 
