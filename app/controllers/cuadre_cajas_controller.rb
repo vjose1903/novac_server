@@ -1,5 +1,5 @@
 class CuadreCajasController < ApplicationController
-  before_action :set_cuadre, only: [:show, :update, :destroy, :submit, :review, :approve, :reject, :reopen]
+  before_action :set_cuadre, only: [:show, :update, :destroy, :submit, :approve, :reject, :reopen]
 
   # GET /cuadre_cajas
   def index
@@ -38,10 +38,6 @@ class CuadreCajasController < ApplicationController
     transition('submitted')
   end
 
-  def review
-    transition('reviewed')
-  end
-
   def approve
     transition('approved')
   end
@@ -55,8 +51,7 @@ class CuadreCajasController < ApplicationController
   end
 
   def checkTodayCuadre
-    today_cuadre = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day}).empty?
-    return Response.new(params, nil, { existe_cuadre_hoy: !today_cuadre } , nil, {all: true}).send_response self
+    return Response.new(params, nil, { existe_cuadre_hoy: CuadreCaja.blocks_documents_today? } , nil, {all: true}).send_response self
   end
 
   # DELETE /cuadre_cajas/1

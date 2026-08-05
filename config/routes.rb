@@ -60,7 +60,6 @@ Rails.application.routes.draw do
     end
     member do
       post "submit"            => "cuadre_cajas#submit"
-      post "review"            => "cuadre_cajas#review"
       post "approve"           => "cuadre_cajas#approve"
       post "reject"            => "cuadre_cajas#reject"
       post "reopen"            => "cuadre_cajas#reopen"

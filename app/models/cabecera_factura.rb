@@ -136,7 +136,7 @@ class CabeceraFactura < ApplicationRecord
   end
 
   private_class_method def self.build_cabecera_factura(params, data_secuencias)
-    today_cuadre = CuadreCaja.exists?(fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day)
+    today_cuadre = CuadreCaja.blocks_documents_today?
 
     cabecera_factura                          = CabeceraFactura.new
 

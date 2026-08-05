@@ -58,7 +58,7 @@ class Nota < ApplicationRecord
 
             if res_valid.status_valid
 
-              today_cuadre                  = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+              today_cuadre                  = CuadreCaja.blocks_documents_today?
               nota                          = Nota.new
 
               nota.cliente_id               = params[:cliente_id]
@@ -71,7 +71,7 @@ class Nota < ApplicationRecord
               nota.numero_comprobante       = data_secuencias[:numero_comprobante]
               # Despues de un cuadre cerrado, notas/facturas/recibos comparten
               # CalendarEvent.next_working_day_after para saltar domingos y dias no laborables.
-              nota.fecha_equivalente        = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.blank? ? DateTime.now : CabeceraFactura.calculateNextDay
+              nota.fecha_equivalente        = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre ? CabeceraFactura.calculateNextDay : DateTime.now
               nota.fecha_valida             = params[:fecha_valida]
               nota.serie                    = params[:serie]
               nota.estado                   = true

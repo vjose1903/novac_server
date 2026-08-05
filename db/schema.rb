@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_08_04_100400) do
+ActiveRecord::Schema[7.0].define(version: 2026_08_05_090100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -358,18 +358,16 @@ ActiveRecord::Schema[7.0].define(version: 2026_08_04_100400) do
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "fecha_equivalente", precision: nil
     t.date "closing_date", null: false
-    t.string "status", default: "draft", null: false
+    t.string "status", default: "submitted", null: false
     t.string "closing_version", default: "legacy", null: false
     t.string "source_type", default: "system", null: false
     t.string "currency_code", default: "DOP", null: false
     t.bigint "prepared_by_id"
-    t.bigint "reviewed_by_id"
     t.bigint "approved_by_id"
     t.bigint "submitted_by_id"
     t.bigint "rejected_by_id"
     t.bigint "reopened_by_id"
     t.datetime "submitted_at"
-    t.datetime "reviewed_at"
     t.datetime "approved_at"
     t.datetime "rejected_at"
     t.datetime "reopened_at"
@@ -398,7 +396,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_08_04_100400) do
     t.index ["prepared_by_id"], name: "index_cuadre_cajas_on_prepared_by_id"
     t.index ["rejected_by_id"], name: "index_cuadre_cajas_on_rejected_by_id"
     t.index ["reopened_by_id"], name: "index_cuadre_cajas_on_reopened_by_id"
-    t.index ["reviewed_by_id"], name: "index_cuadre_cajas_on_reviewed_by_id"
     t.index ["submitted_by_id"], name: "index_cuadre_cajas_on_submitted_by_id"
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
@@ -1004,7 +1001,6 @@ ActiveRecord::Schema[7.0].define(version: 2026_08_04_100400) do
   add_foreign_key "cuadre_cajas", "users", column: "prepared_by_id"
   add_foreign_key "cuadre_cajas", "users", column: "rejected_by_id"
   add_foreign_key "cuadre_cajas", "users", column: "reopened_by_id"
-  add_foreign_key "cuadre_cajas", "users", column: "reviewed_by_id"
   add_foreign_key "cuadre_cajas", "users", column: "submitted_by_id"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"

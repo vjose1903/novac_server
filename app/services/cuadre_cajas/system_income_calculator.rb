@@ -12,18 +12,21 @@ module CuadreCajas
 
     def call
       invoices_total = final_consumer_invoices_total
+      credit_invoices_total = credit_invoices_total()
       receipts_total = income_receipts_total
       invoice_breakdown = invoices_by_payment_method
       receipt_breakdown = receipts_by_payment_method
 
       {
         final_consumer_invoices_total: decimal_string(invoices_total),
+        credit_invoices_total: decimal_string(credit_invoices_total),
         income_receipts_total: decimal_string(receipts_total),
         system_income_total: decimal_string(invoices_total + receipts_total),
         payment_methods: payment_methods_summary(invoice_breakdown, receipt_breakdown),
         invoice_payment_methods: format_payment_methods(invoice_breakdown),
         receipt_payment_methods: format_payment_methods(receipt_breakdown),
         invoices: invoice_documents,
+        credit_invoices: credit_invoice_documents,
         receipts: receipt_documents,
         details: {
           calculated_at: Time.zone.now,
@@ -46,6 +49,11 @@ module CuadreCajas
         .where(forma_pago: PAYMENT_METHODS, estado: true)
         .where(fecha_equivalente: closing_day_range)
         .sum(:total)
+    end
+
+    def credit_invoices_total
+      total = credit_invoice_scope.sum(:total_factura)
+      total + credit_invoice_notes_adjustment
     end
 
     def invoices_by_payment_method
@@ -103,6 +111,19 @@ module CuadreCajas
         end
     end
 
+    def credit_invoice_documents
+      credit_invoice_scope.order('id ASC').map do |invoice|
+        {
+          id: invoice.id,
+          numero_factura: invoice.numero_factura,
+          numero_comprobante: invoice.numero_comprobante,
+          forma_pago: invoice.forma_pago,
+          total: decimal_string(invoice.total_factura),
+          fecha_equivalente: invoice.fecha_equivalente
+        }
+      end
+    end
+
     def payment_methods_summary(invoice_breakdown, receipt_breakdown)
       empty_payment_methods.keys.each_with_object({}) do |key, result|
         result[key] = decimal_string(invoice_breakdown[key] + receipt_breakdown[key])
@@ -114,11 +135,19 @@ module CuadreCajas
     end
 
     def invoice_scope
-      scope = CabeceraFactura
+      CabeceraFactura
         .where(forma_pago: PAYMENT_METHODS, estado: true)
         .where(fecha_equivalente: closing_day_range)
         .where("LOWER(tipo) = 'venta'")
         .where("LOWER(condicion) = 'contado'")
+    end
+
+    def credit_invoice_scope
+      CabeceraFactura
+        .where(estado: true)
+        .where(fecha_equivalente: closing_day_range)
+        .where("LOWER(tipo) = 'venta'")
+        .where("LOWER(condicion) = 'crédito'")
     end
 
     def invoice_notes_adjustment
@@ -144,8 +173,17 @@ module CuadreCajas
         .sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
     end
 
+    def credit_invoice_notes_adjustment
+      FacturaAplicada.joins(:cabecera_factura, :tipo_factura)
+        .where(cabecera_facturas: { estado: true, fecha_equivalente: closing_day_range })
+        .where("LOWER(cabecera_facturas.tipo) = 'venta'")
+        .where("LOWER(cabecera_facturas.condicion) = 'crédito'")
+        .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
+        .sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
+    end
+
     def invoice_criteria
-      'venta_contado_fecha_equivalente'
+      'venta_contado_fecha_equivalente; credit_invoices_total es informativo y no afecta el cuadre'
     end
 
     def empty_payment_methods

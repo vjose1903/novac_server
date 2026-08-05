@@ -14,7 +14,6 @@ class CuadreCajaSerializer < ActiveModel::Serializer
   attribute :movements, if: Proc.new { get_param('movements') || get_param('all') }
   attribute :prepared_by, if: Proc.new { get_param('prepared_by') || get_param('all') }
   attribute :submitted_by, if: Proc.new { get_param('submitted_by') || get_param('all') }
-  attribute :reviewed_by, if: Proc.new { get_param('reviewed_by') || get_param('all') }
   attribute :approved_by, if: Proc.new { get_param('approved_by') || get_param('all') }
   attribute :rejected_by, if: Proc.new { get_param('rejected_by') || get_param('all') }
   attribute :reopened_by, if: Proc.new { get_param('reopened_by') || get_param('all') }
@@ -38,6 +37,7 @@ class CuadreCajaSerializer < ActiveModel::Serializer
       additional_transfers_total: decimal_string(object.additional_transfers_total),
       operational_total: decimal_string(object.operational_total),
       final_consumer_invoices_total: decimal_string(object.final_consumer_invoices_total),
+      credit_invoices_total: decimal_string(object.total_venta_credito),
       income_receipts_total: decimal_string(object.income_receipts_total),
       system_income_total: decimal_string(object.system_income_total),
       difference_amount: decimal_string(object.difference_amount),
@@ -78,10 +78,6 @@ class CuadreCajaSerializer < ActiveModel::Serializer
     serialize_user(object.submitted_by)
   end
 
-  def reviewed_by
-    serialize_user(object.reviewed_by)
-  end
-
   def approved_by
     serialize_user(object.approved_by)
   end
@@ -97,7 +93,6 @@ class CuadreCajaSerializer < ActiveModel::Serializer
   def audit_dates
     {
       submitted_at: object.submitted_at,
-      reviewed_at: object.reviewed_at,
       approved_at: object.approved_at,
       rejected_at: object.rejected_at,
       reopened_at: object.reopened_at

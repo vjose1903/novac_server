@@ -28,11 +28,11 @@ class RecibosIngreso < ApplicationRecord
 
 			recibo                       = RecibosIngreso.where(:id => params[:id]).first_or_initialize
 
-      today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
+      today_cuadre                 = CuadreCaja.blocks_documents_today?
 
       # Despues de un cuadre cerrado, recibos/facturas/notas comparten
       # CalendarEvent.next_working_day_after para saltar domingos y dias no laborables.
-      fecha_equivalente            = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
+      fecha_equivalente            = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre ? CabeceraFactura.calculateNextDay : DateTime.now
 
       recibo.user_id               = get_current_user[:id]
       recibo.fecha_equivalente     = fecha_equivalente

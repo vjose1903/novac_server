@@ -1,10 +1,10 @@
 class CuadreCaja < ApplicationRecord
   LOCAL_CURRENCY_CODE = 'DOP'.freeze
-  STATUSES = %w[draft submitted reviewed approved rejected reopened cancelled].freeze
+  STATUSES = %w[submitted approved rejected reopened cancelled].freeze
+  NON_BLOCKING_STATUSES = %w[rejected reopened cancelled].freeze
 
   belongs_to :user
   belongs_to :prepared_by, class_name: 'User', optional: true
-  belongs_to :reviewed_by, class_name: 'User', optional: true
   belongs_to :approved_by, class_name: 'User', optional: true
   belongs_to :submitted_by, class_name: 'User', optional: true
   belongs_to :rejected_by, class_name: 'User', optional: true
@@ -40,6 +40,15 @@ class CuadreCaja < ApplicationRecord
 
   def self.system_income_preview(params)
     prepare_closing(params)
+  end
+
+  def self.blocking_for_documents_on(date=Date.current)
+    where(fecha_equivalente: date.to_date.beginning_of_day..date.to_date.end_of_day)
+      .where.not(status: NON_BLOCKING_STATUSES)
+  end
+
+  def self.blocks_documents_today?
+    blocking_for_documents_on(Date.current).exists?
   end
 
   def self.apply_list_search(relation, search)
@@ -154,6 +163,7 @@ class CuadreCaja < ApplicationRecord
   def transition_to!(target_status, user, reason=nil)
     res = Response.new
     from_status = status
+    transition_time = Time.zone.now
 
     invalid_message = transition_error(target_status)
     if invalid_message
@@ -163,8 +173,9 @@ class CuadreCaja < ApplicationRecord
     end
 
     transaction do
-      assign_transition_attributes(target_status, user, reason)
+      assign_transition_attributes(target_status, user, reason, transition_time)
       save!
+      restore_shifted_documents!(transition_time) if %w[rejected reopened].include?(target_status)
       eventos.create!(user: user, event_type: target_status, from_status: from_status, to_status: status, reason: reason)
     end
 
@@ -179,6 +190,17 @@ class CuadreCaja < ApplicationRecord
 
   def detailed?
     closing_version == 'detailed'
+  end
+
+  def restore_shifted_documents!(transition_time)
+    shifted_documents_scope(CabeceraFactura).find_each do |factura|
+      attrs = { fecha_equivalente: transition_time }
+      attrs[:fecha_completada] = transition_time if factura.condicion == 'Contado'
+      factura.update_columns(attrs)
+    end
+
+    shifted_documents_scope(RecibosIngreso).update_all(fecha_equivalente: transition_time)
+    shifted_documents_scope(Nota).update_all(fecha_equivalente: transition_time)
   end
 
   def listado_item
@@ -308,7 +330,7 @@ class CuadreCaja < ApplicationRecord
       cuadre_caja.total_venta_contado = totals[:final_consumer_invoices_total]
       cuadre_caja.total_recibo_ingreso = totals[:income_receipts_total]
       cuadre_caja.total_general = totals[:operational_total]
-      cuadre_caja.total_venta_credito ||= 0
+      cuadre_caja.total_venta_credito = system_income[:credit_invoices_total]
       cuadre_caja.total_anterior ||= 0
       cuadre_caja.save!
       cuadre_caja.eventos.create!(user: current_user, event_type: event_type, to_status: cuadre_caja.status)
@@ -396,7 +418,6 @@ class CuadreCaja < ApplicationRecord
 
   def self.closing_status(cuadre_caja, attrs)
     return attrs[:status] if attrs[:status].present?
-    return 'draft' if attrs[:submit].to_s == 'false'
     return cuadre_caja.status if cuadre_caja.persisted? && cuadre_caja.status.present?
     'submitted'
   end
@@ -512,6 +533,7 @@ class CuadreCaja < ApplicationRecord
       additional_transfers_total: '0.00',
       operational_total: '0.00',
       final_consumer_invoices_total: format('%.2f', BigDecimal(system_income[:final_consumer_invoices_total].to_s)),
+      credit_invoices_total: format('%.2f', BigDecimal(system_income[:credit_invoices_total].to_s)),
       income_receipts_total: format('%.2f', BigDecimal(system_income[:income_receipts_total].to_s)),
       system_income_total: format('%.2f', system_income_total),
       difference_amount: format('%.2f', -expected_total),
@@ -530,33 +552,43 @@ class CuadreCaja < ApplicationRecord
   def transition_error(target_status)
     return 'No se puede aprobar un cuadre ya aprobado' if approved? && target_status == 'approved'
     return 'No se puede editar un cuadre aprobado' if approved? && target_status != 'reopened'
-    return 'Debe enviar el cuadre antes de revisarlo' if target_status == 'reviewed' && status != 'submitted'
-    return 'Debe revisar el cuadre antes de aprobarlo' if target_status == 'approved' && status != 'reviewed'
+    return 'Solo se puede rechazar o reabrir un cuadre el mismo dia en que fue creado' if %w[rejected reopened].include?(target_status) && !created_today?
+    return 'Debe enviar el cuadre antes de aprobarlo' if target_status == 'approved' && status != 'submitted'
     nil
   end
 
-  def assign_transition_attributes(target_status, user, reason)
+  def assign_transition_attributes(target_status, user, reason, transition_time)
     self.status = target_status
 
     case target_status
     when 'submitted'
       self.submitted_by ||= user
-      self.submitted_at ||= Time.zone.now
-    when 'reviewed'
-      self.reviewed_by ||= user
-      self.reviewed_at ||= Time.zone.now
+      self.submitted_at ||= transition_time
     when 'approved'
       self.approved_by ||= user
-      self.approved_at ||= Time.zone.now
+      self.approved_at ||= transition_time
     when 'rejected'
       self.rejected_by ||= user
-      self.rejected_at ||= Time.zone.now
+      self.rejected_at ||= transition_time
       self.rejection_reason ||= reason
     when 'reopened'
       self.reopened_by ||= user
-      self.reopened_at ||= Time.zone.now
+      self.reopened_at ||= transition_time
       self.reopen_reason ||= reason
     end
+  end
+
+  def created_today?
+    created_at&.in_time_zone&.to_date == Time.zone.today
+  end
+
+  def shifted_documents_scope(model)
+    shifted_date = CalendarEvent.next_working_day_after(closing_date || fecha_equivalente.to_date)
+
+    model
+      .where(created_at: created_at..)
+      .where(fecha_equivalente: shifted_date.beginning_of_day..shifted_date.end_of_day)
+      .where(estado: true)
   end
 
   def amount_string(value)
