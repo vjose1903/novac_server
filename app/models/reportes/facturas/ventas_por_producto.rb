@@ -49,8 +49,8 @@ module Reportes
                               .group('detalles_facturas_notas.articulo_id')
                               .pluck(
                                 'detalles_facturas_notas.articulo_id',
-                                'coalesce(SUM(detalles_facturas_notas.cantidad_en_unidades), 0)',
-                                'coalesce(SUM(detalles_facturas_notas.total), 0)'
+                                Arel.sql('coalesce(SUM(detalles_facturas_notas.cantidad_en_unidades), 0)'),
+                                Arel.sql('coalesce(SUM(detalles_facturas_notas.total), 0)')
                               )
                               .each_with_object({}) do |(articulo_id, cantidad_devuelto, total_devuelto), memo|
                                 memo[articulo_id] = {
