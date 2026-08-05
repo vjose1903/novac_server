@@ -406,8 +406,9 @@ class CuadreCaja < ApplicationRecord
   end
 
   def self.previous_detailed_closing(closing_date)
-    # TODO: cuando exista el calendario laboral/feriados, esta busqueda debe respetar
-    # el ultimo dia laborable configurado y no solo el ultimo cuadre registrado.
+    # Hoy busca el ultimo cuadre detallado anterior, no necesariamente el dia calendario anterior.
+    # Los documentos ya usan CalendarEvent.next_working_day_after; este punto debe alinearse
+    # si el fondo de caja debe depender estrictamente del ultimo dia laborable configurado.
     CuadreCaja
       .where(closing_version: 'detailed')
       .where.not(status: 'cancelled')

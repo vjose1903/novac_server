@@ -30,8 +30,8 @@ class RecibosIngreso < ApplicationRecord
 
       today_cuadre                 = CuadreCaja.where({ fecha_equivalente: DateTime.now.beginning_of_day..DateTime.now.end_of_day})
 
-      # TODO: usar el calendario laboral/feriados cuando exista para mover el recibo
-      # al proximo dia laborable real despues de un cuadre cerrado.
+      # Despues de un cuadre cerrado, recibos/facturas/notas comparten
+      # CalendarEvent.next_working_day_after para saltar domingos y dias no laborables.
       fecha_equivalente            = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.empty? ? DateTime.now : CabeceraFactura.calculateNextDay
 
       recibo.user_id               = get_current_user[:id]

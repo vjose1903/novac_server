@@ -69,8 +69,8 @@ class Nota < ApplicationRecord
               nota.total                    = params[:total]
               nota.numero_documento         = data_secuencias[:numero_documento]
               nota.numero_comprobante       = data_secuencias[:numero_comprobante]
-              # TODO: usar el calendario laboral/feriados cuando exista para mover la nota
-              # al proximo dia laborable real despues de un cuadre cerrado.
+              # Despues de un cuadre cerrado, notas/facturas/recibos comparten
+              # CalendarEvent.next_working_day_after para saltar domingos y dias no laborables.
               nota.fecha_equivalente        = params[:fecha_equivalente] ? params[:fecha_equivalente] : today_cuadre.blank? ? DateTime.now : CabeceraFactura.calculateNextDay
               nota.fecha_valida             = params[:fecha_valida]
               nota.serie                    = params[:serie]

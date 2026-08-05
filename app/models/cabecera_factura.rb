@@ -140,8 +140,8 @@ class CabeceraFactura < ApplicationRecord
 
     cabecera_factura                          = CabeceraFactura.new
 
-    # TODO: usar el calendario laboral/feriados cuando exista para mover la factura
-    # al proximo dia laborable real despues de un cuadre cerrado.
+    # Despues de un cuadre cerrado, facturas/notas/recibos comparten
+    # CalendarEvent.next_working_day_after para saltar domingos y dias no laborables.
     cabecera_factura.fecha_equivalente        = params[:fecha_equivalente] || (today_cuadre ? CabeceraFactura.calculateNextDay : DateTime.now)
     cabecera_factura.fecha_completada         = params[:condicion] == 'Contado' ? cabecera_factura.fecha_equivalente : nil
     cabecera_factura.user_id                  = get_current_user[:id]
@@ -415,19 +415,8 @@ class CabeceraFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   def self.calculateNextDay
-    # TODO: reemplazar este salto fijo por CalendarioLaboral.next_business_day.
-    # Hoy solo evita domingo; tambien debe saltar feriados y dias no laborables configurados.
-    tomorrow = (DateTime.now.beginning_of_day + 1.days).strftime('%a')
-
-    next_date = ''
-
-    if tomorrow.downcase === 'sun'
-      next_date = (DateTime.now.beginning_of_day + 2.days).strftime('%Y-%m-%d')
-    else
-      next_date = (DateTime.now.beginning_of_day + 1.days).strftime('%Y-%m-%d')
-    end
-
-    return DateTime.parse("#{next_date}T12:00:00").in_time_zone
+    next_date = CalendarEvent.next_working_day_after(Date.current)
+    DateTime.parse("#{next_date.strftime('%Y-%m-%d')}T08:30:00").in_time_zone
   end
 
   # ===================================================================================================================================================

@@ -33,6 +33,28 @@ class CalendarEvent < ApplicationRecord
   scope :holidays, -> { where(is_holiday: true) }
   scope :intersecting_range, ->(range_start, range_end) { where('calendar_events.start_date <= ? AND calendar_events.end_date >= ?', range_end, range_start) }
 
+  def self.next_working_day_after(date)
+    next_date = date.to_date + 1.day
+
+    loop do
+      return next_date unless non_working_day?(next_date)
+
+      next_date += 1.day
+    end
+  end
+
+  def self.non_working_day?(date)
+    date = date.to_date
+    return true if date.sunday?
+
+    events = CalendarEvent.active.intersecting_range(date, date)
+    return false unless events.exists?
+
+    # Un evento/rango no laborable bloquea el dia completo. Si todos los eventos
+    # del dia estan marcados laborables, el dia queda disponible.
+    events.where(is_working_day: false).exists?
+  end
+
   def self.models_includes
     [
       :calendar_event_type,
