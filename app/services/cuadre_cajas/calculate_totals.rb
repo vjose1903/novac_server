@@ -42,7 +42,7 @@ module CuadreCajas
         difference_amount: money(difference_amount),
         considered_balanced: difference_amount.abs <= @tolerance,
         reconciliation_tolerance: money(@tolerance),
-        system_income_details: @system_income[:details] || {}
+        system_income_details: @system_income
       }
     end
 

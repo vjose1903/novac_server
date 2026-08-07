@@ -21,30 +21,12 @@ class CuadreCajaSerializer < ActiveModel::Serializer
   attribute :notes, if: Proc.new { get_param('notes') || get_param('all') }
   attribute :rejection_reason, if: Proc.new { get_param('rejection_reason') || get_param('all') }
   attribute :reopen_reason, if: Proc.new { get_param('reopen_reason') || get_param('all') }
+  attribute :system_income, if: Proc.new { get_param('system_income') || get_param('all') }
   attribute :system_income_details, if: Proc.new { get_param('system_income_details') || get_param('all') }
   attribute :eventos, if: Proc.new { get_param('eventos') || get_param('all') }
 
   def totals
-    {
-      opening_cash_fund: decimal_string(object.opening_cash_fund),
-      next_day_cash_fund: decimal_string(object.next_day_cash_fund),
-      expected_total: decimal_string(object.expected_total),
-      local_bills_total: decimal_string(object.local_bills_total),
-      local_coins_total: decimal_string(object.local_coins_total),
-      foreign_currency_total: decimal_string(object.foreign_currency_total),
-      physical_cash_total: decimal_string(object.physical_cash_total),
-      other_payment_methods_total: decimal_string(object.other_payment_methods_total),
-      additional_transfers_total: decimal_string(object.additional_transfers_total),
-      operational_total: decimal_string(object.operational_total),
-      final_consumer_invoices_total: decimal_string(object.final_consumer_invoices_total),
-      credit_invoices_total: decimal_string(object.total_venta_credito),
-      income_receipts_total: decimal_string(object.income_receipts_total),
-      system_income_total: decimal_string(object.system_income_total),
-      difference_amount: decimal_string(object.difference_amount),
-      difference_type: difference_type,
-      balanced: object.considered_balanced,
-      reconciliation_tolerance: decimal_string(object.reconciliation_tolerance)
-    }
+    object.totals_payload
   end
 
   def flow_type
@@ -99,6 +81,10 @@ class CuadreCajaSerializer < ActiveModel::Serializer
     }
   end
 
+  def system_income
+    object.system_income_payload
+  end
+
   def eventos
     serialize_parser(object.eventos.order('created_at ASC'), { all: true })
   end
@@ -109,17 +95,8 @@ class CuadreCajaSerializer < ActiveModel::Serializer
 
   private
 
-  def difference_type
-    value = BigDecimal(object.difference_amount.to_s.presence || '0')
-    return 'balanced' if value.zero?
-    value.positive? ? 'surplus' : 'shortage'
-  end
-
   def serialize_user(user)
     serialize_parser(user, { id: true, nombre: true, apellido: true, nombre_completo: true }) if user
   end
 
-  def decimal_string(value)
-    format('%.2f', BigDecimal(value.to_s.presence || '0'))
-  end
 end

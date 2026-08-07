@@ -82,12 +82,13 @@ module CuadreCajas
     end
 
     def invoice_documents
-      invoice_scope.order('id ASC').map do |invoice|
+      invoice_scope.includes(:cliente).order('id ASC').map do |invoice|
         {
           id: invoice.id,
           numero_factura: invoice.numero_factura,
           numero_comprobante: invoice.numero_comprobante,
           forma_pago: invoice.forma_pago,
+          cliente_nombre: document_client_name(invoice),
           total: decimal_string(invoice.total_factura),
           fecha_equivalente: invoice.fecha_equivalente,
           fecha_completada: invoice.fecha_completada
@@ -97,6 +98,7 @@ module CuadreCajas
 
     def receipt_documents
       RecibosIngreso
+        .includes(:cliente)
         .where(forma_pago: PAYMENT_METHODS, estado: true)
         .where(fecha_equivalente: closing_day_range)
         .order('id ASC')
@@ -105,6 +107,7 @@ module CuadreCajas
             id: receipt.id,
             numero_recibo: receipt.numero_recibo,
             forma_pago: receipt.forma_pago,
+            cliente_nombre: receipt.cliente&.nombre_completo,
             total: decimal_string(receipt.total),
             fecha_equivalente: receipt.fecha_equivalente
           }
@@ -112,12 +115,13 @@ module CuadreCajas
     end
 
     def credit_invoice_documents
-      credit_invoice_scope.order('id ASC').map do |invoice|
+      credit_invoice_scope.includes(:cliente).order('id ASC').map do |invoice|
         {
           id: invoice.id,
           numero_factura: invoice.numero_factura,
           numero_comprobante: invoice.numero_comprobante,
           forma_pago: invoice.forma_pago,
+          cliente_nombre: document_client_name(invoice),
           total: decimal_string(invoice.total_factura),
           fecha_equivalente: invoice.fecha_equivalente
         }
@@ -203,6 +207,10 @@ module CuadreCajas
       when 'transferencia' then :bank_transfer
       else :other
       end
+    end
+
+    def document_client_name(document)
+      document.cliente&.nombre_completo.presence || document.NoCliente_nombre.presence || 'Cliente contado'
     end
 
     def money(value)

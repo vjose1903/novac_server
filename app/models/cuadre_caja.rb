@@ -94,7 +94,8 @@ class CuadreCaja < ApplicationRecord
       .first
 
     if existing_closing
-      res.set_data({
+      existing_closing.ensure_system_income_snapshot! if existing_closing.detailed?
+      payload = {
         exists_cuadre: true,
         source: 'stored',
         closing_date: closing_date,
@@ -102,7 +103,10 @@ class CuadreCaja < ApplicationRecord
         flow_type: existing_closing.detailed? ? 'new' : 'legacy',
         closing_version: existing_closing.closing_version.presence || 'legacy',
         cuadre: existing_closing.prepare_payload
-      })
+      }
+      payload[:system_income] = existing_closing.system_income_payload if existing_closing.detailed?
+      payload[:totals] = existing_closing.totals_payload if existing_closing.detailed?
+      res.set_data(payload)
       return res
     end
 
@@ -147,7 +151,7 @@ class CuadreCaja < ApplicationRecord
     res
   end
 
-  def self.update_detailed_closing(cuadre_caja, params)
+  def self.update_detailed_closing(cuadre_caja, params, event_type='updated')
     res = Response.new
     current_user = get_current_user
 
@@ -157,7 +161,7 @@ class CuadreCaja < ApplicationRecord
       return res
     end
 
-    save_detailed_closing(cuadre_caja, normalized_params(params), current_user, res, 'updated')
+    save_detailed_closing(cuadre_caja, normalized_params(params), current_user, res, event_type)
   end
 
   def transition_to!(target_status, user, reason=nil)
@@ -175,7 +179,7 @@ class CuadreCaja < ApplicationRecord
     transaction do
       assign_transition_attributes(target_status, user, reason, transition_time)
       save!
-      restore_shifted_documents!(transition_time) if %w[rejected reopened].include?(target_status)
+      restore_shifted_documents!(transition_time) if should_restore_shifted_documents?(target_status)
       eventos.create!(user: user, event_type: target_status, from_status: from_status, to_status: status, reason: reason)
     end
 
@@ -190,6 +194,64 @@ class CuadreCaja < ApplicationRecord
 
   def detailed?
     closing_version == 'detailed'
+  end
+
+  def ensure_system_income_snapshot!
+    stored = normalized_system_income_details
+    return if stored[:payment_methods].present? && stored[:invoice_payment_methods].present? && stored[:receipt_payment_methods].present?
+
+    snapshot = self.class.system_income_snapshot_for(closing_date || fecha_equivalente&.to_date)
+    update_columns(
+      system_income_details: snapshot,
+      final_consumer_invoices_total: snapshot[:final_consumer_invoices_total],
+      income_receipts_total: snapshot[:income_receipts_total],
+      system_income_total: snapshot[:system_income_total],
+      total_venta_contado: snapshot[:final_consumer_invoices_total],
+      total_recibo_ingreso: snapshot[:income_receipts_total],
+      total_venta_credito: snapshot[:credit_invoices_total]
+    )
+    self.system_income_details = snapshot
+  end
+
+  def system_income_payload
+    stored = normalized_system_income_details
+
+    {
+      final_consumer_invoices_total: amount_string(final_consumer_invoices_total),
+      credit_invoices_total: amount_string(total_venta_credito),
+      income_receipts_total: amount_string(income_receipts_total),
+      system_income_total: amount_string(system_income_total),
+      payment_methods: stored[:payment_methods] || self.class.empty_payment_methods_payload,
+      invoice_payment_methods: stored[:invoice_payment_methods] || self.class.empty_payment_methods_payload,
+      receipt_payment_methods: stored[:receipt_payment_methods] || self.class.empty_payment_methods_payload,
+      invoices: stored[:invoices] || [],
+      credit_invoices: stored[:credit_invoices] || [],
+      receipts: stored[:receipts] || [],
+      details: stored[:details] || {}
+    }
+  end
+
+  def totals_payload
+    {
+      opening_cash_fund: amount_string(opening_cash_fund),
+      next_day_cash_fund: amount_string(next_day_cash_fund),
+      expected_total: amount_string(expected_total),
+      local_bills_total: amount_string(local_bills_total),
+      local_coins_total: amount_string(local_coins_total),
+      foreign_currency_total: amount_string(foreign_currency_total),
+      physical_cash_total: amount_string(physical_cash_total),
+      other_payment_methods_total: amount_string(other_payment_methods_total),
+      additional_transfers_total: amount_string(additional_transfers_total),
+      operational_total: amount_string(operational_total),
+      final_consumer_invoices_total: amount_string(final_consumer_invoices_total),
+      credit_invoices_total: amount_string(total_venta_credito),
+      income_receipts_total: amount_string(income_receipts_total),
+      system_income_total: amount_string(system_income_total),
+      difference_amount: amount_string(difference_amount),
+      difference_type: difference_type,
+      balanced: considered_balanced,
+      reconciliation_tolerance: amount_string(reconciliation_tolerance)
+    }
   end
 
   def restore_shifted_documents!(transition_time)
@@ -286,6 +348,7 @@ class CuadreCaja < ApplicationRecord
   end
 
   def self.save_detailed_closing(cuadre_caja, attrs, current_user, res, event_type)
+    from_status = cuadre_caja.status
     closing_date = Date.parse((attrs[:closing_date] || attrs[:fecha]).to_s)
     tolerance = attrs[:reconciliation_tolerance] || attrs[:tolerancia] || 0
     opening_cash_fund = cuadre_caja.persisted? ? cuadre_caja.opening_cash_fund : previous_cash_fund_for(closing_date)
@@ -333,7 +396,7 @@ class CuadreCaja < ApplicationRecord
       cuadre_caja.total_venta_credito = system_income[:credit_invoices_total]
       cuadre_caja.total_anterior ||= 0
       cuadre_caja.save!
-      cuadre_caja.eventos.create!(user: current_user, event_type: event_type, to_status: cuadre_caja.status)
+      cuadre_caja.eventos.create!(user: current_user, event_type: event_type, from_status: from_status, to_status: cuadre_caja.status)
     end
 
     res.set_data(serialize_parser(cuadre_caja.reload, { all: true }))
@@ -501,22 +564,39 @@ class CuadreCaja < ApplicationRecord
   end
 
   def self.suggested_system_movements(system_income)
-    payment_methods = system_income[:payment_methods] || {}
-    [
-      suggested_system_movement('card', 'Tarjetas segun sistema', payment_methods[:card]),
-      suggested_system_movement('check', 'Cheques segun sistema', payment_methods[:check]),
-      suggested_system_movement('bank_transfer', 'Transferencias segun sistema', payment_methods[:bank_transfer])
-    ].select { |item| BigDecimal(item[:amount]) > 0 }
+    invoice_suggestions = Array(system_income[:invoices]).filter_map do |invoice|
+      suggested_document_movement(invoice, 'Factura')
+    end
+
+    receipt_suggestions = Array(system_income[:receipts]).filter_map do |receipt|
+      suggested_document_movement(receipt, 'Recibo de ingreso')
+    end
+
+    invoice_suggestions + receipt_suggestions
   end
 
-  def self.suggested_system_movement(payment_method, description, amount)
+  def self.suggested_document_movement(document, document_type)
+    payment_method = system_payment_method(document[:forma_pago])
+    return nil if payment_method.nil?
+
+    client_name = document[:cliente_nombre].presence || 'Cliente contado'
     {
       movement_group: 'other_payment_methods',
       payment_method: payment_method,
-      description: description,
-      amount: format('%.2f', BigDecimal(amount.to_s.presence || '0')),
+      description: "#{document_type} de #{client_name}",
+      reference: document[:numero_comprobante] || document[:numero_factura] || document[:numero_recibo],
+      amount: format('%.2f', BigDecimal(document[:total].to_s.presence || '0')),
       source: 'system_suggestion'
     }
+  end
+
+  def self.system_payment_method(payment_method)
+    case payment_method.to_s.downcase
+    when 'cheque' then 'check'
+    when 'tarjeta' then 'card'
+    when 'transferencia' then 'bank_transfer'
+    else nil
+    end
   end
 
   def self.initial_totals_payload(system_income, opening_cash_fund=0)
@@ -541,6 +621,19 @@ class CuadreCaja < ApplicationRecord
     }
   end
 
+  def self.system_income_snapshot_for(closing_date)
+    CuadreCajas::SystemIncomeCalculator.call(closing_date)
+  end
+
+  def self.empty_payment_methods_payload
+    {
+      cash: '0.00',
+      check: '0.00',
+      card: '0.00',
+      bank_transfer: '0.00'
+    }
+  end
+
   private
 
   def approved_closing_cannot_change
@@ -552,7 +645,7 @@ class CuadreCaja < ApplicationRecord
   def transition_error(target_status)
     return 'No se puede aprobar un cuadre ya aprobado' if approved? && target_status == 'approved'
     return 'No se puede editar un cuadre aprobado' if approved? && target_status != 'reopened'
-    return 'Solo se puede rechazar o reabrir un cuadre el mismo dia en que fue creado' if %w[rejected reopened].include?(target_status) && !created_today?
+    return 'Solo se puede rechazar un cuadre el mismo dia en que fue creado' if target_status == 'rejected' && !created_today?
     return 'Debe enviar el cuadre antes de aprobarlo' if target_status == 'approved' && status != 'submitted'
     nil
   end
@@ -580,6 +673,21 @@ class CuadreCaja < ApplicationRecord
 
   def created_today?
     created_at&.in_time_zone&.to_date == Time.zone.today
+  end
+
+  def should_restore_shifted_documents?(target_status)
+    target_status == 'rejected' || (target_status == 'reopened' && created_today?)
+  end
+
+  def normalized_system_income_details
+    stored = system_income_details.presence || {}
+    stored.respond_to?(:deep_symbolize_keys) ? stored.deep_symbolize_keys : stored
+  end
+
+  def difference_type
+    value = decimal_value(difference_amount)
+    return 'balanced' if value.zero?
+    value.positive? ? 'surplus' : 'shortage'
   end
 
   def shifted_documents_scope(model)

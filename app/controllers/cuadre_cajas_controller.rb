@@ -35,6 +35,19 @@ class CuadreCajasController < ApplicationController
   end
 
   def submit
+    if detailed_closing_changes?
+      event_type = @cuadre_caja.status == 'reopened' ? 'resubmitted' : 'submitted'
+      resultado = CuadreCaja.update_detailed_closing(@cuadre_caja, submitted_params, event_type)
+      return resultado.send_response self
+    end
+
+    if @cuadre_caja.status == 'reopened'
+      resultado = Response.new
+      resultado.set_status(HTTP_STATUS_CODE[:conflict])
+      resultado.add_msg('Debe enviar los datos modificados del cuadre para volver a enviarlo')
+      return resultado.send_response self
+    end
+
     transition('submitted')
   end
 
@@ -72,6 +85,30 @@ class CuadreCajasController < ApplicationController
   def transition(status)
     resultado = @cuadre_caja.transition_to!(status, get_current_user, params[:reason] || params[:motivo])
     resultado.send_response self
+  end
+
+  def submitted_params
+    data = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.to_h
+
+    if data['cuadre_caja'].present?
+      data['cuadre_caja']['status'] = 'submitted'
+    else
+      data['status'] = 'submitted'
+    end
+
+    data
+  end
+
+  def detailed_closing_changes?
+    data = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.to_h
+    attrs = data['cuadre_caja'] || data
+    keys = %w[
+      denominaciones denominations movimientos movements next_day_cash_fund
+      fondo_caja_siguiente fondo_para_siguiente_dia reconciliation_tolerance
+      tolerancia notes observaciones
+    ]
+
+    keys.any? { |key| attrs.key?(key) }
   end
 
   # Use callbacks to share common setup or constraints between actions.
