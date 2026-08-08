@@ -1,24 +1,104 @@
 class Dashboard
   CURRENCY = 'DOP'.freeze
-  CHART_COLORS = ['#16a34a', '#2563eb', '#0d9488', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2'].freeze
-  SALES_TOTALS = Struct.new(:total_factura, :bruto, :itbis, :descuento, :invoice_count, :average_ticket)
+  SALES_TOTALS = Struct.new(:total_factura, :bruto, :itbis, :descuento, :invoice_count)
 
   HERO_BLOCKS = %w[
     executive_summary
   ].freeze
 
   KPI_SECTION_BLOCKS = %w[
-    sales_kpis receivables_kpis cash_kpis inventory_kpis ecf_kpis sequence_kpis
+    sales_kpis receivables_kpis
   ].freeze
 
   CHART_BLOCKS = %w[
     sales_by_period cash_vs_credit_sales invoiced_vs_collected ar_aging monthly_pending_balance
-    top_customers top_products sales_by_seller sales_by_category returns_by_product
-    credit_vs_debit_notes inventory_in_vs_out ecf_status purchases_by_supplier
-    product_cost_evolution top_vehicles_by_trips
+    top_customers top_products sales_by_category returns_by_product
+    credit_vs_debit_notes inventory_in_vs_out purchases_by_supplier
+    top_vehicles_by_trips
   ].freeze
 
   ALL_BLOCKS = (HERO_BLOCKS + KPI_SECTION_BLOCKS + CHART_BLOCKS).freeze
+
+  CHART_META = {
+    'sales_by_period' => {
+      title: 'Ventas por período',
+      subtitle: 'Evolución de ventas en el rango seleccionado.',
+      empty: 'No hay ventas para este período.',
+      error: 'No se pudo calcular las ventas por período.'
+    },
+    'cash_vs_credit_sales' => {
+      title: 'Contado vs crédito',
+      subtitle: 'Composición de ventas por condición de pago.',
+      empty: 'No hay ventas por condición de pago para este período.',
+      error: 'No se pudo calcular las ventas por condición de pago.'
+    },
+    'invoiced_vs_collected' => {
+      title: 'Cobrado vs facturado',
+      subtitle: 'Porcentaje cobrado del monto facturado en el período.',
+      empty: 'No hay facturas ni cobros para este período.',
+      error: 'No se pudo calcular el facturado vs cobrado.'
+    },
+    'ar_aging' => {
+      title: 'CxC por antigüedad',
+      subtitle: 'Distribución del balance pendiente por días transcurridos.',
+      empty: 'No hay cuentas por cobrar para este período.',
+      error: 'No se pudo calcular la antigüedad de cuentas por cobrar.'
+    },
+    'monthly_pending_balance' => {
+      title: 'Balance pendiente mensual',
+      subtitle: 'Evolución mensual de cuentas por cobrar.',
+      empty: 'No hay balance pendiente para este período.',
+      error: 'No se pudo calcular el balance pendiente mensual.'
+    },
+    'top_customers' => {
+      title: 'Top 10 clientes',
+      subtitle: 'Clientes con mayor volumen de ventas en el período.',
+      empty: 'No hay clientes con ventas en este período.',
+      error: 'No se pudo calcular el top de clientes.'
+    },
+    'top_products' => {
+      title: 'Top 10 productos',
+      subtitle: 'Productos con mayor volumen de ventas en el período.',
+      empty: 'No hay productos vendidos en este período.',
+      error: 'No se pudo calcular el top de productos.'
+    },
+    'sales_by_category' => {
+      title: 'Ventas por categoría',
+      subtitle: 'Distribución de ventas por tipo de artículo.',
+      empty: 'No hay ventas por categoría en este período.',
+      error: 'No se pudo calcular las ventas por categoría.'
+    },
+    'returns_by_product' => {
+      title: 'Productos con devolución',
+      subtitle: 'Productos con mayor monto devuelto por notas de crédito.',
+      empty: 'No hay devoluciones por producto en este período.',
+      error: 'No se pudo calcular las devoluciones por producto.'
+    },
+    'credit_vs_debit_notes' => {
+      title: 'Notas crédito vs débito',
+      subtitle: 'Comparación de notas por tipo en el período.',
+      empty: 'No hay notas de crédito o débito en este período.',
+      error: 'No se pudo calcular las notas crédito vs débito.'
+    },
+    'inventory_in_vs_out' => {
+      title: 'Inventario entradas vs salidas',
+      subtitle: 'Movimientos de inventario por período.',
+      empty: 'No hay movimientos de inventario en este período.',
+      error: 'No se pudo calcular entradas y salidas de inventario.'
+    },
+    'purchases_by_supplier' => {
+      title: 'Compras por suplidor',
+      subtitle: 'Suplidores con mayor monto comprado en el período.',
+      empty: 'No hay compras por suplidor en este período.',
+      error: 'No se pudo calcular las compras por suplidor.'
+    },
+    'top_vehicles_by_trips' => {
+      title: 'Vehículos con más viajes',
+      subtitle: 'Vehículos con mayor cantidad de viajes facturados.',
+      empty: 'No hay viajes facturados en este período.',
+      error: 'No se pudo calcular los vehículos con más viajes.'
+    }
+  }.freeze
 
   def self.build(params)
     new(params).build
@@ -44,7 +124,6 @@ class Dashboard
       data: {
         startDate: @start_date.to_date.to_s,
         endDate: @end_date.to_date.to_s,
-        blocks: params[:blocks].present? ? requested_blocks : 'all',
         requestedBlocks: params[:blocks].present? ? requested_blocks : 'all',
         hero: build_hero(requested_blocks),
         kpiSections: build_kpi_sections(requested_blocks),
@@ -75,7 +154,11 @@ class Dashboard
   end
 
   def build_charts(requested_blocks)
-    (requested_blocks & CHART_BLOCKS).map { |block| send(block) }
+    (requested_blocks & CHART_BLOCKS).map do |block|
+      send(block)
+    rescue StandardError => e
+      error_chart_block(block, e)
+    end
   end
 
   def date_range_required
@@ -130,10 +213,6 @@ class Dashboard
     Nota.where(fecha_equivalente: start_date..end_date, estado: true)
   end
 
-  def active_articles_scope
-    Articulo.where(estado: true)
-  end
-
   def sales_details_scope
     DetalleFactura.joins(:cabecera_factura)
                   .where(cabecera_facturas: {
@@ -164,10 +243,6 @@ class Dashboard
     @note_rows ||= notes_scope.pluck(:fecha_equivalente, :tipo_factura_id, :total)
   end
 
-  def active_article_rows
-    @active_article_rows ||= active_articles_scope.pluck(:existencia, :costo_principal, :aviso_existencia)
-  end
-
   def period_format
     days = (end_date.to_date - start_date.to_date).to_i
     days <= 45 ? 'YYYY-MM-DD' : 'YYYY-MM'
@@ -178,17 +253,8 @@ class Dashboard
     period_format == 'YYYY-MM-DD' ? date.to_s : date.strftime('%Y-%m')
   end
 
-  def sum_by_period(rows)
-    rows.each_with_object(Hash.new(0)) do |(fecha, value), memo|
-      memo[period_key(fecha)] += value.to_f
-    end.sort.to_h
-  end
-
-  def ranking_rows(grouped_values)
-    grouped_values.sort_by { |_, value| -value.to_f }
-                  .first(10)
-                  .map { |label, value| { label: label, value: value } }
-                  .reverse
+  def period_label(value)
+    value.to_s.length == 7 ? Date.parse("#{value}-01").strftime('%b %Y') : Date.parse(value.to_s).strftime('%d/%m')
   end
 
   def customer_label(factura)
@@ -237,262 +303,91 @@ class Dashboard
     }
   end
 
-  def line_chart(id, title, subtitle, legend, labels, data)
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'line',
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'axis' },
-        legend: { data: [legend] },
-        xAxis: { type: 'category', data: labels },
-        yAxis: { type: 'value' },
-        series: [{ name: legend, type: 'line', smooth: true, emphasis: { focus: 'series' }, data: data }]
-      }
+  def column(key, label, type, format, role, currency = nil)
+    response = {
+      key: key,
+      label: label,
+      type: type,
+      format: format,
+      role: role
     }
+    response[:currency] = currency if currency.present?
+    response
   end
 
-  def area_line_chart(id, title, subtitle, legend, labels, data)
-    chart = line_chart(id, title, subtitle, legend, labels, data)
-    chart[:type] = 'area-line'
-    chart[:option][:series].each { |series| series[:areaStyle] = {} }
-    chart
+  def currency_column(key, label, role = 'metric')
+    column(key, label, 'number', 'currency', role, CURRENCY)
   end
 
-  def multi_line_chart(id, title, subtitle, legends, labels, series_data, metadata_type = 'line')
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: metadata_type,
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'axis' },
-        legend: { data: legends },
-        xAxis: { type: 'category', data: labels },
-        yAxis: { type: 'value' },
-        series: legends.map do |legend|
-          series = { name: legend, type: 'line', smooth: true, emphasis: { focus: 'series' }, data: series_data[legend] || [] }
-          series[:areaStyle] = {} if metadata_type == 'area-line'
-          series
-        end
-      }
-    }
+  def number_column(key, label, role = 'metric')
+    column(key, label, 'number', 'number', role)
   end
 
-  def stacked_bar_chart(id, title, subtitle, legends, labels, series_data)
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'stacked-bar',
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'axis' },
-        legend: { data: legends },
-        xAxis: { type: 'category', data: labels },
-        yAxis: { type: 'value' },
-        series: legends.map do |legend|
-          { name: legend, type: 'bar', stack: 'notas', emphasis: { focus: 'series' }, data: series_data[legend] || [] }
-        end
-      }
-    }
+  def date_column(key, label, role = 'dimension')
+    column(key, label, 'date', 'date', role)
   end
 
-  def ranking_chart(id, title, subtitle, legend, rows)
-    labels = rows.map { |row| row[:label] }
-    data = rows.map { |row| round(row[:value]) }
+  def text_column(key, label, role)
+    column(key, label, 'string', 'text', role)
+  end
+
+  def percent_column(key, label, role = 'metric')
+    column(key, label, 'number', 'percent', role)
+  end
+
+  def chart_block(id, columns, rows, summary = nil)
+    meta = CHART_META.fetch(id)
+    status = rows.present? ? 'success' : 'no-data'
 
     {
       id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'ranking-bar',
+      title: meta[:title],
+      subtitle: meta[:subtitle],
+      status: status,
       appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'value' },
-        yAxis: { type: 'category', data: labels },
-        series: [{ name: legend, type: 'bar', emphasis: { focus: 'series' }, data: data }]
-      }
+      data: {
+        columns: status == 'success' ? columns : [],
+        rows: status == 'success' ? rows : [],
+        summary: status == 'success' ? (summary || summarize_rows(rows, columns)) : {}
+      },
+      emptyMessage: meta[:empty],
+      errorMessage: nil
     }
   end
 
-  def bar_chart(id, title, subtitle, legend, labels, data)
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'bar',
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: labels },
-        yAxis: { type: 'value' },
-        series: [{ name: legend, type: 'bar', emphasis: { focus: 'series' }, data: data }]
-      }
-    }
-  end
-
-  def pie_chart(id, title, subtitle, legend, rows, metadata_type = 'pie', rose_type = nil)
-    data = rows.reject { |row| row[:value].to_f.zero? }
-               .map { |row| { name: row[:label], value: round(row[:value]) } }
-    radius = metadata_type == 'doughnut' ? ['48%', '72%'] : '68%'
-    series = {
-      name: legend,
-      type: 'pie',
-      radius: radius,
-      avoidLabelOverlap: true,
-      emphasis: { scale: true, scaleSize: 8 },
-      data: data
-    }
-    series[:roseType] = rose_type if rose_type.present?
+  def error_chart_block(id, error)
+    meta = CHART_META.fetch(id)
 
     {
       id: id,
-      title: title,
-      subtitle: subtitle,
-      type: metadata_type,
+      title: meta[:title],
+      subtitle: meta[:subtitle],
+      status: 'error',
       appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-        legend: { bottom: 0 },
-        series: [series]
-      }
+      data: {
+        columns: [],
+        rows: [],
+        summary: {}
+      },
+      emptyMessage: meta[:empty],
+      errorMessage: meta[:error]
     }
   end
 
-  def doughnut_chart(id, title, subtitle, legend, rows)
-    pie_chart(id, title, subtitle, legend, rows, 'doughnut')
-  end
+  def summarize_rows(rows, columns)
+    columns.select { |column| column[:role] == 'metric' && column[:type] == 'number' }
+           .each_with_object({}) do |column, memo|
+             values = rows.map { |row| row[column[:key].to_sym] }.compact.map(&:to_f)
+             next if values.empty?
 
-  def treemap_chart(id, title, subtitle, legend, rows)
-    data = rows.reject { |row| row[:value].to_f.zero? }
-               .map { |row| { name: row[:label], value: round(row[:value]) } }
-
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'treemap',
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'item' },
-        series: [
-          {
-            name: legend,
-            type: 'treemap',
-            roam: false,
-            breadcrumb: { show: false },
-            emphasis: { focus: 'self' },
-            data: data
-          }
-        ]
-      }
-    }
-  end
-
-  def funnel_chart(id, title, subtitle, legend, rows)
-    data = rows.reject { |row| row[:value].to_f.zero? }
-               .sort_by { |row| -row[:value].to_f }
-               .map { |row| { name: row[:label], value: round(row[:value]) } }
-
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'funnel',
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'item' },
-        legend: { bottom: 0 },
-        series: [
-          {
-            name: legend,
-            type: 'funnel',
-            sort: 'descending',
-            emphasis: { focus: 'self' },
-            data: data
-          }
-        ]
-      }
-    }
-  end
-
-  def radar_chart(id, title, subtitle, legend, rows)
-    max_value = rows.map { |row| row[:value].to_f }.max.to_f
-    max_value = 1 if max_value <= 0
-
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'radar',
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'item' },
-        legend: { data: [legend], bottom: 0 },
-        radar: {
-          indicator: rows.map { |row| { name: row[:label], max: round(max_value) } }
-        },
-        series: [
-          {
-            name: legend,
-            type: 'radar',
-            areaStyle: {},
-            emphasis: { focus: 'series' },
-            data: [{ value: rows.map { |row| round(row[:value]) }, name: legend }]
-          }
-        ]
-      }
-    }
-  end
-
-  def gauge_chart(id, title, subtitle, legend, value, tooltip_detail = nil)
-    data = value.nil? ? [] : [{ value: round(value), name: legend }]
-
-    {
-      id: id,
-      title: title,
-      subtitle: subtitle,
-      type: 'gauge',
-      appliedFilter: applied_filter,
-      option: {
-        color: CHART_COLORS,
-        animation: true,
-        tooltip: { trigger: 'item', formatter: tooltip_detail || '{a}: {c}%' },
-        series: [
-          {
-            name: legend,
-            type: 'gauge',
-            progress: { show: true },
-            emphasis: { focus: 'self' },
-            detail: { formatter: '{value}%' },
-            data: data
-          }
-        ]
-      }
-    }
+             memo[column[:key]] = {
+               total: round(values.sum),
+               count: values.length,
+               average: round(values.sum / values.length),
+               min: round(values.min),
+               max: round(values.max)
+             }
+           end
   end
 
   def sales_totals
@@ -505,8 +400,7 @@ class Dashboard
         sales_records.sum { |factura| factura.Bruto.to_f },
         sales_records.sum { |factura| factura.itbis.to_f },
         sales_records.sum { |factura| factura.descuento.to_f },
-        invoice_count,
-        invoice_count.zero? ? 0 : total_factura / invoice_count
+        invoice_count
       )
     end
   end
@@ -534,14 +428,10 @@ class Dashboard
       appliedFilter: applied_filter,
       primaryKpis: [
         total_invoiced,
-        accounts_receivable_total,
-        daily_cash_total,
-        inventory_cost_value
+        accounts_receivable_total
       ],
       focusItems: [
-        overdue_invoice_count,
-        low_stock_products_count,
-        ecf_errors_count
+        overdue_invoice_count
       ]
     }
   end
@@ -558,8 +448,6 @@ class Dashboard
         itbis_total,
         discount_total,
         returns_total,
-        estimated_margin,
-        average_ticket,
         invoice_count
       ]
     )
@@ -574,55 +462,6 @@ class Dashboard
       [
         accounts_receivable_total,
         overdue_invoice_count
-      ]
-    )
-  end
-
-  def cash_kpis
-    kpi_section(
-      'cash_kpis',
-      'Caja',
-      'Indicadores de caja',
-      'Totales registrados en cuadre de caja para el rango seleccionado.',
-      [
-        daily_cash_total
-      ]
-    )
-  end
-
-  def inventory_kpis
-    kpi_section(
-      'inventory_kpis',
-      'Inventario',
-      'Indicadores de inventario',
-      'Valor actual de inventario y productos bajo alerta de existencia.',
-      [
-        inventory_cost_value,
-        low_stock_products_count
-      ]
-    )
-  end
-
-  def ecf_kpis
-    kpi_section(
-      'ecf_kpis',
-      'DGII',
-      'Indicadores de facturación electrónica',
-      'Facturas electrónicas rechazadas o pendientes de aceptación.',
-      [
-        ecf_errors_count
-      ]
-    )
-  end
-
-  def sequence_kpis
-    kpi_section(
-      'sequence_kpis',
-      'Comprobantes',
-      'Indicadores de secuencias',
-      'Disponibilidad actual de secuencias y comprobantes.',
-      [
-        available_sequences_count
       ]
     )
   end
@@ -647,18 +486,6 @@ class Dashboard
     card('returns_total', 'Total devoluciones', round(returns_amount), 'currency')
   end
 
-  def estimated_margin
-    margin = sales_detail_records.sum do |detalle|
-      detalle.total.to_f - (detalle.costo.to_f * (detalle.cantidad_en_unidades || detalle.cantidad).to_f)
-    end
-
-    card('estimated_margin', 'Margen estimado', round(margin), 'currency', 'Ventas menos costo')
-  end
-
-  def average_ticket
-    card('average_ticket', 'Ticket promedio', round(sales_totals.average_ticket), 'currency')
-  end
-
   def invoice_count
     card('invoice_count', 'Facturas emitidas', sales_totals.invoice_count.to_i, 'number')
   end
@@ -675,231 +502,404 @@ class Dashboard
     card('overdue_invoice_count', 'Facturas vencidas', count, 'number')
   end
 
-  def daily_cash_total
-    total = CuadreCaja.where(fecha_equivalente: start_date..end_date).sum(:total_general)
-    card('daily_cash_total', 'Caja diaria', round(total), 'currency')
-  end
-
-  def inventory_cost_value
-    total = active_article_rows.sum { |existencia, costo, _| existencia.to_f * costo.to_f }
-    card('inventory_cost_value', 'Inventario a costo', round(total), 'currency', 'Inventario actual')
-  end
-
-  def low_stock_products_count
-    count = active_article_rows.count { |existencia, _, aviso| existencia.to_f <= aviso.to_f }
-    card('low_stock_products_count', 'Productos bajo alerta', count, 'number', 'Inventario actual')
-  end
-
-  def ecf_errors_count
-    count = sales_records.count do |factura|
-      factura.serie == SerieFactura.electronica && (factura.is_aceptada.blank? || factura.is_aceptada.downcase == 'rechazado')
-    end
-    card('ecf_errors_count', 'Errores e-CF', count, 'number')
-  end
-
-  def available_sequences_count
-    count = SecuenciaComprobante.where(estado: true)
-                                .where(usado: [false, nil])
-                                .pluck(:hasta, :secuencia, :desde)
-                                .sum { |hasta, secuencia, desde| [hasta.to_i - (secuencia || desde).to_i, 0].max }
-    card('available_sequences_count', 'Secuencias disponibles', count.to_i, 'number', 'Estado actual')
-  end
-
   def sales_by_period
-    rows = sum_by_period(sales_records.map { |factura| [factura.fecha_equivalente, factura.total_factura] })
-    area_line_chart('sales_by_period', 'Ventas por período', 'Evolución de ventas dentro del rango seleccionado.', 'Ventas', rows.keys, rows.values.map { |value| round(value) })
+    grouped = sales_records.each_with_object(Hash.new { |memo, key| memo[key] = { sales_amount: 0, invoice_count: 0 } }) do |factura, memo|
+      key = period_key(factura.fecha_equivalente)
+      memo[key][:sales_amount] += factura.total_factura.to_f
+      memo[key][:invoice_count] += 1
+    end
+    rows = grouped.sort.map do |period, values|
+      {
+        period: period,
+        periodLabel: period_label(period),
+        sales_amount: round(values[:sales_amount]),
+        invoice_count: values[:invoice_count]
+      }
+    end
+
+    chart_block(
+      'sales_by_period',
+      [
+        date_column('period', 'Período'),
+        currency_column('sales_amount', 'Ventas'),
+        number_column('invoice_count', 'Facturas')
+      ],
+      rows
+    )
   end
 
   def cash_vs_credit_sales
-    rows = sales_records.each_with_object(Hash.new(0)) do |factura, memo|
-      memo[[period_key(factura.fecha_equivalente), factura.condicion]] += factura.total_factura.to_f
+    grouped = sales_records.each_with_object(Hash.new { |memo, key| memo[key] = { sales_amount: 0, invoice_count: 0 } }) do |factura, memo|
+      key = factura.condicion == 'Crédito' ? 'credit' : 'cash'
+      memo[key][:sales_amount] += factura.total_factura.to_f
+      memo[key][:invoice_count] += 1
     end
-    chart_rows = ['Contado', 'Crédito'].map do |condicion|
-      { label: condicion, value: rows.sum { |(_, current_condicion), total| current_condicion == condicion ? total : 0 } }
-    end
+    rows = [['cash', 'Contado'], ['credit', 'Crédito']].map do |key, label|
+      values = grouped[key]
+      next if values[:sales_amount].zero? && values[:invoice_count].zero?
 
-    doughnut_chart('cash_vs_credit_sales', 'Contado vs crédito', 'Composición de ventas por condición de pago.', 'Ventas', chart_rows)
+      {
+        payment_type: key,
+        payment_typeLabel: label,
+        sales_amount: round(values[:sales_amount]),
+        invoice_count: values[:invoice_count]
+      }
+    end.compact
+
+    chart_block(
+      'cash_vs_credit_sales',
+      [
+        text_column('payment_type', 'Tipo de pago', 'category'),
+        currency_column('sales_amount', 'Ventas'),
+        number_column('invoice_count', 'Facturas')
+      ],
+      rows
+    )
   end
 
   def invoiced_vs_collected
     invoiced_total = sales_totals.total_factura.to_f
     collected_total = receipt_rows.sum { |_, total| total.to_f }
-    percentage = invoiced_total.zero? ? nil : (collected_total / invoiced_total) * 100
-    tooltip = "Cobrado: {c}%<br/>Facturado: RD$ #{round(invoiced_total)}<br/>Cobrado: RD$ #{round(collected_total)}"
+    percentage = invoiced_total.zero? ? 0 : (collected_total / invoiced_total) * 100
+    rows = []
+    if invoiced_total.positive? || collected_total.positive?
+      rows = [
+        {
+          metric: 'invoiced',
+          metricLabel: 'Facturado',
+          amount: round(invoiced_total),
+          percentage: 100
+        },
+        {
+          metric: 'collected',
+          metricLabel: 'Cobrado',
+          amount: round(collected_total),
+          percentage: round(percentage)
+        }
+      ]
+    end
 
-    gauge_chart('invoiced_vs_collected', 'Cobrado vs facturado', 'Porcentaje cobrado del monto facturado en el período.', 'Cobrado', percentage, tooltip)
+    chart_block(
+      'invoiced_vs_collected',
+      [
+        text_column('metric', 'Métrica', 'category'),
+        currency_column('amount', 'Monto'),
+        percent_column('percentage', 'Porcentaje')
+      ],
+      rows,
+      {
+        collection_ratio: {
+          percentage: round(percentage),
+          target: 100
+        },
+        amount: {
+          total: round(invoiced_total + collected_total)
+        }
+      }
+    )
   end
 
   def ar_aging
-    labels = ['0-30', '31-60', '61-90', '90+']
-    data = [
-      ar_aging_sum(0, 30),
-      ar_aging_sum(31, 60),
-      ar_aging_sum(61, 90),
-      ar_aging_sum(91, nil)
-    ].map { |value| round(value) }
+    buckets = [
+      ['0_30', '0-30', 0, 30],
+      ['31_60', '31-60', 31, 60],
+      ['61_90', '61-90', 61, 90],
+      ['90_plus', '90+', 91, nil]
+    ]
+    rows = buckets.map do |key, label, min_days, max_days|
+      invoices = ar_aging_records(min_days, max_days)
+      {
+        aging_bucket: key,
+        aging_bucketLabel: label,
+        pending_amount: round(invoices.sum { |factura| factura.balance.to_f }),
+        invoice_count: invoices.length
+      }
+    end
 
-    labels = [] if data.all?(&:zero?)
-    data = [] if data.all?(&:zero?)
-
-    bar_chart('ar_aging', 'CxC por antigüedad', 'Distribución del balance pendiente por días transcurridos.', 'Balance', labels, data)
+    chart_block(
+      'ar_aging',
+      [
+        text_column('aging_bucket', 'Antigüedad', 'category'),
+        currency_column('pending_amount', 'Balance pendiente'),
+        number_column('invoice_count', 'Facturas')
+      ],
+      rows
+    )
   end
 
-  def ar_aging_sum(min_days, max_days)
-    credit_sales_records.sum do |factura|
+  def ar_aging_records(min_days, max_days)
+    credit_sales_records.select do |factura|
       balance = factura.balance.to_f
-      next 0 if factura.pagada != false || balance < 1
+      next false if factura.pagada != false || balance < 1
 
       days = (Date.current - factura.fecha_equivalente.to_date).to_i
-      next 0 if days < min_days
-      next 0 if max_days && days > max_days
+      next false if days < min_days
+      next false if max_days && days > max_days
 
-      balance
+      true
     end
   end
 
   def monthly_pending_balance
-    rows = sum_by_period(credit_sales_records.select { |factura| factura.pagada == false }.map { |factura| [factura.fecha_equivalente, factura.balance] })
-    line_chart('monthly_pending_balance', 'Balance pendiente mensual', 'Evolución mensual de cuentas por cobrar.', 'Balance', rows.keys, rows.values.map { |value| round(value) })
+    grouped = credit_sales_records.select { |factura| factura.pagada == false }
+                                  .each_with_object(Hash.new(0)) do |factura, memo|
+                                    memo[factura.fecha_equivalente.to_date.strftime('%Y-%m')] += factura.balance.to_f
+                                  end
+    rows = grouped.sort.map do |month, pending_amount|
+      {
+        month: month,
+        monthLabel: period_label(month),
+        pending_amount: round(pending_amount)
+      }
+    end
+
+    chart_block(
+      'monthly_pending_balance',
+      [
+        date_column('month', 'Mes'),
+        currency_column('pending_amount', 'Balance pendiente')
+      ],
+      rows
+    )
   end
 
   def top_customers
-    grouped = sales_records.each_with_object(Hash.new(0)) do |factura, memo|
-      memo[customer_label(factura)] += factura.total_factura.to_f
+    grouped = sales_records.each_with_object({}) do |factura, memo|
+      key = factura.cliente_id || "casual_#{factura.NoCliente_nombre.presence || 'cliente_contado'}"
+      memo[key] ||= {
+        customer_id: factura.cliente_id || 'casual',
+        customer_name: customer_label(factura),
+        sales_amount: 0,
+        invoice_count: 0
+      }
+      memo[key][:sales_amount] += factura.total_factura.to_f
+      memo[key][:invoice_count] += 1
     end
-    rows = ranking_rows(grouped)
+    rows = grouped.values.sort_by { |row| -row[:sales_amount] }.first(10).map do |row|
+      row.merge(sales_amount: round(row[:sales_amount]))
+    end
 
-    treemap_chart('top_customers', 'Top 10 clientes', 'Clientes con mayor volumen de ventas en el período.', 'Ventas', rows)
+    chart_block(
+      'top_customers',
+      [
+        column('customer_id', 'ID cliente', 'string', 'text', 'dimension'),
+        text_column('customer_name', 'Cliente', 'category'),
+        currency_column('sales_amount', 'Ventas'),
+        number_column('invoice_count', 'Facturas')
+      ],
+      rows
+    )
   end
 
   def top_products
-    grouped = sales_detail_records.each_with_object(Hash.new(0)) do |detalle, memo|
-      memo[detalle.articulo&.nombre || 'Producto'] += detalle.total.to_f
+    grouped = sales_detail_records.each_with_object({}) do |detalle, memo|
+      product_id = detalle.articulo_id || detalle.articulo&.id || 'unknown'
+      memo[product_id] ||= {
+        product_id: product_id,
+        product_name: detalle.articulo&.nombre || 'Producto',
+        sales_amount: 0,
+        quantity: 0
+      }
+      memo[product_id][:sales_amount] += detalle.total.to_f
+      memo[product_id][:quantity] += (detalle.cantidad_en_unidades || detalle.cantidad).to_f
     end
-    rows = ranking_rows(grouped)
-
-    pie_chart('top_products', 'Top 10 productos', 'Productos con mayor volumen de ventas en el período.', 'Ventas', rows, 'pie', 'radius')
-  end
-
-  def sales_by_seller
-    seller_ids = sales_records.map(&:vendedor_id).compact.uniq
-    seller_names = User.where(id: seller_ids)
-                       .index_by(&:id)
-    grouped = sales_records.each_with_object(Hash.new(0)) do |factura, memo|
-      seller = seller_names[factura.vendedor_id]
-      memo[seller ? seller.nombre_completo : 'Sin vendedor'] += factura.total_factura.to_f
+    rows = grouped.values.sort_by { |row| -row[:sales_amount] }.first(10).map do |row|
+      row.merge(sales_amount: round(row[:sales_amount]), quantity: round(row[:quantity]))
     end
-    rows = ranking_rows(grouped)
 
-    ranking_chart('sales_by_seller', 'Ventas por vendedor', 'Vendedores con mayor volumen de ventas en el período.', 'Ventas', rows)
+    chart_block(
+      'top_products',
+      [
+        column('product_id', 'ID producto', 'string', 'text', 'dimension'),
+        text_column('product_name', 'Producto', 'category'),
+        currency_column('sales_amount', 'Ventas'),
+        number_column('quantity', 'Cantidad')
+      ],
+      rows
+    )
   end
 
   def sales_by_category
-    rows = sales_detail_records.each_with_object(Hash.new(0)) do |detalle, memo|
-      memo[detalle.articulo&.tipo_articulo&.descripcion || 'Sin categoría'] += detalle.total.to_f
+    grouped = sales_detail_records.each_with_object({}) do |detalle, memo|
+      category = detalle.articulo&.tipo_articulo
+      category_id = category&.id || 'unknown'
+      memo[category_id] ||= {
+        category_id: category_id,
+        category_name: category&.descripcion || 'Sin categoría',
+        sales_amount: 0,
+        quantity: 0
+      }
+      memo[category_id][:sales_amount] += detalle.total.to_f
+      memo[category_id][:quantity] += (detalle.cantidad_en_unidades || detalle.cantidad).to_f
     end
-    chart_rows = rows.map { |label, value| { label: label, value: value } }
+    rows = grouped.values.sort_by { |row| -row[:sales_amount] }.map do |row|
+      row.merge(sales_amount: round(row[:sales_amount]), quantity: round(row[:quantity]))
+    end
 
-    doughnut_chart('sales_by_category', 'Ventas por categoría', 'Distribución de ventas por tipo de artículo.', 'Ventas', chart_rows)
+    chart_block(
+      'sales_by_category',
+      [
+        column('category_id', 'ID categoría', 'string', 'text', 'dimension'),
+        text_column('category_name', 'Categoría', 'category'),
+        currency_column('sales_amount', 'Ventas'),
+        number_column('quantity', 'Cantidad')
+      ],
+      rows
+    )
   end
 
   def returns_by_product
-    grouped = DetalleFacturaNota.includes(:articulo).joins(factura_aplicada: :nota)
-                                .where(tipo_factura_id: credit_note_type_ids)
-                                .where(notas: { fecha_equivalente: start_date..end_date, estado: true })
-                                .each_with_object(Hash.new(0)) do |detalle, memo|
-                                  memo[detalle.articulo&.nombre || 'Producto'] += detalle.total.to_f.abs
-                                end
-    rows = ranking_rows(grouped)
+    rows = DetalleFacturaNota.joins(:articulo).joins(factura_aplicada: :nota)
+                             .where(notas: { fecha_equivalente: start_date..end_date, estado: true, tipo_factura_id: credit_note_type_ids })
+                             .group('detalles_facturas_notas.articulo_id', 'articulos.nombre')
+                             .order(Arel.sql('coalesce(SUM(ABS(detalles_facturas_notas.total)), 0) DESC'))
+                             .limit(10)
+                             .pluck(
+                               'detalles_facturas_notas.articulo_id',
+                               'articulos.nombre',
+                               Arel.sql('coalesce(SUM(ABS(detalles_facturas_notas.total)), 0)'),
+                               Arel.sql('coalesce(SUM(ABS(coalesce(detalles_facturas_notas.cantidad_en_unidades, detalles_facturas_notas.cantidad, 0))), 0)')
+                             )
+                             .map do |product_id, product_name, returned_amount, returned_quantity|
+      {
+        product_id: product_id,
+        product_name: product_name.presence || 'Producto',
+        returned_amount: round(returned_amount),
+        returned_quantity: round(returned_quantity)
+      }
+    end
 
-    funnel_chart('returns_by_product', 'Productos con devolución', 'Productos con mayor monto devuelto por notas de crédito.', 'Devoluciones', rows.reverse)
+    chart_block(
+      'returns_by_product',
+      [
+        column('product_id', 'ID producto', 'string', 'text', 'dimension'),
+        text_column('product_name', 'Producto', 'category'),
+        currency_column('returned_amount', 'Monto devuelto'),
+        number_column('returned_quantity', 'Cantidad devuelta')
+      ],
+      rows
+    )
   end
 
   def credit_vs_debit_notes
-    rows = note_rows.each_with_object(Hash.new(0)) do |(fecha, tipo_factura_id, total), memo|
-      memo[[period_key(fecha), tipo_factura_id]] += total.to_f
+    grouped = note_rows.each_with_object(Hash.new { |memo, key| memo[key] = { credit_note_amount: 0, debit_note_amount: 0, credit_note_count: 0, debit_note_count: 0 } }) do |(fecha, tipo_factura_id, total), memo|
+      key = period_key(fecha)
+      if credit_note_type_ids.include?(tipo_factura_id)
+        memo[key][:credit_note_amount] += total.to_f.abs
+        memo[key][:credit_note_count] += 1
+      elsif debit_note_type_ids.include?(tipo_factura_id)
+        memo[key][:debit_note_amount] += total.to_f.abs
+        memo[key][:debit_note_count] += 1
+      end
     end
-    labels = rows.keys.map(&:first).uniq.sort
-    data = {
-      'Crédito' => labels.map { |label| round(credit_note_type_ids.sum { |id| rows[[label, id]] || 0 }.abs) },
-      'Débito' => labels.map { |label| round(debit_note_type_ids.sum { |id| rows[[label, id]] || 0 }.abs) }
-    }
+    rows = grouped.sort.map do |period, values|
+      {
+        period: period,
+        periodLabel: period_label(period),
+        credit_note_amount: round(values[:credit_note_amount]),
+        debit_note_amount: round(values[:debit_note_amount]),
+        credit_note_count: values[:credit_note_count],
+        debit_note_count: values[:debit_note_count]
+      }
+    end
 
-    stacked_bar_chart('credit_vs_debit_notes', 'Notas crédito vs débito', 'Comparación de notas por tipo en el período.', ['Crédito', 'Débito'], labels, data)
+    chart_block(
+      'credit_vs_debit_notes',
+      [
+        date_column('period', 'Período'),
+        currency_column('credit_note_amount', 'Notas crédito'),
+        currency_column('debit_note_amount', 'Notas débito'),
+        number_column('credit_note_count', 'Cantidad notas crédito'),
+        number_column('debit_note_count', 'Cantidad notas débito')
+      ],
+      rows
+    )
   end
 
   def inventory_in_vs_out
-    rows = MovimientosInventario.where(created_at: start_date..end_date)
-                                .pluck(:created_at, :accion, :cantidad_en_unidades)
-                                .each_with_object(Hash.new(0)) do |(fecha, accion, cantidad), memo|
-                                  memo[[period_key(fecha), accion]] += cantidad.to_f
-                                end
-    labels = rows.keys.map(&:first).uniq.sort
-    legends = ['Entrada', 'Salida']
-    data = {
-      'Entrada' => labels.map { |label| round(rows[[label, 'entrada']] || rows[[label, 'Entrada']] || 0) },
-      'Salida' => labels.map { |label| round(rows[[label, 'salida']] || rows[[label, 'Salida']] || 0) }
-    }
+    grouped = MovimientosInventario.where(created_at: start_date..end_date)
+                                   .pluck(:created_at, :accion, :cantidad_en_unidades)
+                                   .each_with_object(Hash.new { |memo, key| memo[key] = { inventory_in: 0, inventory_out: 0 } }) do |(fecha, accion, cantidad), memo|
+                                     key = period_key(fecha)
+                                     if accion.to_s.downcase == 'entrada'
+                                       memo[key][:inventory_in] += cantidad.to_f
+                                     elsif accion.to_s.downcase == 'salida'
+                                       memo[key][:inventory_out] += cantidad.to_f
+                                     end
+                                   end
+    rows = grouped.sort.map do |period, values|
+      {
+        period: period,
+        periodLabel: period_label(period),
+        inventory_in: round(values[:inventory_in]),
+        inventory_out: round(values[:inventory_out])
+      }
+    end
 
-    multi_line_chart('inventory_in_vs_out', 'Inventario entradas vs salidas', 'Movimientos de inventario por período.', legends, labels, data, 'area-line')
-  end
-
-  def ecf_status
-    rows = sales_records.select { |factura| factura.serie == SerieFactura.electronica }
-                        .each_with_object(Hash.new(0)) do |factura, memo|
-                          memo[[period_key(factura.fecha_equivalente), factura.is_aceptada]] += 1
-                        end
-    labels = rows.keys.map(&:first).uniq.sort
-    data = {
-      'Enviados' => labels.map { |label| rows.select { |(period, _), _| period == label }.values.sum },
-      'Aceptados' => labels.map { |label| rows[[label, 'Aceptado']] || 0 },
-      'Rechazados' => labels.map { |label| rows[[label, 'Rechazado']] || 0 },
-      'Error' => labels.map { |label| rows[[label, nil]] || 0 }
-    }
-    chart_rows = data.map { |label, values| { label: label, value: values.sum } }.reject { |row| row[:value].zero? }
-
-    pie_chart('ecf_status', 'Estado e-CF', 'Facturas electrónicas enviadas, aceptadas y rechazadas.', 'e-CF', chart_rows)
+    chart_block(
+      'inventory_in_vs_out',
+      [
+        date_column('period', 'Período'),
+        number_column('inventory_in', 'Entradas'),
+        number_column('inventory_out', 'Salidas')
+      ],
+      rows
+    )
   end
 
   def purchases_by_supplier
     grouped = CabeceraFactura.includes(:suplidor)
                              .where(fecha_equivalente: start_date..end_date, tipo: 'compra', estado: true)
-                             .each_with_object(Hash.new(0)) do |factura, memo|
-                               memo[factura.suplidor&.nombre_completo || 'Sin suplidor'] += factura.total_factura.to_f
+                             .each_with_object({}) do |factura, memo|
+                               supplier_id = factura.suplidor_id || 'unknown'
+                               memo[supplier_id] ||= {
+                                 supplier_id: supplier_id,
+                                 supplier_name: factura.suplidor&.nombre_completo || 'Sin suplidor',
+                                 purchase_amount: 0,
+                                 purchase_count: 0
+                               }
+                               memo[supplier_id][:purchase_amount] += factura.total_factura.to_f
+                               memo[supplier_id][:purchase_count] += 1
                              end
-    rows = ranking_rows(grouped)
-
-    treemap_chart('purchases_by_supplier', 'Compras por suplidor', 'Suplidores con mayor monto comprado en el período.', 'Compras', rows)
-  end
-
-  def product_cost_evolution
-    rows = MantenimientoArticulo.includes(:articulo)
-                                 .where(created_at: start_date..end_date)
-                                 .each_with_object(Hash.new { |memo, key| memo[key] = [] }) do |hist, memo|
-                                   memo[hist.articulo&.nombre || 'Producto'] << [period_key(hist.created_at), hist.ant_costoP.to_f]
-                                 end
-    top_products = rows.map { |name, values| [name, values.length] }.sort_by { |_, count| -count }.first(5).map(&:first)
-    labels = top_products.flat_map { |name| rows[name].map(&:first) }.uniq.sort
-    series_data = top_products.each_with_object({}) do |name, memo|
-      grouped_values = rows[name].group_by(&:first)
-      memo[name] = labels.map do |label|
-        values = grouped_values[label]&.map(&:last) || []
-        values.empty? ? 0 : round(values.sum / values.length)
-      end
+    rows = grouped.values.sort_by { |row| -row[:purchase_amount] }.first(10).map do |row|
+      row.merge(purchase_amount: round(row[:purchase_amount]))
     end
 
-    multi_line_chart('product_cost_evolution', 'Costo por producto', 'Costo promedio registrado en mantenimientos de artículos.', top_products, labels, series_data)
+    chart_block(
+      'purchases_by_supplier',
+      [
+        column('supplier_id', 'ID suplidor', 'string', 'text', 'dimension'),
+        text_column('supplier_name', 'Suplidor', 'category'),
+        currency_column('purchase_amount', 'Compras'),
+        number_column('purchase_count', 'Cantidad compras')
+      ],
+      rows
+    )
   end
 
   def top_vehicles_by_trips
     grouped = MovimientoViaje.includes(:vehiculo)
                              .joins(:cabecera_factura)
                              .where(cabecera_facturas: { fecha_equivalente: start_date..end_date, tipo: 'venta', estado: true, is_nota: false })
-                             .each_with_object(Hash.new(0)) do |movimiento, memo|
-                               memo[vehicle_label(movimiento.vehiculo)] += 1
+                             .each_with_object({}) do |movimiento, memo|
+                               vehicle_id = movimiento.vehiculo_id || movimiento.vehiculo&.id || 'unknown'
+                               memo[vehicle_id] ||= {
+                                 vehicle_id: vehicle_id,
+                                 vehicle_name: vehicle_label(movimiento.vehiculo),
+                                 trip_count: 0
+                               }
+                               memo[vehicle_id][:trip_count] += 1
                              end
-    rows = ranking_rows(grouped)
+    rows = grouped.values.sort_by { |row| -row[:trip_count] }.first(10)
 
-    ranking_chart('top_vehicles_by_trips', 'Vehículos con más viajes', 'Vehículos con mayor cantidad de viajes facturados.', 'Viajes', rows)
+    chart_block(
+      'top_vehicles_by_trips',
+      [
+        column('vehicle_id', 'ID vehículo', 'string', 'text', 'dimension'),
+        text_column('vehicle_name', 'Vehículo', 'category'),
+        number_column('trip_count', 'Viajes')
+      ],
+      rows
+    )
   end
 end
