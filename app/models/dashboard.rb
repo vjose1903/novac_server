@@ -264,6 +264,16 @@ class Dashboard
     'Cliente contado'
   end
 
+  def top_customer_invoice?(factura)
+    return true if factura.cliente_id.present?
+
+    factura.NoCliente_rnc.present? && factura.NoCliente_nombre.to_s.strip.downcase != 'cliente contado'
+  end
+
+  def top_customer_key(factura)
+    factura.cliente_id || "casual_#{factura.NoCliente_rnc.to_s.strip.downcase}"
+  end
+
   def vehicle_label(vehiculo)
     return 'Vehículo' if vehiculo.blank?
 
@@ -664,10 +674,10 @@ class Dashboard
   end
 
   def top_customers
-    grouped = sales_records.each_with_object({}) do |factura, memo|
-      key = factura.cliente_id || "casual_#{factura.NoCliente_nombre.presence || 'cliente_contado'}"
+    grouped = sales_records.select { |factura| top_customer_invoice?(factura) }.each_with_object({}) do |factura, memo|
+      key = top_customer_key(factura)
       memo[key] ||= {
-        customer_id: factura.cliente_id || 'casual',
+        customer_id: factura.cliente_id || factura.NoCliente_rnc,
         customer_name: customer_label(factura),
         sales_amount: 0,
         invoice_count: 0
