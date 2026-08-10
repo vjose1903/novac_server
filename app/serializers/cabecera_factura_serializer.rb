@@ -30,6 +30,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 	attribute :is_adelantada,                                  if: Proc.new { self.get_param('all') || self.get_param('is_adelantada')  }
 	attribute :is_nota,                                        if: Proc.new { self.get_param('all') || self.get_param('is_nota')  }
 	attribute :is_viaje,                                       if: Proc.new { self.get_param('all') || self.get_param('is_viaje')  }
+	attribute :is_external,                                    if: Proc.new { self.get_param('all') || self.get_param('is_external')  }
 	attribute :tiene_nota,                                     if: Proc.new { self.get_param('all') || self.get_param('tiene_nota')  }
 	attribute :aplicada_a,                                     if: Proc.new { self.get_param('all') || self.get_param('aplicada_a')  }
 	attribute :identificador,                                  if: Proc.new { self.get_param('all') || self.get_param('identificador')  }
