@@ -46,6 +46,11 @@ class Response
     @res[:total_paginas] = total_paginas
   end
 
+  def set_summary(summary, total_registros=nil)
+    @res[:summary] = summary
+    @res[:total_registros] = total_registros unless total_registros.nil?
+  end
+
   def add_msg(msg)
     @res[:msg].push(msg) if msg.length > 0
   end

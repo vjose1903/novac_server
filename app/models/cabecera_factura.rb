@@ -493,17 +493,24 @@ class CabeceraFactura < ApplicationRecord
   def self.get_viajes_by_completar(params, paginate_options, parametros_opcionales)
     res                  = Response.new(paginate_options)
 
-    palabra_a_buscar     = params[:palabra_a_buscar]
+    palabra_a_buscar     = params[:palabra_a_buscar].to_s
     where                = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day - 3.days}' AND '#{DateTime.now.end_of_day}') )"
     joins_               = 'inner join clientes on clientes.id = cabecera_facturas.cliente_id'
+    search_sql           = "lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower(?)"
+    search_value         = "%#{ActiveRecord::Base.sanitize_sql_like(palabra_a_buscar)}%"
 
     cabeceras    = CabeceraFactura
     .joins(joins_)
-    .where("#{where} AND lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower('%#{palabra_a_buscar}%') ")
+    .where(where)
+    .where(search_sql, search_value)
     .order('cabecera_facturas.id DESC').group('cabecera_facturas.id')
 
-    if cabeceras.length > 0
+    total_registros, summary = get_viajes_by_completar_summary(cabeceras)
+    res.set_summary(summary, total_registros)
+
+    if total_registros > 0
       res.set_data(cabeceras, {all: true, **parametros_opcionales}, CabeceraFactura.models_includes)
+      res.set_summary(summary, total_registros)
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? 'No existen facturas registradas.' : 'No existen facturas con las especificaciones introducidas')
@@ -511,6 +518,41 @@ class CabeceraFactura < ApplicationRecord
     end
 
     return res
+  end
+
+  def self.get_viajes_by_completar_summary(cabeceras)
+    relation = cabeceras.except(:select, :order, :group, :limit, :offset)
+    row = relation.select(
+      "COUNT(DISTINCT cabecera_facturas.id) AS total_registros",
+      "COUNT(DISTINCT cabecera_facturas.id) FILTER (WHERE cabecera_facturas.fecha_completada IS NOT NULL) AS viajes_completados_count",
+      "COUNT(DISTINCT cabecera_facturas.id) FILTER (WHERE cabecera_facturas.fecha_completada IS NULL AND EXISTS (SELECT 1 FROM detalle_recibos WHERE detalle_recibos.cabecera_factura_id = cabecera_facturas.id)) AS viajes_abonados_count",
+      "COUNT(DISTINCT cabecera_facturas.id) FILTER (WHERE cabecera_facturas.fecha_completada IS NULL AND NOT EXISTS (SELECT 1 FROM detalle_recibos WHERE detalle_recibos.cabecera_factura_id = cabecera_facturas.id)) AS viajes_pendientes_count",
+      "COUNT(DISTINCT cabecera_facturas.id) FILTER (WHERE cabecera_facturas.fecha_completada IS NULL) AS viajes_no_completados_count"
+    ).take
+
+    total_registros           = row.total_registros.to_i
+    completados_count         = row.viajes_completados_count.to_i
+    abonados_count            = row.viajes_abonados_count.to_i
+    pendientes_count          = row.viajes_pendientes_count.to_i
+    no_completados_count      = row.viajes_no_completados_count.to_i
+
+    summary = {
+      viajes_completados_count: completados_count,
+      viajes_abonados_count: abonados_count,
+      viajes_pendientes_count: pendientes_count,
+      viajes_no_completados_count: no_completados_count,
+      viajes_completados_percent: porcentaje_viajes(completados_count, total_registros),
+      viajes_abonados_percent: porcentaje_viajes(abonados_count, total_registros),
+      viajes_pendientes_percent: porcentaje_viajes(pendientes_count, total_registros)
+    }
+
+    [total_registros, summary]
+  end
+
+  def self.porcentaje_viajes(count, total_registros)
+    return 0 if total_registros.to_i == 0
+
+    ((count.to_f / total_registros.to_f) * 100).round(2)
   end
 
   # ===================================================================================================================================================
