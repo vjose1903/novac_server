@@ -17,6 +17,7 @@ module Reportes
 
         CabeceraFactura.joins(:cliente).where(query)
                        .where(clientes: { estado: true })
+                       .where(Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params))
                        .order('cabecera_facturas.fecha_equivalente ASC')
                        .includes([{ detalle_recibos: [:recibos_ingreso] }, { facturas_aplicadas: [:nota, :tipo_factura] }, :cliente]).each do |cabeza_factura|
           items_factura = []

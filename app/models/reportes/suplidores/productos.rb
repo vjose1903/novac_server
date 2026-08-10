@@ -18,6 +18,7 @@ module Reportes
                              .select('detalle_facturas.* ,cabecera_facturas.suplidor_id, cabecera_facturas.fecha_equivalente')
                              .joins(:cabecera_factura)
                              .where(cabecera_facturas: query_join)
+                             .where(Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params))
                              .order('detalle_facturas.id ASC')
                              .includes([{ cabecera_factura: [:suplidor] }])
 

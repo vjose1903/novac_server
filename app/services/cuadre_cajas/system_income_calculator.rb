@@ -144,6 +144,7 @@ module CuadreCajas
         .where(fecha_equivalente: closing_day_range)
         .where("LOWER(tipo) = 'venta'")
         .where("LOWER(condicion) = 'contado'")
+        .where(non_external_invoice_condition)
     end
 
     def credit_invoice_scope
@@ -152,6 +153,7 @@ module CuadreCajas
         .where(fecha_equivalente: closing_day_range)
         .where("LOWER(tipo) = 'venta'")
         .where("LOWER(condicion) = 'crédito'")
+        .where(non_external_invoice_condition)
     end
 
     def invoice_notes_adjustment
@@ -160,6 +162,7 @@ module CuadreCajas
         .where(cabecera_facturas: { fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'contado'")
+        .where(non_external_invoice_condition)
         .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
 
       scope.sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
@@ -171,6 +174,7 @@ module CuadreCajas
         .where(cabecera_facturas: { fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'contado'")
+        .where(non_external_invoice_condition)
         .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
 
       scope.group("cabecera_facturas.forma_pago")
@@ -182,8 +186,13 @@ module CuadreCajas
         .where(cabecera_facturas: { estado: true, fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'crédito'")
+        .where(non_external_invoice_condition)
         .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
         .sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
+    end
+
+    def non_external_invoice_condition
+      'COALESCE(cabecera_facturas.is_external, false) = false'
     end
 
     def invoice_criteria

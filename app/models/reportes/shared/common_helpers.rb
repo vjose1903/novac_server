@@ -86,7 +86,23 @@ module Reportes
         calcular_cantidades(articulos)
       end
 
+      def apply_external_invoice_filter(scope, params, table_name = 'cabecera_facturas')
+        scope.where(external_invoice_filter_sql(params, table_name))
+      end
+
+      def external_invoice_filter_sql(params, table_name = 'cabecera_facturas')
+        expected_value = external_invoice_param_enabled?(params) ? 'true' : 'false'
+        "COALESCE(#{table_name}.is_external, false) = #{expected_value}"
+      end
+
       private
+
+      def external_invoice_param_enabled?(params)
+        return false unless params.respond_to?(:key?)
+
+        raw_value = params.key?(:is_external) ? params[:is_external] : params['is_external']
+        ActiveRecord::Type::Boolean.new.cast(raw_value)
+      end
 
       def truncate_label(value, max_lengt)
         return value if max_lengt.to_i <= 0 || value.length <= max_lengt

@@ -20,6 +20,7 @@ module Reportes
         query['cabecera_facturas.tipo'] = 'venta'
         query['cabecera_facturas.is_nota'] = false
         query['cabecera_facturas.estado'] = true
+        external_invoice_where = Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params)
 
         TipoArticulo.all.each do |tipo_articulo|
           total_grupo = 0
@@ -35,7 +36,7 @@ module Reportes
           joins_ = "INNER JOIN cabecera_facturas ON cabecera_facturas.id = detalle_facturas.cabecera_factura_id
 					INNER JOIN articulos ON articulos.id = detalle_facturas.articulo_id"
 
-          detalles_agrupados = DetalleFactura.select(select_).joins(joins_).where(query).order('articulo_id ASC').group('detalle_facturas.articulo_id')
+          detalles_agrupados = DetalleFactura.select(select_).joins(joins_).where(query).where(external_invoice_where).order('articulo_id ASC').group('detalle_facturas.articulo_id')
                                             .includes([{ articulo: [:contenido_articulos, :tipo_articulo] }]).to_a
           articulo_ids = detalles_agrupados.map(&:articulo_id)
 
@@ -43,9 +44,11 @@ module Reportes
             {}
           else
             DetalleFacturaNota.joins('INNER JOIN facturas_aplicadas ON facturas_aplicadas.id = detalles_facturas_notas.factura_aplicada_id
-                                      INNER JOIN notas ON notas.id = facturas_aplicadas.nota_id')
+                                      INNER JOIN notas ON notas.id = facturas_aplicadas.nota_id
+                                      INNER JOIN cabecera_facturas ON cabecera_facturas.id = facturas_aplicadas.cabecera_factura_id')
                               .where(detalles_facturas_notas: { articulo_id: articulo_ids, tipo_factura_id: tipo_factura_nota_credito.id })
                               .where(notas: { fecha_equivalente: fecha_desde..fecha_hasta })
+                              .where(external_invoice_where)
                               .group('detalles_facturas_notas.articulo_id')
                               .pluck(
                                 'detalles_facturas_notas.articulo_id',

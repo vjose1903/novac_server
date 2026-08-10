@@ -18,6 +18,7 @@ module Reportes
         all_viajes_por_vehiculo = CabeceraFactura.joins(:movimientos_viaje)
                                                   .where(query)
                                                   .where(movimientos_viaje: { vehiculo_id: vehiculo_id })
+                                                  .where(Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params))
                                                   .distinct
                                                   .order('cabecera_facturas.fecha_equivalente DESC')
                                                   .includes([{ movimientos_viaje: [:vehiculo, :user] }, { detalle_facturas: [:articulo] }])

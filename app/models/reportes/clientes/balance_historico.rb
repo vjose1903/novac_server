@@ -26,7 +26,7 @@ module Reportes
         total_pagado = 0
         total_balance = 0
 
-        facturas = CabeceraFactura.joins(:cliente).where(query).where(clientes: { estado: true }).order('fecha_equivalente ASC').to_a
+        facturas = CabeceraFactura.joins(:cliente).where(query).where(clientes: { estado: true }).where(Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params)).order('fecha_equivalente ASC').to_a
         factura_ids = facturas.map(&:id)
 
         pagos_por_factura = if factura_ids.empty?

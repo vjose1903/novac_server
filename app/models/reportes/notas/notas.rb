@@ -31,6 +31,7 @@ module Reportes
                .joins('left join clientes on clientes.id = cabecera_facturas.cliente_id')
                .where(notas: query)
                .where(query_factura)
+               .where(Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params))
                .order('facturas_aplicadas.id DESC')
 
         temp.each do |factura_aplicada|

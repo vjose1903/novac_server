@@ -62,6 +62,7 @@ module Reportes
                  .where(query)
                  .where(where_formas)
                  .where(query_is_viaje)
+                 .where(Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params))
                  .group(group_by)
                  .order('cabecera_facturas.id ASC').each do |cf|
           total_devuelto += cf[:total_devuelto]

@@ -100,6 +100,7 @@ module Reportes
                                   .where(facturas_pagadas_where)
                                   .where(bucket_where_sql)
                                   .where(clientes: { estado: true })
+                                  .where(Reportes::Shared::CommonHelpers.external_invoice_filter_sql(params))
                                   .group(group_by)
                                   .order(order_by)
 
