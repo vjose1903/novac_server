@@ -459,10 +459,11 @@ class CabeceraFactura < ApplicationRecord
     where_ += "AND cabecera_facturas.is_adelantada = #{is_adelantada} "                                               if is_adelantada
     where_ += 'AND (detalle_facturas.retirado < detalle_facturas.cantidad_en_unidades and articulos.estado = true) '  if is_adelantada
     where_ += "AND cabecera_facturas.#{campo} = #{valor_where} "                                                      unless campo == FacturasParams.last_50 || campo == FacturasParams.todas
-    where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id}"                                            unless tipo_factura_id == "0"
+    where_ += "AND cabecera_facturas.tipo_factura_id = #{tipo_factura_id} "                                           unless tipo_factura_id == "0"
     where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params[:pagada].present? && pagada != "0"
     where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params[:estado].present? && estado != "0"
     where_ += "AND cabecera_facturas.serie = '#{serie}' "                                                             if serie != SerieFactura.all
+    where_ += "AND COALESCE(cabecera_facturas.is_external, false) = false "                                           if exclude_external_for_use?(params[:use_for] || params['use_for'])
 
     joins_ = 'inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id '
     joins_ += 'inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id ' if is_adelantada
@@ -487,6 +488,10 @@ class CabeceraFactura < ApplicationRecord
     end
 
     return res
+  end
+
+  def self.exclude_external_for_use?(use_for)
+    %w[nota_credito nota_debito].include?(use_for.to_s)
   end
 
   # ===================================================================================================================================================
