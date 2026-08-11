@@ -94,6 +94,21 @@ export class ParseDocument {
     return esFechaValida ? DateUtils.format({ date: this.document.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }) : DateUtils.format({ dateFormat: 'DD-MM-YYYY' });
   }
 
+  get fecha_ncf_modificado() {
+    const fecha_hora_firma = getProperty(this.factura, 'fecha_hora_firma');
+
+    if (hasValue(fecha_hora_firma)) {
+      const fecha_hora_firma_text = fecha_hora_firma.toString();
+      const fecha_firma = fecha_hora_firma_text.match(/\d{2}-\d{2}-\d{4}/)?.[0];
+
+      if (fecha_firma) return fecha_firma;
+
+      return DateUtils.format({ date: fecha_hora_firma, dateFormat: 'DD-MM-YYYY' });
+    }
+
+    return DateUtils.format({ date: this.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' });
+  }
+
   parse() {
     console.log(' ');
     console.log(' ');
@@ -352,7 +367,7 @@ export class ParseDocument {
       document_parsed.ECF.InformacionReferencia = {
         NCFModificado: this.factura.numero_comprobante,
         RNCOtroContribuyente: null,
-        FechaNCFModificado: DateUtils.format({ date: this.factura.fecha_equivalente, dateFormat: 'DD-MM-YYYY' }),
+        FechaNCFModificado: this.fecha_ncf_modificado,
         CodigoModificacion: codigo_modificacion,
       };
     }
