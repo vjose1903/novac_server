@@ -99,18 +99,25 @@ class Nota < ApplicationRecord
 
                     if data_response_dgii[:secuenciaUtilizada]
                       @increment_secuencia_comprobante = true
-                    else
+                    end
+
+                    unless @res_valid_dgii.status_valid
                       result_revert = nota.revert_movimientos_facturas
 
                       unless result_revert.status_valid
                         return result_revert
+                      end
+
+                      unless @increment_secuencia_comprobante
+                        res.add_msgs(@res_valid_dgii.get_msgs.to_a)
+                        res.set_status(HTTP_STATUS_CODE[:conflict])
                       end
                     end
                   else
                     @increment_secuencia_comprobante = true
                   end
 
-                  res_valid                 = Nota.update_secuencias(data_secuencias)
+                  res_valid                 = res.status_valid ? Nota.update_secuencias(data_secuencias) : res
 
                   if res_valid.status_valid
                     res.set_data(nota, {all: true})
@@ -184,10 +191,17 @@ class Nota < ApplicationRecord
     obj_response   = {:no_cliente_nombre => nil, :no_cliente_direccion => nil, :no_cliente_rnc => nil, :is_same_client => true, :all_facturas_active => true }
 
 
+    unless params[:facturas_aplicadas].present?
+      res.add_msg('Debe especificar las facturas a aplicar.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_data(obj_response)
+      return res
+    end
+
     for factura_aplicada in params[:facturas_aplicadas]
       cabecera     = CabeceraFactura.find_by_id(factura_aplicada[:cabecera_factura_id])
 
-      if cabecera.estado == false
+      if cabecera.nil? || cabecera.estado == false
         obj_response[:all_facturas_active]       = false
         break
       else
@@ -212,6 +226,11 @@ class Nota < ApplicationRecord
           end
 
         end
+
+        unless Nota.factura_permite_nota_electronica?(cabecera)
+          obj_response[:facturas_validas_para_dgii] = false
+          break
+        end
       end
     end
 
@@ -219,10 +238,21 @@ class Nota < ApplicationRecord
 
     res.add_msg('Todas las facturas deben de ser del mismo cliente.') unless obj_response[:is_same_client]
 
-    res.set_status(HTTP_STATUS_CODE[:conflict]) if !obj_response[:is_same_client] || !obj_response[:all_facturas_active]
+    res.add_msg('Solo se pueden realizar notas electrónicas a facturas con comprobante, fecha de emisión válida y, si son electrónicas, aceptadas por DGII.') unless obj_response[:facturas_validas_para_dgii] != false
+
+    res.set_status(HTTP_STATUS_CODE[:conflict]) if !obj_response[:is_same_client] || !obj_response[:all_facturas_active] || obj_response[:facturas_validas_para_dgii] == false
 
     res.set_data(obj_response)
     return res
+  end
+
+  def self.factura_permite_nota_electronica?(factura)
+    return true unless @is_electronica
+
+    return false unless factura.numero_comprobante.present? && factura.fecha_equivalente.present?
+    return true unless factura.serie == SerieFactura.electronica
+
+    factura.is_aceptada.to_s.downcase == 'aceptado'
   end
 
   def self.normalizar_documento_cliente_casual(documento)
