@@ -458,7 +458,9 @@ class Dashboard
         itbis_total,
         discount_total,
         returns_total,
-        invoice_count
+        accounts_receivable_total,
+        invoice_count,
+        overdue_invoice_count
       ]
     )
   end
