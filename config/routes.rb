@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   resources :acciones
   resources :detalles_facturas_notas
   resources :config_articulos
+  resources :configuracion_cuadres, only: [:show, :update]
 
 
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_08_05_090100) do
+ActiveRecord::Schema[7.0].define(version: 2026_08_17_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -255,6 +255,12 @@ ActiveRecord::Schema[7.0].define(version: 2026_08_05_090100) do
 
   create_table "config_articulos", force: :cascade do |t|
     t.float "porciento_ganancia"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "configuracion_cuadres", force: :cascade do |t|
+    t.jsonb "config", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

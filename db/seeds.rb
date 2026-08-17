@@ -360,6 +360,18 @@ G_CONFIG_ARTICULOS.each do |config|
 
 end
 
+configuracion_cuadre_backend = ConfiguracionCuadre.first
+
+if configuracion_cuadre_backend.nil?
+  configuracion_cuadre_backend = ConfiguracionCuadre.create(config: G_CONFIG_CUADRES)
+  puts " "
+  puts "------".cyan * 7
+  puts "CREANDO CONFIGURACION CUADRE"
+  puts "------".cyan * 7
+  puts " "
+  puts "ERROR- ConfiguracionCuadre: ".red + "#{configuracion_cuadre_backend.errors.to_json}" if !configuracion_cuadre_backend.errors.empty?
+end
+
 G_DIVISA_DEFAULT.each do |divisa|
   divisa_db = Divisa.find_by(nombre: divisa[:nombre], estado: true)
   if divisa_db.nil?
