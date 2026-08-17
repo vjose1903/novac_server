@@ -142,4 +142,4 @@ G_DIVISA_DEFAULT = [
   { nombre: 'Dolar Estadounidense', simbolo: 'US$', is_principal: false, estado: true, current_tasa: 56, predeterminado: true, imagenes: [{ file_name: 'dolar_estadounidense', base_64: G_IMG_DOLAR }] },
 ]
 
-G_CONFIG_CUADRES = { target_fondo: 0 }
+G_CONFIG_CUADRES = { target_fondo: 0, auto_apply_difference: false }

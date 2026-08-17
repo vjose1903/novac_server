@@ -171,4 +171,4 @@ G_DIVISA_DEFAULT = [
 ]
 
 
-G_CONFIG_CUADRES = { target_fondo: 12000 }
+G_CONFIG_CUADRES = { target_fondo: 12000, auto_apply_difference: true }
