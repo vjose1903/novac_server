@@ -447,6 +447,8 @@ class CabeceraFactura < ApplicationRecord
     pagada             = params[:pagada] != '0' ? params[:pagada].to_boolean : '0'
     estado             = params[:estado] != '0' ? params[:estado].to_boolean : '0'
     serie              = params[:serie] ? params[:serie] : SerieFactura.all
+    is_externa         = params[:is_externa].present? ? params[:is_externa].to_boolean : false
+    is_externa         = false if exclude_external_for_use?(params[:use_for] || params['use_for'])
 
 
     campo              = FacturasParams.get_campo_by_param(campoNum)
@@ -463,7 +465,7 @@ class CabeceraFactura < ApplicationRecord
     where_ += "AND cabecera_facturas.pagada = #{pagada} "                                                             if params[:pagada].present? && pagada != "0"
     where_ += "AND cabecera_facturas.estado = #{estado} "                                                             if params[:estado].present? && estado != "0"
     where_ += "AND cabecera_facturas.serie = '#{serie}' "                                                             if serie != SerieFactura.all
-    where_ += "AND COALESCE(cabecera_facturas.is_external, false) = false "                                           if exclude_external_for_use?(params[:use_for] || params['use_for'])
+    where_ += "AND COALESCE(cabecera_facturas.is_external, false) = #{is_externa} "
 
     joins_ = 'inner join tipo_facturas on cabecera_facturas.tipo_factura_id = tipo_facturas.id inner join users on cabecera_facturas.user_id = users.id '
     joins_ += 'inner join detalle_facturas on cabecera_facturas.id = detalle_facturas.cabecera_factura_id ' if is_adelantada
