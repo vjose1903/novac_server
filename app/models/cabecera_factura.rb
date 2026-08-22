@@ -14,6 +14,7 @@ class CabeceraFactura < ApplicationRecord
   has_many :movimientos_viaje, dependent: :destroy
 
   validates :tipo_factura,              presence: { :message => 'El tipo de la factura no puede estar vacio.' }
+  validate :fecha_equivalente_no_modificable_despues_dgii, on: :update
 
   # Callbacks
   after_create :generar_identificador
@@ -24,6 +25,13 @@ class CabeceraFactura < ApplicationRecord
 
   def generar_identificador
     update_column(:identificador, make_identificador)
+  end
+
+  def fecha_equivalente_no_modificable_despues_dgii
+    return unless fecha_equivalente_changed?
+    return unless serie == SerieFactura.electronica && is_aceptada.to_s.downcase == 'aceptado'
+
+    errors.add(:fecha_equivalente, 'no puede modificarse en una factura electrónica aceptada por DGII.')
   end
 
   public
