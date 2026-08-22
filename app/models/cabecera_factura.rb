@@ -424,7 +424,7 @@ class CabeceraFactura < ApplicationRecord
   # ===================================================================================================================================================
   def self.calculateNextDay
     next_date = CalendarEvent.next_working_day_after(Date.current)
-    DateTime.parse("#{next_date.strftime('%Y-%m-%d')}T08:30:00").in_time_zone
+    Time.find_zone(CalendarEvent::TIMEZONE_DEFAULT).local(next_date.year, next_date.month, next_date.day, 8, 1)
   end
 
   # ===================================================================================================================================================
