@@ -24,6 +24,9 @@ services:
       VIRTUAL_HOST: "localhost,novac.loca.lt,10.0.0.252"
       API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-dev:9091"
       DGII_CERTIFICATION_DATE: "2025-05-15"
+      PORT: "3000"
+      RAILS_MAX_THREADS: "5"
+      WEB_CONCURRENCY: "0"
     expose:
       - "3000"
     depends_on:

@@ -29,13 +29,16 @@ services:
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
       API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-prod:9091"
       DGII_CERTIFICATION_DATE: "2025-05-15"
+      PORT: "3000"
+      RAILS_MAX_THREADS: "5"
+      WEB_CONCURRENCY: "2"
     expose:
       - "3000"
     depends_on:
       - db-prod
     restart: always
     command: >
-      sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
+      sh -c "./wait-for-it.sh db-prod:5432 -- sh ./run_server.sh"
 
   dgii-microservice-prod:
     build:
