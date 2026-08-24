@@ -56,6 +56,7 @@ Rails.application.routes.draw do
     collection do
       post "custom"            => "cuadre_cajas#create"
       get "check_today_cuadre" => "cuadre_cajas#checkTodayCuadre"
+      get "check_datetime_cuadre" => "cuadre_cajas#checkDateTimeCuadre"
       get "system_income_preview" => "cuadre_cajas#systemIncomePreview"
       post "prepare"           => "cuadre_cajas#prepare"
     end

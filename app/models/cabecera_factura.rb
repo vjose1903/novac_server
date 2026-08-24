@@ -93,6 +93,9 @@ class CabeceraFactura < ApplicationRecord
   
 
   def self.validar_y_crear_factura(params, is_save)
+    res_cuadre = validar_fecha_equivalente_sin_cuadre(params)
+    return res_cuadre unless res_cuadre.status_valid
+
     res_secuencias = CabeceraFactura.find_secuencias(params)
     return set_error_response(Response.new, res_secuencias.get_msgs.to_a) unless res_secuencias.status_valid
 
@@ -133,6 +136,21 @@ class CabeceraFactura < ApplicationRecord
     return Response.new unless requiere_validacion_credito?(params)
 
     Cliente.calculate_balance_cliente(params[:cliente_id], params[:total_factura], '+')
+  end
+
+  private_class_method def self.validar_fecha_equivalente_sin_cuadre(params)
+    res = Response.new
+    raw_datetime = params[:fecha_equivalente]
+    return res unless raw_datetime.present?
+
+    document_datetime = Time.zone.parse(raw_datetime.to_s)
+    return set_error_response(res, 'La fecha equivalente enviada no es valida.') unless document_datetime
+
+    return res unless CuadreCaja.blocking_for_documents_on(document_datetime.to_date).exists?
+
+    set_error_response(res, 'No se puede crear la factura en esta fecha/hora porque ya existe un cuadre realizado para esa fecha.')
+  rescue ArgumentError
+    set_error_response(res, 'La fecha equivalente enviada no es valida.')
   end
 
   private_class_method def self.requiere_validacion_credito?(params)

@@ -9,7 +9,7 @@ class RecibosIngresosController < ApplicationController
 
   # GET /recibos_ingresos/1
   def show
-    return Response.new(params, nil, @recibos_ingreso, nil, get_parametros_opcionales).send_response self
+    return Response.new(params, nil, @recibos_ingreso, nil, get_parametros_opcionales.merge({ all: true }), RecibosIngreso.models_includes).send_response self
   end
 
 

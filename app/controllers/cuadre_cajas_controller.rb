@@ -67,6 +67,11 @@ class CuadreCajasController < ApplicationController
     return Response.new(params, nil, { existe_cuadre_hoy: CuadreCaja.blocks_documents_today? } , nil, {all: true}).send_response self
   end
 
+  def checkDateTimeCuadre
+    resultado = CuadreCaja.check_document_datetime(params)
+    resultado.send_response self
+  end
+
   # DELETE /cuadre_cajas/1
   def destroy
     if @cuadre_caja.approved?

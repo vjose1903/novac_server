@@ -43,12 +43,44 @@ class CuadreCaja < ApplicationRecord
   end
 
   def self.blocking_for_documents_on(date=Date.current)
-    where(fecha_equivalente: date.to_date.beginning_of_day..date.to_date.end_of_day)
-      .where.not(status: NON_BLOCKING_STATUSES)
+    relation = where(fecha_equivalente: date.to_date.beginning_of_day..date.to_date.end_of_day)
+    relation.where(status: nil).or(relation.where.not(status: NON_BLOCKING_STATUSES))
   end
 
   def self.blocks_documents_today?
     blocking_for_documents_on(Date.current).exists?
+  end
+
+  def self.check_document_datetime(params)
+    res = Response.new(params)
+    raw_datetime = params[:fecha_hora] || params[:fecha_equivalente] || params[:datetime] || params[:date_time]
+
+    unless raw_datetime.present?
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.add_msg('Debe enviar la fecha y hora a validar')
+      return res
+    end
+
+    document_datetime = Time.zone.parse(raw_datetime.to_s)
+    raise ArgumentError unless document_datetime
+
+    closing = blocking_for_documents_on(document_datetime.to_date).order(closing_date: :desc, id: :desc).first
+    blocked = closing.present?
+
+    res.set_data({
+      blocked: blocked,
+      bloqueado: blocked,
+      exists_cuadre: blocked,
+      existe_cuadre: blocked,
+      fecha_hora: document_datetime,
+      fecha: document_datetime.to_date,
+      cuadre: closing ? closing.document_blocking_payload : nil
+    })
+    res
+  rescue ArgumentError
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res.add_msg('La fecha y hora enviada no es valida')
+    res
   end
 
   def self.apply_list_search(relation, search)
@@ -251,6 +283,23 @@ class CuadreCaja < ApplicationRecord
       difference_type: difference_type,
       balanced: considered_balanced,
       reconciliation_tolerance: amount_string(reconciliation_tolerance)
+    }
+  end
+
+  def document_blocking_payload
+    {
+      id: id,
+      closing_date: closing_date || fecha_equivalente&.to_date,
+      fecha: closing_date || fecha_equivalente&.to_date,
+      status: status.presence || 'approved',
+      estado: status.presence || 'approved',
+      closing_version: closing_version.presence || 'legacy',
+      flow_type: detailed? ? 'new' : 'legacy',
+      is_new_flow: detailed?,
+      numero_reporte: numero_reporte,
+      created_at: created_at,
+      prepared_by: prepared_by ? serialize_parser(prepared_by, { id: true, nombre: true, apellido: true, nombre_completo: true }) : nil,
+      usuario: (prepared_by || user)&.nombre_completo
     }
   end
 

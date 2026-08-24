@@ -1,5 +1,10 @@
 class FacturaAplicadaSerializer < ActiveModel::Serializer
 	attribute :id,                            if: Proc.new { self.get_param('all') || self.get_param('id')  }
+
+	def id
+		self.get_param('usar_id_nota') ? object.nota_id : object.id
+	end
+
 	attribute :total,                         if: Proc.new { self.get_param('all') || self.get_param('total')  }
 	attribute :cabecera_factura,              if: Proc.new { self.get_param('all') || self.get_param('cabecera_factura')  }
 	attribute :detalles_facturas_notas,       if: Proc.new { self.get_param('all') || self.get_param('detalles_facturas_notas')  }
