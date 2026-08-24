@@ -17,7 +17,7 @@
     "big.js": "7.0.1",
     "dgii-ecf": "^1.8.5",
     "express": "^5.2.1",
-    "googleapis": "^148.0.0",
+    "googleapis": "^176.0.0",
     "http": "^0.0.1-security",
     "mime-types": "^3.0.2",
     "node-forge": "^1.4.0",

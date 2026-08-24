@@ -15,7 +15,11 @@ class GoogleDriveUtils {
 
 	async authorize() {
 		if (!this.authorizationClient) {
-			this.authorizationClient = new google.auth.JWT( apikeys.client_email, null, apikeys.private_key, SCOPE );
+			this.authorizationClient = new google.auth.JWT({
+				email: apikeys.client_email,
+				key: apikeys.private_key,
+				scopes: SCOPE,
+			});
 
 			await this.authorizationClient.authorize();
 			this.drive = google.drive({ version: "v3", auth: this.authorizationClient });
