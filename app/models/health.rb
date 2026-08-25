@@ -55,7 +55,7 @@ class Health
   private_class_method :database_check
 
   def self.migrations_check
-    migration_context = ActiveRecord::Base.connection.migration_context
+    migration_context = ActiveRecord::Base.connection_pool.migration_context
     pending_migrations = migration_context.pending_migration_versions
 
     if pending_migrations.empty?

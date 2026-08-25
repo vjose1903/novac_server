@@ -41,9 +41,9 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
 
-  # Use the lowest log level to ensure availability of diagnostic information
-  # when problems arise.
-  config.log_level = :debug
+  # Keep production quiet by default. `novac-logs.sh` enables full request/query
+  # logging temporarily with a heartbeat flag inside the running container.
+  config.log_level = :warn
 
   # Prepend all log lines with the following tags.
   config.log_tags = [:request_id]
@@ -75,11 +75,32 @@ Rails.application.configure do
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
 
-  if ENV["RAILS_LOG_TO_STDOUT"].present?
-    logger = ActiveSupport::Logger.new(STDOUT)
-    logger.formatter = config.log_formatter
-    config.logger = ActiveSupport::TaggedLogging.new(logger)
+  full_log_flag = Rails.root.join("tmp", "novac-full-logs.enabled")
+  full_log_timeout = 30
+  logger_class = Class.new(ActiveSupport::Logger) do
+    def initialize(logdev, full_log_flag, full_log_timeout)
+      super(logdev)
+      @full_log_flag = full_log_flag.to_s
+      @full_log_timeout = full_log_timeout
+      self.level = Logger::WARN
+    end
+
+    def level
+      full_logs_enabled? ? Logger::DEBUG : super
+    end
+
+    private
+
+    def full_logs_enabled?
+      File.exist?(@full_log_flag) && File.mtime(@full_log_flag) > Time.now - @full_log_timeout
+    rescue
+      false
+    end
   end
+
+  logger = logger_class.new(Rails.root.join("log", "#{Rails.env}.log"), full_log_flag, full_log_timeout)
+  logger.formatter = config.log_formatter
+  config.logger = ActiveSupport::TaggedLogging.new(logger)
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
