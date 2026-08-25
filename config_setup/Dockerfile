@@ -1,13 +1,12 @@
-FROM ruby:3.0.4
+FROM ruby:3.3.12
 
 ARG NODE_MAJOR=20
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends curl ca-certificates gnupg && \
     curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - && \
     apt-get update -qq && \
-    apt-get install -y --no-install-recommends build-essential apt-utils postgresql-client git yarn tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron nodejs python3 python3-pip && \
+    apt-get install -y --no-install-recommends build-essential apt-utils postgresql-client git tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron nodejs python3 python3-holidays && \
     rm -rf /var/lib/apt/lists/*
-RUN python3 -m pip install --no-cache-dir holidays
 
 RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
