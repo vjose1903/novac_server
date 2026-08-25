@@ -1,4 +1,4 @@
-FROM node:20.19.2-alpine AS build
+FROM node:24.19.0-alpine AS build
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY src/ ./src/
 # Compilar el proyecto
 RUN npm run build
 
-FROM node:20.19.2-alpine
+FROM node:24.19.0-alpine
 
 WORKDIR /app
 
@@ -30,4 +30,4 @@ RUN npm ci --omit=dev
 EXPOSE 9091
 
 # Comando para iniciar el servicio
-CMD ["node", "dist/server.js"] 
+CMD ["node", "dist/server.js"]
