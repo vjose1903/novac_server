@@ -257,7 +257,7 @@ module ArticuloFiltering
       return if combo_ids.empty?
 
       Thread.current[:articulos_cache] ||= {}
-      Articulo.where(id: combo_ids).preload(models_includes).each do |articulo|
+      Articulo.where(id: combo_ids).preload(:tipo_articulo, :contenido_articulos).each do |articulo|
         Thread.current[:articulos_cache][articulo.id] = articulo
       end
     end

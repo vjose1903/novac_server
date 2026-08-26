@@ -45,11 +45,11 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def contenido_articulos
-    serialize_content(content_historico('contenidos'))
+    serialize_contenido_articulos(content_historico('contenidos'))
   end
 
   def formulas_productos_terminados
-    serialize_content(content_historico('formulas'))
+    serialize_formulas_productos_terminados(content_historico('formulas'))
   end
 
   def descripcion
@@ -74,7 +74,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def tipo_articulo
-    object.tipo_articulo
+    serializable_attributes(object.tipo_articulo)
   end
 
   def content_historico(tipo)
@@ -101,9 +101,73 @@ class ArticuloSerializer < ActiveModel::Serializer
     content || []
   end
 
-  def serialize_content(content)
+  def serialize_contenido_articulos(content)
     return [] if content.empty?
 
-    serialize_parser(content, { all: true })
+    content.map do |item|
+      {
+        id: read_articulo_value(item, :id),
+        articulo_id: read_articulo_value(item, :articulo_id),
+        referencia: read_articulo_value(item, :referencia),
+        costo: read_articulo_value(item, :costo),
+        precio: read_articulo_value(item, :precio),
+        cantidad: read_articulo_value(item, :cantidad),
+        medida: read_articulo_value(item, :medida),
+        condicion: read_articulo_value(item, :condicion),
+        calcular_itbis: read_articulo_value(item, :calcular_itbis) || false
+      }
+    end
+  end
+
+  def serialize_formulas_productos_terminados(formulas)
+    return [] if formulas.empty?
+
+    formulas.map do |formula|
+      articulo_combo = articulo_combo_object(formula)
+
+      {
+        id: read_articulo_value(formula, :id),
+        articulo_id: read_articulo_value(formula, :articulo_id),
+        cantidad: read_articulo_value(formula, :cantidad),
+        costo: read_articulo_value(formula, :costo),
+        precio: read_articulo_value(formula, :precio),
+        medida: read_articulo_value(formula, :medida),
+        articulo_combo: read_articulo_value(formula, :articulo_combo),
+        nombre: articulo_combo&.nombre,
+        existencia: articulo_combo ? Articulo.cantidades_calculadas(articulo_combo) : {},
+        contenido: articulo_combo ? Articulo.contenidos_calculados(articulo_combo) : {}
+      }
+    end
+  end
+
+  def articulo_combo_object(formula)
+    Thread.current[:articulos_cache] ||= {}
+    combo_id = read_articulo_value(formula, :articulo_combo)
+    return nil if combo_id.nil?
+
+    return Thread.current[:articulos_cache][combo_id] if Thread.current[:articulos_cache].key?(combo_id)
+
+    articulo_combo = if formula.respond_to?(:association) && formula.association(:articulo_combo_articulo).loaded?
+      formula.articulo_combo_articulo
+    elsif formula.respond_to?(:articulo_combo_articulo)
+      formula.articulo_combo_articulo
+    end
+
+    Thread.current[:articulos_cache][combo_id] = articulo_combo
+  end
+
+  def serializable_attributes(record)
+    return nil unless record
+    return record.attributes if record.respond_to?(:attributes)
+
+    record
+  end
+
+  def read_articulo_value(record, key)
+    return record[key.to_s] if record.respond_to?(:key?) && record.key?(key.to_s)
+    return record[key] if record.respond_to?(:key?) && record.key?(key)
+    return record.public_send(key) if record.respond_to?(key)
+
+    nil
   end
 end
