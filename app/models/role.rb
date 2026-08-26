@@ -12,7 +12,7 @@ class Role < ApplicationRecord
 
 
   def self.models_includes
-    includes = [:roles_permisos_acciones, {permisos_acciones: [:permiso, :accion]}, :acciones]
+    includes = [{permisos_acciones: [:permiso, :accion]}]
     return includes
   end
 
@@ -28,13 +28,11 @@ class Role < ApplicationRecord
 
     role.valid?
 
-    params[:roles_permisos_acciones]  = []
+    permiso_accion_ids = params[:permisos_acciones].to_a
+    roles_permisos_acciones_existentes = role.id ? RolPermisoAccion.where(role_id: role.id, permiso_accion_id: permiso_accion_ids).index_by(&:permiso_accion_id) : {}
 
-    params[:permisos_acciones].each do | item |
-      rol_permiso_accion_created     = RolPermisoAccion.find_by({'role_id': role.id, 'permiso_accion_id': item})
-      role_permiso_accion_en_turno   = role.id  && !rol_permiso_accion_created.nil? ? rol_permiso_accion_created : {'role_id': nil, 'permiso_accion_id': item}
-
-      params[:roles_permisos_acciones].push(role_permiso_accion_en_turno)
+    params[:roles_permisos_acciones] = permiso_accion_ids.map do |item|
+      roles_permisos_acciones_existentes[item.to_i] || {'role_id': nil, 'permiso_accion_id': item}
     end
 
 
@@ -58,25 +56,34 @@ class Role < ApplicationRecord
     return res
   end
 
+  def self.serialized_response(roles, params, include_permisos_acciones)
+    paginate_class = Paginator.new(params)
+    paginate_class.paginate_data(roles, Role.models_includes)
+
+    res = {status: HTTP_STATUS_CODE[:ok], data: RoleSerializer.collection_to_hash(paginate_class.get_data, include_permisos_acciones: include_permisos_acciones), msg: []}
+    if paginate_class.is_paginated
+      res[:total_registros] = paginate_class.get_total_registros
+      res[:total_paginas] = paginate_class.get_total_paginas
+    end
+    res
+  end
+
   # =========================================================================================================================================================
 
   def self.filtrarRole(arg, params)
-    res = Response.new(params)
-
+    arg = ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)
     roles = Role
-    .where("lower(roles.nombre || ' ' || roles.descripcion) like lower('%#{arg}%')  AND roles.estado = true")
-    .order('roles.id ASC')
+      .where(estado: true)
+      .where("LOWER(COALESCE(roles.nombre, '') || ' ' || COALESCE(roles.descripcion, '')) LIKE LOWER(?)", "%#{arg}%")
+      .order('roles.id ASC')
 
-    if roles.length > 0
-      res.set_data(roles, {permisos_acciones: true, all:true}, Role.models_includes)
+    if roles.exists?
+      return Role.serialized_response(roles, params, true)
     else
-      res.set_data([])
       cantidad_registros = Role.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? 'No existen roles registrados.' : 'No existen roles con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      msg = cantidad_registros == 0 ? 'No existen roles registrados.' : 'No existen roles con las especificaciones introducidas'
+      return {status: HTTP_STATUS_CODE[:conflict], data: [], msg: [msg]}
     end
-
-    return res
   end
 
 

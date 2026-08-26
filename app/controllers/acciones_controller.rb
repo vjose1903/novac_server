@@ -2,7 +2,8 @@ class AccionesController < ApplicationController
 	before_action :set_permiso, only: [:show]
 	# GET /accion
 	def index
-		return Response.new(params, nil, Accion.all, nil).send_response self
+		resultado = {data: Accion.order('acciones.id ASC').as_json, msg: []}
+		render body: resultado.to_json, status: HTTP_STATUS_CODE[:ok], content_type: 'application/json'
 	end
 
 	# GET /accion/1

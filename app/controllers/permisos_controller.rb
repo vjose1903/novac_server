@@ -2,7 +2,9 @@ class PermisosController < ApplicationController
 	before_action :set_permiso, only: [:show]
 	# GET /permiso
 	def index
-		return Response.new(params, nil, Permiso.get_all, nil, get_parametros_opcionales).send_response self
+		opciones = get_parametros_opcionales
+		resultado = {data: PermisoSerializer.collection_to_hash(Permiso.get_all, include_acciones: opciones[:acciones], include_permisos_acciones: opciones[:permisos_acciones]), msg: []}
+		render body: resultado.to_json, status: HTTP_STATUS_CODE[:ok], content_type: 'application/json'
 	end
 
 	# GET /permiso/1

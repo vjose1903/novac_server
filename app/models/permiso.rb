@@ -3,18 +3,18 @@ class Permiso < ApplicationRecord
 	has_many :acciones, through: :permisos_acciones
 
 	def self.models_includes
-		includes = [{permisos_acciones: [:permiso, :accion]}, :acciones]
+		includes = [{permisos_acciones: [:accion]}]
     return includes
 	end
 
 	def self.get_all
-		Permiso.all.where({mostrar_front: true}).includes(Permiso.models_includes)
+		Permiso.where({mostrar_front: true}).order('permisos.id ASC').includes(Permiso.models_includes)
 	end
 
 	def self.parse_permisos_front
 		res          = Response.new
 		obj_permisos = {}
-		Permiso.all.each do | permiso |
+		Permiso.includes(:acciones).each do | permiso |
 			obj_permisos["#{permiso.descripcion}"]  = {}
 
 			permiso.acciones.each do | accion |
