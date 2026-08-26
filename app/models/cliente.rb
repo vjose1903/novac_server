@@ -3,6 +3,7 @@ class Cliente < ApplicationRecord
 
   belongs_to :imagen,    optional: true
   belongs_to :municipio, optional: true,                  class_name: 'Municipio'
+  belongs_to :vendedor,  optional: true,                  class_name: 'User'
 
   accepts_nested_attributes_for :imagen
 
@@ -26,7 +27,7 @@ class Cliente < ApplicationRecord
   end
 
   def self.models_includes
-    includes = [:documentos_de_identidad, :municipio, :provincia]
+    includes = [:documentos_de_identidad, :municipio, :provincia, :vendedor]
     return includes
   end
 

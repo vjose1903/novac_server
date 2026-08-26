@@ -108,6 +108,26 @@ class Array
   end
 end
 
+class ActiveRecord::Relation
+  def my_paginate(page, per_page)
+    page = page.to_i
+    per_page = per_page.to_i
+
+    page = 1 if page <= 0
+    per_page = 1 if per_page <= 0
+
+    total_registros = unscope(:order).limit(nil).offset(nil).reselect(klass.arel_table[klass.primary_key]).distinct.count
+    total_registros = total_registros.values.sum if total_registros.is_a?(Hash)
+    total_paginas = (total_registros.to_f / per_page.to_f).ceil
+
+    {
+      "data" => offset((page - 1) * per_page).limit(per_page),
+      "total_registros" => total_registros,
+      "total_paginas" => total_paginas
+    }
+  end
+end
+
 # ---------------------------------------------------------------------------------------------------------
 def hora_12(fecha)
   hora =("%02d" % (((DateTime.parse(fecha).hour + 11) % 12) + 1))

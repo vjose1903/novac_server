@@ -3,7 +3,7 @@ class ArticulosController < ApplicationController
 
   # GET /articulos
   def index
-    return Response.new(params, nil, Articulo.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
+    return Response.new(params, nil, Articulo.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales, Articulo.models_includes_by_mode(params["mode"])).send_response self
   end
 
   # GET /articulos/1

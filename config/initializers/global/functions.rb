@@ -81,7 +81,7 @@ class Paginator
   def set_pagination_options(params)
     @paginate_options["page"]     = params['page']       if params && !params['page'].nil?
     @paginate_options["per_page"] = params['per_page']   if params && !params['per_page'].nil?
-    @paginate_options["paginado"] = params['paginado']   if params && !params['paginado'].nil?
+    @paginate_options["paginado"] = params['paginado'].to_s.to_boolean if params && !params['paginado'].nil?
   end
 
 
@@ -128,8 +128,7 @@ class Paginator
           ActiveRecord::Base.connection.exec_query(sql).rows[0][0].to_i
         else
           # Sin GROUP BY: contar IDs distintos para evitar duplicados por joins/includes
-          pk = base_relation.klass.primary_key
-          base_relation.reselect(nil).distinct.count(pk)
+          base_relation.reselect(base_relation.klass.arel_table[base_relation.klass.primary_key]).distinct.count
         end
       rescue
         count_fallback = items.count

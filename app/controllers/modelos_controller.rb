@@ -7,12 +7,12 @@ class ModelosController < ApplicationController
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
-    @modelos = Modelo.all
+    @modelos = Modelo.includes(:marca)
 
     res = []
 
     if paginado
-      res = @modelos.to_a.my_paginate(page, per_page)
+      res = @modelos.my_paginate(page, per_page)
     else
       res = @modelos
     end
@@ -41,12 +41,10 @@ class ModelosController < ApplicationController
 
     modelos = Modelo.filtrarModelo(arg)
 
-    modelos_ = Modelo.parsearModelosFiltro(modelos)
-
     res = []
 
     if paginado
-      res = modelos.to_a.my_paginate(page, per_page)
+      res = modelos.my_paginate(page, per_page)
     else
       res = modelos
     end

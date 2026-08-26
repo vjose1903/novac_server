@@ -20,7 +20,7 @@ class MarcasController < ApplicationController
     res = []
 
     if paginado
-      res = marcas.to_a.my_paginate(page, per_page)
+      res = marcas.my_paginate(page, per_page)
     else
       res = marcas
     end

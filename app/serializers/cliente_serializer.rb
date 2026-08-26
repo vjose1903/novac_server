@@ -22,8 +22,15 @@ class ClienteSerializer < ActiveModel::Serializer
 
 
   def vendedor
-    vendedor = User.find_by_id(object.vendedor_id)
-    serialize_parser(vendedor, {nombre: true, apellido: true, vendedor_id: true })
+    vendedor = object.vendedor
+    return nil unless vendedor
+
+    {
+      nombre: vendedor.nombre.capitalize,
+      apellido: vendedor.apellido.capitalize,
+      vendedor_id: vendedor.id,
+      nombre_completo: vendedor.nombre_completo
+    }
   end
 
   def nombre_completo
@@ -31,8 +38,14 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def documentos_de_identidad
-    optional_params = parse_serialize_optional_params(self.get_param('documentos_de_identidad'), { all: false, id: true,  descripcion: true, documento: true, principal: true  })
-    serialize_parser(object.documentos_de_identidad, optional_params)
+    object.documentos_de_identidad.map do |documento|
+      select_cliente_fields({
+        id: documento.id,
+        descripcion: documento.descripcion,
+        documento: documento.documento,
+        principal: documento.principal
+      }, self.get_param('documentos_de_identidad'), { id: true, descripcion: true, documento: true, principal: true })
+    end
   end
 
   def provincia_id
@@ -40,16 +53,46 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def provincia
-    optional_params = parse_serialize_optional_params(self.get_param('provincia'), { all: false, id: true, nombre: true, codigo: true })
-    serialize_parser(object.provincia, optional_params)
+    provincia = object.provincia
+    return nil unless provincia
+
+    select_cliente_fields({
+      id: provincia.id,
+      nombre: provincia.nombre,
+      codigo: provincia.codigo
+    }, self.get_param('provincia'), { id: true, nombre: true, codigo: true })
   end
 
   def municipio
-    optional_params = parse_serialize_optional_params(self.get_param('municipio'), { all: false, id: true, nombre: true, codigo: true })
-    serialize_parser(object.municipio, optional_params)
+    municipio = object.municipio
+    return nil unless municipio
+
+    select_cliente_fields({
+      id: municipio.id,
+      nombre: municipio.nombre,
+      codigo: municipio.codigo
+    }, self.get_param('municipio'), { id: true, nombre: true, codigo: true })
   end
 
   def get_param(col)
     return @instance_options[:"#{col}"]
+  end
+
+  private
+
+  def select_cliente_fields(data, param, default_params)
+    keys = serialized_keys(param, default_params)
+    data.slice(*keys)
+  end
+
+  def serialized_keys(param, default_params)
+    return default_params.keys if self.get_param('all') || param == true || param.nil?
+    return [] if param == false
+    return default_params.keys unless param.respond_to?(:to_h)
+
+    params = default_params.merge(param.to_h.transform_keys(&:to_sym))
+    params.each_with_object([]) do |(key, value), fields|
+      fields << key if value.to_s.to_boolean
+    end
   end
 end

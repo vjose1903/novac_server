@@ -64,7 +64,7 @@ class Health
       {
         status: "down",
         pending_migrations: pending_migrations.size,
-        versions: pending_migrations.map { |migration| migration.version.to_s }
+        versions: pending_migrations.map(&:to_s)
       }
     end
   rescue => error
