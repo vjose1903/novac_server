@@ -65,13 +65,14 @@ class Vehiculo < ApplicationRecord
 
   def self.filtrarVehiculo(arg, params, parametros_opcionales)
     res = Response.new(params)
+    arg = ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)
 
     vehiculos = Vehiculo
     .joins("left join users on vehiculos.user_id = users.id")
-    .where("lower(coalesce(users.nombre, '') || ' ' || coalesce(users.apellido, '') || ' ' || vehiculos.marca || ' ' || vehiculos.modelo || ' ' || coalesce(vehiculos.nombre_no_empleado, '') || ' ' || coalesce(vehiculos.apellido_no_empleado, '')) like lower('%#{arg}%') AND vehiculos.estado = true")
-    .order("vehiculos.id DESC").to_a
+    .where("lower(coalesce(users.nombre, '') || ' ' || coalesce(users.apellido, '') || ' ' || vehiculos.marca || ' ' || vehiculos.modelo || ' ' || coalesce(vehiculos.nombre_no_empleado, '') || ' ' || coalesce(vehiculos.apellido_no_empleado, '')) like lower(?) AND vehiculos.estado = true", "%#{arg}%")
+    .order("vehiculos.id DESC")
 
-    if vehiculos.length > 0
+    if vehiculos.exists?
       res.set_data(vehiculos, {all: true, **parametros_opcionales}, Vehiculo.models_includes)
     else
       cantidad_registros = Vehiculo.where({estado: true}).count
