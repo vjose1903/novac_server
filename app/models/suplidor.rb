@@ -19,6 +19,25 @@ class Suplidor < ApplicationRecord
     [:documentos_de_identidad]
   end
 
+  def self.models_includes_for(params)
+    return [:documentos_de_identidad] if params[:all] || params[:documentos_de_identidad]
+
+    []
+  end
+
+  def self.serialized_response(suplidores, params, serializer_params, msg=nil)
+    paginate_class = Paginator.new(params)
+    includes = models_includes_for(serializer_params)
+    paginate_class.paginate_data(suplidores, includes.empty? ? nil : includes)
+
+    res = {status: HTTP_STATUS_CODE[:ok], data: SuplidorSerializer.collection_to_hash(paginate_class.get_data, serializer_params), msg: msg}
+    if paginate_class.is_paginated
+      res[:total_registros] = paginate_class.get_total_registros
+      res[:total_paginas] = paginate_class.get_total_paginas
+    end
+    res
+  end
+
   def self.filter_order_columns
     {
       "id" => "suplidores.id",
@@ -78,8 +97,6 @@ class Suplidor < ApplicationRecord
   # ============================================================================================================================================
 
   def self.filtrarSuplidores(arg, params)
-    res = Response.new(params)
-
     suplidores = Suplidor
       .where(estado: true)
       .joins("LEFT JOIN documentos_de_identidad ON suplidores.id = documentos_de_identidad.origen_id
@@ -100,14 +117,11 @@ class Suplidor < ApplicationRecord
 
     suplidores = suplidores.order(Arel.sql(parse_filter_order(params["order_by"])))
 
-    return res.tap { |response| response.set_data(suplidores, {all: true}, Suplidor.models_includes) } if suplidores.exists?
+    return serialized_response(suplidores, params, {all: true}, []) if suplidores.exists?
 
-    res.set_data([])
     cantidad_registros = Suplidor.where(estado: true).count
-    res.add_msg(cantidad_registros == 0 ? "No existen suplidores registrados." : "No existe suplidor con las especificaciones introducidas")
-    res.set_status(HTTP_STATUS_CODE[:conflict])
-
-    res
+    msg = cantidad_registros == 0 ? "No existen suplidores registrados." : "No existe suplidor con las especificaciones introducidas"
+    {status: HTTP_STATUS_CODE[:conflict], data: [], msg: [msg]}
   end
 
 end
