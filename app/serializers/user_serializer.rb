@@ -56,6 +56,57 @@ class UserSerializer < ActiveModel::Serializer
   def get_param(col)
     return @instance_options[:"#{col}"]
   end
-end
 
+  def self.to_hash(object, params={})
+    data = {}
+
+    data[:id] = object.id if show_field?(params, :id)
+    data[:nombre] = object.nombre.capitalize if show_field?(params, :nombre)
+    data[:usuario] = object.usuario if show_field?(params, :usuario)
+    data[:estado] = object.estado if show_field?(params, :estado)
+    data[:apellido] = object.apellido.capitalize if show_field?(params, :apellido)
+    data[:sexo] = object.sexo if show_field?(params, :sexo)
+    data[:telefono] = object.telefono if show_field?(params, :telefono)
+    data[:email] = object.email if show_field?(params, :email)
+    data[:fecha_nacimiento] = formatearFecha(object.fecha_nacimiento.to_s, TipoFecha.sin_hora) if show_field?(params, :fecha_nacimiento)
+    data[:role] = object.role if show_field?(params, :role)
+    data[:imagen] = object.imagen.as_json if show_field?(params, :imagen)
+    data[:sign_in_count] = object.sign_in_count if show_field?(params, :sign_in_count)
+    data[:documentos_de_identidad] = documentos_de_identidad_to_hash(object) if show_field?(params, :documentos_de_identidad)
+    data[:roles] = roles_to_hash(object) if params[:roles]
+    data[:permisos] = object.get_permisos.as_json(only: [:permiso_accion_id, :permiso]) if params[:permisos]
+    data[:nombre_completo] = object.nombre_completo
+
+    data
+  end
+
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
+
+  def self.show_field?(params, key)
+    params[:all] || params[key]
+  end
+
+  def self.documentos_de_identidad_to_hash(object)
+    object.documentos_de_identidad.map do |documento|
+      {
+        id: documento.id,
+        descripcion: documento.descripcion,
+        documento: documento.documento,
+        principal: documento.principal
+      }
+    end
+  end
+
+  def self.roles_to_hash(object)
+    object.roles.map do |role|
+      {
+        id: role.id,
+        descripcion: role.descripcion,
+        nombre: role.nombre
+      }
+    end
+  end
+end
 

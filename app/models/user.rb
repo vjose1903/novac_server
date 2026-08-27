@@ -35,6 +35,14 @@ class User < ApplicationRecord
     return includes
   end
 
+  def self.models_includes_for(params)
+    includes = []
+    includes << :documentos_de_identidad if params[:all] || params[:documentos_de_identidad]
+    includes << :roles if params[:roles]
+    includes << {roles_permisos_acciones: [:role, :permiso_accion]} if params[:permisos]
+    includes
+  end
+
   def nombre_completo
     nombre    = self.nombre.capitalize
     nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
@@ -62,6 +70,19 @@ class User < ApplicationRecord
       return User.all.where("#{parametros["filter_key"]} = #{parametros["filter_value"]} and estado = true")
     end
 
+  end
+
+  def self.serialized_response(users, params, serializer_params, msg=nil)
+    paginate_class = Paginator.new(params)
+    includes = User.models_includes_for(serializer_params)
+    paginate_class.paginate_data(users, includes.empty? ? nil : includes)
+
+    res = {status: HTTP_STATUS_CODE[:ok], data: UserSerializer.collection_to_hash(paginate_class.get_data, serializer_params), msg: msg}
+    if paginate_class.is_paginated
+      res[:total_registros] = paginate_class.get_total_registros
+      res[:total_paginas] = paginate_class.get_total_paginas
+    end
+    res
   end
   # =====================================================================================================================
 
@@ -119,23 +140,19 @@ class User < ApplicationRecord
 
   # =====================================================================================================================
   def self.filtrarUsusarios(arg, params)
-    res = Response.new(params)
+    arg = ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
-    .where("lower(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
+    .where("LOWER(COALESCE(users.nombre, '') || ' ' || COALESCE(users.apellido, '') || ' ' || COALESCE(users.email, '') || ' ' || COALESCE(documentos_de_identidad.documento, '')) LIKE LOWER(?) AND users.estado = true AND sexo != 'i'", "%#{arg}%")
     .order("users.id ASC")
 
-    if users.length > 0
-      res.set_data(users, {all: true, roles: true}, User.models_includes)
-      # res.set_data(users, {all: true, roles: true})
+    if users.exists?
+      return User.serialized_response(users, params, {all: true, roles: true}, [])
     else
-      res.set_data([])
       cantidad_registros = User.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      msg = cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas"
+      return {status: HTTP_STATUS_CODE[:conflict], data: [], msg: [msg]}
     end
-
-    return res
   end
 
     # =========================================================================================================================================================

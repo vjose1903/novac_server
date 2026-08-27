@@ -5,21 +5,25 @@ class UsersController < ApplicationController
   def index
     if params['filter_key'] && params['filter_value']
       users = User.handleFilter(params)
-      return Response.new(params, nil, users, nil, get_parametros_opcionales).send_response self
+      resultado = User.serialized_response(users, params, get_parametros_opcionales)
+      render_json_response(resultado)
     else
-      return Response.new(params, nil, User.all.where({ estado: true}).where("usuario NOT IN ('novac', 'adm01')").order('id DESC'), nil, get_parametros_opcionales).send_response self
+      users = User.where({ estado: true}).where("usuario NOT IN ('novac', 'adm01')").order('id DESC')
+      resultado = User.serialized_response(users, params, get_parametros_opcionales)
+      render_json_response(resultado)
     end
   end
 
 
   def show
-    return Response.new(params, nil, @cliente, nil, get_parametros_opcionales).send_response self
+    resultado = {status: HTTP_STATUS_CODE[:ok], data: UserSerializer.to_hash(@user, get_parametros_opcionales), msg: []}
+    render_json_response(resultado)
   end
 
   def getUsuariosFiltrados
     arg = params["arg"]
     resultado = User.filtrarUsusarios(arg, set_paginate_options(params))
-    resultado.send_response self
+    render_json_response(resultado)
   end
 
   def crear_actualizar_user
@@ -76,5 +80,9 @@ class UsersController < ApplicationController
     @user = respuesta.get_data
 
     return respuesta.send_response self if @user.nil?
+  end
+
+  def render_json_response(resultado)
+    render body: resultado.except(:status).to_json, status: resultado[:status], content_type: 'application/json'
   end
 end
