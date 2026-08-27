@@ -1,4 +1,6 @@
 class PermisoSerializer < ActiveModel::Serializer
+	extend FastSerializer
+
   attributes :id, :descripcion, :nombre
   attribute :acciones,                        if: Proc.new { self.get_param('acciones')}
   attribute :permisos_acciones,               if: Proc.new { self.get_param('permisos_acciones')}
@@ -28,11 +30,7 @@ class PermisoSerializer < ActiveModel::Serializer
 		end
 
 		def self.to_hash(object, include_acciones: false, include_permisos_acciones: false)
-			data = {
-				id: object.id,
-				descripcion: object.descripcion,
-				nombre: object.nombre
-			}
+			data = serialize_record(object, default_fields)
 
 			data[:acciones] = object.permisos_acciones.map { |permiso_accion| accion_to_hash(permiso_accion.accion) } if include_acciones
 			data[:permisos_acciones] = object.permisos_acciones.select { |permiso_accion| permiso_accion.accion&.mostrar_front }.map { |permiso_accion| permiso_accion_to_hash(permiso_accion, object) } if include_permisos_acciones
@@ -45,6 +43,10 @@ class PermisoSerializer < ActiveModel::Serializer
 
 		private
 
+		def self.default_fields
+			[:id, :descripcion, :nombre]
+		end
+
 		def self.permiso_accion_to_hash(permiso_accion, permiso)
 			{
 				id: permiso_accion.id,
@@ -56,22 +58,13 @@ class PermisoSerializer < ActiveModel::Serializer
 		def self.accion_to_hash(accion)
 			return nil unless accion
 
-			{
-				id: accion.id,
-				descripcion: accion.descripcion,
-				nombre: accion.nombre,
-				mostrar_front: accion.mostrar_front
-			}
+			serialize_record(accion, [:id, :descripcion, :nombre, :mostrar_front])
 		end
 
 		def self.permiso_to_hash(permiso)
 			return nil unless permiso
 
-			{
-				id: permiso.id,
-				descripcion: permiso.descripcion,
-				nombre: permiso.nombre
-			}
+			serialize_record(permiso, default_fields)
 		end
 
 		def serialize_permiso_accion(permiso_accion)

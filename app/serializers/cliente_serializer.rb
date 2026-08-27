@@ -1,4 +1,6 @@
 class ClienteSerializer < ActiveModel::Serializer
+  include FastSerializer
+
   attribute :id,                                 if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('id'))}
   attribute :imagen_id,                          if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('imagen_id'))}
   attribute :nombre,                             if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('nombre'))}
@@ -25,12 +27,12 @@ class ClienteSerializer < ActiveModel::Serializer
     vendedor = object.vendedor
     return nil unless vendedor
 
-    {
-      nombre: vendedor.nombre.capitalize,
-      apellido: vendedor.apellido.capitalize,
-      vendedor_id: vendedor.id,
-      nombre_completo: vendedor.nombre_completo
-    }
+    serialize_record(vendedor, [:nombre, :apellido, :vendedor_id, :nombre_completo], readers: {
+      nombre: ->(user) { user.nombre.capitalize },
+      apellido: ->(user) { user.apellido.capitalize },
+      vendedor_id: ->(user) { user.id },
+      nombre_completo: ->(user) { user.nombre_completo }
+    })
   end
 
   def nombre_completo
@@ -39,12 +41,7 @@ class ClienteSerializer < ActiveModel::Serializer
 
   def documentos_de_identidad
     object.documentos_de_identidad.map do |documento|
-      select_cliente_fields({
-        id: documento.id,
-        descripcion: documento.descripcion,
-        documento: documento.documento,
-        principal: documento.principal
-      }, self.get_param('documentos_de_identidad'), { id: true, descripcion: true, documento: true, principal: true })
+      serialize_selected_record(documento, [:id, :descripcion, :documento, :principal], param: self.get_param('documentos_de_identidad'), include_all: self.get_param('all'))
     end
   end
 
@@ -56,43 +53,18 @@ class ClienteSerializer < ActiveModel::Serializer
     provincia = object.provincia
     return nil unless provincia
 
-    select_cliente_fields({
-      id: provincia.id,
-      nombre: provincia.nombre,
-      codigo: provincia.codigo
-    }, self.get_param('provincia'), { id: true, nombre: true, codigo: true })
+    serialize_selected_record(provincia, [:id, :nombre, :codigo], param: self.get_param('provincia'), include_all: self.get_param('all'))
   end
 
   def municipio
     municipio = object.municipio
     return nil unless municipio
 
-    select_cliente_fields({
-      id: municipio.id,
-      nombre: municipio.nombre,
-      codigo: municipio.codigo
-    }, self.get_param('municipio'), { id: true, nombre: true, codigo: true })
+    serialize_selected_record(municipio, [:id, :nombre, :codigo], param: self.get_param('municipio'), include_all: self.get_param('all'))
   end
 
   def get_param(col)
     return @instance_options[:"#{col}"]
   end
 
-  private
-
-  def select_cliente_fields(data, param, default_params)
-    keys = serialized_keys(param, default_params)
-    data.slice(*keys)
-  end
-
-  def serialized_keys(param, default_params)
-    return default_params.keys if self.get_param('all') || param == true || param.nil?
-    return [] if param == false
-    return default_params.keys unless param.respond_to?(:to_h)
-
-    params = default_params.merge(param.to_h.transform_keys(&:to_sym))
-    params.each_with_object([]) do |(key, value), fields|
-      fields << key if value.to_s.to_boolean
-    end
-  end
 end

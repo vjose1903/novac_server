@@ -1,4 +1,5 @@
 class UserSerializer < ActiveModel::Serializer
+  extend FastSerializer
 
   attribute :id,                        if: Proc.new { self.get_param('id') || self.get_param('all') }
   attribute :nombre,                    if: Proc.new { self.get_param('nombre') || self.get_param('all') }
@@ -58,21 +59,14 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def self.to_hash(object, params={})
-    data = {}
-
-    data[:id] = object.id if show_field?(params, :id)
-    data[:nombre] = object.nombre.capitalize if show_field?(params, :nombre)
-    data[:usuario] = object.usuario if show_field?(params, :usuario)
-    data[:estado] = object.estado if show_field?(params, :estado)
-    data[:apellido] = object.apellido.capitalize if show_field?(params, :apellido)
-    data[:sexo] = object.sexo if show_field?(params, :sexo)
-    data[:telefono] = object.telefono if show_field?(params, :telefono)
-    data[:email] = object.email if show_field?(params, :email)
-    data[:fecha_nacimiento] = formatearFecha(object.fecha_nacimiento.to_s, TipoFecha.sin_hora) if show_field?(params, :fecha_nacimiento)
-    data[:role] = object.role if show_field?(params, :role)
-    data[:imagen] = object.imagen.as_json if show_field?(params, :imagen)
-    data[:sign_in_count] = object.sign_in_count if show_field?(params, :sign_in_count)
-    data[:documentos_de_identidad] = documentos_de_identidad_to_hash(object) if show_field?(params, :documentos_de_identidad)
+    readers = {
+      nombre: ->(user) { user.nombre.capitalize },
+      apellido: ->(user) { user.apellido.capitalize },
+      fecha_nacimiento: ->(user) { formatearFecha(user.fecha_nacimiento.to_s, TipoFecha.sin_hora) },
+      imagen: ->(user) { user.imagen.as_json },
+      documentos_de_identidad: ->(user) { documentos_de_identidad_to_hash(user) }
+    }
+    data = serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) }, readers: readers)
     data[:roles] = roles_to_hash(object) if params[:roles]
     data[:permisos] = object.get_permisos.as_json(only: [:permiso_accion_id, :permiso]) if params[:permisos]
     data[:nombre_completo] = object.nombre_completo
@@ -84,29 +78,29 @@ class UserSerializer < ActiveModel::Serializer
     collection.map { |object| to_hash(object, params) }
   end
 
-  def self.show_field?(params, key)
-    params[:all] || params[key]
+  def self.default_fields
+    [
+      :id,
+      :nombre,
+      :usuario,
+      :estado,
+      :apellido,
+      :sexo,
+      :telefono,
+      :email,
+      :fecha_nacimiento,
+      :role,
+      :imagen,
+      :sign_in_count,
+      :documentos_de_identidad
+    ]
   end
 
   def self.documentos_de_identidad_to_hash(object)
-    object.documentos_de_identidad.map do |documento|
-      {
-        id: documento.id,
-        descripcion: documento.descripcion,
-        documento: documento.documento,
-        principal: documento.principal
-      }
-    end
+    serialize_collection(object.documentos_de_identidad, [:id, :descripcion, :documento, :principal])
   end
 
   def self.roles_to_hash(object)
-    object.roles.map do |role|
-      {
-        id: role.id,
-        descripcion: role.descripcion,
-        nombre: role.nombre
-      }
-    end
+    serialize_collection(object.roles, [:id, :descripcion, :nombre])
   end
 end
-

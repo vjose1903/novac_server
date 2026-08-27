@@ -1,4 +1,6 @@
 class ArticuloSerializer < ActiveModel::Serializer
+  include FastSerializer
+
   attribute :id
   attribute :imagen_id,                          if: Proc.new { self.get_param('all') || self.get_param('imagen_id') }
   attribute :tipo_articulo_id,                   if: Proc.new { self.get_param('all') || self.get_param('tipo_articulo_id') }
@@ -104,19 +106,11 @@ class ArticuloSerializer < ActiveModel::Serializer
   def serialize_contenido_articulos(content)
     return [] if content.empty?
 
-    content.map do |item|
-      {
-        id: read_articulo_value(item, :id),
-        articulo_id: read_articulo_value(item, :articulo_id),
-        referencia: read_articulo_value(item, :referencia),
-        costo: read_articulo_value(item, :costo),
-        precio: read_articulo_value(item, :precio),
-        cantidad: read_articulo_value(item, :cantidad),
-        medida: read_articulo_value(item, :medida),
-        condicion: read_articulo_value(item, :condicion),
-        calcular_itbis: read_articulo_value(item, :calcular_itbis) || false
-      }
-    end
+    serialize_collection(
+      content,
+      [:id, :articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :condicion, :calcular_itbis],
+      readers: { calcular_itbis: ->(item) { read_articulo_value(item, :calcular_itbis) || false } }
+    )
   end
 
   def serialize_formulas_productos_terminados(formulas)
@@ -125,18 +119,11 @@ class ArticuloSerializer < ActiveModel::Serializer
     formulas.map do |formula|
       articulo_combo = articulo_combo_object(formula)
 
-      {
-        id: read_articulo_value(formula, :id),
-        articulo_id: read_articulo_value(formula, :articulo_id),
-        cantidad: read_articulo_value(formula, :cantidad),
-        costo: read_articulo_value(formula, :costo),
-        precio: read_articulo_value(formula, :precio),
-        medida: read_articulo_value(formula, :medida),
-        articulo_combo: read_articulo_value(formula, :articulo_combo),
-        nombre: articulo_combo&.nombre,
-        existencia: articulo_combo ? Articulo.cantidades_calculadas(articulo_combo) : {},
-        contenido: articulo_combo ? Articulo.contenidos_calculados(articulo_combo) : {}
-      }
+      serialize_record(formula, [:id, :articulo_id, :cantidad, :costo, :precio, :medida, :articulo_combo, :nombre, :existencia, :contenido], readers: {
+        nombre: ->(_item) { articulo_combo&.nombre },
+        existencia: ->(_item) { articulo_combo ? Articulo.cantidades_calculadas(articulo_combo) : {} },
+        contenido: ->(_item) { articulo_combo ? Articulo.contenidos_calculados(articulo_combo) : {} }
+      })
     end
   end
 
@@ -164,10 +151,6 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def read_articulo_value(record, key)
-    return record[key.to_s] if record.respond_to?(:key?) && record.key?(key.to_s)
-    return record[key] if record.respond_to?(:key?) && record.key?(key)
-    return record.public_send(key) if record.respond_to?(key)
-
-    nil
+    read_serialized_value(record, key)
   end
 end
