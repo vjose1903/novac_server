@@ -1,4 +1,6 @@
 class DivisaSerializer < ActiveModel::Serializer
+  extend FastSerializer
+
   attribute :id,                               if: Proc.new { self.get_param('id')             || self.get_param('all') }
   attribute :nombre,                           if: Proc.new { self.get_param('nombre')         || self.get_param('all') }
   attribute :simbolo,                          if: Proc.new { self.get_param('simbolo')        || self.get_param('all') }
@@ -15,5 +17,20 @@ class DivisaSerializer < ActiveModel::Serializer
 
   def get_param(col)
     return @instance_options[:"#{col}"]
+  end
+
+  def self.to_hash(object, params={})
+    readers = {
+      imagen: ->(divisa) { divisa.imagenes.first&.as_json }
+    }
+    serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) }, readers: readers)
+  end
+
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
+
+  def self.default_fields
+    [:id, :nombre, :simbolo, :code, :is_principal, :estado, :current_tasa, :imagen]
   end
 end
