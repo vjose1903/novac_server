@@ -97,6 +97,7 @@ class Suplidor < ApplicationRecord
   # ============================================================================================================================================
 
   def self.filtrarSuplidores(arg, params)
+    serializer_params = {all: true}
     suplidores = Suplidor
       .where(estado: true)
       .joins("LEFT JOIN documentos_de_identidad ON suplidores.id = documentos_de_identidad.origen_id
@@ -117,11 +118,14 @@ class Suplidor < ApplicationRecord
 
     suplidores = suplidores.order(Arel.sql(parse_filter_order(params["order_by"])))
 
-    return serialized_response(suplidores, params, {all: true}, []) if suplidores.exists?
+    return Response.new(params, HTTP_STATUS_CODE[:ok], suplidores, [], serializer_params, Suplidor.models_includes_for(serializer_params)) if suplidores.exists?
 
+    res = Response.new(params)
+    res.set_data([])
     cantidad_registros = Suplidor.where(estado: true).count
-    msg = cantidad_registros == 0 ? "No existen suplidores registrados." : "No existe suplidor con las especificaciones introducidas"
-    {status: HTTP_STATUS_CODE[:conflict], data: [], msg: [msg]}
+    res.add_msg(cantidad_registros == 0 ? "No existen suplidores registrados." : "No existe suplidor con las especificaciones introducidas")
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
   end
 
 end

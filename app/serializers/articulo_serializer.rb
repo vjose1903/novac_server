@@ -1,5 +1,6 @@
 class ArticuloSerializer < ActiveModel::Serializer
   include FastSerializer
+  extend FastSerializer
 
   attribute :id
   attribute :imagen_id,                          if: Proc.new { self.get_param('all') || self.get_param('imagen_id') }
@@ -152,5 +153,65 @@ class ArticuloSerializer < ActiveModel::Serializer
 
   def read_articulo_value(record, key)
     read_serialized_value(record, key)
+  end
+
+  def self.to_hash(object, params={})
+    serializer = new(object, params)
+    fields = [:id]
+    fields += optional_fields.select do |field|
+      params[:all] || params[field] || (field == :contenido_articulos && params[:costos]) || (field == :formulas_productos_terminados && object.is_combo && params[:formulas_productos_terminados])
+    end
+
+    serialize_record(object, fields, readers: serializer_readers(serializer))
+  end
+
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
+
+  def self.optional_fields
+    [
+      :imagen_id,
+      :tipo_articulo_id,
+      :nombre,
+      :costo_principal,
+      :precio_principal,
+      :existencia,
+      :aviso_existencia,
+      :codigo,
+      :fecha_ingreso,
+      :medida,
+      :is_detallable,
+      :medida_alerta,
+      :calcular_itbis,
+      :estado,
+      :is_combo,
+      :otros_costos,
+      :vendido_en,
+      :is_materia_prima,
+      :contenido_articulos,
+      :formulas_productos_terminados,
+      :descripcion,
+      :contenido,
+      :cantidades,
+      :calcular_saco,
+      :costos,
+      :tipo_articulo
+    ]
+  end
+
+  def self.serializer_readers(serializer)
+    {
+      medida: ->(_articulo) { serializer.medida },
+      otros_costos: ->(_articulo) { serializer.otros_costos },
+      precio_principal: ->(_articulo) { serializer.precio_principal },
+      contenido_articulos: ->(_articulo) { serializer.contenido_articulos },
+      formulas_productos_terminados: ->(_articulo) { serializer.formulas_productos_terminados },
+      descripcion: ->(_articulo) { serializer.descripcion },
+      contenido: ->(_articulo) { serializer.contenido },
+      cantidades: ->(_articulo) { serializer.cantidades },
+      costos: ->(_articulo) { serializer.costos },
+      tipo_articulo: ->(_articulo) { serializer.tipo_articulo }
+    }
   end
 end

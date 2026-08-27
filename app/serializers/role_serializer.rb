@@ -18,15 +18,17 @@ class RoleSerializer < ActiveModel::Serializer
 		return @instance_options[:"#{col}"]
 	end
 
-		def self.to_hash(object, include_permisos_acciones: false)
+		def self.to_hash(object, params={}, include_permisos_acciones: nil)
+			include_permisos_acciones = params[:permisos_acciones] if include_permisos_acciones.nil? && params.respond_to?(:[])
 			data = serialize_record(object, default_fields)
 
 			data[:permisos_acciones] = object.permisos_acciones.map { |permiso_accion| permiso_accion_to_hash(permiso_accion) } if include_permisos_acciones
 			data
 		end
 
-	def self.collection_to_hash(collection, include_permisos_acciones: false)
-		collection.map { |object| to_hash(object, include_permisos_acciones: include_permisos_acciones) }
+	def self.collection_to_hash(collection, params={}, include_permisos_acciones: nil)
+		include_permisos_acciones = params[:permisos_acciones] if include_permisos_acciones.nil? && params.respond_to?(:[])
+		collection.map { |object| to_hash(object, params, include_permisos_acciones: include_permisos_acciones) }
 	end
 
 		private

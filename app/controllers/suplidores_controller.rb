@@ -3,26 +3,22 @@ class SuplidoresController < ApplicationController
 
   # GET /suplidores
   def index    
-    resultado = Suplidor.serialized_response(Suplidor.where({ estado: true}).order('id DESC'), params, {all: true})
-    render_json_response(resultado)
+    return Response.new(params, HTTP_STATUS_CODE[:ok], Suplidor.where({ estado: true}).order('id DESC'), nil, {all: true}, Suplidor.models_includes).send_response self
   end
 
   # GET /suplidores/1
   def show
-    ActiveRecord::Associations::Preloader.new(records: [@suplidor], associations: Suplidor.models_includes).call
-    resultado = {status: HTTP_STATUS_CODE[:ok], data: SuplidorSerializer.to_hash(@suplidor, {all: true}), msg: nil}
-    render_json_response(resultado)
+    return Response.new(params, HTTP_STATUS_CODE[:ok], @suplidor, nil, {all: true}, Suplidor.models_includes).send_response self
   end 
 
   def getNombresSuplidores
-    resultado = Suplidor.serialized_response(Suplidor.where({ estado: true}).order('id DESC'), params, {id: true, nombre: true})
-    render_json_response(resultado)
+    return Response.new(params, HTTP_STATUS_CODE[:ok], Suplidor.where({ estado: true}).order('id DESC'), nil, {id: true, nombre: true}).send_response self
   end
 
   def getSuplidoresFiltrados
     arg = params["arg"]
     resultado = Suplidor.filtrarSuplidores(arg, set_paginate_options(params).merge("order_by" => params[:order_by]))
-    render_json_response(resultado)
+    resultado.send_response self
   end
 
   def crear_actualizar_suplidor
@@ -61,7 +57,4 @@ class SuplidoresController < ApplicationController
     return respuesta.send_response self if @suplidor.nil?
   end
 
-  def render_json_response(resultado)
-    render body: resultado.except(:status).to_json, status: resultado[:status], content_type: 'application/json'
-  end
 end

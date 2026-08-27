@@ -3,22 +3,19 @@ class RolesController < ApplicationController
 
   # GET /roles
   def index
-    resultado = Role.serialized_response(Role.all.order('id DESC'), params, get_parametros_opcionales[:permisos_acciones])
-    render body: resultado.except(:status).to_json, status: resultado[:status], content_type: 'application/json'
+    return Response.new(params, HTTP_STATUS_CODE[:ok], Role.all.order('id DESC'), nil, get_parametros_opcionales, Role.models_includes).send_response self
   end
 
 	# GET /roles/1
 	def show
-		ActiveRecord::Associations::Preloader.new(records: [@role], associations: Role.models_includes).call
-		resultado = {data: RoleSerializer.to_hash(@role, include_permisos_acciones: get_parametros_opcionales[:permisos_acciones]), msg: []}
-		render body: resultado.to_json, status: HTTP_STATUS_CODE[:ok], content_type: 'application/json'
+		return Response.new(params, HTTP_STATUS_CODE[:ok], @role, nil, get_parametros_opcionales, Role.models_includes).send_response self
 	end
 
   def getRolesFiltrados
     arg = params["arg"]
 
     resultado = Role.filtrarRole(arg, set_paginate_options(params))
-    render body: resultado.except(:status).to_json, status: resultado[:status], content_type: 'application/json'
+    resultado.send_response self
   end
 
 

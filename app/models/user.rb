@@ -141,18 +141,20 @@ class User < ApplicationRecord
   # =====================================================================================================================
   def self.filtrarUsusarios(arg, params)
     arg = ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)
+    serializer_params = {all: true, roles: true}
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
     .where("LOWER(COALESCE(users.nombre, '') || ' ' || COALESCE(users.apellido, '') || ' ' || COALESCE(users.email, '') || ' ' || COALESCE(documentos_de_identidad.documento, '')) LIKE LOWER(?) AND users.estado = true AND sexo != 'i'", "%#{arg}%")
     .order("users.id ASC")
 
-    if users.exists?
-      return User.serialized_response(users, params, {all: true, roles: true}, [])
-    else
-      cantidad_registros = User.where({estado: true}).count
-      msg = cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas"
-      return {status: HTTP_STATUS_CODE[:conflict], data: [], msg: [msg]}
-    end
+    return Response.new(params, HTTP_STATUS_CODE[:ok], users, [], serializer_params, User.models_includes_for(serializer_params)) if users.exists?
+
+    res = Response.new(params)
+    res.set_data([])
+    cantidad_registros = User.where({estado: true}).count
+    res.add_msg(cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas")
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
   end
 
     # =========================================================================================================================================================

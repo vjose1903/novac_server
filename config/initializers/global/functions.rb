@@ -4,6 +4,7 @@ require 'openssl'
 
 class Response
   def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, models_includes=nil)
+    status_ ||= HTTP_STATUS_CODE[:ok]
     @paginate_class = Paginator.new(params)
 
     @res = {status:status_, data: data,  msg: msg_}
@@ -22,7 +23,7 @@ class Response
 
     @paginate_class.paginate_data(data, models_includes)
 
-    datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_parser(@paginate_class.get_data(), parametros_opcionales)
+    datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_response_data(@paginate_class.get_data(), parametros_opcionales)
     @res[:data]              = datos
     @res[:total_registros]   = @paginate_class.get_total_registros()  if @paginate_class.is_paginated()
     @res[:total_paginas]     = @paginate_class.get_total_paginas()    if @paginate_class.is_paginated()
@@ -66,7 +67,43 @@ class Response
   end
 
   def send_response(controller)
-    controller.render json: @res.except(:status) , status: @res[:status]
+    controller.render body: @res.except(:status).to_json, status: @res[:status], content_type: 'application/json'
+  end
+
+  private
+
+  def serialize_response_data(data, parametros_opcionales)
+    serializer = fast_serializer_for(data)
+    return serialize_parser(data, parametros_opcionales) unless serializer
+
+    if collection_data?(data)
+      serializer.collection_to_hash(data, parametros_opcionales)
+    else
+      serializer.to_hash(data, parametros_opcionales)
+    end
+  end
+
+  def fast_serializer_for(data)
+    model_class = serialized_model_class(data)
+    return nil unless model_class
+
+    serializer = "#{model_class.name}Serializer".safe_constantize
+    return nil unless serializer
+    return serializer if serializer.respond_to?(:to_hash) && serializer.respond_to?(:collection_to_hash)
+
+    nil
+  end
+
+  def serialized_model_class(data)
+    return data.klass if defined?(ActiveRecord::Relation) && data.is_a?(ActiveRecord::Relation)
+    return data.class if defined?(ActiveRecord::Base) && data.is_a?(ActiveRecord::Base)
+    return data.first.class if data.is_a?(Array) && data.first && defined?(ActiveRecord::Base) && data.first.is_a?(ActiveRecord::Base)
+
+    nil
+  end
+
+  def collection_data?(data)
+    (defined?(ActiveRecord::Relation) && data.is_a?(ActiveRecord::Relation)) || data.is_a?(Array)
   end
 end
 

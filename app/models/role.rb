@@ -72,18 +72,20 @@ class Role < ApplicationRecord
 
   def self.filtrarRole(arg, params)
     arg = ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)
+    serializer_params = {all: true, permisos_acciones: true}
     roles = Role
       .where(estado: true)
       .where("LOWER(COALESCE(roles.nombre, '') || ' ' || COALESCE(roles.descripcion, '')) LIKE LOWER(?)", "%#{arg}%")
       .order('roles.id ASC')
 
-    if roles.exists?
-      return Role.serialized_response(roles, params, true)
-    else
-      cantidad_registros = Role.where({estado: true}).count
-      msg = cantidad_registros == 0 ? 'No existen roles registrados.' : 'No existen roles con las especificaciones introducidas'
-      return {status: HTTP_STATUS_CODE[:conflict], data: [], msg: [msg]}
-    end
+    return Response.new(params, HTTP_STATUS_CODE[:ok], roles, [], serializer_params, Role.models_includes) if roles.exists?
+
+    res = Response.new(params)
+    res.set_data([])
+    cantidad_registros = Role.where({estado: true}).count
+    res.add_msg(cantidad_registros == 0 ? 'No existen roles registrados.' : 'No existen roles con las especificaciones introducidas')
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
   end
 
 

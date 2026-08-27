@@ -3,8 +3,7 @@ class PermisosController < ApplicationController
 	# GET /permiso
 	def index
 		opciones = get_parametros_opcionales
-		resultado = {data: PermisoSerializer.collection_to_hash(Permiso.get_all, include_acciones: opciones[:acciones], include_permisos_acciones: opciones[:permisos_acciones]), msg: []}
-		render body: resultado.to_json, status: HTTP_STATUS_CODE[:ok], content_type: 'application/json'
+		return Response.new(params, HTTP_STATUS_CODE[:ok], Permiso.get_all, nil, opciones, Permiso.models_includes).send_response self
 	end
 
 	# GET /permiso/1

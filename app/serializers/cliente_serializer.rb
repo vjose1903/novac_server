@@ -1,5 +1,6 @@
 class ClienteSerializer < ActiveModel::Serializer
   include FastSerializer
+  extend FastSerializer
 
   attribute :id,                                 if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('id'))}
   attribute :imagen_id,                          if: Proc.new { self.get_param('all') ||  has_to_show(self.get_param('imagen_id'))}
@@ -65,6 +66,75 @@ class ClienteSerializer < ActiveModel::Serializer
 
   def get_param(col)
     return @instance_options[:"#{col}"]
+  end
+
+  def self.to_hash(object, params={})
+    readers = {
+      vendedor: ->(cliente) { vendedor_to_hash(cliente.vendedor) },
+      nombre_completo: ->(cliente) { cliente.nombre_completo },
+      documentos_de_identidad: ->(cliente) { documentos_de_identidad_to_hash(cliente, params[:documentos_de_identidad], params[:all]) },
+      provincia_id: ->(cliente) { cliente.provincia&.id },
+      provincia: ->(cliente) { provincia_to_hash(cliente.provincia, params[:provincia], params[:all]) },
+      municipio: ->(cliente) { municipio_to_hash(cliente.municipio, params[:municipio], params[:all]) }
+    }
+    serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) }, readers: readers)
+  end
+
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
+
+  def self.default_fields
+    [
+      :id,
+      :imagen_id,
+      :nombre,
+      :estado,
+      :apellido,
+      :limite_credito,
+      :telefono,
+      :direccion,
+      :sexo,
+      :maximo_credito,
+      :vendedor_id,
+      :balance,
+      :municipio_id,
+      :vendedor,
+      :nombre_completo,
+      :documentos_de_identidad,
+      :provincia_id,
+      :provincia,
+      :municipio
+    ]
+  end
+
+  def self.vendedor_to_hash(vendedor)
+    return nil unless vendedor
+
+    serialize_record(vendedor, [:nombre, :apellido, :vendedor_id, :nombre_completo], readers: {
+      nombre: ->(user) { user.nombre.capitalize },
+      apellido: ->(user) { user.apellido.capitalize },
+      vendedor_id: ->(user) { user.id },
+      nombre_completo: ->(user) { user.nombre_completo }
+    })
+  end
+
+  def self.documentos_de_identidad_to_hash(object, param=true, include_all=false)
+    object.documentos_de_identidad.map do |documento|
+      serialize_selected_record(documento, [:id, :descripcion, :documento, :principal], param: param, include_all: include_all)
+    end
+  end
+
+  def self.provincia_to_hash(provincia, param=true, include_all=false)
+    return nil unless provincia
+
+    serialize_selected_record(provincia, [:id, :nombre, :codigo], param: param, include_all: include_all)
+  end
+
+  def self.municipio_to_hash(municipio, param=true, include_all=false)
+    return nil unless municipio
+
+    serialize_selected_record(municipio, [:id, :nombre, :codigo], param: param, include_all: include_all)
   end
 
 end

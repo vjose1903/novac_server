@@ -29,7 +29,9 @@ class PermisoSerializer < ActiveModel::Serializer
 			return @instance_options[:"#{col}"]
 		end
 
-		def self.to_hash(object, include_acciones: false, include_permisos_acciones: false)
+		def self.to_hash(object, params={}, include_acciones: nil, include_permisos_acciones: nil)
+			include_acciones = params[:acciones] if include_acciones.nil? && params.respond_to?(:[])
+			include_permisos_acciones = params[:permisos_acciones] if include_permisos_acciones.nil? && params.respond_to?(:[])
 			data = serialize_record(object, default_fields)
 
 			data[:acciones] = object.permisos_acciones.map { |permiso_accion| accion_to_hash(permiso_accion.accion) } if include_acciones
@@ -37,8 +39,10 @@ class PermisoSerializer < ActiveModel::Serializer
 			data
 		end
 
-		def self.collection_to_hash(collection, include_acciones: false, include_permisos_acciones: false)
-			collection.map { |object| to_hash(object, include_acciones: include_acciones, include_permisos_acciones: include_permisos_acciones) }
+		def self.collection_to_hash(collection, params={}, include_acciones: nil, include_permisos_acciones: nil)
+			include_acciones = params[:acciones] if include_acciones.nil? && params.respond_to?(:[])
+			include_permisos_acciones = params[:permisos_acciones] if include_permisos_acciones.nil? && params.respond_to?(:[])
+			collection.map { |object| to_hash(object, params, include_acciones: include_acciones, include_permisos_acciones: include_permisos_acciones) }
 		end
 
 		private

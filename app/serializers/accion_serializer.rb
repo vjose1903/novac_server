@@ -11,15 +11,15 @@ class AccionSerializer < ActiveModel::Serializer
 		return @instance_options[:"#{col}"]
 	end
 
-	def self.to_hash(object)
+	def self.to_hash(object, params={})
 		serialize_record(object, default_fields)
 	end
 
-	def self.collection_to_hash(collection)
+	def self.collection_to_hash(collection, params={})
 		serialize_collection(collection, default_fields)
 	end
 
 	def self.default_fields
-		[:id, :descripcion, :nombre, :mostrar_front]
+		[:id, :nombre, :descripcion, :metodo, :created_at, :updated_at, :mostrar_front]
 	end
 end
