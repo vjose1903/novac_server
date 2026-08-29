@@ -160,7 +160,7 @@ class TasaCambio < ApplicationRecord
     ids             = TasaCambio.select('MIN(id) as id').where("divisa_id = #{params[:divisa_id]} AND valor > 0 AND (fecha_equivalente between '#{desde}' AND '#{hasta}')").group('secuencia').to_a
     tasas_de_cambio = TasaCambio.where({id: ids}).order('secuencia ASC')
 
-    res.set_data(serialize_parser(tasas_de_cambio, {all: true}))
+    res.set_data(tasas_de_cambio, {all: true})
 
     return res
   end
