@@ -95,6 +95,7 @@ No repetir estas salvo que haya bug:
 - `clientes`
 - `config_articulos`
 - `contenido_articulos`
+- `costo_fletes`
 - `divisas`
 - `documentos_de_identidad`
 - `marcas`
@@ -114,17 +115,16 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `costo_fletes`
+1. `configuracion_cuadres`
 
 Archivos probables:
 
-- `app/controllers/costo_fletes_controller.rb` (index/show usan `Response` con `{all: true}`; create/update via `CostoFlete.crear_actualizar_costo`, destroy via `borrar_entidad`)
-- `app/models/costo_flete.rb`
-- `app/models/costo_flete_historial.rb`
-- `app/serializers/costo_flete_serializer.rb` (si existe)
-- `config/routes.rb` (`resources :costo_fletes` con `get "filtro/:arg"` en linea 85)
+- `app/controllers/configuracion_cuadres_controller.rb`
+- `app/models/configuracion_cuadre.rb`
+- `app/serializers/configuracion_cuadre_serializer.rb`
+- `config/routes.rb` (`resources :configuracion_cuadres, only: [:show, :update]` en linea 39)
 
-Nota: `contenido_articulos` (anterior en la lista) no tiene controller propio: `GET /contenido_articulos` da 404 y la tabla esta vacia; su serializacion real vive dentro de `articulo_serializer` (ya fast) y el `ContenidoArticuloSerializer` suelto se estandarizo al patron fast para no romper contrato si algun Response llega a serializarlo.
+Nota: `costo_fletes` (anterior en la lista) tenia tabla vacia; se valido con un registro temporal que se creo, comparo JSON y borro. Su serializer anida `municipio` (con `MunicipioSerializer.to_hash(municipio, params)` pasando el mismo params del Response) replicando el nested `{id, nombre, codigo}` del AMS legacy.
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -132,33 +132,32 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `costo_fletes`
-2. `configuracion_cuadres`
-3. `incidencias`
-4. `detalles_produccion`
-5. `producciones`
-6. `formulas_productos_terminados`
-7. `detalle_conduces`
-8. `cabecera_conduces`
-9. `detalle_recibos`
-10. `facturas_aplicadas`
-11. `recibos_ingresos`
-12. `detalle_facturas`
-13. `detalles_facturas_notas`
-14. `notas`
-15. `cabecera_facturas`
-16. `cuadre_caja_denominaciones`
-17. `cuadre_caja_eventos`
-18. `cuadre_caja_movimientos`
-19. `cuadre_cajas`
-20. `movimiento_viajes`
-21. `document_references`
-22. `ecf_receptions`
-23. `commertial_approval_receptions`
-24. `calendar_event_types`
-25. `calendar_events`
-26. `calendar_event_links`
-27. `global_holidays`
+1. `configuracion_cuadres`
+2. `incidencias`
+3. `detalles_produccion`
+4. `producciones`
+5. `formulas_productos_terminados`
+6. `detalle_conduces`
+7. `cabecera_conduces`
+8. `detalle_recibos`
+9. `facturas_aplicadas`
+10. `recibos_ingresos`
+11. `detalle_facturas`
+12. `detalles_facturas_notas`
+13. `notas`
+14. `cabecera_facturas`
+15. `cuadre_caja_denominaciones`
+16. `cuadre_caja_eventos`
+17. `cuadre_caja_movimientos`
+18. `cuadre_cajas`
+19. `movimiento_viajes`
+20. `document_references`
+21. `ecf_receptions`
+22. `commertial_approval_receptions`
+23. `calendar_event_types`
+24. `calendar_events`
+25. `calendar_event_links`
+26. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
