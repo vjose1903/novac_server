@@ -10,9 +10,15 @@ class CabeceraConduce < ApplicationRecord
     includes = [
       {user: :documentos_de_identidad},
       {cliente: :documentos_de_identidad},
-      {detalle_conduces: [ :cabecera_conduce]},
+      {detalle_conduces: [:cabecera_conduce, :articulo]},
     ]
     return includes
+  end
+
+  def self.models_includes_for(params={})
+    return nil unless params[:all] || params[:cliente] || params[:detalle_conduces]
+
+    models_includes
   end
 
 

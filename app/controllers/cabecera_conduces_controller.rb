@@ -3,12 +3,14 @@ class CabeceraConducesController < ApplicationController
 
   # GET /cabecera_conduces
   def index
-    return Response.new(params, nil, CabeceraConduce.all.order('id DESC'), nil, get_parametros_opcionales).send_response self
+    optional_params = get_parametros_opcionales
+    return Response.new(params, nil, CabeceraConduce.all.order('id DESC'), nil, optional_params, CabeceraConduce.models_includes_for(optional_params)).send_response self
   end
 
   # GET /cabecera_conduces/1
   def show
-    return Response.new(params, nil, @cabecera_conduce, nil, get_parametros_opcionales).send_response self
+    optional_params = get_parametros_opcionales
+    return Response.new(params, nil, @cabecera_conduce, nil, optional_params, CabeceraConduce.models_includes_for(optional_params)).send_response self
   end
 
   def getConducesFiltrados

@@ -92,6 +92,7 @@ No repetir estas salvo que haya bug:
 
 - `acciones`
 - `articulos`
+- `cabecera_conduces`
 - `clientes`
 - `config_articulos`
 - `configuracion_cuadres`
@@ -121,9 +122,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `cabecera_conduces`
-
-Nota: `detalle_conduces` (anterior en la lista) no tenia controller (`resources :detalle_conduces` → `404`); su serializer es stateful (`descripcion` setea `@unidad_en_turno` que usan `unidad`/`peso_saco`, y `unidad` muta `object.unidad`), por eso su `to_hash` usa el patron instancia (`new(object, params)` + readers que llaman `serializer.descripcion`/`unidad`/`peso_saco`). Contrato validado in-memory vs AMS (all/parcial/none con objetos frescos; un DIFF era contaminacion de estado entre corridas). La serializacion viva esta anidada en `cabecera_conduces` (via `serialize_parser` en `CabeceraConduceSerializer`, que es esta entidad).
+1. `detalle_recibos`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -131,26 +130,25 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `cabecera_conduces`
-2. `detalle_recibos`
-3. `facturas_aplicadas`
-4. `recibos_ingresos`
-5. `detalle_facturas`
-6. `detalles_facturas_notas`
-7. `notas`
-8. `cabecera_facturas`
-9. `cuadre_caja_denominaciones`
-10. `cuadre_caja_eventos`
-11. `cuadre_caja_movimientos`
-12. `cuadre_cajas`
-13. `movimiento_viajes`
-14. `document_references`
-15. `ecf_receptions`
-16. `commertial_approval_receptions`
-17. `calendar_event_types`
-18. `calendar_events`
-19. `calendar_event_links`
-20. `global_holidays`
+1. `detalle_recibos`
+2. `facturas_aplicadas`
+3. `recibos_ingresos`
+4. `detalle_facturas`
+5. `detalles_facturas_notas`
+6. `notas`
+7. `cabecera_facturas`
+8. `cuadre_caja_denominaciones`
+9. `cuadre_caja_eventos`
+10. `cuadre_caja_movimientos`
+11. `cuadre_cajas`
+12. `movimiento_viajes`
+13. `document_references`
+14. `ecf_receptions`
+15. `commertial_approval_receptions`
+16. `calendar_event_types`
+17. `calendar_events`
+18. `calendar_event_links`
+19. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
