@@ -5,7 +5,7 @@ class MarcasController < ApplicationController
   def index
     @marcas = Marca.all
 
-    render json: @marcas
+    render body: MarcaSerializer.collection_to_hash(@marcas).to_json, content_type: 'application/json'
   end
 
   def getMarcasFiltradas
@@ -25,12 +25,13 @@ class MarcasController < ApplicationController
       res = marcas
     end
 
-    render json: res
+    data = paginado ? res.merge("data" => MarcaSerializer.collection_to_hash(res["data"])) : MarcaSerializer.collection_to_hash(res)
+    render body: data.to_json, content_type: 'application/json'
   end
 
   # GET /marcas/1
   def show
-    render json: @marca
+    render body: MarcaSerializer.to_hash(@marca).to_json, content_type: 'application/json'
   end
 
   # POST /marcas

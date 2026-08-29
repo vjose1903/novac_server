@@ -17,19 +17,20 @@ class ModelosController < ApplicationController
       res = @modelos
     end
 
-    render json: res
+    data = paginado ? res.merge("data" => ModeloSerializer.collection_to_hash(res["data"])) : ModeloSerializer.collection_to_hash(res)
+    render body: data.to_json, content_type: 'application/json'
   end
 
   # GET /modelos/1
   def show
-    render json: @modelo
+    render body: ModeloSerializer.to_hash(@modelo).to_json, content_type: 'application/json'
   end
 
   def getModelosPorMarca
     marca = params["marca"]
-    modelos = Modelo.where({ marca_id: marca })
+    modelos = Modelo.includes(:marca).where({ marca_id: marca })
 
-    render json: modelos
+    render body: ModeloSerializer.collection_to_hash(modelos).to_json, content_type: 'application/json'
   end
 
   def getModelosFiltrados
@@ -49,7 +50,8 @@ class ModelosController < ApplicationController
       res = modelos
     end
 
-    render json: res
+    data = paginado ? res.merge("data" => ModeloSerializer.collection_to_hash(res["data"])) : ModeloSerializer.collection_to_hash(res)
+    render body: data.to_json, content_type: 'application/json'
   end
 
 
