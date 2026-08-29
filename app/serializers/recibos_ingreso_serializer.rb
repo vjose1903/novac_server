@@ -29,7 +29,7 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
   end
 
   def detalle_recibos
-    serialize_parser(object.detalle_recibos, {all: true})
+    DetalleReciboSerializer.collection_to_hash(object.detalle_recibos, {all: true})
   end
 
   def incidencias
