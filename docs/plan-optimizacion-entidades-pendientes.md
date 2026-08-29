@@ -105,6 +105,7 @@ No repetir estas salvo que haya bug:
 - `modelos`
 - `municipios`
 - `permisos`
+- `producciones`
 - `provincias`
 - `roles`
 - `suplidores`
@@ -118,16 +119,9 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `producciones`
+1. `formulas_productos_terminados`
 
-Archivos probables:
-
-- `app/controllers/producciones_controller.rb`
-- `app/models/produccion.rb`
-- `app/serializers/produccion_serializer.rb`
-- `config/routes.rb` (`resources :producciones` con `get "filtro/:arg"` en linea 91)
-
-Nota: `detalles_produccion` (anterior en la lista) no tenia controller; su `DetalleProduccionSerializer` se estandarizo a fast (tabla SI tiene registros; contrato validado con datos reales in-memory). Es dependencia anidada de `producciones`.
+Nota: `producciones` (anterior en la lista) sigue el patron `Response` + serializer con anidados via `serialize_parser`. El fast serializer replico los anidados con los fast serializers de `DetalleProduccion` (`collection_to_hash` con `{all: true}`) y `User` (`to_hash` con `{nombre, apellido}`, que siempre agrega `nombre_completo`). Ademas se quito el `.to_a` de `getProduccionesFiltradas` (paginacion ahora en SQL con `exists?`) y el `set_data(serialize_parser(...))` de create/update paso a `set_data(produccion, {all: true})`. Index y filtro precargan `:detalles_produccion, :user`.
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -135,29 +129,28 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `producciones`
-2. `formulas_productos_terminados`
-3. `detalle_conduces`
-4. `cabecera_conduces`
-5. `detalle_recibos`
-6. `facturas_aplicadas`
-7. `recibos_ingresos`
-8. `detalle_facturas`
-9. `detalles_facturas_notas`
-10. `notas`
-11. `cabecera_facturas`
-12. `cuadre_caja_denominaciones`
-13. `cuadre_caja_eventos`
-14. `cuadre_caja_movimientos`
-15. `cuadre_cajas`
-16. `movimiento_viajes`
-17. `document_references`
-18. `ecf_receptions`
-19. `commertial_approval_receptions`
-20. `calendar_event_types`
-21. `calendar_events`
-22. `calendar_event_links`
-23. `global_holidays`
+1. `formulas_productos_terminados`
+2. `detalle_conduces`
+3. `cabecera_conduces`
+4. `detalle_recibos`
+5. `facturas_aplicadas`
+6. `recibos_ingresos`
+7. `detalle_facturas`
+8. `detalles_facturas_notas`
+9. `notas`
+10. `cabecera_facturas`
+11. `cuadre_caja_denominaciones`
+12. `cuadre_caja_eventos`
+13. `cuadre_caja_movimientos`
+14. `cuadre_cajas`
+15. `movimiento_viajes`
+16. `document_references`
+17. `ecf_receptions`
+18. `commertial_approval_receptions`
+19. `calendar_event_types`
+20. `calendar_events`
+21. `calendar_event_links`
+22. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 

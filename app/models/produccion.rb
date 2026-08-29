@@ -29,7 +29,7 @@ class Produccion < ApplicationRecord
         res                               = updateSecuencias(16)
 
         if res.status_valid
-          res.set_data(serialize_parser(produccion, {all: true}))
+          res.set_data(produccion, {all: true})
           res.add_msg("Produccion creada correctamente.")
 
         else
@@ -53,9 +53,9 @@ class Produccion < ApplicationRecord
   def self.filtrarProduccion(arg, params)
     res = Response.new(params)
 
-    producciones = Produccion.all.order("id ASC").to_a
+    producciones = Produccion.all.includes(:detalles_produccion, :user).order("id ASC")
 
-    if producciones.length > 0
+    if producciones.exists?
       res.set_data(producciones, {all: true})
     else
       res.set_data([])

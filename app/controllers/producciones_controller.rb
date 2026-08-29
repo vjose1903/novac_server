@@ -3,7 +3,7 @@ class ProduccionesController < ApplicationController
 
   # GET /producciones
   def index
-    return Response.new(params, nil, Produccion.all, nil, {all: true}).send_response self
+    return Response.new(params, nil, Produccion.all.includes(:detalles_produccion, :user), nil, {all: true}).send_response self
   end
   
   # GET /producciones/1
