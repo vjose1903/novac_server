@@ -3,12 +3,14 @@ class ProvinciasController < ApplicationController
 
   # GET /provincias
   def index
-    return Response.new(params, nil, Provincia.all, nil, get_parametros_opcionales).send_response self
+    optional_params = get_parametros_opcionales
+    return Response.new(params, nil, Provincia.all, nil, optional_params, Provincia.models_includes_for(optional_params)).send_response self
   end
 
   # GET /provincias/1
   def show
-    return Response.new(params, nil, @provincia, nil, get_parametros_opcionales).send_response self
+    optional_params = get_parametros_opcionales
+    return Response.new(params, nil, @provincia, nil, optional_params, Provincia.models_includes_for(optional_params)).send_response self
   end
 
   def crear_actualizar_provincia

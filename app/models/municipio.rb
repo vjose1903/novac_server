@@ -3,6 +3,10 @@ class Municipio < ApplicationRecord
 
   validates :nombre, presence: { :message => 'Debe de especificar un nombre para el municipio.' }
 
+  def self.models_includes_for(params={})
+    has_to_show(params[:provincia]) ? :provincia : nil
+  end
+
   def self.crear_actualizar_municipio(params, is_save=false)
     res = Response.new
 

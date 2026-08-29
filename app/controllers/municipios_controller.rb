@@ -2,12 +2,14 @@ class MunicipiosController < ApplicationController
 	before_action :set_municipio, only: [:show, :update, :destroy]
 	# GET /municipio
 	def index
-		return Response.new(params, nil, Municipio.all, nil, get_parametros_opcionales).send_response self
+		optional_params = get_parametros_opcionales
+		return Response.new(params, nil, Municipio.all, nil, optional_params, Municipio.models_includes_for(optional_params)).send_response self
 	end
 
 	# GET /municipio/1
 	def show
-		return Response.new(params, nil, @municipio, nil, get_parametros_opcionales).send_response self
+		optional_params = get_parametros_opcionales
+		return Response.new(params, nil, @municipio, nil, optional_params, Municipio.models_includes_for(optional_params)).send_response self
 	end
 
 	def crear_actualizar_municipio
