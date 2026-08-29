@@ -5,12 +5,12 @@ class TipoFacturasController < ApplicationController
   def index
     @tipo_facturas = TipoFactura.all
 
-    render json: @tipo_facturas
+    render body: TipoFacturaSerializer.collection_to_hash(@tipo_facturas).to_json, content_type: 'application/json'
   end
 
   # GET /tipo_facturas/1
   def show
-    render json: @tipo_factura
+    render body: TipoFacturaSerializer.to_hash(@tipo_factura).to_json, content_type: 'application/json'
   end
 
   # POST /tipo_facturas

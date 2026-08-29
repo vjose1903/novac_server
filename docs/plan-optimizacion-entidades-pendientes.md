@@ -103,6 +103,7 @@ No repetir estas salvo que haya bug:
 - `roles`
 - `suplidores`
 - `tasas_de_cambio`
+- `tipo_facturas`
 - `users` / empleados
 - `vehiculos`
 
@@ -110,15 +111,15 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `tipo_recibos`
+1. `tipo_articulos`
 
 Archivos probables:
 
-- `app/controllers/tipo_recibos_controller.rb`
-- `app/models/tipo_recibo.rb`
+- `app/controllers/tipo_articulos_controller.rb`
+- `app/models/tipo_articulo.rb`
 - `config/routes.rb`
 
-Nota: no existe `app/serializers/tipo_recibo_serializer.rb`. El controller es scaffold con `render json:` directo, sin `Response`. Antes de tocar, capturar baseline de todos los endpoints REST y confirmar si AMS usa un serializer por convencion o serializa columnas directas. Verificar si `config_setup`/`scripts` sobrescriben algo de esta entidad.
+Nota: no existe `app/serializers/tipo_articulo_serializer.rb`. Confirmar como responde el baseline (`render json:` scaffold vs `Response`), si AMS loguea render y si `config_setup`/`scripts` sobrescriben algo de esta entidad.
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -126,38 +127,38 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `tipo_recibos`
-2. `tipo_facturas`
-3. `tipo_articulos`
-4. `config_articulos`
-5. `contenido_articulos`
-6. `costo_fletes`
-7. `configuracion_cuadres`
-8. `incidencias`
-9. `detalles_produccion`
-10. `producciones`
-11. `formulas_productos_terminados`
-12. `detalle_conduces`
-13. `cabecera_conduces`
-14. `detalle_recibos`
-15. `facturas_aplicadas`
-16. `recibos_ingresos`
-17. `detalle_facturas`
-18. `detalles_facturas_notas`
-19. `notas`
-20. `cabecera_facturas`
-21. `cuadre_caja_denominaciones`
-22. `cuadre_caja_eventos`
-23. `cuadre_caja_movimientos`
-24. `cuadre_cajas`
-25. `movimiento_viajes`
-26. `document_references`
-27. `ecf_receptions`
-28. `commertial_approval_receptions`
-29. `calendar_event_types`
-30. `calendar_events`
-31. `calendar_event_links`
-32. `global_holidays`
+1. `tipo_articulos`
+2. `config_articulos`
+3. `contenido_articulos`
+4. `costo_fletes`
+5. `configuracion_cuadres`
+6. `incidencias`
+7. `detalles_produccion`
+8. `producciones`
+9. `formulas_productos_terminados`
+10. `detalle_conduces`
+11. `cabecera_conduces`
+12. `detalle_recibos`
+13. `facturas_aplicadas`
+14. `recibos_ingresos`
+15. `detalle_facturas`
+16. `detalles_facturas_notas`
+17. `notas`
+18. `cabecera_facturas`
+19. `cuadre_caja_denominaciones`
+20. `cuadre_caja_eventos`
+21. `cuadre_caja_movimientos`
+22. `cuadre_cajas`
+23. `movimiento_viajes`
+24. `document_references`
+25. `ecf_receptions`
+26. `commertial_approval_receptions`
+27. `calendar_event_types`
+28. `calendar_events`
+29. `calendar_event_links`
+30. `global_holidays`
+
+Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
 Si una entidad no tiene controller REST directo, buscar donde se serializa con `rg "NombreSerializer|serialize_parser\\(|render json:" app`.
 
