@@ -104,6 +104,7 @@ No repetir estas salvo que haya bug:
 - `detalle_conduces`
 - `detalle_facturas`
 - `detalle_recibos`
+- `detalles_facturas_notas`
 - `facturas_aplicadas`
 - `formulas_productos_terminados`
 - `incidencias`
@@ -126,7 +127,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `detalles_facturas_notas`
+1. `cabecera_facturas`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -134,10 +135,9 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `detalles_facturas_notas`
-2. `cabecera_facturas`
-3. `notas`
-4. `cuadre_caja_denominaciones`
+1. `cabecera_facturas`
+2. `notas`
+3. `cuadre_caja_denominaciones`
 5. `cuadre_caja_eventos`
 6. `cuadre_caja_movimientos`
 7. `cuadre_cajas`

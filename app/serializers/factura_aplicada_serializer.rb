@@ -40,7 +40,7 @@ class FacturaAplicadaSerializer < ActiveModel::Serializer
     {
       id: ->(record) { params[:usar_id_nota] ? record.nota_id : record.id },
       cabecera_factura: ->(record) { ActiveModelSerializers::SerializableResource.new(record.cabecera_factura, {id: true, numero_comprobante: true, fecha_equivalente: true}).as_json },
-      detalles_facturas_notas: ->(record) { ActiveModelSerializers::SerializableResource.new(record.detalles_facturas_notas, {all: true}).as_json },
+      detalles_facturas_notas: ->(record) { DetalleFacturaNotaSerializer.collection_to_hash(record.detalles_facturas_notas, {all: true}) },
       fecha_equivalente: ->(record) { record.nota.fecha_equivalente },
       numero_comprobante: ->(record) { record.nota.numero_comprobante },
       user_id: ->(record) { record.nota.user_id },
