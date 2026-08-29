@@ -5,14 +5,14 @@ class CabeceraFacturasController < ApplicationController
   before_action :validate_date_dgii,   only: [:remplace_encf]
   # GET /cabecera_facturas
   def index
-    return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, get_parametros_opcionales).send_response self
+    optional_params = get_parametros_opcionales
+    return Response.new(params, nil, CabeceraFactura.all.where({ estado: true}).order('id DESC'), nil, optional_params, CabeceraFactura.models_includes_for(optional_params)).send_response self
   end
 
   # GET /cabecera_facturas/1
   def show
-    # resultado = CabeceraFactura.get_one_by_id(params)
-
-    return Response.new(params, nil, @cabecera_factura, nil, get_parametros_opcionales).send_response self
+    optional_params = get_parametros_opcionales
+    return Response.new(params, nil, @cabecera_factura, nil, optional_params, CabeceraFactura.models_includes_for(optional_params)).send_response self
   end
 
   def custom_route

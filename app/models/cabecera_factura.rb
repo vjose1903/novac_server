@@ -3,6 +3,7 @@ class CabeceraFactura < ApplicationRecord
   belongs_to :suplidor, optional: true
   belongs_to :cliente,  optional: true
   belongs_to :user
+  belongs_to :vendedor, class_name: 'User', optional: true
 
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos,  dependent: :destroy
@@ -55,16 +56,34 @@ class CabeceraFactura < ApplicationRecord
     user_includes   = [:documentos_de_identidad, :roles_permisos_acciones ]
     includes = [ :tipo_factura,
         :suplidor,
+        :vendedor,
         {cliente: :documentos_de_identidad},
         {user: user_includes},
         {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}},
         {detalle_recibos: {recibos_ingreso: :user}},
-        {movimientos_viaje: [:vehiculo, :user]},
+        {movimientos_viaje: [{user: :documentos_de_identidad}, {vehiculo: :user}]},
         {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]},
         :document_reference_as_origin,
         :document_reference_as_referenced
     ]
     return includes
+  end
+
+  def self.models_includes_for(params={})
+    includes = [
+      :tipo_factura,
+      { cliente: :documentos_de_identidad },
+      :user,
+      :vendedor,
+      { detalle_facturas: { articulo: [:tipo_articulo, :contenido_articulos] } },
+      { detalle_recibos: { recibos_ingreso: :user } },
+      { facturas_aplicadas: [:nota, { detalles_facturas_notas: :articulo }] },
+      { suplidor: :documentos_de_identidad },
+      :document_reference_as_origin,
+      :document_reference_as_referenced
+    ]
+    includes << { movimientos_viaje: [{ user: :documentos_de_identidad }, { vehiculo: :user }] } if params[:movimientos_viaje] || params['movimientos_viaje']
+    includes
   end
 
   # ===================================================================================================================================================
