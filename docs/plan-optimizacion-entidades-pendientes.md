@@ -94,10 +94,12 @@ No repetir estas salvo que haya bug:
 - `articulos`
 - `clientes`
 - `config_articulos`
+- `configuracion_cuadres`
 - `contenido_articulos`
 - `costo_fletes`
 - `divisas`
 - `documentos_de_identidad`
+- `incidencias`
 - `marcas`
 - `modelos`
 - `municipios`
@@ -115,16 +117,19 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `configuracion_cuadres`
+1. `detalles_produccion`
 
 Archivos probables:
 
-- `app/controllers/configuracion_cuadres_controller.rb`
-- `app/models/configuracion_cuadre.rb`
-- `app/serializers/configuracion_cuadre_serializer.rb`
-- `config/routes.rb` (`resources :configuracion_cuadres, only: [:show, :update]` en linea 39)
+- `app/models/detalle_produccion.rb`
+- `app/serializers/detalle_produccion_serializer.rb`
+- `config/routes.rb` (`resources :detalles_produccion` en linea 21)
 
-Nota: `costo_fletes` (anterior en la lista) tenia tabla vacia; se valido con un registro temporal que se creo, comparo JSON y borro. Su serializer anida `municipio` (con `MunicipioSerializer.to_hash(municipio, params)` pasando el mismo params del Response) replicando el nested `{id, nombre, codigo}` del AMS legacy.
+Nota: NO existe `app/controllers/detalles_produccion_controller.rb`. `DetalleProduccion` se usa solo como dependencia anidada de `producciones` (`has_many :detalles_produccion` + `crear_actualizar_dependencias`; los `Response` intermedios de `validar_e_inicializar` nunca se envian). El serializer ya tiene el nombre correcto del modelo (`DetalleProduccionSerializer`); estandarizar al patron fast.
+
+Nota: `incidencias` (anterior en la lista) tampoco tenia controller; su serializer estaba mal nombrado (`IncidenciasSerializer`) y nadie lo referenciaba, asi que se RENOMBRO a `incidencia_serializer.rb` con clase `IncidenciaSerializer` (para que `fast_serializer_for(Incidencia)` la encuentre) y se estandarizo a fast. Tabla vacia; contrato validado in-memory.
+
+Nota: `configuracion_cuadres` se optimizo en el commit `b1e9550`; el `.md` quedo rezagado y se completo junto a `incidencias`.
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -132,32 +137,30 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `configuracion_cuadres`
-2. `incidencias`
-3. `detalles_produccion`
-4. `producciones`
-5. `formulas_productos_terminados`
-6. `detalle_conduces`
-7. `cabecera_conduces`
-8. `detalle_recibos`
-9. `facturas_aplicadas`
-10. `recibos_ingresos`
-11. `detalle_facturas`
-12. `detalles_facturas_notas`
-13. `notas`
-14. `cabecera_facturas`
-15. `cuadre_caja_denominaciones`
-16. `cuadre_caja_eventos`
-17. `cuadre_caja_movimientos`
-18. `cuadre_cajas`
-19. `movimiento_viajes`
-20. `document_references`
-21. `ecf_receptions`
-22. `commertial_approval_receptions`
-23. `calendar_event_types`
-24. `calendar_events`
-25. `calendar_event_links`
-26. `global_holidays`
+1. `detalles_produccion`
+2. `producciones`
+3. `formulas_productos_terminados`
+4. `detalle_conduces`
+5. `cabecera_conduces`
+6. `detalle_recibos`
+7. `facturas_aplicadas`
+8. `recibos_ingresos`
+9. `detalle_facturas`
+10. `detalles_facturas_notas`
+11. `notas`
+12. `cabecera_facturas`
+13. `cuadre_caja_denominaciones`
+14. `cuadre_caja_eventos`
+15. `cuadre_caja_movimientos`
+16. `cuadre_cajas`
+17. `movimiento_viajes`
+18. `document_references`
+19. `ecf_receptions`
+20. `commertial_approval_receptions`
+21. `calendar_event_types`
+22. `calendar_events`
+23. `calendar_event_links`
+24. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
