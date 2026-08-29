@@ -60,7 +60,7 @@ class NotaSerializer < ActiveModel::Serializer
   end
 
 	def facturas_aplicadas
-		serialize_parser(object.facturas_aplicadas, {all: true})
+		FacturaAplicadaSerializer.collection_to_hash(object.facturas_aplicadas, {all: true})
 	end
 
 	def get_param(col)

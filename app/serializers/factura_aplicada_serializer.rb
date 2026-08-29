@@ -1,55 +1,52 @@
 class FacturaAplicadaSerializer < ActiveModel::Serializer
-	attribute :id,                            if: Proc.new { self.get_param('all') || self.get_param('id')  }
+  extend FastSerializer
 
-	def id
-		self.get_param('usar_id_nota') ? object.nota_id : object.id
-	end
+  attribute :id,                            if: Proc.new { self.get_param('all') || self.get_param('id')  }
+  attribute :total,                         if: Proc.new { self.get_param('all') || self.get_param('total')  }
+  attribute :cabecera_factura,              if: Proc.new { self.get_param('all') || self.get_param('cabecera_factura')  }
+  attribute :detalles_facturas_notas,       if: Proc.new { self.get_param('all') || self.get_param('detalles_facturas_notas')  }
+  attribute :fecha_equivalente,             if: Proc.new { self.get_param('all') || self.get_param('fecha_equivalente') }
 
-	attribute :total,                         if: Proc.new { self.get_param('all') || self.get_param('total')  }
-	attribute :cabecera_factura,              if: Proc.new { self.get_param('all') || self.get_param('cabecera_factura')  }
-	attribute :detalles_facturas_notas,       if: Proc.new { self.get_param('all') || self.get_param('detalles_facturas_notas')  }
-	attribute :fecha_equivalente,             if: Proc.new { self.get_param('all') || self.get_param('fecha_equivalente') }
-	
-	attribute :numero_comprobante,            if: Proc.new { self.get_param('numero_comprobante') }
-	attribute :user_id,                       if: Proc.new { self.get_param('user_id') }
-	attribute :estado,                        if: Proc.new { self.get_param('estado') }
-	attribute :tipo,                          if: Proc.new { self.get_param('tipo') }
-	attribute :tipo_label,                    if: Proc.new { self.get_param('tipo_label') }
+  attribute :numero_comprobante,            if: Proc.new { self.get_param('numero_comprobante') }
+  attribute :user_id,                       if: Proc.new { self.get_param('user_id') }
+  attribute :estado,                        if: Proc.new { self.get_param('estado') }
+  attribute :tipo,                          if: Proc.new { self.get_param('tipo') }
+  attribute :tipo_label,                    if: Proc.new { self.get_param('tipo_label') }
 
-	def cabecera_factura
-		serialize_parser(object.cabecera_factura, {id: true, numero_comprobante: true, fecha_equivalente: true})
-	end
+  ALL_OR_FIELD_FIELDS = [:id, :total, :cabecera_factura, :detalles_facturas_notas, :fecha_equivalente].freeze
 
-	def detalles_facturas_notas
-		serialize_parser(object.detalles_facturas_notas, {all: true})
-	end
+  def get_param(col)
+    return @instance_options[:"#{col}"]
+  end
 
-	def fecha_equivalente
-		object.nota.fecha_equivalente
-	end
-	
-	def numero_comprobante
-		object.nota.numero_comprobante
-	end
+  def self.to_hash(object, params={})
+    fields = default_fields.select { |field| show_field?(field, params) }
+    serialize_record(object, fields, readers: readers(params))
+  end
 
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
 
-	def user_id
-		object.nota.user_id
-	end
+  def self.default_fields
+    [:id, :total, :cabecera_factura, :detalles_facturas_notas, :fecha_equivalente, :numero_comprobante, :user_id, :estado, :tipo, :tipo_label]
+  end
 
-	def estado
-		object.nota.estado
-	end
+  def self.show_field?(field, params)
+    ALL_OR_FIELD_FIELDS.include?(field) ? (params[:all] || params[field]) : params[field]
+  end
 
-	def tipo
-		object.tipo_nota
-	end
-
-	def tipo_label
-		object.tipo_nota == TiposNotas.credito  ? 'Crédito' : 'Débito'
-	end
-
-	def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+  def self.readers(params)
+    {
+      id: ->(record) { params[:usar_id_nota] ? record.nota_id : record.id },
+      cabecera_factura: ->(record) { ActiveModelSerializers::SerializableResource.new(record.cabecera_factura, {id: true, numero_comprobante: true, fecha_equivalente: true}).as_json },
+      detalles_facturas_notas: ->(record) { ActiveModelSerializers::SerializableResource.new(record.detalles_facturas_notas, {all: true}).as_json },
+      fecha_equivalente: ->(record) { record.nota.fecha_equivalente },
+      numero_comprobante: ->(record) { record.nota.numero_comprobante },
+      user_id: ->(record) { record.nota.user_id },
+      estado: ->(record) { record.nota.estado },
+      tipo: ->(record) { record.tipo_nota },
+      tipo_label: ->(record) { record.tipo_nota == TiposNotas.credito ? 'Crédito' : 'Débito' }
+    }
+  end
 end
