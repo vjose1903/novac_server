@@ -100,6 +100,7 @@ No repetir estas salvo que haya bug:
 - `divisas`
 - `documentos_de_identidad`
 - `detalles_produccion`
+- `detalle_conduces`
 - `formulas_productos_terminados`
 - `incidencias`
 - `marcas`
@@ -120,9 +121,9 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `detalle_conduces`
+1. `cabecera_conduces`
 
-Nota: `formulas_productos_terminados` (anterior en la lista) no tenia controller (`resources :formulas_productos_terminados` y `resources :mantenimiento_formulas` → `404`); su serializer standalone se estandarizo a fast siguiendo el patron inline que ya usaba `articulo_serializer` (cache `Thread.current[:articulos_cache]` para el articulo combo, campos calculados `nombre`/`existencia`/`contenido`). Contrato validado in-memory vs AMS. La serializacion viva esta anidada en `articulos` y ya era fast.
+Nota: `detalle_conduces` (anterior en la lista) no tenia controller (`resources :detalle_conduces` → `404`); su serializer es stateful (`descripcion` setea `@unidad_en_turno` que usan `unidad`/`peso_saco`, y `unidad` muta `object.unidad`), por eso su `to_hash` usa el patron instancia (`new(object, params)` + readers que llaman `serializer.descripcion`/`unidad`/`peso_saco`). Contrato validado in-memory vs AMS (all/parcial/none con objetos frescos; un DIFF era contaminacion de estado entre corridas). La serializacion viva esta anidada en `cabecera_conduces` (via `serialize_parser` en `CabeceraConduceSerializer`, que es esta entidad).
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -130,27 +131,26 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `detalle_conduces`
-2. `cabecera_conduces`
-3. `detalle_recibos`
-4. `facturas_aplicadas`
-5. `recibos_ingresos`
-6. `detalle_facturas`
-7. `detalles_facturas_notas`
-8. `notas`
-9. `cabecera_facturas`
-10. `cuadre_caja_denominaciones`
-11. `cuadre_caja_eventos`
-12. `cuadre_caja_movimientos`
-13. `cuadre_cajas`
-14. `movimiento_viajes`
-15. `document_references`
-16. `ecf_receptions`
-17. `commertial_approval_receptions`
-18. `calendar_event_types`
-19. `calendar_events`
-20. `calendar_event_links`
-21. `global_holidays`
+1. `cabecera_conduces`
+2. `detalle_recibos`
+3. `facturas_aplicadas`
+4. `recibos_ingresos`
+5. `detalle_facturas`
+6. `detalles_facturas_notas`
+7. `notas`
+8. `cabecera_facturas`
+9. `cuadre_caja_denominaciones`
+10. `cuadre_caja_eventos`
+11. `cuadre_caja_movimientos`
+12. `cuadre_cajas`
+13. `movimiento_viajes`
+14. `document_references`
+15. `ecf_receptions`
+16. `commertial_approval_receptions`
+17. `calendar_event_types`
+18. `calendar_events`
+19. `calendar_event_links`
+20. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
