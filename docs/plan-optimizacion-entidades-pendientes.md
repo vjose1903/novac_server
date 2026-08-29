@@ -99,6 +99,7 @@ No repetir estas salvo que haya bug:
 - `costo_fletes`
 - `divisas`
 - `documentos_de_identidad`
+- `detalles_produccion`
 - `incidencias`
 - `marcas`
 - `modelos`
@@ -117,19 +118,16 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `detalles_produccion`
+1. `producciones`
 
 Archivos probables:
 
-- `app/models/detalle_produccion.rb`
-- `app/serializers/detalle_produccion_serializer.rb`
-- `config/routes.rb` (`resources :detalles_produccion` en linea 21)
+- `app/controllers/producciones_controller.rb`
+- `app/models/produccion.rb`
+- `app/serializers/produccion_serializer.rb`
+- `config/routes.rb` (`resources :producciones` con `get "filtro/:arg"` en linea 91)
 
-Nota: NO existe `app/controllers/detalles_produccion_controller.rb`. `DetalleProduccion` se usa solo como dependencia anidada de `producciones` (`has_many :detalles_produccion` + `crear_actualizar_dependencias`; los `Response` intermedios de `validar_e_inicializar` nunca se envian). El serializer ya tiene el nombre correcto del modelo (`DetalleProduccionSerializer`); estandarizar al patron fast.
-
-Nota: `incidencias` (anterior en la lista) tampoco tenia controller; su serializer estaba mal nombrado (`IncidenciasSerializer`) y nadie lo referenciaba, asi que se RENOMBRO a `incidencia_serializer.rb` con clase `IncidenciaSerializer` (para que `fast_serializer_for(Incidencia)` la encuentre) y se estandarizo a fast. Tabla vacia; contrato validado in-memory.
-
-Nota: `configuracion_cuadres` se optimizo en el commit `b1e9550`; el `.md` quedo rezagado y se completo junto a `incidencias`.
+Nota: `detalles_produccion` (anterior en la lista) no tenia controller; su `DetalleProduccionSerializer` se estandarizo a fast (tabla SI tiene registros; contrato validado con datos reales in-memory). Es dependencia anidada de `producciones`.
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -137,30 +135,29 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `detalles_produccion`
-2. `producciones`
-3. `formulas_productos_terminados`
-4. `detalle_conduces`
-5. `cabecera_conduces`
-6. `detalle_recibos`
-7. `facturas_aplicadas`
-8. `recibos_ingresos`
-9. `detalle_facturas`
-10. `detalles_facturas_notas`
-11. `notas`
-12. `cabecera_facturas`
-13. `cuadre_caja_denominaciones`
-14. `cuadre_caja_eventos`
-15. `cuadre_caja_movimientos`
-16. `cuadre_cajas`
-17. `movimiento_viajes`
-18. `document_references`
-19. `ecf_receptions`
-20. `commertial_approval_receptions`
-21. `calendar_event_types`
-22. `calendar_events`
-23. `calendar_event_links`
-24. `global_holidays`
+1. `producciones`
+2. `formulas_productos_terminados`
+3. `detalle_conduces`
+4. `cabecera_conduces`
+5. `detalle_recibos`
+6. `facturas_aplicadas`
+7. `recibos_ingresos`
+8. `detalle_facturas`
+9. `detalles_facturas_notas`
+10. `notas`
+11. `cabecera_facturas`
+12. `cuadre_caja_denominaciones`
+13. `cuadre_caja_eventos`
+14. `cuadre_caja_movimientos`
+15. `cuadre_cajas`
+16. `movimiento_viajes`
+17. `document_references`
+18. `ecf_receptions`
+19. `commertial_approval_receptions`
+20. `calendar_event_types`
+21. `calendar_events`
+22. `calendar_event_links`
+23. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 

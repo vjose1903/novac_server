@@ -1,4 +1,6 @@
 class DetalleProduccionSerializer < ActiveModel::Serializer
+  extend FastSerializer
+
   attribute :id,                                 if: Proc.new { self.get_param('id') || self.get_param('all') }
   attribute :produccion_id,                      if: Proc.new { self.get_param('produccion_id') || self.get_param('all') }
   attribute :articulo_id,                        if: Proc.new { self.get_param('articulo_id') || self.get_param('all') }
@@ -7,7 +9,21 @@ class DetalleProduccionSerializer < ActiveModel::Serializer
 	attribute :medida,                             if: Proc.new { self.get_param('medida') || self.get_param('all') }
   
 	attribute :articulo,                           if: Proc.new { self.get_param('articulo') || self.get_param('all') }
-  
+
+  def self.to_hash(object, params={})
+    serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) }, readers: {
+      articulo: ->(detalle) { detalle.articulo.nombre }
+    })
+  end
+
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
+
+  def self.default_fields
+    [:id, :produccion_id, :articulo_id, :cantidad, :cantidad_en_unidades, :medida, :articulo]
+  end
+
   def articulo
     object.articulo.nombre
   end
