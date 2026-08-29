@@ -93,6 +93,7 @@ No repetir estas salvo que haya bug:
 - `acciones`
 - `articulos`
 - `clientes`
+- `config_articulos`
 - `divisas`
 - `documentos_de_identidad`
 - `marcas`
@@ -112,14 +113,15 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `config_articulos`
+1. `contenido_articulos`
 
 Archivos probables:
 
-- `app/controllers/config_articulos_controller.rb`
-- `app/models/config_articulo.rb`
-- `app/serializers/config_articulo_serializer.rb` (si existe)
-- `config/routes.rb`
+- `app/models/contenido_articulo.rb`
+- `app/serializers/contenido_articulo_serializer.rb`
+- `config/routes.rb` (`resources :contenido_articulos` en linea 33)
+
+Nota: NO existe `app/controllers/contenido_articulos_controller.rb`. La entidad se serializa desde otros controllers (p.ej. `articulos`) o compone `contenido_articulo` dentro de `articulo_serializer`; buscar donde se usa con `rg "ContenidoArticulo|contenido_articulo" app/controllers app/serializers` antes de tocar.
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -127,35 +129,34 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `config_articulos`
-2. `contenido_articulos`
-3. `costo_fletes`
-4. `configuracion_cuadres`
-5. `incidencias`
-6. `detalles_produccion`
-7. `producciones`
-8. `formulas_productos_terminados`
-9. `detalle_conduces`
-10. `cabecera_conduces`
-11. `detalle_recibos`
-12. `facturas_aplicadas`
-13. `recibos_ingresos`
-14. `detalle_facturas`
-15. `detalles_facturas_notas`
-16. `notas`
-17. `cabecera_facturas`
-18. `cuadre_caja_denominaciones`
-19. `cuadre_caja_eventos`
-20. `cuadre_caja_movimientos`
-21. `cuadre_cajas`
-22. `movimiento_viajes`
-23. `document_references`
-24. `ecf_receptions`
-25. `commertial_approval_receptions`
-26. `calendar_event_types`
-27. `calendar_events`
-28. `calendar_event_links`
-29. `global_holidays`
+1. `contenido_articulos`
+2. `costo_fletes`
+3. `configuracion_cuadres`
+4. `incidencias`
+5. `detalles_produccion`
+6. `producciones`
+7. `formulas_productos_terminados`
+8. `detalle_conduces`
+9. `cabecera_conduces`
+10. `detalle_recibos`
+11. `facturas_aplicadas`
+12. `recibos_ingresos`
+13. `detalle_facturas`
+14. `detalles_facturas_notas`
+15. `notas`
+16. `cabecera_facturas`
+17. `cuadre_caja_denominaciones`
+18. `cuadre_caja_eventos`
+19. `cuadre_caja_movimientos`
+20. `cuadre_cajas`
+21. `movimiento_viajes`
+22. `document_references`
+23. `ecf_receptions`
+24. `commertial_approval_receptions`
+25. `calendar_event_types`
+26. `calendar_events`
+27. `calendar_event_links`
+28. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
