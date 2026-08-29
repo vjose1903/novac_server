@@ -69,7 +69,7 @@ class RecibosIngreso < ApplicationRecord
           res_valid                = updateSecuencias(17)
 
           if res_valid.status_valid
-            data = {"recibo": serialize_parser(recibo, { all: true }) }
+            data = {"recibo": RecibosIngresoSerializer.to_hash(recibo, { all: true }) }
             data = { **data, "devoluciones": devoluciones } unless devoluciones.blank?
 
             res.set_data(data)

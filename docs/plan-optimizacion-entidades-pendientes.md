@@ -112,6 +112,7 @@ No repetir estas salvo que haya bug:
 - `permisos`
 - `producciones`
 - `provincias`
+- `recibos_ingresos`
 - `roles`
 - `suplidores`
 - `tasas_de_cambio`
@@ -124,7 +125,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `recibos_ingresos`
+1. `detalle_facturas`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -132,23 +133,22 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `recibos_ingresos`
-2. `detalle_facturas`
-3. `detalles_facturas_notas`
-4. `notas`
-5. `cabecera_facturas`
-6. `cuadre_caja_denominaciones`
-7. `cuadre_caja_eventos`
-8. `cuadre_caja_movimientos`
-9. `cuadre_cajas`
-10. `movimiento_viajes`
-11. `document_references`
-12. `ecf_receptions`
-13. `commertial_approval_receptions`
-14. `calendar_event_types`
-15. `calendar_events`
-16. `calendar_event_links`
-17. `global_holidays`
+1. `detalle_facturas`
+2. `detalles_facturas_notas`
+3. `notas`
+4. `cabecera_facturas`
+5. `cuadre_caja_denominaciones`
+6. `cuadre_caja_eventos`
+7. `cuadre_caja_movimientos`
+8. `cuadre_cajas`
+9. `movimiento_viajes`
+10. `document_references`
+11. `ecf_receptions`
+12. `commertial_approval_receptions`
+13. `calendar_event_types`
+14. `calendar_events`
+15. `calendar_event_links`
+16. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
