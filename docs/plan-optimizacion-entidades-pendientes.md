@@ -94,6 +94,7 @@ No repetir estas salvo que haya bug:
 - `articulos`
 - `clientes`
 - `divisas`
+- `documentos_de_identidad`
 - `marcas`
 - `modelos`
 - `municipios`
@@ -109,14 +110,15 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `documentos_de_identidad`
+1. `tipo_recibos`
 
 Archivos probables:
 
-- `app/controllers/documentos_de_identidad_controller.rb`
-- `app/models/documento_de_identidad.rb`
-- `app/serializers/documento_de_identidad_serializer.rb`
+- `app/controllers/tipo_recibos_controller.rb`
+- `app/models/tipo_recibo.rb`
 - `config/routes.rb`
+
+Nota: no existe `app/serializers/tipo_recibo_serializer.rb`. El controller es scaffold con `render json:` directo, sin `Response`. Antes de tocar, capturar baseline de todos los endpoints REST y confirmar si AMS usa un serializer por convencion o serializa columnas directas. Verificar si `config_setup`/`scripts` sobrescriben algo de esta entidad.
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -124,39 +126,38 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `documentos_de_identidad`
-2. `tipo_recibos`
-3. `tipo_facturas`
-4. `tipo_articulos`
-5. `config_articulos`
-6. `contenido_articulos`
-7. `costo_fletes`
-8. `configuracion_cuadres`
-9. `incidencias`
-10. `detalles_produccion`
-11. `producciones`
-12. `formulas_productos_terminados`
-13. `detalle_conduces`
-14. `cabecera_conduces`
-15. `detalle_recibos`
-16. `facturas_aplicadas`
-17. `recibos_ingresos`
-18. `detalle_facturas`
-19. `detalles_facturas_notas`
-20. `notas`
-21. `cabecera_facturas`
-22. `cuadre_caja_denominaciones`
-23. `cuadre_caja_eventos`
-24. `cuadre_caja_movimientos`
-25. `cuadre_cajas`
-26. `movimiento_viajes`
-27. `document_references`
-28. `ecf_receptions`
-29. `commertial_approval_receptions`
-30. `calendar_event_types`
-31. `calendar_events`
-32. `calendar_event_links`
-33. `global_holidays`
+1. `tipo_recibos`
+2. `tipo_facturas`
+3. `tipo_articulos`
+4. `config_articulos`
+5. `contenido_articulos`
+6. `costo_fletes`
+7. `configuracion_cuadres`
+8. `incidencias`
+9. `detalles_produccion`
+10. `producciones`
+11. `formulas_productos_terminados`
+12. `detalle_conduces`
+13. `cabecera_conduces`
+14. `detalle_recibos`
+15. `facturas_aplicadas`
+16. `recibos_ingresos`
+17. `detalle_facturas`
+18. `detalles_facturas_notas`
+19. `notas`
+20. `cabecera_facturas`
+21. `cuadre_caja_denominaciones`
+22. `cuadre_caja_eventos`
+23. `cuadre_caja_movimientos`
+24. `cuadre_cajas`
+25. `movimiento_viajes`
+26. `document_references`
+27. `ecf_receptions`
+28. `commertial_approval_receptions`
+29. `calendar_event_types`
+30. `calendar_events`
+31. `calendar_event_links`
+32. `global_holidays`
 
 Si una entidad no tiene controller REST directo, buscar donde se serializa con `rg "NombreSerializer|serialize_parser\\(|render json:" app`.
 

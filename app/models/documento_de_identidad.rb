@@ -9,6 +9,12 @@ class DocumentoDeIdentidad < ApplicationRecord
   validates :documento, uniqueness: { :allow_blank => true, scope: :origen_type, case_sensitive: false, :message => 'Documento de identidad ya esta registrado' }, :if => :documento
 
 
+  def self.models_includes_for(params={})
+    return nil unless params[:persona] || params[:all]
+
+    { origen: :documentos_de_identidad }
+  end
+
   def self.crear_actualizar_documento(params, padre, is_save=false)
     res = Response.new
 

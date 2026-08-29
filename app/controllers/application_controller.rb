@@ -69,8 +69,8 @@ class ApplicationController < ActionController::API
     filter_key = params["filter_key"]
     filter_value = params["filter_value"]
 
-    documentos = DocumentoDeIdentidad.where("documento='#{filter_value}'")
-    res.set_data(documentos, {persona: true})
+    documentos = DocumentoDeIdentidad.where("documento = ?", filter_value)
+    res.set_data(documentos, { persona: true }, DocumentoDeIdentidad.models_includes_for({ persona: true }))
     return res.send_response self
   end
 
