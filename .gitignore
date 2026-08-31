@@ -48,5 +48,8 @@ fail2ban/*
 logs/nginx/*
 !logs/nginx/.gitkeep
 
+# Ignore serena memory/config folder
+/.serena
+
 
 
