@@ -3,12 +3,12 @@ class NotasController < ApplicationController
 
   # GET /notas
 	def index
-    return Response.new(params, nil, Nota.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, nil, Nota.all.where({ estado: true}).order('id DESC'), nil, {all: true}, Nota.models_includes).send_response self
   end
 
   # GET /notas/1
   def show
-		return Response.new(params, nil, @nota, nil, {all: true}).send_response self
+		return Response.new(params, nil, @nota, nil, {all: true}, Nota.models_includes).send_response self
 	end
 
 	def getNotasFiltradas
