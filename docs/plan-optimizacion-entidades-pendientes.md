@@ -118,6 +118,7 @@ No repetir estas salvo que haya bug:
 - `ecf_receptions`
 - `facturas_aplicadas`
 - `formulas_productos_terminados`
+- `global_holidays`
 - `incidencias`
 - `marcas`
 - `modelos`
@@ -140,7 +141,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `global_holidays`
+1. `permiso_acciones`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -148,7 +149,7 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `global_holidays`
+1. `permiso_acciones`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
