@@ -102,6 +102,7 @@ No repetir estas salvo que haya bug:
 - `cuadre_caja_denominaciones`
 - `cuadre_caja_eventos`
 - `cuadre_caja_movimientos`
+- `cuadre_cajas`
 - `divisas`
 - `documentos_de_identidad`
 - `detalles_produccion`
@@ -141,8 +142,7 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `cuadre_cajas`
-2. `document_references`
+1. `document_references`
 3. `ecf_receptions`
 4. `commertial_approval_receptions`
 5. `calendar_event_types`
