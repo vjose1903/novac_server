@@ -99,6 +99,7 @@ No repetir estas salvo que haya bug:
 - `configuracion_cuadres`
 - `contenido_articulos`
 - `costo_fletes`
+- `cuadre_caja_denominaciones`
 - `divisas`
 - `documentos_de_identidad`
 - `detalles_produccion`
@@ -130,7 +131,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `cuadre_caja_denominaciones`
+1. `cuadre_caja_eventos`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -138,17 +139,16 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `cuadre_caja_denominaciones`
-2. `cuadre_caja_eventos`
-3. `cuadre_caja_movimientos`
-4. `cuadre_cajas`
-5. `document_references`
-6. `ecf_receptions`
-7. `commertial_approval_receptions`
-8. `calendar_event_types`
-9. `calendar_events`
-10. `calendar_event_links`
-11. `global_holidays`
+1. `cuadre_caja_eventos`
+2. `cuadre_caja_movimientos`
+3. `cuadre_cajas`
+4. `document_references`
+5. `ecf_receptions`
+6. `commertial_approval_receptions`
+7. `calendar_event_types`
+8. `calendar_events`
+9. `calendar_event_links`
+10. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
