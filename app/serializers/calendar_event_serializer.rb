@@ -94,16 +94,7 @@ class CalendarEventSerializer < ActiveModel::Serializer
   end
 
   def self.links_to_hash(links)
-    links.map do |link|
-      {
-        id: link.id,
-        calendar_event_id: link.calendar_event_id,
-        linkable_type: link.linkable_type,
-        linkable_id: link.linkable_id,
-        label: link.label,
-        metadata: link.metadata
-      }
-    end
+    CalendarEventLinkSerializer.collection_to_hash(links, { all: true })
   end
   private_class_method :links_to_hash
 end
