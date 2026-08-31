@@ -41,9 +41,7 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def documentos_de_identidad
-    object.documentos_de_identidad.map do |documento|
-      serialize_selected_record(documento, [:id, :descripcion, :documento, :principal], param: self.get_param('documentos_de_identidad'), include_all: self.get_param('all'))
-    end
+    self.class.documentos_de_identidad_to_hash(object, self.get_param('documentos_de_identidad'), self.get_param('all'))
   end
 
   def provincia_id
@@ -120,9 +118,9 @@ class ClienteSerializer < ActiveModel::Serializer
   end
 
   def self.documentos_de_identidad_to_hash(object, param=true, include_all=false)
-    object.documentos_de_identidad.map do |documento|
-      serialize_selected_record(documento, [:id, :descripcion, :documento, :principal], param: param, include_all: include_all)
-    end
+    fields = selected_serialized_fields(param, DocumentoDeIdentidadSerializer.default_fields, include_all: include_all)
+    fields_params = fields.each_with_object({ all: false }) { |field, hash| hash[field] = true }
+    DocumentoDeIdentidadSerializer.collection_to_hash(object.documentos_de_identidad, fields_params)
   end
 
   def self.provincia_to_hash(provincia, param=true, include_all=false)

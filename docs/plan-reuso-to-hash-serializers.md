@@ -151,7 +151,7 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 - `cliente_serializer.vendedor_to_hash`, `cabecera_factura.{cliente,suplidor,vendedor,pagos}_to_hash`, `articulo.tipo_articulo`, `vehiculo.propietario_to_hash` (branch no-empleado).
 
 ### Entidad actual
-La **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 `articulo_serializer.rb` → `formulas_productos_terminados`** y la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`** están hechas y validadas. Avanzar a la **#4 `cliente_serializer.rb` → `documentos_de_identidad`** (mismo patrón que A3/A5). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 → `formulas_productos_terminados`**, la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`** y la **#4 `cliente_serializer.rb` → `documentos_de_identidad`**. Avanzar a la **#5 `user_serializer.rb` → `documentos_de_identidad`** (mismo patrón que A3/A4). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
 
 ---
 
@@ -204,7 +204,7 @@ La **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 `articulo_
 - [x] A1 `articulo_serializer` (contenido_articulos)
 - [x] A2 `articulo_serializer` (formulas_productos_terminados)
 - [x] A3 `suplidor_serializer` (documentos_de_identidad)
-- [ ] A4 `cliente_serializer` (documentos_de_identidad)
+- [x] A4 `cliente_serializer` (documentos_de_identidad)
 - [ ] A5 `user_serializer` (documentos_de_identidad)
 - [ ] A6 `cliente_serializer` (municipio)
 - [ ] A7 `role_serializer` (permiso / permiso_accion)
