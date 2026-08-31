@@ -109,33 +109,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def serialize_formulas_productos_terminados(formulas)
-    return [] if formulas.empty?
-
-    formulas.map do |formula|
-      articulo_combo = articulo_combo_object(formula)
-
-      serialize_record(formula, [:id, :articulo_id, :cantidad, :costo, :precio, :medida, :articulo_combo, :nombre, :existencia, :contenido], readers: {
-        nombre: ->(_item) { articulo_combo&.nombre },
-        existencia: ->(_item) { articulo_combo ? Articulo.cantidades_calculadas(articulo_combo) : {} },
-        contenido: ->(_item) { articulo_combo ? Articulo.contenidos_calculados(articulo_combo) : {} }
-      })
-    end
-  end
-
-  def articulo_combo_object(formula)
-    Thread.current[:articulos_cache] ||= {}
-    combo_id = read_articulo_value(formula, :articulo_combo)
-    return nil if combo_id.nil?
-
-    return Thread.current[:articulos_cache][combo_id] if Thread.current[:articulos_cache].key?(combo_id)
-
-    articulo_combo = if formula.respond_to?(:association) && formula.association(:articulo_combo_articulo).loaded?
-      formula.articulo_combo_articulo
-    elsif formula.respond_to?(:articulo_combo_articulo)
-      formula.articulo_combo_articulo
-    end
-
-    Thread.current[:articulos_cache][combo_id] = articulo_combo
+    FormulasProductosTerminadoSerializer.collection_to_hash(formulas, { all: true })
   end
 
   def serializable_attributes(record)
@@ -143,10 +117,6 @@ class ArticuloSerializer < ActiveModel::Serializer
     return record.attributes if record.respond_to?(:attributes)
 
     record
-  end
-
-  def read_articulo_value(record, key)
-    read_serialized_value(record, key)
   end
 
   def self.to_hash(object, params={})
