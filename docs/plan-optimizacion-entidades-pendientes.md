@@ -110,6 +110,7 @@ No repetir estas salvo que haya bug:
 - `detalle_facturas`
 - `detalle_recibos`
 - `detalles_facturas_notas`
+- `document_references`
 - `facturas_aplicadas`
 - `formulas_productos_terminados`
 - `incidencias`
@@ -134,7 +135,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `cuadre_cajas`
+1. `ecf_receptions`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -142,8 +143,7 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `document_references`
-3. `ecf_receptions`
+1. `ecf_receptions`
 4. `commertial_approval_receptions`
 5. `calendar_event_types`
 6. `calendar_events`

@@ -311,6 +311,6 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 		end
 
 		optional_params = parse_serialize_optional_params(params[:document_reference], default_params)
-		serialize_parser(reference, optional_params)
+		DocumentReferenceSerializer.to_hash(reference, optional_params)
 	end
 end
