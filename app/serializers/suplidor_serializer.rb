@@ -38,8 +38,8 @@ class SuplidorSerializer < ActiveModel::Serializer
   end
 
   def self.documentos_de_identidad_to_hash(object, param=true, include_all=false)
-    object.documentos_de_identidad.map do |documento|
-      serialize_selected_record(documento, [:id, :descripcion, :documento, :principal], param: param, include_all: include_all)
-    end
+    fields = selected_serialized_fields(param, DocumentoDeIdentidadSerializer.default_fields, include_all: include_all)
+    fields_params = fields.each_with_object({ all: false }) { |field, hash| hash[field] = true }
+    DocumentoDeIdentidadSerializer.collection_to_hash(object.documentos_de_identidad, fields_params)
   end
 end
