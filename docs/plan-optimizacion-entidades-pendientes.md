@@ -95,6 +95,7 @@ No repetir estas salvo que haya bug:
 - `cabecera_conduces`
 - `cabecera_facturas`
 - `calendar_event_types`
+- `calendar_events`
 - `clientes`
 - `commertial_approval_receptions`
 - `config_articulos`
@@ -138,7 +139,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `calendar_event_types`
+1. `calendar_event_links`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -146,8 +147,7 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `calendar_events`
-2. `calendar_event_links`
+1. `calendar_event_links`
 3. `global_holidays`
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
