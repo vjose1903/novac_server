@@ -126,6 +126,7 @@ No repetir estas salvo que haya bug:
 - `municipios`
 - `notas`
 - `permisos`
+- `permiso_acciones`
 - `producciones`
 - `provincias`
 - `recibos_ingresos`
@@ -141,15 +142,13 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `permiso_acciones`
-
-Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
+_Completo._ Todas las entidades con serializer se optimizaron con `FastSerializer`. El unico serializer restante sin `extend FastSerializer` es el modulo `fast_serializer.rb` (el helper). `tipo_recibos` quedo pendiente porque no tiene tabla en la BD (ver nota abajo).
 
 ## Lista de prioridad pendiente
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `permiso_acciones`
+_Completo._ La lista de prioridad se agotó con `permiso_acciones` (31-08-2026).
 
 Nota: `tipo_recibos` (estaba aqui al inicio de la lista) se salto el 2026-08-29 porque no tiene tabla en la BD: el endpoint devuelve `500 PG::UndefinedTable`. Solo existen `resources :tipo_recibos`, `TipoRecibosController` (scaffold `render json:`) y `TipoRecibo`; no hay migracion, schema, datos ni serializer. Quedo pendiente de aclarar si la entidad sigue viva y que columnas deberia tener.
 
