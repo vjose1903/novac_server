@@ -95,6 +95,7 @@ No repetir estas salvo que haya bug:
 - `cabecera_conduces`
 - `cabecera_facturas`
 - `clientes`
+- `commertial_approval_receptions`
 - `config_articulos`
 - `configuracion_cuadres`
 - `contenido_articulos`
@@ -136,7 +137,7 @@ No repetir estas salvo que haya bug:
 
 La siguiente entidad a trabajar es:
 
-1. `commertial_approval_receptions`
+1. `calendar_event_types`
 
 Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
@@ -144,8 +145,7 @@ Despues de terminar esta entidad, continuar con la lista de prioridad de abajo.
 
 Trabajar en este orden, una entidad o grupo pequeno por turno:
 
-1. `commertial_approval_receptions`
-5. `calendar_event_types`
+1. `calendar_event_types`
 6. `calendar_events`
 7. `calendar_event_links`
 8. `global_holidays`
