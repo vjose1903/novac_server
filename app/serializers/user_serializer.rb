@@ -38,7 +38,7 @@ class UserSerializer < ActiveModel::Serializer
 
   def documentos_de_identidad
     optional_params = parse_serialize_optional_params(self.get_param('documentos_de_identidad'), { all: false, id: true, descripcion: true, documento: true, principal: true  })
-    serialize_parser(object.documentos_de_identidad, optional_params)
+    DocumentoDeIdentidadSerializer.collection_to_hash(object.documentos_de_identidad, optional_params)
   end
 
   def nombre_completo
@@ -97,7 +97,7 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def self.documentos_de_identidad_to_hash(object)
-    serialize_collection(object.documentos_de_identidad, [:id, :descripcion, :documento, :principal])
+    DocumentoDeIdentidadSerializer.collection_to_hash(object.documentos_de_identidad, { all: true })
   end
 
   def self.roles_to_hash(object)
