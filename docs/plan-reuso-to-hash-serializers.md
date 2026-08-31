@@ -151,7 +151,7 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 - `cliente_serializer.vendedor_to_hash`, `cabecera_factura.{cliente,suplidor,vendedor,pagos}_to_hash`, `articulo.tipo_articulo`, `vehiculo.propietario_to_hash` (branch no-empleado).
 
 ### Entidad actual
-Empezar por la **#1 `articulo_serializer.rb` → `contenido_articulos`**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+La **#1 `articulo_serializer.rb` → `contenido_articulos`** está hecha y validada. Avanzar a la **#2 `articulo_serializer.rb` → `formulas_productos_terminados`**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
 
 ---
 
@@ -201,7 +201,7 @@ Empezar por la **#1 `articulo_serializer.rb` → `contenido_articulos`**. Al ter
 - Timestamps/date en readers: `&.as_json` (formato ISO).
 
 ## Estado de avance (marcar al validar cada una)
-- [ ] A1 `articulo_serializer` (contenido_articulos)
+- [x] A1 `articulo_serializer` (contenido_articulos)
 - [ ] A2 `articulo_serializer` (formulas_productos_terminados)
 - [ ] A3 `suplidor_serializer` (documentos_de_identidad)
 - [ ] A4 `cliente_serializer` (documentos_de_identidad)

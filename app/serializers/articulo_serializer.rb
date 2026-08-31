@@ -105,13 +105,7 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def serialize_contenido_articulos(content)
-    return [] if content.empty?
-
-    serialize_collection(
-      content,
-      [:id, :articulo_id, :referencia, :costo, :precio, :cantidad, :medida, :condicion, :calcular_itbis],
-      readers: { calcular_itbis: ->(item) { read_articulo_value(item, :calcular_itbis) || false } }
-    )
+    ContenidoArticuloSerializer.collection_to_hash(content, { all: true })
   end
 
   def serialize_formulas_productos_terminados(formulas)
