@@ -151,7 +151,7 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 - `cliente_serializer.vendedor_to_hash`, `cabecera_factura.{cliente,suplidor,vendedor,pagos}_to_hash`, `articulo.tipo_articulo`, `vehiculo.propietario_to_hash` (branch no-empleado).
 
 ### Entidad actual
-Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 → `formulas_productos_terminados`**, la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`**, la **#4 `cliente_serializer.rb` → `documentos_de_identidad`** y la **#5 `user_serializer.rb` → `documentos_de_identidad`**. Avanzar a la **#6 `cliente_serializer.rb` → `municipio`** (`MunicipioSerializer.to_hash(municipio, {id:true, nombre:true})`, normalizado). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 → `formulas_productos_terminados`**, la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`**, la **#4 `cliente_serializer.rb` → `documentos_de_identidad`**, la **#5 `user_serializer.rb` → `documentos_de_identidad`** y la **#6 `cliente_serializer.rb` → `municipio`**. Avanzar a la **#7 `role_serializer.rb` → `permiso` / `permiso_accion`** (`PermisoSerializer.to_hash(permiso)` / `PermisoAccionSerializer.to_hash(permiso_accion)`). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
 
 ---
 
@@ -206,7 +206,7 @@ Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**
 - [x] A3 `suplidor_serializer` (documentos_de_identidad)
 - [x] A4 `cliente_serializer` (documentos_de_identidad)
 - [x] A5 `user_serializer` (documentos_de_identidad)
-- [ ] A6 `cliente_serializer` (municipio)
+- [x] A6 `cliente_serializer` (municipio)
 - [ ] A7 `role_serializer` (permiso / permiso_accion)
 - [ ] A8 `permiso_serializer` (permiso / permiso_accion)
 - [ ] A9 `permiso_accion_serializer` (permiso)

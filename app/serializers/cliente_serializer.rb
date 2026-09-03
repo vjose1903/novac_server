@@ -132,7 +132,7 @@ class ClienteSerializer < ActiveModel::Serializer
   def self.municipio_to_hash(municipio, param=true, include_all=false)
     return nil unless municipio
 
-    serialize_selected_record(municipio, [:id, :nombre, :codigo], param: param, include_all: include_all)
+    MunicipioSerializer.to_hash(municipio, { all: true })
   end
 
 end
