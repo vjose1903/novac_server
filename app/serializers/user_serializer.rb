@@ -101,6 +101,6 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def self.roles_to_hash(object)
-    serialize_collection(object.roles, [:id, :descripcion, :nombre])
+    RoleSerializer.collection_to_hash(object.roles, { id: true, descripcion: true, nombre: true })
   end
 end
