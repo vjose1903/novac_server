@@ -35,7 +35,7 @@ class PermisoSerializer < ActiveModel::Serializer
 			data = serialize_record(object, default_fields)
 
 			data[:acciones] = object.permisos_acciones.map { |permiso_accion| accion_to_hash(permiso_accion.accion) } if include_acciones
-			data[:permisos_acciones] = object.permisos_acciones.select { |permiso_accion| permiso_accion.accion&.mostrar_front }.map { |permiso_accion| permiso_accion_to_hash(permiso_accion, object) } if include_permisos_acciones
+			data[:permisos_acciones] = object.permisos_acciones.select { |permiso_accion| permiso_accion.accion&.mostrar_front }.map { |permiso_accion| permiso_accion_to_hash(permiso_accion) } if include_permisos_acciones
 			data
 		end
 
@@ -51,12 +51,8 @@ class PermisoSerializer < ActiveModel::Serializer
 			[:id, :descripcion, :nombre]
 		end
 
-		def self.permiso_accion_to_hash(permiso_accion, permiso)
-			{
-				id: permiso_accion.id,
-				accion: accion_to_hash(permiso_accion.accion),
-				permiso: permiso_to_hash(permiso)
-			}
+		def self.permiso_accion_to_hash(permiso_accion)
+			PermisoAccionSerializer.to_hash(permiso_accion)
 		end
 
 		def self.accion_to_hash(accion)
@@ -68,7 +64,7 @@ class PermisoSerializer < ActiveModel::Serializer
 		def self.permiso_to_hash(permiso)
 			return nil unless permiso
 
-			serialize_record(permiso, default_fields)
+			PermisoSerializer.to_hash(permiso)
 		end
 
 		def serialize_permiso_accion(permiso_accion)
