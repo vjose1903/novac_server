@@ -151,7 +151,7 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 - `cliente_serializer.vendedor_to_hash`, `cabecera_factura.{cliente,suplidor,vendedor,pagos}_to_hash`, `articulo.tipo_articulo`, `vehiculo.propietario_to_hash` (branch no-empleado).
 
 ### Entidad actual
-Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 → `formulas_productos_terminados`**, la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`**, la **#4 `cliente_serializer.rb` → `documentos_de_identidad`**, la **#5 `user_serializer.rb` → `documentos_de_identidad`**, la **#6 `cliente_serializer.rb` → `municipio`**, la **#7 `role_serializer.rb` → `permiso` / `permiso_accion`**, la **#8 `permiso_serializer.rb` → `permiso` / `permiso_accion`** y la **#9 `permiso_accion_serializer.rb` → `serialize_permiso`**. Avanzar a la **#10 `municipio_serializer.rb` → `provincia_to_hash`** (`ProvinciaSerializer.to_hash(prov, {id:true, nombre:true})`, normalizado, NO `all`). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 → `formulas_productos_terminados`**, la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`**, la **#4 `cliente_serializer.rb` → `documentos_de_identidad`**, la **#5 `user_serializer.rb` → `documentos_de_identidad`**, la **#6 `cliente_serializer.rb` → `municipio`**, la **#7 `role_serializer.rb` → `permiso` / `permiso_accion`**, la **#8 `permiso_serializer.rb` → `permiso` / `permiso_accion`**, la **#9 `permiso_accion_serializer.rb` → `serialize_permiso`** y la **#10 `municipio_serializer.rb` → `provincia_to_hash`**. Avanzar a la **#11 `cabecera_conduce_serializer.rb` → `cliente_to_hash`** (`ClienteSerializer.to_hash(cliente, {...})`, validar orden de claves). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
 
 ---
 
@@ -210,7 +210,7 @@ Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**
 - [x] A7 `role_serializer` (permiso / permiso_accion)
 - [x] A8 `permiso_serializer` (permiso / permiso_accion)
 - [x] A9 `permiso_accion_serializer` (permiso)
-- [ ] A10 `municipio_serializer` (provincia)
+- [x] A10 `municipio_serializer` (provincia)
 - [ ] A11 `cabecera_conduce_serializer` (cliente)
 - [ ] A12 `cuadre_caja_serializer` (serialize_user)
 - [ ] B13 `AccionSerializer` (filtrar por params)

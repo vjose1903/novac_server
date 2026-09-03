@@ -40,6 +40,8 @@ class MunicipioSerializer < ActiveModel::Serializer
   def self.provincia_to_hash(provincia, param=nil)
     return nil unless provincia
 
-    serialize_selected_record(provincia, [:id, :nombre], param: param)
+    fields = selected_serialized_fields(param, [:id, :nombre])
+    params = fields.each_with_object({}) { |field, h| h[field] = true }
+    ProvinciaSerializer.to_hash(provincia, params)
   end
 end
