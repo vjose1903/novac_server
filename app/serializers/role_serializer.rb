@@ -44,7 +44,7 @@ class RoleSerializer < ActiveModel::Serializer
 		def self.accion_to_hash(accion)
 			return nil unless accion
 
-			serialize_record(accion, [:id, :descripcion, :nombre, :mostrar_front])
+			AccionSerializer.to_hash(accion, { id: true, descripcion: true, nombre: true, mostrar_front: true })
 		end
 
 		def self.permiso_to_hash(permiso)

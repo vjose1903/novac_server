@@ -12,11 +12,12 @@ class AccionSerializer < ActiveModel::Serializer
 	end
 
 	def self.to_hash(object, params={})
-		serialize_record(object, default_fields)
+		fields = params.empty? ? default_fields : default_fields.select { |field| show_serialized_field?(params, field) }
+		serialize_record(object, fields)
 	end
 
 	def self.collection_to_hash(collection, params={})
-		serialize_collection(collection, default_fields)
+		collection.map { |object| to_hash(object, params) }
 	end
 
 	def self.default_fields
