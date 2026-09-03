@@ -41,12 +41,7 @@ class PermisoAccionSerializer < ActiveModel::Serializer
   def self.serialize_accion(accion)
     return nil unless accion
 
-    {
-      id: accion.id,
-      descripcion: accion.descripcion,
-      nombre: accion.nombre,
-      mostrar_front: accion.mostrar_front
-    }
+    AccionSerializer.to_hash(accion, { id: true, descripcion: true, nombre: true, mostrar_front: true })
   end
 
   def self.serialize_permiso(permiso)
@@ -61,12 +56,7 @@ class PermisoAccionSerializer < ActiveModel::Serializer
   def serialize_accion(accion)
     return nil unless accion
 
-    {
-      id: accion.id,
-      descripcion: accion.descripcion,
-      nombre: accion.nombre,
-      mostrar_front: accion.mostrar_front
-    }
+    AccionSerializer.to_hash(accion, { id: true, descripcion: true, nombre: true, mostrar_front: true })
   end
 
   def serialize_permiso(permiso)

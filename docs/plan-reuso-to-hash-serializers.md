@@ -216,7 +216,7 @@ Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**
 - [x] B13 `AccionSerializer` (filtrar por params)
 - [x] B14 `role_serializer` (accion)
 - [x] B15 `permiso_serializer` (accion)
-- [ ] B16 `permiso_accion_serializer` (accion)
+- [x] B16 `permiso_accion_serializer` (accion)
 - [ ] B17 `cliente_serializer` (provincia)
 - [ ] B18 `RoleSerializer` (filtrar por params)
 - [ ] B19 `user_serializer` (roles)
