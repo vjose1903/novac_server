@@ -232,7 +232,7 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 - Timestamps/date en readers: `&.as_json` (formato ISO).
 
 ## Estado de avance (marcar al validar cada una)
-- [ ] A1 `suplidor.rb` (serialize_parser self)
+- [x] A1 `suplidor.rb` (serialize_parser self)
 - [ ] A2 `user.rb` (serialize_parser self)
 - [ ] A3 `divisa.rb` (serialize_parser self)
 - [ ] A4 `cliente.rb` (serialize_parser self)
