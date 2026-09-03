@@ -52,11 +52,7 @@ class PermisoAccionSerializer < ActiveModel::Serializer
   def self.serialize_permiso(permiso)
     return nil unless permiso
 
-    {
-      id: permiso.id,
-      descripcion: permiso.descripcion,
-      nombre: permiso.nombre
-    }
+    PermisoSerializer.to_hash(permiso)
   end
   private_class_method :serialize_accion, :serialize_permiso
 
@@ -76,10 +72,6 @@ class PermisoAccionSerializer < ActiveModel::Serializer
   def serialize_permiso(permiso)
     return nil unless permiso
 
-    {
-      id: permiso.id,
-      descripcion: permiso.descripcion,
-      nombre: permiso.nombre
-    }
+    PermisoSerializer.to_hash(permiso)
   end
 end
