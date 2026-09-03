@@ -75,7 +75,7 @@ class Suplidor < ApplicationRecord
         }
 
         if res.status_valid && suplidor.save!
-          res.set_data(serialize_parser(suplidor,{all:true}))
+          res.set_data(suplidor, {all:true})
 
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Suplidor #{action} correctamente.")
