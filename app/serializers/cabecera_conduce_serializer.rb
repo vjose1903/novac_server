@@ -35,11 +35,6 @@ class CabeceraConduceSerializer < ActiveModel::Serializer
   def self.cliente_to_hash(cliente)
     return nil unless cliente
 
-    data = serialize_record(cliente, [:nombre, :apellido, :telefono, :direccion])
-    data[:nombre_completo] = cliente.nombre_completo
-    data[:documentos_de_identidad] = cliente.documentos_de_identidad.map do |documento|
-      serialize_selected_record(documento, [:id, :descripcion, :documento, :principal])
-    end
-    data
+    ClienteSerializer.to_hash(cliente, { nombre: true, apellido: true, telefono: true, direccion: true, nombre_completo: true, documentos_de_identidad: true })
   end
 end
