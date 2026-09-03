@@ -151,7 +151,7 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 - `cliente_serializer.vendedor_to_hash`, `cabecera_factura.{cliente,suplidor,vendedor,pagos}_to_hash`, `articulo.tipo_articulo`, `vehiculo.propietario_to_hash` (branch no-empleado).
 
 ### Entidad actual
-Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 → `formulas_productos_terminados`**, la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`**, la **#4 `cliente_serializer.rb` → `documentos_de_identidad`**, la **#5 `user_serializer.rb` → `documentos_de_identidad`**, la **#6 `cliente_serializer.rb` → `municipio`**, la **#7 `role_serializer.rb` → `permiso` / `permiso_accion`**, la **#8 `permiso_serializer.rb` → `permiso` / `permiso_accion`**, la **#9 `permiso_accion_serializer.rb` → `serialize_permiso`**, la **#10 `municipio_serializer.rb` → `provincia_to_hash`** y la **#11 `cabecera_conduce_serializer.rb` → `cliente_to_hash`**. Avanzar a la **#12 `cuadre_caja_serializer.rb` → `serialize_user`** (`UserSerializer.to_hash(user, {id:true, nombre:true, apellido:true, nombre_completo:true})`, solo camino clásico). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**, la **#2 → `formulas_productos_terminados`**, la **#3 `suplidor_serializer.rb` → `documentos_de_identidad`**, la **#4 `cliente_serializer.rb` → `documentos_de_identidad`**, la **#5 `user_serializer.rb` → `documentos_de_identidad`**, la **#6 `cliente_serializer.rb` → `municipio`**, la **#7 `role_serializer.rb` → `permiso` / `permiso_accion`**, la **#8 `permiso_serializer.rb` → `permiso` / `permiso_accion`**, la **#9 `permiso_accion_serializer.rb` → `serialize_permiso`**, la **#10 `municipio_serializer.rb` → `provincia_to_hash`**, la **#11 `cabecera_conduce_serializer.rb` → `cliente_to_hash`** y la **#12 `cuadre_caja_serializer.rb` → `serialize_user`**. **Fase A completada.** Avanzar a la **Fase B** (#13 `AccionSerializer` → hacer `to_hash` filtrar por `params`). Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
 
 ---
 
@@ -212,7 +212,7 @@ Hechas y validadas: la **#1 `articulo_serializer.rb` → `contenido_articulos`**
 - [x] A9 `permiso_accion_serializer` (permiso)
 - [x] A10 `municipio_serializer` (provincia)
 - [x] A11 `cabecera_conduce_serializer` (cliente)
-- [ ] A12 `cuadre_caja_serializer` (serialize_user)
+- [x] A12 `cuadre_caja_serializer` (serialize_user)
 - [ ] B13 `AccionSerializer` (filtrar por params)
 - [ ] B14 `role_serializer` (accion)
 - [ ] B15 `permiso_serializer` (accion)

@@ -106,7 +106,8 @@ class CuadreCajaSerializer < ActiveModel::Serializer
   private
 
   def serialize_user(user)
-    serialize_parser(user, { id: true, nombre: true, apellido: true, nombre_completo: true }) if user
+    return nil unless user
+    UserSerializer.to_hash(user, { id: true, nombre: true, apellido: true, nombre_completo: true })
   end
 
   def self.to_hash(object, params={})
