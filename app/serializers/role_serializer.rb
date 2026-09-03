@@ -38,12 +38,8 @@ class RoleSerializer < ActiveModel::Serializer
 		end
 
 		def self.permiso_accion_to_hash(permiso_accion)
-			{
-				id: permiso_accion.id,
-				accion: accion_to_hash(permiso_accion.accion),
-			permiso: permiso_to_hash(permiso_accion.permiso)
-		}
-	end
+			PermisoAccionSerializer.to_hash(permiso_accion)
+		end
 
 		def self.accion_to_hash(accion)
 			return nil unless accion
@@ -54,7 +50,7 @@ class RoleSerializer < ActiveModel::Serializer
 		def self.permiso_to_hash(permiso)
 			return nil unless permiso
 
-			serialize_record(permiso, [:id, :descripcion, :nombre])
+			PermisoSerializer.to_hash(permiso)
 		end
 
 	def serialize_permiso_accion(permiso_accion)
