@@ -20,7 +20,8 @@ class RoleSerializer < ActiveModel::Serializer
 
 		def self.to_hash(object, params={}, include_permisos_acciones: nil)
 			include_permisos_acciones = params[:permisos_acciones] if include_permisos_acciones.nil? && params.respond_to?(:[])
-			data = serialize_record(object, default_fields)
+			fields = params.empty? ? default_fields : default_fields.select { |field| show_serialized_field?(params, field) }
+			data = serialize_record(object, fields)
 
 			data[:permisos_acciones] = object.permisos_acciones.map { |permiso_accion| permiso_accion_to_hash(permiso_accion) } if include_permisos_acciones
 			data
