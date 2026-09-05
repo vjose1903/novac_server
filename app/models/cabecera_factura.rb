@@ -314,10 +314,10 @@ class CabeceraFactura < ApplicationRecord
       first_part = serial_split[0]
 
       cliente_id = first_part[0,4].reverse.to_i
-      obj[:cliente] = cliente_id > 0 ? serialize_parser(Cliente.find_by_id(cliente_id), { nombre_completo: true }) : nil
+      obj[:cliente] = cliente_id > 0 ? ClienteSerializer.to_hash(Cliente.find_by_id(cliente_id), { nombre_completo: true }) : nil
 
       user_id = first_part[4,4].to_i
-      obj[:user] = serialize_parser(User.find_by_id(user_id), { nombre_completo: true })
+      obj[:user] = UserSerializer.to_hash(User.find_by_id(user_id), { nombre_completo: true })
 
       obj[:cantidad_de_detalles] = first_part[8,4].reverse.to_i
     end

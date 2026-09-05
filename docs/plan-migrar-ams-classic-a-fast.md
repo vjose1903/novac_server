@@ -249,8 +249,8 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [x] B7 `facturas_aplicadas_controller.rb` show (render json)
 - [x] B8 `facturas_aplicadas_controller.rb` create (render json)
 - [x] B9 `facturas_aplicadas_controller.rb` update (render json)
-- [ ] C10 `cabecera_factura.rb` serialize_parser Cliente
-- [ ] C11 `cabecera_factura.rb` serialize_parser User
+- [x] C10 `cabecera_factura.rb` serialize_parser Cliente
+- [x] C11 `cabecera_factura.rb` serialize_parser User
 - [ ] C12 `cliente.rb` serialize_parser CabeceraFactura
 - [ ] C13 `cuadre_caja.rb:218` serialize_parser self
 - [ ] C14 `cuadre_caja.rb:301` serialize_parser User (prepared_by)
@@ -269,4 +269,4 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [ ] E (retiro de código muerto — plan separado post-migración)
 
 ### Entidad actual
-Siguiente: **C10 `cabecera_factura.rb` serialize_parser Cliente**.
+Siguiente: **C12 `cliente.rb` serialize_parser CabeceraFactura**.
