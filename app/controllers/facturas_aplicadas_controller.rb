@@ -32,7 +32,7 @@ class FacturasAplicadasController < ApplicationController
   # PATCH/PUT /facturas_aplicadas/1
   def update
     if @factura_aplicada.update(factura_aplicada_params)
-      render json: @factura_aplicada
+      return Response.new(params, nil, @factura_aplicada, nil, {all: true}, FacturaAplicada.models_includes).send_response self
     else
       render json: @factura_aplicada.errors, status: :unprocessable_entity
     end
