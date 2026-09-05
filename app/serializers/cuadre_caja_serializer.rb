@@ -49,16 +49,16 @@ class CuadreCajaSerializer < ActiveModel::Serializer
 
   def denominations
     {
-      bills: serialize_parser(object.denominaciones.select { |item| item.denomination_type == 'bill' }, { all: true }),
-      coins: serialize_parser(object.denominaciones.select { |item| item.denomination_type == 'coin' }, { all: true }),
-      foreign_currency: serialize_parser(object.denominaciones.select { |item| item.denomination_type == 'foreign_currency' || item.currency_code != CuadreCaja::LOCAL_CURRENCY_CODE }, { all: true })
+      bills: CuadreCajaDenominacionSerializer.collection_to_hash(object.denominaciones.select { |item| item.denomination_type == 'bill' }, { all: true }),
+      coins: CuadreCajaDenominacionSerializer.collection_to_hash(object.denominaciones.select { |item| item.denomination_type == 'coin' }, { all: true }),
+      foreign_currency: CuadreCajaDenominacionSerializer.collection_to_hash(object.denominaciones.select { |item| item.denomination_type == 'foreign_currency' || item.currency_code != CuadreCaja::LOCAL_CURRENCY_CODE }, { all: true })
     }
   end
 
   def movements
     {
-      other_payment_methods: serialize_parser(object.movimientos.select { |item| item.movement_group == 'other_payment_methods' }, { all: true }),
-      additional_transfers: serialize_parser(object.movimientos.select { |item| item.movement_group == 'additional_transfers' }, { all: true })
+      other_payment_methods: CuadreCajaMovimientoSerializer.collection_to_hash(object.movimientos.select { |item| item.movement_group == 'other_payment_methods' }, { all: true }),
+      additional_transfers: CuadreCajaMovimientoSerializer.collection_to_hash(object.movimientos.select { |item| item.movement_group == 'additional_transfers' }, { all: true })
     }
   end
 
@@ -96,7 +96,7 @@ class CuadreCajaSerializer < ActiveModel::Serializer
   end
 
   def eventos
-    serialize_parser(object.eventos.order('created_at ASC'), { all: true })
+    CuadreCajaEventoSerializer.collection_to_hash(object.eventos.order('created_at ASC'), { all: true })
   end
 
   def get_param(col)
