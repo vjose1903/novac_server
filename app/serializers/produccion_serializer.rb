@@ -30,11 +30,11 @@ class ProduccionSerializer < ActiveModel::Serializer
   end
 
   def detalles_produccion
-    serialize_parser(object.detalles_produccion, {all: true})
+    DetalleProduccionSerializer.collection_to_hash(object.detalles_produccion, {all: true})
   end
-  
+
   def user
-    serialize_parser(object.user, {nombre: true, apellido: true})
+    UserSerializer.to_hash(object.user, {nombre: true, apellido: true})
   end
   
   def get_param(col)
