@@ -75,12 +75,11 @@ class TasaCambio < ApplicationRecord
         where_clause          = is_today_change ? "fecha_equivalente >= '#{params[:fecha_equivalente]}'" : "secuencia = #{tasa_en_turno.secuencia}"
         tasas                 = TasaCambio.where("divisa_id = #{params[:divisa_id]} AND #{where_clause} AND (fecha_equivalente between '#{start_date}' AND '#{end_date}')").order("id ASC")
 
-        tasas.each do | tasa |
-          tasa.valor                = params[:valor]
-          tasa.last_user_update_id  = get_current_user[:id] unless get_current_user.nil?
-          tasa.secuencia            = (tasa.secuencia + 1) if is_today_change
-          tasa.save!
-        end
+        updates                   = { valor: params[:valor] }
+        updates[:last_user_update_id] = get_current_user[:id] unless get_current_user.nil?
+        updates[:secuencia]       = Arel.sql('secuencia + 1') if is_today_change
+
+        tasas.update_all(updates)
 
         current_divisa.current_tasa = params[:valor]
 
