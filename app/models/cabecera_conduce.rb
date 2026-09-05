@@ -51,7 +51,7 @@ class CabeceraConduce < ApplicationRecord
         res                        = updateSecuencias(15)
 
         if res.status_valid
-          res.set_data(serialize_parser(conduce, {all: true}))
+          res.set_data(conduce, {all: true})
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Conduce #{action} correctamente.")
 
