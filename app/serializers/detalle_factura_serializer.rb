@@ -37,7 +37,7 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     @articuloSelect['nombre']
 
     if articulo_in_detalle
-      serialize_parser(@articuloSelect, { all: true })
+      ArticuloSerializer.to_hash(@articuloSelect, { all: true })
     else
       @articuloSelect['nombre']
     end
