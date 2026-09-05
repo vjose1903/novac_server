@@ -215,7 +215,7 @@ class CuadreCaja < ApplicationRecord
       eventos.create!(user: user, event_type: target_status, from_status: from_status, to_status: status, reason: reason)
     end
 
-    res.set_data(serialize_parser(self, { all: true }))
+    res.set_data(self, { all: true })
     res.add_msg('Estado del cuadre actualizado correctamente')
     res
   end
@@ -298,7 +298,7 @@ class CuadreCaja < ApplicationRecord
       is_new_flow: detailed?,
       numero_reporte: numero_reporte,
       created_at: created_at,
-      prepared_by: prepared_by ? serialize_parser(prepared_by, { id: true, nombre: true, apellido: true, nombre_completo: true }) : nil,
+      prepared_by: prepared_by ? UserSerializer.to_hash(prepared_by, { id: true, nombre: true, apellido: true, nombre_completo: true }) : nil,
       usuario: (prepared_by || user)&.nombre_completo
     }
   end
@@ -326,7 +326,7 @@ class CuadreCaja < ApplicationRecord
       id: id,
       user_id: closing_user&.id,
       usuario: closing_user&.nombre_completo,
-      prepared_by: closing_user ? serialize_parser(closing_user, { id: true, nombre: true, apellido: true, nombre_completo: true }) : nil,
+      prepared_by: closing_user ? UserSerializer.to_hash(closing_user, { id: true, nombre: true, apellido: true, nombre_completo: true }) : nil,
       closing_date: closing_day,
       fecha: closing_day,
       status: current_status,
@@ -347,7 +347,7 @@ class CuadreCaja < ApplicationRecord
   end
 
   def prepare_payload
-    return serialize_parser(self, { all: true }) if detailed?
+    return CuadreCajaSerializer.to_hash(self, { all: true }) if detailed?
 
     {
       id: id,
@@ -448,7 +448,7 @@ class CuadreCaja < ApplicationRecord
       cuadre_caja.eventos.create!(user: current_user, event_type: event_type, from_status: from_status, to_status: cuadre_caja.status)
     end
 
-    res.set_data(serialize_parser(cuadre_caja.reload, { all: true }))
+    res.set_data(cuadre_caja.reload, { all: true })
     res.add_msg('Cuadre guardado correctamente')
     res
   rescue ActiveRecord::RecordInvalid => e

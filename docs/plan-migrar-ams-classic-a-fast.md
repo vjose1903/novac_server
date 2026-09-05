@@ -252,11 +252,11 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [x] C10 `cabecera_factura.rb` serialize_parser Cliente
 - [x] C11 `cabecera_factura.rb` serialize_parser User
 - [x] C12 `cliente.rb` serialize_parser CabeceraFactura
-- [ ] C13 `cuadre_caja.rb:218` serialize_parser self
-- [ ] C14 `cuadre_caja.rb:301` serialize_parser User (prepared_by)
-- [ ] C15 `cuadre_caja.rb:329` serialize_parser User (closing_user)
-- [ ] C16 `cuadre_caja.rb:350` serialize_parser self (detailed?)
-- [ ] C17 `cuadre_caja.rb:451` serialize_parser self (reload)
+- [x] C13 `cuadre_caja.rb:218` serialize_parser self
+- [x] C14 `cuadre_caja.rb:301` serialize_parser User (prepared_by)
+- [x] C15 `cuadre_caja.rb:329` serialize_parser User (closing_user)
+- [x] C16 `cuadre_caja.rb:350` serialize_parser self (detailed?)
+- [x] C17 `cuadre_caja.rb:451` serialize_parser self (reload)
 - [ ] D18 `cuadre_caja_serializer.rb` denominations
 - [ ] D19 `cuadre_caja_serializer.rb` movements
 - [ ] D20 `cuadre_caja_serializer.rb` eventos
@@ -269,4 +269,4 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [ ] E (retiro de código muerto — plan separado post-migración)
 
 ### Entidad actual
-Siguiente: **C13 `cuadre_caja.rb:218` serialize_parser self**.
+Siguiente: **D18 `cuadre_caja_serializer.rb` denominations**.
