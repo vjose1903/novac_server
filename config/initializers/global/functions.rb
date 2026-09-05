@@ -516,6 +516,10 @@ def get_current_user
   return Thread.current[:current_user]
 end
 
+def transaction_rollback
+  raise ActiveRecord::Rollback
+end
+
 def calculateDateUTC(date)
   # Cache por thread para evitar problemas de concurrencia
   Thread.current[:date_cache] ||= {}
