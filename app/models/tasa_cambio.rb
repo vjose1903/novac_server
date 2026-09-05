@@ -111,22 +111,28 @@ class TasaCambio < ApplicationRecord
   def self.create_year_tasa_cambio(divisa, current_tasa=0 )
 
     res_valid   = Response.new
-    array_valid = []
 
     start_date  = Date.new(Date.today.year, 1, 1)
     end_date    = Date.new(Date.today.year, 12, 31)
 
+    valor       = divisa.is_principal ? 1 : current_tasa
+    usuario     = get_current_user
+    existentes  = TasaCambio.where(divisa_id: divisa.id, fecha_equivalente: start_date..end_date).pluck(:fecha_equivalente).to_set
+
+    nuevas_tasas = []
     (start_date..end_date).each do | date |
-      new_tasa_cambio = { divisa_id: divisa.id, valor: current_tasa, fecha_equivalente: formatearFecha(date.to_s, TipoFecha.sin_hora) }.with_indifferent_access
-      resultado       = TasaCambio.create_tasa_cambio(new_tasa_cambio, divisa, true)
-
-      if resultado.status_valid
-        array_valid.push(resultado.get_data)
-      else
-        return resultado
-      end
-
+      nueva_tasa = { divisa_id: divisa.id, valor: valor, fecha_equivalente: formatearFecha(date.to_s, TipoFecha.sin_hora) }
+      nueva_tasa[:user_id] = usuario[:id] unless usuario.nil?
+      nuevas_tasas << nueva_tasa unless existentes.include?(date)
     end
+
+    array_valid = TasaCambio.where(divisa_id: divisa.id, fecha_equivalente: start_date..end_date).order('fecha_equivalente ASC').to_a
+
+    unless nuevas_tasas.empty?
+      TasaCambio.insert_all(nuevas_tasas)
+      array_valid = TasaCambio.where(divisa_id: divisa.id, fecha_equivalente: start_date..end_date).order('fecha_equivalente ASC').to_a
+    end
+
     res_valid.set_data array_valid
     return res_valid
 

@@ -240,7 +240,7 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 ## Estado de avance (marcar al validar cada una)
 - [x] A1 `suplidor.rb` (serialize_parser self)
 - [x] A2 `user.rb` (serialize_parser self)
-- [ ] A3 `divisa.rb` (serialize_parser self)
+- [x] A3 `divisa.rb` (serialize_parser self)
 - [ ] A4 `cliente.rb` (serialize_parser self)
 - [ ] A5 `cabecera_conduce.rb` (serialize_parser self)
 - [ ] B6 `facturas_aplicadas_controller.rb` index (render json)
@@ -267,4 +267,4 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [ ] E (retiro de código muerto — plan separado post-migración)
 
 ### Entidad actual
-Siguiente: **#3 `divisa.rb:42`**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+Siguiente: **#4 `cliente.rb:91`**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
