@@ -15,7 +15,7 @@ class FacturasAplicadasController < ApplicationController
 
   # GET /facturas_aplicadas/1
   def show
-    render json: @factura_aplicada
+    return Response.new(params, nil, @factura_aplicada, nil, {all: true}, FacturaAplicada.models_includes).send_response self
   end
 
   # POST /facturas_aplicadas
