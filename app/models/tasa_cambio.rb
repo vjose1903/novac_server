@@ -157,12 +157,20 @@ class TasaCambio < ApplicationRecord
   # ============================================================================================================================================
 
   def self.get_history_changes(params)
-    res             = Response.new
+    res = Response.new
 
-    desde           = Date.parse(params[:desde])
-    hasta           = Date.parse(params[:hasta])
+    desde = Date.parse(params[:desde])
+    hasta = Date.parse(params[:hasta])
 
-    ids             = TasaCambio.select('MIN(id) as id').where("divisa_id = #{params[:divisa_id]} AND valor > 0 AND (fecha_equivalente between '#{desde}' AND '#{hasta}')").group('secuencia').to_a
+    tasas_rango = TasaCambio.where("divisa_id = #{params[:divisa_id]} AND valor > 0 AND (fecha_equivalente between '#{desde}' AND '#{hasta}')")
+
+    if tasas_rango.exists? && tasas_rango.select('DISTINCT valor').count == 1
+      tasa_del_dia = tasas_rango.where(fecha_equivalente: hasta).first || tasas_rango.order('fecha_equivalente DESC').first
+      res.set_data([tasa_del_dia], {all: true})
+      return res
+    end
+
+    ids = tasas_rango.select('MIN(id) as id').group('secuencia').to_a
     tasas_de_cambio = TasaCambio.where({id: ids}).order('secuencia ASC')
 
     res.set_data(tasas_de_cambio, {all: true})
