@@ -42,7 +42,7 @@ class SecuenciaComprobante < ApplicationRecord
         res_valid = ncf.validar_rango(params[:action])
 
         if res_valid.status_valid && ncf.save!
-          res.set_data(serialize_parser(ncf, {all: true}))
+          res.set_data(ncf, {all: true})
 
           action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Paquete de comprobantes #{action} correctamente.")

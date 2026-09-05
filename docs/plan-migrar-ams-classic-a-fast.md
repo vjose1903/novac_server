@@ -237,7 +237,9 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - Si una entidad anidada NO tiene serializer fast (`to_hash`), NO delegar: dejarlo con método inline hasta que exista (o documentarlo).
 - Timestamps/date en readers: `&.as_json` (formato ISO).
 - **B6 (index facturas_aplicadas)**: además del controller, se migró el reader anidado `cabecera_factura` de `factura_aplicada_serializer.rb` de AMS clásico (`ActiveModelSerializers::SerializableResource`) a `CabeceraFacturaSerializer.to_hash` (patrón Fase D), y se añadió preload de `document_reference_as_origin/referenced` en `FacturaAplicada.models_includes` (el `show_field?` de `CabeceraFacturaSerializer` hace 2 queries por fila si no está preload). El index devolvía `[{},{}]` (AMS con get_param vacío omitía todos los atributos); ahora devuelve data real con `{all: true}` (id, total, cabecera_factura, detalles_facturas_notas, fecha_equivalente).
+- **D24**: `cabecera_conduce_serializer.rb` ya estaba 100% fast (to_hash con readers DetalleConduceSerializer/Cliente/User) — sin `serialize_parser` que migrar; marcado.
 - **B8 (create facturas_aplicadas)**: bug preexistente en strong params — `factura_aplicada_params` permite `:cabeza_factura_id` pero la columna real es `cabecera_factura_id` y `tipo_factura_id` no está permitido. El POST siempre devuelve 422 en producción (no relacionado con la migración; NO se corrige en este plan).
+- **E1 (extra)**: `secuencia_comprobante.rb:45` migrado a `res.set_data(ncf, {all: true})` (patrón Fase A). No existe `SecuenciaComprobanteSerializer` fast, así que `set_data` resuelve al mismo fallback AMS de columnas (12 keys) — salida idéntica. El resto del archivo ya usaba `set_data` directo (líneas 75/98/130); la 45 era la única inconsistente. Validado con runner + rollback (status 200, mismas keys, 0 registros persistidos). Nota: datos `hasta` contienen un centinela bigint (9223372036854775807) que rompe validaciones si se usa como rango.
 
 ## Estado de avance (marcar al validar cada una)
 - [x] A1 `suplidor.rb` (serialize_parser self)
@@ -266,6 +268,7 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [x] D24 `cabecera_conduce_serializer.rb` detalle_conduces
 - [x] D25 `cabecera_factura_serializer.rb` detalle_facturas
 - [x] D26 `cabecera_factura_serializer.rb` movimientos_viaje
+- [x] E1 `secuencia_comprobante.rb` serialize_parser self (extra, encontrado post-inventario)
 - [ ] E (retiro de código muerto — plan separado post-migración)
 
 ### Entidad actual
