@@ -174,6 +174,12 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 
 ---
 
+## Regla de Commit
+Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el agente debe:
+1. Actualizar la sección "Estado de avance" del archivo `docs/plan-migrar-ams-classic-a-fast.md`.
+2. Marcar con `[x]` la(s) fase(s)/entidad(ades) que se acaban de completar en ese commit.
+3. Luego ejecutar el commit con el mensaje descriptivo correspondiente.
+
 ## Flujo obligatorio por entidad (por cada modificación)
 
 1. `git status --short` antes de editar.
@@ -233,7 +239,7 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 
 ## Estado de avance (marcar al validar cada una)
 - [x] A1 `suplidor.rb` (serialize_parser self)
-- [ ] A2 `user.rb` (serialize_parser self)
+- [x] A2 `user.rb` (serialize_parser self)
 - [ ] A3 `divisa.rb` (serialize_parser self)
 - [ ] A4 `cliente.rb` (serialize_parser self)
 - [ ] A5 `cabecera_conduce.rb` (serialize_parser self)
@@ -261,4 +267,4 @@ Trabajar **una sola entidad por turno**, en este orden. Cada turno completa el f
 - [ ] E (retiro de código muerto — plan separado post-migración)
 
 ### Entidad actual
-Ninguna. Iniciar con la **#1 `suplidor.rb:78`**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+Siguiente: **#3 `divisa.rb:42`**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
