@@ -88,7 +88,7 @@ class Cliente < ApplicationRecord
         }
 
         if res.status_valid && cliente.save!
-          res.set_data(serialize_parser(cliente, {all: true}))
+          res.set_data(cliente, {all: true})
 
           action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Cliente #{action} correctamente.")
