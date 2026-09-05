@@ -262,11 +262,11 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [x] D20 `cuadre_caja_serializer.rb` eventos
 - [x] D21 `produccion_serializer.rb` detalles_produccion
 - [x] D22 `produccion_serializer.rb` user
-- [ ] D23 `detalle_factura_serializer.rb` articuloSelect
-- [ ] D24 `cabecera_conduce_serializer.rb` detalle_conduces
-- [ ] D25 `cabecera_factura_serializer.rb` detalle_facturas
-- [ ] D26 `cabecera_factura_serializer.rb` movimientos_viaje
+- [x] D23 `detalle_factura_serializer.rb` articuloSelect
+- [x] D24 `cabecera_conduce_serializer.rb` detalle_conduces
+- [x] D25 `cabecera_factura_serializer.rb` detalle_facturas
+- [x] D26 `cabecera_factura_serializer.rb` movimientos_viaje
 - [ ] E (retiro de código muerto — plan separado post-migración)
 
 ### Entidad actual
-Siguiente: **D23 `detalle_factura_serializer.rb` articuloSelect**.
+Siguiente: **Fase E (retiro de código muerto)**.

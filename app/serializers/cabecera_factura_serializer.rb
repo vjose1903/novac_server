@@ -67,7 +67,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 	end
 
 	def detalle_facturas
-		serialize_parser(object.detalle_facturas, @instance_options)
+		DetalleFacturaSerializer.collection_to_hash(object.detalle_facturas, @instance_options)
 	end
 
 	def cliente
@@ -156,7 +156,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 	end
 
 	def movimientos_viaje
-		serialize_parser(object.movimientos_viaje, @instance_options)
+		MovimientoViajeSerializer.collection_to_hash(object.movimientos_viaje, @instance_options)
 	end
 
 
