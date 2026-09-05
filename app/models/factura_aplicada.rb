@@ -9,7 +9,7 @@ class FacturaAplicada < ApplicationRecord
   def self.models_includes
     includes = [
       { nota: [{user: :documentos_de_identidad}, {cliente: :documentos_de_identidad}, :tipo_factura, :facturas_aplicadas, :detalles_facturas_notas] },
-      :cabecera_factura,
+      { cabecera_factura: [:document_reference_as_origin, :document_reference_as_referenced] },
       { detalles_facturas_notas: [:articulo, :detalle_factura] }
     ]
     return includes

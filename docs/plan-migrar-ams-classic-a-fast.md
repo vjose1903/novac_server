@@ -236,6 +236,7 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - **No usar `serialize_parser` como valor anidado** dentro de un hash plano de `to_hash` (no se resuelve bien en `to_json`). Delegar con `to_hash`/`collection_to_hash`.
 - Si una entidad anidada NO tiene serializer fast (`to_hash`), NO delegar: dejarlo con método inline hasta que exista (o documentarlo).
 - Timestamps/date en readers: `&.as_json` (formato ISO).
+- **B6 (index facturas_aplicadas)**: además del controller, se migró el reader anidado `cabecera_factura` de `factura_aplicada_serializer.rb` de AMS clásico (`ActiveModelSerializers::SerializableResource`) a `CabeceraFacturaSerializer.to_hash` (patrón Fase D), y se añadió preload de `document_reference_as_origin/referenced` en `FacturaAplicada.models_includes` (el `show_field?` de `CabeceraFacturaSerializer` hace 2 queries por fila si no está preload). El index devolvía `[{},{}]` (AMS con get_param vacío omitía todos los atributos); ahora devuelve data real con `{all: true}` (id, total, cabecera_factura, detalles_facturas_notas, fecha_equivalente).
 
 ## Estado de avance (marcar al validar cada una)
 - [x] A1 `suplidor.rb` (serialize_parser self)
@@ -243,7 +244,7 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [x] A3 `divisa.rb` (serialize_parser self)
 - [x] A4 `cliente.rb` (serialize_parser self)
 - [x] A5 `cabecera_conduce.rb` (serialize_parser self)
-- [ ] B6 `facturas_aplicadas_controller.rb` index (render json)
+- [x] B6 `facturas_aplicadas_controller.rb` index (render json)
 - [ ] B7 `facturas_aplicadas_controller.rb` show (render json)
 - [ ] B8 `facturas_aplicadas_controller.rb` create (render json)
 - [ ] B9 `facturas_aplicadas_controller.rb` update (render json)
@@ -267,4 +268,4 @@ Cuando el usuario solicite hacer un commit, **antes de ejecutar el commit**, el 
 - [ ] E (retiro de código muerto — plan separado post-migración)
 
 ### Entidad actual
-Siguiente: **#6 `facturas_aplicadas_controller.rb` index (render json)**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.
+Siguiente: **#7 `facturas_aplicadas_controller.rb` show (render json)**. Al terminar y validar cada una, marcar la casilla correspondiente abajo y avanzar a la siguiente.

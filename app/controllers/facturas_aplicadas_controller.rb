@@ -10,7 +10,7 @@ class FacturasAplicadasController < ApplicationController
   def index
     @facturas_aplicadas = FacturaAplicada.all
 
-    render json: @facturas_aplicadas
+    return Response.new(params, HTTP_STATUS_CODE[:ok], @facturas_aplicadas, nil, {all: true}, FacturaAplicada.models_includes).send_response self
   end
 
   # GET /facturas_aplicadas/1
