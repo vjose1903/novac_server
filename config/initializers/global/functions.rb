@@ -240,11 +240,6 @@ def validate_optional_param(params, key)
 end
 # ---------------------------------------------------------------------------------------------------------
 
-def serialize_parser(modelo, params={})
-  ActiveModelSerializers::SerializableResource.new(modelo, params)
-end
-# ---------------------------------------------------------------------------------------------------------
-
 def set_entidad(modelo, params, key="id")
   res = Response.new
   where = { "#{key}": params[key]}

@@ -1,23 +1,10 @@
 class FacturaAplicadaSerializer < ActiveModel::Serializer
   extend FastSerializer
 
-  attribute :id,                            if: Proc.new { self.get_param('all') || self.get_param('id')  }
-  attribute :total,                         if: Proc.new { self.get_param('all') || self.get_param('total')  }
-  attribute :cabecera_factura,              if: Proc.new { self.get_param('all') || self.get_param('cabecera_factura')  }
-  attribute :detalles_facturas_notas,       if: Proc.new { self.get_param('all') || self.get_param('detalles_facturas_notas')  }
-  attribute :fecha_equivalente,             if: Proc.new { self.get_param('all') || self.get_param('fecha_equivalente') }
 
-  attribute :numero_comprobante,            if: Proc.new { self.get_param('numero_comprobante') }
-  attribute :user_id,                       if: Proc.new { self.get_param('user_id') }
-  attribute :estado,                        if: Proc.new { self.get_param('estado') }
-  attribute :tipo,                          if: Proc.new { self.get_param('tipo') }
-  attribute :tipo_label,                    if: Proc.new { self.get_param('tipo_label') }
 
   ALL_OR_FIELD_FIELDS = [:id, :total, :cabecera_factura, :detalles_facturas_notas, :fecha_equivalente].freeze
 
-  def get_param(col)
-    return @instance_options[:"#{col}"]
-  end
 
   def self.to_hash(object, params={})
     fields = default_fields.select { |field| show_field?(field, params) }

@@ -1,19 +1,10 @@
 class PermisoAccionSerializer < ActiveModel::Serializer
   extend FastSerializer
 
-  attribute :id
-  attribute :accion
-  attribute :permiso
 
   ALL_OR_FIELD_FIELDS = [:id, :accion, :permiso].freeze
 
-  def permiso
-    serialize_permiso(object.permiso)
-  end
 
-  def accion
-    serialize_accion(object.accion)
-  end
 
   def self.to_hash(object, params={})
     serialize_record(object, default_fields, readers: readers)
@@ -51,17 +42,4 @@ class PermisoAccionSerializer < ActiveModel::Serializer
   end
   private_class_method :serialize_accion, :serialize_permiso
 
-  private
-
-  def serialize_accion(accion)
-    return nil unless accion
-
-    AccionSerializer.to_hash(accion, { id: true, descripcion: true, nombre: true, mostrar_front: true })
-  end
-
-  def serialize_permiso(permiso)
-    return nil unless permiso
-
-    PermisoSerializer.to_hash(permiso)
-  end
 end

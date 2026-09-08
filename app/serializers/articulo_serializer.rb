@@ -2,37 +2,10 @@ class ArticuloSerializer < ActiveModel::Serializer
   include FastSerializer
   extend FastSerializer
 
-  attribute :id
-  attribute :imagen_id,                          if: Proc.new { self.get_param('all') || self.get_param('imagen_id') }
-  attribute :tipo_articulo_id,                   if: Proc.new { self.get_param('all') || self.get_param('tipo_articulo_id') }
-  attribute :nombre,                             if: Proc.new { self.get_param('all') || self.get_param('nombre') }
-  attribute :costo_principal,                    if: Proc.new { self.get_param('all') || self.get_param('costo_principal') }
-  attribute :precio_principal,                   if: Proc.new { self.get_param('all') || self.get_param('precio_principal') }
-  attribute :existencia,                         if: Proc.new { self.get_param('all') || self.get_param('existencia') }
-  attribute :aviso_existencia,                   if: Proc.new { self.get_param('all') || self.get_param('aviso_existencia') }
-  attribute :codigo,                             if: Proc.new { self.get_param('all') || self.get_param('codigo') }
-  attribute :fecha_ingreso,                      if: Proc.new { self.get_param('all') || self.get_param('fecha_ingreso') }
-  attribute :medida,                             if: Proc.new { self.get_param('all') || self.get_param('medida') }
-  attribute :is_detallable,                      if: Proc.new { self.get_param('all') || self.get_param('is_detallable') }
-  attribute :medida_alerta,                      if: Proc.new { self.get_param('all') || self.get_param('medida_alerta') }
-  attribute :calcular_itbis,                     if: Proc.new { self.get_param('all') || self.get_param('calcular_itbis') }
-  attribute :estado,                             if: Proc.new { self.get_param('all') || self.get_param('estado') }
-  attribute :is_combo,                           if: Proc.new { self.get_param('all') || self.get_param('is_combo') }
-  attribute :otros_costos,                       if: Proc.new { self.get_param('all') || self.get_param('otros_costos') }
-  attribute :vendido_en,                         if: Proc.new { self.get_param('all') || self.get_param('vendido_en') }
-  attribute :is_materia_prima,                   if: Proc.new { self.get_param('all') || self.get_param('is_materia_prima') }
 
-  attribute :contenido_articulos,                if: Proc.new { self.get_param('all') || self.get_param('contenido_articulos') || self.get_param('costos') }
-  attribute :formulas_productos_terminados,      if: Proc.new { self.get_param('all') || object.is_combo && (self.get_param('formulas_productos_terminados')) }
 
-  attribute :descripcion,                        if: Proc.new { self.get_param('all') || self.get_param('descripcion') }
 
-  attribute :contenido,                          if: Proc.new { self.get_param('all') || self.get_param('contenido') }
-  attribute :cantidades,                         if: Proc.new { self.get_param('all') || self.get_param('cantidades') }
-  attribute :calcular_saco,                      if: Proc.new { self.get_param('all') || self.get_param('calcular_saco') }
 
-  attribute :costos,                             if: Proc.new { self.get_param('all') || self.get_param('costos') }
-  attribute :tipo_articulo,                      if: Proc.new { self.get_param('all') || self.get_param('tipo_articulo')}
 
 
   def medida

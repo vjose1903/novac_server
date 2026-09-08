@@ -1,9 +1,6 @@
 class CostoFleteSerializer < ActiveModel::Serializer
   extend FastSerializer
 
-  attributes :id, :costo, :municipio, :municipio_id
-  has_one :municipio
-
   def self.to_hash(object, params={})
     serialize_record(object, [:id, :costo, :municipio, :municipio_id], readers: {
       municipio: ->(costo_flete) { MunicipioSerializer.to_hash(costo_flete.municipio, params) }
@@ -14,7 +11,4 @@ class CostoFleteSerializer < ActiveModel::Serializer
     collection.map { |object| to_hash(object, params) }
   end
 
-  def municipio
-		object.municipio
-	end
 end

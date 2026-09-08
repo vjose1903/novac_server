@@ -39,7 +39,7 @@ class MarcasController < ApplicationController
     @marca = Marca.new(marca_params)
 
     if @marca.save
-      render json: @marca, status: :created, location: @marca
+      render body: MarcaSerializer.to_hash(@marca).to_json, status: :created, content_type: 'application/json'
     else
       render json: @marca.errors, status: :unprocessable_entity
     end
@@ -48,7 +48,7 @@ class MarcasController < ApplicationController
   # PATCH/PUT /marcas/1
   def update
     if @marca.update(marca_params)
-      render json: @marca
+      render body: MarcaSerializer.to_hash(@marca).to_json, content_type: 'application/json'
     else
       render json: @marca.errors, status: :unprocessable_entity
     end

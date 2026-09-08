@@ -1,7 +1,6 @@
 class MarcaSerializer < ActiveModel::Serializer
   extend FastSerializer
 
-  attributes :id, :descripcion, :created_at, :updated_at
 
   def self.to_hash(object, params={})
     serialize_record(object, default_fields)

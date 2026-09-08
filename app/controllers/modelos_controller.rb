@@ -62,7 +62,7 @@ class ModelosController < ApplicationController
     @modelo = Modelo.new(modelo_params)
 
     if @modelo.save
-      render json: @modelo, status: :created, location: @modelo
+      render body: ModeloSerializer.to_hash(@modelo).to_json, status: :created, content_type: 'application/json'
     else
       render json: @modelo.errors, status: :unprocessable_entity
     end
@@ -71,7 +71,7 @@ class ModelosController < ApplicationController
   # PATCH/PUT /modelos/1
   def update
     if @modelo.update(modelo_params)
-      render json: @modelo
+      render body: ModeloSerializer.to_hash(@modelo).to_json, content_type: 'application/json'
     else
       render json: @modelo.errors, status: :unprocessable_entity
     end
