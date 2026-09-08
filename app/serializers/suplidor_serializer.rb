@@ -1,27 +1,28 @@
 class SuplidorSerializer < ActiveModel::Serializer
-  
-  attribute :id,                            if: Proc.new { self.get_param('id') || self.get_param('all') }
-  attribute :nombre,                        if: Proc.new { self.get_param('nombre') || self.get_param('all') }
-  attribute :telefono,                      if: Proc.new { self.get_param('telefono') || self.get_param('all') }
-  attribute :direccion,                     if: Proc.new { self.get_param('direccion') || self.get_param('all') }
-  attribute :email,                         if: Proc.new { self.get_param('email') || self.get_param('all') }
-  attribute :estado,                        if: Proc.new { self.get_param('estado') || self.get_param('all') }
-  attribute :documentos_de_identidad,       if: Proc.new { self.get_param('documentos_de_identidad') || self.get_param('all') }
-  attribute :nombre_completo
+  extend FastSerializer
 
-  def documentos_de_identidad
-    documentos = []
-    object.documentos_de_identidad.each do |documento|
-      documentos.push(serialize_parser(documento, {}))
-    end
-    documentos
+
+
+
+
+  def self.to_hash(object, params={})
+    data = serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) })
+    data[:documentos_de_identidad] = documentos_de_identidad_to_hash(object, params[:documentos_de_identidad], params[:all]) if show_serialized_field?(params, :documentos_de_identidad)
+    data[:nombre_completo] = object.nombre_completo if show_serialized_field?(params, :nombre_completo)
+    data
   end
-  
-  def nombre_completo
-		vendedor = object.nombre_completo
-	end
 
-  def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
+
+  def self.default_fields
+    [:id, :nombre, :telefono, :direccion, :email, :estado]
+  end
+
+  def self.documentos_de_identidad_to_hash(object, param=true, include_all=false)
+    fields = selected_serialized_fields(param, DocumentoDeIdentidadSerializer.default_fields, include_all: include_all)
+    fields_params = fields.each_with_object({ all: false }) { |field, hash| hash[field] = true }
+    DocumentoDeIdentidadSerializer.collection_to_hash(object.documentos_de_identidad, fields_params)
+  end
 end

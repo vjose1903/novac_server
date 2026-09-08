@@ -1,0 +1,21 @@
+FROM node:24.19.0-alpine
+
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Instalar todas las dependencias (incluyendo devDependencies)
+RUN npm install
+
+# Instala ts-node-dev globalmente (opcional)
+RUN npm install -g ts-node-dev
+
+
+# Exponer puerto
+EXPOSE 9091
+
+
+# Comando para iniciar el servicio en modo desarrollo
+CMD ["npm", "run", "start:dev"]

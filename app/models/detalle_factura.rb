@@ -14,11 +14,21 @@ class DetalleFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   def self.crear_detalle_factura(params, padre, is_save=false)
+    detalle_factura = build_detalle_factura(params, padre, is_save)
+    res_proceso     = detalle_factura.procesos_detalle(params, padre)
+
+    return error_detalle_response(res_proceso, detalle_factura) unless detalle_listo_para_guardar?(detalle_factura, res_proceso, is_save)
+
     res = Response.new
+    res.set_data(detalle_factura)
+    res
 
+  end
+
+  private_class_method def self.build_detalle_factura(params, padre, is_save)
     detalle_factura                           = DetalleFactura.new
-
     detalle_factura.articulo_id               = params[:articulo_id]
+    detalle_factura.codigo                    = params[:codigo]
     detalle_factura.unidad                    = params[:unidad]
     detalle_factura.total                     = params[:total]
     detalle_factura.cantidad                  = params[:cantidad]
@@ -34,24 +44,26 @@ class DetalleFactura < ApplicationRecord
     detalle_factura.is_defectuoso             = params[:is_defectuoso] || false
     detalle_factura.is_devuelto               = params[:is_devuelto] || false
     detalle_factura.cabecera_factura_id       = padre[:id] if is_save
+
     detalle_factura.valid?
+    detalle_factura.errors.delete(:cabecera_factura) unless is_save
+    detalle_factura.otras_validaciones(params)
 
-    detalle_factura.errors.delete(:cabecera_factura) if !is_save
+    detalle_factura
+  end
 
-		detalle_factura.otras_validaciones(params)
+  private_class_method def self.detalle_listo_para_guardar?(detalle_factura, res_proceso, is_save)
+    res_proceso.status_valid &&
+      detalle_factura.errors.empty? &&
+      (!is_save || detalle_factura.save!)
+  end
 
-    res_proceso                               = detalle_factura.procesos_detalle(params, padre)
-
-    if res_proceso.status_valid && detalle_factura.errors.empty? && (!is_save || (is_save && detalle_factura.save!))
-      res.set_data(detalle_factura)
-    else
-      res.add_msgs(res_proceso.get_msgs.to_a)
-      res.add_msgs(detalle_factura.errors.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
-    return res
-
+  private_class_method def self.error_detalle_response(res_proceso, detalle_factura)
+    res = Response.new
+    res.add_msgs(res_proceso.get_msgs.to_a)
+    res.add_msgs(detalle_factura.errors.to_a)
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
   end
 
   # ===================================================================================================================================================
@@ -75,34 +87,15 @@ class DetalleFactura < ApplicationRecord
 
   # ===================================================================================================================================================
   def procesos_detalle(params, cabecera)
-    res           = Response.new
+    return Response.new if cabecera["tipo"] == TiposFacturasDescripcion.cotizacion
+    return Response.new if cabecera["pre_factura"].present? && (!params['is_devuelto'] || params['is_defectuoso'])
 
-    operador      = cabecera["tipo"] == "compra" ? "+" : "-"
-    fecha         = cabecera["fecha_equivalente"]
+    operador = cabecera["pre_factura"].present? ? "+" : operador_inventario(cabecera)
+    MovimientosInventario.movimientos_de_inventario(params, operador, cabecera["fecha_equivalente"], "factura", cabecera)
+  end
 
-    accion        = "factura"
-
-    if cabecera["tipo"] != TiposFacturasDescripcion.cotizacion
-      if cabecera["pre_factura"].nil?
-        res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
-
-        unless res_movimiento.status_valid
-          res.add_msgs(res_movimiento.get_msgs.to_a)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
-        end
-      else
-        if params['is_devuelto'] && !params['is_defectuoso']
-          operador     = "+"
-          res_movimiento = MovimientosInventario.movimientos_de_inventario(params, operador, fecha, accion, cabecera )
-          unless res_movimiento.status_valid
-            res.add_msgs(res_movimiento.get_msgs.to_a)
-            res.set_status(HTTP_STATUS_CODE[:conflict])
-          end
-        end
-      end
-    end
-
-    return res
+  def operador_inventario(cabecera)
+    cabecera["tipo"] == "compra" ? "+" : "-"
   end
 
   # ===================================================================================================================================================

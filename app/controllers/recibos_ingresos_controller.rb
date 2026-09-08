@@ -9,7 +9,7 @@ class RecibosIngresosController < ApplicationController
 
   # GET /recibos_ingresos/1
   def show
-    return Response.new(params, nil, @recibos_ingreso, nil, get_parametros_opcionales).send_response self
+    return Response.new(params, nil, @recibos_ingreso, nil, get_parametros_opcionales.merge({ all: true }), RecibosIngreso.models_includes).send_response self
   end
 
 
@@ -55,20 +55,20 @@ class RecibosIngresosController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      all:                 params['all'] || false,
-      user_id:             params['user_id'] ||false,
-      cliente_id:          params['cliente_id'] ||false,
-      total:               params['total'] ||false,
-      forma_pago:          params['forma_pago'] ||false,
-      tipo_factura_id:     params['tipo_factura_id'] ||false,
-      devuelta:            params['devuelta'] ||false,
-      fecha_equivalente:   params['fecha_equivalente'] ||false,
-      estado:              params['estado'] ||false,
-      incidencias:         params['incidencias'] ||false,
-      numero_recibo:       params['numero_recibo'] ||false,
-      cliente:             params['cliente'] ||false,
-      user:                params['user'] ||false,
-      detalle_recibos:     params['detalle_recibos'] ||false,
+      all:                validate_optional_param(params, 'all') ?               params['all'].to_boolean :               false,
+      user_id:            validate_optional_param(params, 'user_id') ?           params['user_id'].to_boolean :           false,
+      cliente_id:         validate_optional_param(params, 'cliente_id') ?        params['cliente_id'].to_boolean :        false,
+      total:              validate_optional_param(params, 'total') ?             params['total'].to_boolean :             false,
+      forma_pago:         validate_optional_param(params, 'forma_pago') ?        params['forma_pago'].to_boolean :        false,
+      tipo_factura_id:    validate_optional_param(params, 'tipo_factura_id') ?   params['tipo_factura_id'].to_boolean :   false,
+      devuelta:           validate_optional_param(params, 'devuelta') ?          params['devuelta'].to_boolean :          false,
+      fecha_equivalente:  validate_optional_param(params, 'fecha_equivalente') ? params['fecha_equivalente'].to_boolean : false,
+      estado:             validate_optional_param(params, 'estado') ?            params['estado'].to_boolean :            false,
+      incidencias:        validate_optional_param(params, 'incidencias') ?       params['incidencias'].to_boolean :       false,
+      numero_recibo:      validate_optional_param(params, 'numero_recibo') ?     params['numero_recibo'].to_boolean :     false,
+      cliente:            validate_optional_param(params, 'cliente') ?           params['cliente'].to_boolean :           false,
+      user:               validate_optional_param(params, 'user') ?              params['user'].to_boolean :              false,
+      detalle_recibos:    validate_optional_param(params, 'detalle_recibos') ?   params['detalle_recibos'].to_boolean :   false,
     }
   end
 

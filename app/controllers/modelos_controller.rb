@@ -7,29 +7,30 @@ class ModelosController < ApplicationController
     per_page = params["per_page"]
     paginado = params["paginado"] === "true" ? true : false
 
-    @modelos = Modelo.all
+    @modelos = Modelo.includes(:marca)
 
     res = []
 
     if paginado
-      res = @modelos.to_a.my_paginate(page, per_page)
+      res = @modelos.my_paginate(page, per_page)
     else
       res = @modelos
     end
 
-    render json: res
+    data = paginado ? res.merge("data" => ModeloSerializer.collection_to_hash(res["data"])) : ModeloSerializer.collection_to_hash(res)
+    render body: data.to_json, content_type: 'application/json'
   end
 
   # GET /modelos/1
   def show
-    render json: @modelo
+    render body: ModeloSerializer.to_hash(@modelo).to_json, content_type: 'application/json'
   end
 
   def getModelosPorMarca
     marca = params["marca"]
-    modelos = Modelo.where({ marca_id: marca })
+    modelos = Modelo.includes(:marca).where({ marca_id: marca })
 
-    render json: modelos
+    render body: ModeloSerializer.collection_to_hash(modelos).to_json, content_type: 'application/json'
   end
 
   def getModelosFiltrados
@@ -41,17 +42,16 @@ class ModelosController < ApplicationController
 
     modelos = Modelo.filtrarModelo(arg)
 
-    modelos_ = Modelo.parsearModelosFiltro(modelos)
-
     res = []
 
     if paginado
-      res = modelos.to_a.my_paginate(page, per_page)
+      res = modelos.my_paginate(page, per_page)
     else
       res = modelos
     end
 
-    render json: res
+    data = paginado ? res.merge("data" => ModeloSerializer.collection_to_hash(res["data"])) : ModeloSerializer.collection_to_hash(res)
+    render body: data.to_json, content_type: 'application/json'
   end
 
 
@@ -62,7 +62,7 @@ class ModelosController < ApplicationController
     @modelo = Modelo.new(modelo_params)
 
     if @modelo.save
-      render json: @modelo, status: :created, location: @modelo
+      render body: ModeloSerializer.to_hash(@modelo).to_json, status: :created, content_type: 'application/json'
     else
       render json: @modelo.errors, status: :unprocessable_entity
     end
@@ -71,7 +71,7 @@ class ModelosController < ApplicationController
   # PATCH/PUT /modelos/1
   def update
     if @modelo.update(modelo_params)
-      render json: @modelo
+      render body: ModeloSerializer.to_hash(@modelo).to_json, content_type: 'application/json'
     else
       render json: @modelo.errors, status: :unprocessable_entity
     end

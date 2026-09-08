@@ -44,11 +44,6 @@ class String
   end
 end
 
-# ---------------------------------------------------------------------------------------------------------
-def calculateDateUTC(dateTime)
-  return "#{dateTime.getlocal.strftime("%Y-%m-%d")} #{dateTime.getlocal.strftime("%H:%M:%S")}"
-end
-
 def pruebaArchivo()
 	archivo = "#{PROJECT_PATH}prueba.rb"
 
@@ -110,6 +105,26 @@ class Array
     total_pag = (items.length.to_f / per_page.to_f).ceil
     return { "data" => itemsPaginated, "total_registros" => items.length, "total_paginas" => total_pag }
     # return { :data =>  itemsPaginated, :total_registros =>  items.length, :total_paginas => total_pag }
+  end
+end
+
+class ActiveRecord::Relation
+  def my_paginate(page, per_page)
+    page = page.to_i
+    per_page = per_page.to_i
+
+    page = 1 if page <= 0
+    per_page = 1 if per_page <= 0
+
+    total_registros = unscope(:order).limit(nil).offset(nil).reselect(klass.arel_table[klass.primary_key]).distinct.count
+    total_registros = total_registros.values.sum if total_registros.is_a?(Hash)
+    total_paginas = (total_registros.to_f / per_page.to_f).ceil
+
+    {
+      "data" => offset((page - 1) * per_page).limit(per_page),
+      "total_registros" => total_registros,
+      "total_paginas" => total_paginas
+    }
   end
 end
 

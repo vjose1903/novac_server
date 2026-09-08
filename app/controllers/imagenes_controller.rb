@@ -17,7 +17,9 @@ class ImagenesController < ApplicationController
   def create
     att = imagen_params
 
-    att["path"] = Imagen.saveFileInThisServer(att[:file_name], att[:base_64])
+    path = Imagen.saveFileInThisServer(att[:file_name], att[:base_64])
+    att["path"] = path if Imagen.column_names.include?("path")
+    att.delete("path") unless Imagen.column_names.include?("path")
     @imagen = Imagen.new(att)
 
     if @imagen.save

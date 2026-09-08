@@ -6,6 +6,8 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
+CalendarEventType.seed_defaults
+
 
 G_usuarios.each do |user|
 
@@ -46,32 +48,51 @@ G_tipos_articulo.each do |tipo|
   end
 end
 
+
+
+
+
 tipos_factura = [
-  { "referencia": "00", "descripcion": "Factura sin comprobante", },
-  { "referencia": "01", "descripcion": "Factura con valor fiscal", },
-  { "referencia": "02", "descripcion": "Factura de consumo", },
-  { "referencia": "03", "descripcion": "Nota de debito", },
-  { "referencia": "04", "descripcion": "Nota de credito", },
-  { "referencia": "11", "descripcion": "Comprobante de compras", },
-  { "referencia": "12", "descripcion": "Registro de unico ingreso", },
-  { "referencia": "13", "descripcion": "Comprobante para gastos menores", },
-  { "referencia": "14", "descripcion": "Comprobante de regimen especiales", },
-  { "referencia": "15", "descripcion": "Comprobante gubernamental", },
-  { "referencia": "16", "descripcion": "Comprobante para exportaciones", },
-  { "referencia": "17", "descripcion": "Comprobantes para pago al exterior", },
-  { "referencia": nil, "descripcion": "Venta Contado", },
-  { "referencia": nil, "descripcion": "Compra", },
-  { "referencia": nil, "descripcion": "Conduce", },
-  { "referencia": nil, "descripcion": "Produccion", },
-  { "referencia": nil, "descripcion": "Recibo_ingreso", },
-  { "referencia": nil, "descripcion": "Venta Credito", },
-  { "referencia": nil, "descripcion": "pre_venta", },
-  { "referencia": nil, "descripcion": "cotizacion", },
+  { "referencia": '00', "serie": 'normal',      key: 'factura_sin_comprobante',        "descripcion": 'Factura sin comprobante' },
+  { "referencia": '01', "serie": 'normal',      key: 'factura_de_credito_fiscal',      "descripcion": 'Factura con valor fiscal' },
+  { "referencia": '02', "serie": 'normal',      key: 'factura_de_consumo',             "descripcion": 'Factura de consumo' },
+  { "referencia": '03', "serie": 'normal',      key: 'nota_de_debito',                 "descripcion": 'Nota de debito' },
+  { "referencia": '04', "serie": 'normal',      key: 'nota_de_credito',                "descripcion": 'Nota de credito' },
+  { "referencia": '11', "serie": 'normal',      key: 'comprobante_compras',            "descripcion": 'Comprobante de compras' },
+  { "referencia": '12', "serie": 'normal',      key: 'registro_unico_ingreso',         "descripcion": 'Registro de unico ingreso' },
+  { "referencia": '13', "serie": 'normal',      key: 'gastos_menores',                 "descripcion": 'Comprobante para gastos menores' },
+  { "referencia": '14', "serie": 'normal',      key: 'regimenes_especiales',           "descripcion": 'Comprobante de regimen especiales' },
+  { "referencia": '15', "serie": 'normal',      key: 'gubernamental',                  "descripcion": 'Comprobante gubernamental' },
+  { "referencia": '16', "serie": 'normal',      key: 'comprobante_de_exportaciones',   "descripcion": 'Comprobante para exportaciones' },
+  { "referencia": '17', "serie": 'normal',      key: 'comprobante_pagos_al_exterior',  "descripcion": 'Comprobantes para pago al exterior' },
+  { "referencia": nil,  "serie": 'normal',      key: 'venta_contado',                  "descripcion": 'Venta Contado' },
+  { "referencia": nil,  "serie": 'normal',      key: 'compra',                         "descripcion": 'Compra' },
+  { "referencia": nil,  "serie": 'normal',      key: 'conduce',                        "descripcion": 'Conduce' },
+  { "referencia": nil,  "serie": 'normal',      key: 'produccion',                     "descripcion": 'Produccion' },
+  { "referencia": nil,  "serie": 'normal',      key: 'recibo_ingreso',                 "descripcion": 'Recibo_ingreso' },
+  { "referencia": nil,  "serie": 'normal',      key: 'venta_credito',                  "descripcion": 'Venta Credito' },
+  { "referencia": nil,  "serie": 'normal',      key: 'pre_venta',                      "descripcion": 'pre_venta' },
+  { "referencia": nil,  "serie": 'normal',      key: 'cotizacion',                     "descripcion": 'cotizacion' },
+
+  { "referencia": '31', "serie": 'electronica', key: 'factura_de_credito_fiscal',      "descripcion": 'Factura de Crédito Fiscal Electrónica ' },
+  { "referencia": '32', "serie": 'electronica', key: 'factura_de_consumo',             "descripcion": 'Factura de Consumo Electrónica' },
+  { "referencia": '33', "serie": 'electronica', key: 'nota_de_debito',                 "descripcion": 'Nota de Débito Electrónica' },
+  { "referencia": '34', "serie": 'electronica', key: 'nota_de_credito',                "descripcion": 'Nota de Crédito Electrónica' },
+  { "referencia": '41', "serie": 'electronica', key: 'comprobante_compras',            "descripcion": 'Compras Electrónico' },
+  { "referencia": '43', "serie": 'electronica', key: 'gastos_menores',                 "descripcion": 'Gastos Menores Electrónico' },
+  { "referencia": '44', "serie": 'electronica', key: 'regimenes_especiales',           "descripcion": 'Regímenes Especiales Electrónico' },
+  { "referencia": '45', "serie": 'electronica', key: 'gubernamental',                  "descripcion": 'Gubernamental Electrónico' },
+  { "referencia": '46', "serie": 'electronica', key: 'comprobante_de_exportaciones',   "descripcion": 'Comprobante de Exportaciones Electrónico ' },
+  { "referencia": '47', "serie": 'electronica', key: 'comprobante_pagos_al_exterior',  "descripcion": 'Comprobante para Pagos al Exterior Electrónico' },
+  { "referencia": nil,  "serie": 'electronica', key: 'venta_contado',                  "descripcion": 'Venta Contado' },
+  { "referencia": nil,  "serie": 'electronica', key: 'compra',                         "descripcion": 'Compra' },
+  { "referencia": nil,  "serie": 'electronica', key: 'venta_credito',                  "descripcion": 'Venta Credito' },
 ]
 
 tipos_factura.each do |tipo_fac|
+  tipo_factura = TipoFactura.where({ descripcion: tipo_fac[:descripcion], serie: tipo_fac[:serie] })
 
-  if (TipoFactura.find_by_descripcion(tipo_fac[:descripcion])).nil?
+  if tipo_factura.empty?
     tipo = TipoFactura.create(tipo_fac)
     puts " "
     puts "ERROR- tipo_factura: ".red + "#{tipo.errors.to_json}" if !tipo.errors.empty?
@@ -137,16 +158,32 @@ PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
 
   provincia_db = Provincia.find_by_nombre(provincia_seed[:nombre])
 
-  provincia_db = Provincia.create({nombre: provincia_seed[:nombre]}) if provincia_db.nil?
+  if provincia_db.nil?
+    provincia_db = Provincia.create({nombre: provincia_seed[:nombre], codigo: provincia_seed[:codigo]})
+  else
+    provincia_db.codigo = provincia_seed[:codigo]
+    provincia_db.save!
+  end
+
+
   puts " "
   puts "ERROR- provincia: ".red + "#{provincia_db.errors.to_json}" if !provincia_db.errors.empty?
 
+
   provincia_seed[:municipios].each do |municipio_seed|
-    if Municipio.find_by_nombre(municipio_seed).nil?
-      muni = Municipio.create({nombre: municipio_seed, provincia_id: provincia_db[:id]})
-      puts " "
-      puts "ERROR- municipio: ".red + "#{muni.errors.to_json}" if !muni.errors.empty?
+    municipio_db = Municipio.find_by(:nombre => municipio_seed[:nombre], :provincia_id => provincia_db[:id])
+
+
+    if municipio_db.nil?
+      municipio_db = Municipio.create({nombre: municipio_seed[:nombre], provincia_id: provincia_db[:id], codigo: municipio_seed[:codigo]})
+    else
+      municipio_db.codigo = municipio_seed[:codigo]
+      municipio_db.save!
     end
+
+    puts " "
+    puts "ERROR- municipio: ".red + "#{municipio_db.errors.to_json}" if !municipio_db.errors.empty?
+
   end
 end
 
@@ -321,6 +358,35 @@ G_CONFIG_ARTICULOS.each do |config|
     puts "ERROR- ConfigArticulo: ".red + "#{configuracion_articulo_backend.errors.to_json}" if !configuracion_articulo_backend.errors.empty?
   end
 
+end
+
+configuracion_cuadre_backend = ConfiguracionCuadre.first
+
+if configuracion_cuadre_backend.nil?
+  configuracion_cuadre_backend = ConfiguracionCuadre.create(config: G_CONFIG_CUADRES)
+  puts " "
+  puts "------".cyan * 7
+  puts "CREANDO CONFIGURACION CUADRE"
+  puts "------".cyan * 7
+  puts " "
+  puts "ERROR- ConfiguracionCuadre: ".red + "#{configuracion_cuadre_backend.errors.to_json}" if !configuracion_cuadre_backend.errors.empty?
+end
+
+G_DIVISA_DEFAULT.each do |divisa|
+  divisa_db = Divisa.find_by(nombre: divisa[:nombre], estado: true)
+  if divisa_db.nil?
+    divisa['action'] = 'create'
+    resultado = Divisa.create_update_divisa(divisa.with_indifferent_access, true)
+    divisa_db = resultado.get_data
+    puts " "
+    puts "------".cyan * 8
+    puts "CREANDO DIVISA"
+    puts "------".cyan * 8
+    puts " "
+    puts "ERROR- divisa_db: ".red + "#{resultado.get_msgs.to_json}" unless resultado.status_valid
+  elsif divisa_db.code != divisa[:code]
+    divisa_db.update(code: divisa[:code])
+  end
 end
 
 

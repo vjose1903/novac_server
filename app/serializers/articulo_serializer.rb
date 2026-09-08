@@ -1,35 +1,11 @@
 class ArticuloSerializer < ActiveModel::Serializer
-  attribute :id
-  attribute :imagen_id,                          if: Proc.new { self.get_param('imagen_id') || self.get_param('all') }
-  attribute :tipo_articulo_id,                   if: Proc.new { self.get_param('tipo_articulo_id') || self.get_param('all') }
-  attribute :nombre,                             if: Proc.new { self.get_param('nombre') || self.get_param('all') }
-  attribute :costo_principal,                    if: Proc.new { self.get_param('costo_principal') || self.get_param('all') }
-  attribute :precio_principal,                   if: Proc.new { self.get_param('precio_principal') || self.get_param('all') }
-  attribute :existencia,                         if: Proc.new { self.get_param('existencia') || self.get_param('all') }
-  attribute :aviso_existencia,                   if: Proc.new { self.get_param('aviso_existencia') || self.get_param('all') }
-  attribute :codigo,                             if: Proc.new { self.get_param('codigo') || self.get_param('all') }
-  attribute :fecha_ingreso,                      if: Proc.new { self.get_param('fecha_ingreso') || self.get_param('all') }
-  attribute :medida,                             if: Proc.new { self.get_param('medida') || self.get_param('all') }
-  attribute :is_detallable,                      if: Proc.new { self.get_param('is_detallable') || self.get_param('all') }
-  attribute :medida_alerta,                      if: Proc.new { self.get_param('medida_alerta') || self.get_param('all') }
-  attribute :calcular_itbis,                     if: Proc.new { self.get_param('calcular_itbis') || self.get_param('all') }
-  attribute :estado,                             if: Proc.new { self.get_param('estado') || self.get_param('all') }
-  attribute :is_combo,                           if: Proc.new { self.get_param('is_combo') || self.get_param('all') }
-  attribute :otros_costos,                       if: Proc.new { self.get_param('otros_costos') || self.get_param('all') }
-  attribute :vendido_en,                         if: Proc.new { self.get_param('vendido_en') || self.get_param('all') }
-  attribute :is_materia_prima,                   if: Proc.new { self.get_param('is_materia_prima') || self.get_param('all') }
+  include FastSerializer
+  extend FastSerializer
 
-  attribute :contenido_articulos,                if: Proc.new { self.get_param('contenido_articulos') || self.get_param('costos') || self.get_param('all') }
-  attribute :formulas_productos_terminados,      if: Proc.new { object.is_combo && (self.get_param('formulas_productos_terminados') || self.get_param('all')) }
 
-  attribute :descripcion,                        if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
 
-  attribute :contenido,                          if: Proc.new { self.get_param('contenido') || self.get_param('all') }
-  attribute :cantidades,                         if: Proc.new { self.get_param('cantidades') || self.get_param('all') }
-  attribute :calcular_saco,                      if: Proc.new { self.get_param('calcular_saco') || self.get_param('all') }
 
-  attribute :costos,                             if: Proc.new { self.get_param('costos') || self.get_param('all') }
-  attribute :tipo_articulo,                      if: Proc.new { self.get_param('tipo_articulo') || self.get_param('all')}
+
 
 
   def medida
@@ -45,14 +21,11 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def contenido_articulos
-    contenido = getContentHistorico('contenidos')
-
-    serialize_parser(contenido, {all: true})
+    serialize_contenido_articulos(content_historico('contenidos'))
   end
 
   def formulas_productos_terminados
-    formulas = getContentHistorico('formulas')
-    serialize_parser(formulas, {all: true})
+    serialize_formulas_productos_terminados(content_historico('formulas'))
   end
 
   def descripcion
@@ -60,125 +33,122 @@ class ArticuloSerializer < ActiveModel::Serializer
   end
 
   def contenido
-    calcularContenidos(object, true)
+    Articulo.contenidos_calculados(object, true)
   end
 
   def cantidades
-    calcularCantidades(object)
+    Articulo.cantidades_calculadas(object)
   end
 
 
   def get_param(col)
-    return @instance_options[:"#{col}"]
-  end
-
-  def calcularContenidos(articulo, sacos)
-
-    contenidos = {}
-
-    if sacos && articulo['vendido_en'] == 'Saco' && articulo["calcular_saco"]
-      [100, 50, 25].each do |c|
-        contenidos["Saco_#{c}"] = c
-      end
-    end
-
-    articulo['medida']                                      = articulo['medida'] == "N/A" || articulo['medida'] == nil ? object.tipo_articulo.tipo.titleize : articulo['medida']
-    contenidos[articulo['medida']]                          = object.contenido_articulos.length == 0 ? 1 : object.contenido_articulos.first['cantidad']
-    contenidos[object.contenido_articulos.first['medida']]  = 1 if object.contenido_articulos.length > 0
-
-
-    if object.contenido_articulos.length == 2
-
-      cantPrincipal  = 1
-      cantHijo       = 1
-      cantPadre      = 1
-
-      object.contenido_articulos.each do |conte|
-        cantPrincipal *= conte['cantidad']
-        cantPadre = conte['cantidad'] if conte['referencia'] != nil
-      end
-
-      contenidos[articulo['medida']]                      = cantPrincipal
-      contenidos[object.contenido_articulos[0]['medida']] = cantPadre
-      contenidos[object.contenido_articulos[1]['medida']] = cantHijo
-    end
-    contenidos
-  end
-
-  def calcularCantidades(articulo)
-
-    existencia = articulo['existencia'].nil? ? 0 : articulo['existencia']
-
-    cantidades = {}.with_indifferent_access
-
-    articulo['medida']                                     = articulo['medida'] == "N/A" || articulo['medida'] == nil ? object.tipo_articulo.tipo.titleize : articulo['medida']
-    cantidades[articulo['medida']]                         = object.contenido_articulos.length == 0 ? existencia : (existencia / object.contenido_articulos.first['cantidad'])
-    cantidades[object.contenido_articulos.first['medida']] = existencia if object.contenido_articulos.length > 0
-
-    if object.contenido_articulos.length == 2
-
-      maxCant   = 1
-      cantPadre = 1
-
-      object.contenido_articulos.each do |conte|
-        maxCant   = conte['cantidad'] * maxCant
-        cantPadre = conte['cantidad'] if conte['condicion'] == 'hijo'
-      end
-
-      cantidades[articulo['medida']]                      = (existencia / maxCant)
-      cantidades[object.contenido_articulos[0]['medida']] = (existencia / cantPadre)
-      cantidades[object.contenido_articulos[1]['medida']] = existencia
-    end
-
-    return cantidades
+    @instance_options[col.to_sym]
   end
 
   def costos
-		obj = {}.with_indifferent_access
-
-    obj["#{object.medida}"]            = {}.with_indifferent_access
-    obj["#{object.medida}"]['costo']   = object.costo_principal
-    obj["#{object.medida}"]['precio']  = object.precio_principal
-
-    object.contenido_articulos.each do | conte |
-      obj["#{conte.medida}"]           = {}
-      obj["#{conte.medida}"]['costo']  = conte.costo
-      obj["#{conte.medida}"]['precio'] = conte.precio
-    end
-
-    if object.calcular_saco && ( obj['Quintal'].present? && !obj['Quintal'].nil?)
-      [100, 50, 25].each do | peso |
-
-        obj["Saco_#{peso}"]              = {}.with_indifferent_access
-        obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * obj['Quintal']['costo']
-        obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * obj['Quintal']['precio']
-      end
-    end
-
-    obj
+    Articulo.costos_calculados(object)
   end
 
   def tipo_articulo
-    object.tipo_articulo
+    serializable_attributes(object.tipo_articulo)
   end
 
-  def getContentHistorico(tipo)
+  def content_historico(tipo)
+    historicos_map = get_param('historicos_map')
+    return current_content(tipo) if historicos_map.blank?
 
-    historicos  = self.get_param('historicos')
-    content     = nil
+    articulo = historicos_map[object.id]
+    return current_content(tipo) unless articulo
 
-    if historicos.blank? || historicos.empty?
-      content = object.contenido_articulos           if tipo == 'contenidos'
-      content = object.formulas_productos_terminados if tipo == 'formulas'
-    else
+    historico_content(articulo, tipo)
+  end
 
-      articulo  = historicos.find  { |item| item['id'] == object.id }
-      content = articulo['contenido_articulos'] || articulo.contenido_articulos                     if tipo == 'contenidos'
-      content = articulo['formulas_productos_terminados'] || articulo.formulas_productos_terminados if tipo == 'formulas'
+  def current_content(tipo)
+    return object.contenido_articulos if tipo == 'contenidos'
+    return object.formulas_productos_terminados if tipo == 'formulas'
+
+    []
+  end
+
+  def historico_content(articulo, tipo)
+    key = tipo == 'contenidos' ? 'contenido_articulos' : 'formulas_productos_terminados'
+    content = articulo[key] || articulo[key.to_sym]
+    content = articulo.public_send(key) if content.nil? && articulo.respond_to?(key)
+    content || []
+  end
+
+  def serialize_contenido_articulos(content)
+    ContenidoArticuloSerializer.collection_to_hash(content, { all: true })
+  end
+
+  def serialize_formulas_productos_terminados(formulas)
+    FormulasProductosTerminadoSerializer.collection_to_hash(formulas, { all: true })
+  end
+
+  def serializable_attributes(record)
+    return nil unless record
+    return record.attributes if record.respond_to?(:attributes)
+
+    record
+  end
+
+  def self.to_hash(object, params={})
+    serializer = new(object, params)
+    fields = [:id]
+    fields += optional_fields.select do |field|
+      params[:all] || params[field] || (field == :contenido_articulos && params[:costos]) || (field == :formulas_productos_terminados && object.is_combo && params[:formulas_productos_terminados])
     end
 
-    return content
+    serialize_record(object, fields, readers: serializer_readers(serializer))
   end
 
+  def self.collection_to_hash(collection, params={})
+    collection.map { |object| to_hash(object, params) }
+  end
 
+  def self.optional_fields
+    [
+      :imagen_id,
+      :tipo_articulo_id,
+      :nombre,
+      :costo_principal,
+      :precio_principal,
+      :existencia,
+      :aviso_existencia,
+      :codigo,
+      :fecha_ingreso,
+      :medida,
+      :is_detallable,
+      :medida_alerta,
+      :calcular_itbis,
+      :estado,
+      :is_combo,
+      :otros_costos,
+      :vendido_en,
+      :is_materia_prima,
+      :contenido_articulos,
+      :formulas_productos_terminados,
+      :descripcion,
+      :contenido,
+      :cantidades,
+      :calcular_saco,
+      :costos,
+      :tipo_articulo
+    ]
+  end
+
+  def self.serializer_readers(serializer)
+    {
+      medida: ->(_articulo) { serializer.medida },
+      otros_costos: ->(_articulo) { serializer.otros_costos },
+      precio_principal: ->(_articulo) { serializer.precio_principal },
+      contenido_articulos: ->(_articulo) { serializer.contenido_articulos },
+      formulas_productos_terminados: ->(_articulo) { serializer.formulas_productos_terminados },
+      descripcion: ->(_articulo) { serializer.descripcion },
+      contenido: ->(_articulo) { serializer.contenido },
+      cantidades: ->(_articulo) { serializer.cantidades },
+      costos: ->(_articulo) { serializer.costos },
+      tipo_articulo: ->(_articulo) { serializer.tipo_articulo }
+    }
+  end
 end

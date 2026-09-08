@@ -1,5 +1,5 @@
 def pasar_notas
-  notas                    = CabeceraFactura.where({tipo_factura_id: [TiposNotasId.credito, TiposNotasId.debito]})
+  notas                    = CabeceraFactura.where({tipo_factura_id: [TiposNotasId.credito, TiposNotasId.debito, TiposNotasId.credito_electronica, TiposNotasId.debito_electronica]})
   notas.each do |nota|
 
     factura_aplicada       = CabeceraFactura.find_by_numero_comprobante(nota.aplicada_a)
@@ -396,7 +396,7 @@ end
 
 def edit_cantidad_unidades
   detalles = DetalleFactura.all.where("detalle_facturas.cantidad = detalle_facturas.cantidad_en_unidades AND detalle_facturas.unidad not in ('Libra', 'Unidad') ").includes([ articulo: [:contenido_articulos] ])
-	puts "ANDO AQUIII".yellow
+
   detalles.each do | detalle |
     contenido            = detalle.articulo.contenido_articulos
     articulo             = detalle.articulo

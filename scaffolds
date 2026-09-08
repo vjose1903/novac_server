@@ -43,6 +43,12 @@ rails g migration AddCalcularSacoToMantenimientoArticulo calcular_saco:boolean
 rails g migration AddDetalleFacturaToDetalleFactura detalle_factura_nota:integer
 rails g migration AddEstadoToReciboIngreso estado:boolean
 rails g migration AddFechaEquivalenteToCuadreCaja fecha_equivalente:datetime
+rails g migration AddCamposToDetalleDacturasNotas cantidad_origin:float codigo:string
+rails g migration ChangeCamposFacturacionElectronica
+rails g migration ChangeCamposFacturacionElectronicaNota
+rails g migration AddSerieToNotas serie:string
+rails g migration AddKeyToTipoFacturas key:string
+rails g migration AddNCFModificadoToCabeceraFacturas ncf_modificado:string
 
 
 
@@ -153,11 +159,25 @@ rails g migration addEstadoToCabeceraConduces
 rails g migration addCamposToDetallesFacturasNotas
 rails g migration addMoreCamposToDetallesFacturasNotas
 rails g migration addCamposToFacturasAplicadas
+rails g migration addSerieToTipoFacturas
+rails g migration addSerieToCabeceraFactura
+rails g migration addCamposToReciboIngreso
+rails g migration addCodigoToProvincia
+rails g migration addMunicipioToCliente
+rails g migration addCamposXMLToDocumentos
+rails g migration addCamposMoreXMLToDocumentos
+rails g migration addSuplidorToCommertialApprovalReception
+rails g migration change_is_aceptada_to_be_string
+rails g model document_reference document_origin:references{polymorphic} document_referenced:references{polymorphic} referenced_at:datetime referenced_by:references
+rails generate serializer document_reference
 
 rails g migration changeCamposToDetallesFacturasAndDetallesConducesAndDetallesProduccionAndDetallesFacturasNotas
 
 rails g migration changeTipoFacturaToAceptNullNotas
 rails g migration addCotizacionToCabeceraFactura
+rails g migration addNoClienteRNCToCabeceraFactura
+rails g migration addNoClienteRNCToNota
+rails g migration addIsExternalToCabeceraFactura
 
 
 rails g model movimiento_viaje user:references vehiculo:references cabecera_factura:references
@@ -165,3 +185,8 @@ rails generate serializer movimiento_viaje
 
 rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
+
+rails g scaffold ecf_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float approved:boolean
+rails g scaffold commertial_approval_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float estado:integer detalleMotivoRechazo:string cabecera_factura:references
+
+

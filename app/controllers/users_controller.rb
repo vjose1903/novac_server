@@ -3,17 +3,20 @@ class UsersController < ApplicationController
   before_action :set_user, only: [:show, :destroy]
 
   def index
+    opciones = get_parametros_opcionales
     if params['filter_key'] && params['filter_value']
       users = User.handleFilter(params)
-      return Response.new(params, nil, users, nil, get_parametros_opcionales).send_response self
+      return Response.new(params, HTTP_STATUS_CODE[:ok], users, nil, opciones, User.models_includes_for(opciones)).send_response self
     else
-      return Response.new(params, nil, User.all.where({ estado: true}).where("usuario NOT IN ('novac', 'adm01')").order('id DESC'), nil, get_parametros_opcionales).send_response self
+      users = User.where({ estado: true}).where("usuario NOT IN ('novac', 'adm01')").order('id DESC')
+      return Response.new(params, HTTP_STATUS_CODE[:ok], users, nil, opciones, User.models_includes_for(opciones)).send_response self
     end
   end
 
 
   def show
-    return Response.new(params, nil, @cliente, nil, get_parametros_opcionales).send_response self
+    opciones = get_parametros_opcionales
+    return Response.new(params, HTTP_STATUS_CODE[:ok], @user, [], opciones, User.models_includes_for(opciones)).send_response self
   end
 
   def getUsuariosFiltrados
@@ -41,22 +44,22 @@ class UsersController < ApplicationController
 
   def get_parametros_opcionales
     return {
-      nombre_completo: params['nombre_completo'] || false,
-      all: params['all'] || false,
-      id: params['id'] || false,
-      nombre: params['nombre'] || false,
-      usuario: params['usuario'] || false,
-      estado: params['estado'] || false,
-      cedula: params['cedula'] || false,
-      apellido: params['apellido'] || false,
-      sexo: params['sexo'] || false,
-      fotoPerfil: params['fotoPerfil'] || false,
-      telefono: params['telefono'] || false,
-      email: params['email'] || false,
-      fecha_nacimiento: params['fecha_nacimiento'] || false,
-      role: params['role'] || false,
-      imagen: params['imagen'] || false,
-      documentos_de_identidad: params['documentos_de_identidad'] || false,
+      nombre_completo:         validate_optional_param(params, 'nombre_completo') ?         params['nombre_completo'].to_boolean :         false,
+      all:                     validate_optional_param(params, 'all') ?                     params['all'].to_boolean :                     false,
+      id:                      validate_optional_param(params, 'id') ?                      params['id'].to_boolean :                      false,
+      nombre:                  validate_optional_param(params, 'nombre') ?                  params['nombre'].to_boolean :                  false,
+      usuario:                 validate_optional_param(params, 'usuario') ?                 params['usuario'].to_boolean :                 false,
+      estado:                  validate_optional_param(params, 'estado') ?                  params['estado'].to_boolean :                  false,
+      cedula:                  validate_optional_param(params, 'cedula') ?                  params['cedula'].to_boolean :                  false,
+      apellido:                validate_optional_param(params, 'apellido') ?                params['apellido'].to_boolean :                false,
+      sexo:                    validate_optional_param(params, 'sexo') ?                    params['sexo'].to_boolean :                    false,
+      fotoPerfil:              validate_optional_param(params, 'fotoPerfil') ?              params['fotoPerfil'].to_boolean :              false,
+      telefono:                validate_optional_param(params, 'telefono') ?                params['telefono'].to_boolean :                false,
+      email:                   validate_optional_param(params, 'email') ?                   params['email'].to_boolean :                   false,
+      fecha_nacimiento:        validate_optional_param(params, 'fecha_nacimiento') ?        params['fecha_nacimiento'].to_boolean :        false,
+      role:                    validate_optional_param(params, 'role') ?                    params['role'].to_boolean :                    false,
+      imagen:                  validate_optional_param(params, 'imagen') ?                  params['imagen'].to_boolean :                  false,
+      documentos_de_identidad: validate_optional_param(params, 'documentos_de_identidad') ? params['documentos_de_identidad'].to_boolean : false,
     }
   end
 
@@ -77,4 +80,5 @@ class UsersController < ApplicationController
 
     return respuesta.send_response self if @user.nil?
   end
+
 end

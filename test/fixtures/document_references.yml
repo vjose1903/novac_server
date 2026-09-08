@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  document_origin: one
+  document_origin_type: Document origin
+  document_referenced: one
+  document_referenced_type: Document referenced
+  referenced_at: 2025-06-06 07:13:36
+  referenced_by: one
+
+two:
+  document_origin: two
+  document_origin_type: Document origin
+  document_referenced: two
+  document_referenced_type: Document referenced
+  referenced_at: 2025-06-06 07:13:36
+  referenced_by: two

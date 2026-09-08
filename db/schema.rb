@@ -10,9 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_17_090000) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_trgm"
+  enable_extension "pgcrypto"
   enable_extension "plpgsql"
+  enable_extension "unaccent"
 
   create_table "acciones", force: :cascade do |t|
     t.string "nombre"
@@ -99,10 +102,97 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "identificador"
     t.integer "pre_factura"
     t.integer "cotizacion"
+    t.string "serie"
+    t.string "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
+    t.string "is_aceptada"
+    t.string "dgii_message"
+    t.boolean "is_ncf_modificado", default: false
+    t.string "NoCliente_rnc"
+    t.boolean "is_external", default: false
     t.index ["cliente_id"], name: "index_cabecera_facturas_on_cliente_id"
     t.index ["suplidor_id"], name: "index_cabecera_facturas_on_suplidor_id"
     t.index ["tipo_factura_id"], name: "index_cabecera_facturas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_cabecera_facturas_on_user_id"
+  end
+
+  create_table "calendar_event_links", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "calendar_event_id", null: false
+    t.string "linkable_type", null: false
+    t.bigint "linkable_id", null: false
+    t.string "label"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_event_id", "linkable_type", "linkable_id"], name: "idx_calendar_event_links_unique_link", unique: true
+    t.index ["calendar_event_id"], name: "index_calendar_event_links_on_calendar_event_id"
+    t.index ["linkable_type", "linkable_id"], name: "index_calendar_event_links_on_linkable_type_and_linkable_id"
+  end
+
+  create_table "calendar_event_types", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.string "color", null: false
+    t.boolean "is_system", default: false, null: false
+    t.boolean "active", default: true, null: false
+    t.integer "sort_order", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_calendar_event_types_on_active"
+    t.index ["slug"], name: "index_calendar_event_types_on_slug", unique: true
+    t.index ["sort_order"], name: "index_calendar_event_types_on_sort_order"
+  end
+
+  create_table "calendar_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.bigint "calendar_event_type_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.string "location"
+    t.string "color"
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.date "start_date", null: false
+    t.date "end_date", null: false
+    t.boolean "all_day", default: false, null: false
+    t.string "timezone", default: "America/Santo_Domingo", null: false
+    t.string "recurrence_type", default: "none", null: false
+    t.text "recurrence_rule"
+    t.integer "recurrence_interval", default: 1, null: false
+    t.string "recurrence_days", default: [], array: true
+    t.date "recurrence_until"
+    t.integer "recurrence_count"
+    t.string "google_uid"
+    t.string "ical_uid"
+    t.string "source", default: "manual", null: false
+    t.boolean "is_global", default: false, null: false
+    t.boolean "is_holiday", default: false, null: false
+    t.string "holiday_key"
+    t.bigint "created_by_id"
+    t.bigint "updated_by_id"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_working_day", default: true, null: false
+    t.index ["calendar_event_type_id"], name: "index_calendar_events_on_calendar_event_type_id"
+    t.index ["created_by_id"], name: "index_calendar_events_on_created_by_id"
+    t.index ["deleted_at"], name: "index_calendar_events_on_deleted_at"
+    t.index ["end_date"], name: "index_calendar_events_on_end_date"
+    t.index ["ends_at"], name: "index_calendar_events_on_ends_at"
+    t.index ["google_uid"], name: "index_calendar_events_on_google_uid", where: "(google_uid IS NOT NULL)"
+    t.index ["holiday_key"], name: "idx_calendar_events_unique_global_holiday", unique: true, where: "((is_global = true) AND (is_holiday = true) AND (deleted_at IS NULL))"
+    t.index ["holiday_key"], name: "index_calendar_events_on_holiday_key"
+    t.index ["ical_uid"], name: "index_calendar_events_on_ical_uid", unique: true, where: "(ical_uid IS NOT NULL)"
+    t.index ["is_global", "start_date", "end_date"], name: "index_calendar_events_on_is_global_and_start_date_and_end_date"
+    t.index ["is_holiday"], name: "index_calendar_events_on_is_holiday"
+    t.index ["is_working_day"], name: "index_calendar_events_on_is_working_day"
+    t.index ["source"], name: "index_calendar_events_on_source"
+    t.index ["start_date", "end_date"], name: "index_calendar_events_on_start_date_and_end_date"
+    t.index ["start_date"], name: "index_calendar_events_on_start_date"
+    t.index ["starts_at"], name: "index_calendar_events_on_starts_at"
+    t.index ["updated_by_id"], name: "index_calendar_events_on_updated_by_id"
   end
 
   create_table "camiones_viajes", force: :cascade do |t|
@@ -138,11 +228,39 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.float "balance"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.bigint "municipio_id"
+    t.index "immutable_unaccent((apellido)::text) gin_trgm_ops", name: "index_clientes_on_unaccent_apellido_trgm", using: :gin
+    t.index "immutable_unaccent((nombre)::text) gin_trgm_ops", name: "index_clientes_on_unaccent_nombre_trgm", using: :gin
     t.index ["imagen_id"], name: "index_clientes_on_imagen_id"
+    t.index ["municipio_id"], name: "index_clientes_on_municipio_id"
+    t.index ["nombre", "apellido"], name: "index_clientes_on_nombre_apellido"
+  end
+
+  create_table "commertial_approval_receptions", force: :cascade do |t|
+    t.bigint "cabecera_factura_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.integer "estado"
+    t.string "fecha_emision"
+    t.string "detalleMotivoRechazo"
+    t.string "xml_file_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "suplidor_id"
+    t.index ["cabecera_factura_id"], name: "index_commertial_approval_receptions_on_cabecera_factura_id"
+    t.index ["suplidor_id"], name: "index_commertial_approval_receptions_on_suplidor_id"
   end
 
   create_table "config_articulos", force: :cascade do |t|
     t.float "porciento_ganancia"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "configuracion_cuadres", force: :cascade do |t|
+    t.jsonb "config", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -182,6 +300,58 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.index ["user_id"], name: "index_costos_fletes_historiales_on_user_id"
   end
 
+  create_table "cuadre_caja_denominaciones", force: :cascade do |t|
+    t.bigint "cuadre_caja_id", null: false
+    t.string "denomination_type", null: false
+    t.string "currency_code", default: "DOP", null: false
+    t.decimal "denomination_value", precision: 18, scale: 2, null: false
+    t.decimal "quantity", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "exchange_rate", precision: 18, scale: 6, default: "1.0", null: false
+    t.decimal "foreign_amount", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "local_currency_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "divisa_id"
+    t.bigint "tasa_cambio_id"
+    t.index ["cuadre_caja_id", "denomination_type", "currency_code", "denomination_value"], name: "idx_cuadre_denominaciones_unique", unique: true
+    t.index ["cuadre_caja_id"], name: "index_cuadre_caja_denominaciones_on_cuadre_caja_id"
+    t.index ["divisa_id"], name: "index_cuadre_caja_denominaciones_on_divisa_id"
+    t.index ["tasa_cambio_id"], name: "index_cuadre_caja_denominaciones_on_tasa_cambio_id"
+  end
+
+  create_table "cuadre_caja_eventos", force: :cascade do |t|
+    t.bigint "cuadre_caja_id", null: false
+    t.bigint "user_id"
+    t.string "event_type", null: false
+    t.string "from_status"
+    t.string "to_status"
+    t.text "reason"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuadre_caja_id", "created_at"], name: "idx_cuadre_eventos_fecha"
+    t.index ["cuadre_caja_id"], name: "index_cuadre_caja_eventos_on_cuadre_caja_id"
+    t.index ["user_id"], name: "index_cuadre_caja_eventos_on_user_id"
+  end
+
+  create_table "cuadre_caja_movimientos", force: :cascade do |t|
+    t.bigint "cuadre_caja_id", null: false
+    t.string "movement_group", null: false
+    t.string "payment_method", null: false
+    t.string "description", null: false
+    t.string "reference"
+    t.string "counterparty_name"
+    t.string "bank_name"
+    t.decimal "amount", precision: 18, scale: 2, default: "0.0", null: false
+    t.integer "position", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cuadre_caja_id", "movement_group"], name: "idx_cuadre_movimientos_group"
+    t.index ["cuadre_caja_id"], name: "index_cuadre_caja_movimientos_on_cuadre_caja_id"
+  end
+
   create_table "cuadre_cajas", force: :cascade do |t|
     t.bigint "user_id"
     t.float "total_general"
@@ -193,6 +363,46 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "fecha_equivalente", precision: nil
+    t.date "closing_date", null: false
+    t.string "status", default: "submitted", null: false
+    t.string "closing_version", default: "legacy", null: false
+    t.string "source_type", default: "system", null: false
+    t.string "currency_code", default: "DOP", null: false
+    t.bigint "prepared_by_id"
+    t.bigint "approved_by_id"
+    t.bigint "submitted_by_id"
+    t.bigint "rejected_by_id"
+    t.bigint "reopened_by_id"
+    t.datetime "submitted_at"
+    t.datetime "approved_at"
+    t.datetime "rejected_at"
+    t.datetime "reopened_at"
+    t.decimal "local_bills_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "local_coins_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "foreign_currency_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "physical_cash_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "other_payment_methods_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "additional_transfers_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "operational_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "final_consumer_invoices_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "income_receipts_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "system_income_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "difference_amount", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "reconciliation_tolerance", precision: 18, scale: 2, default: "0.0", null: false
+    t.boolean "considered_balanced", default: false, null: false
+    t.jsonb "system_income_details", default: {}, null: false
+    t.text "notes"
+    t.text "rejection_reason"
+    t.text "reopen_reason"
+    t.decimal "opening_cash_fund", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "next_day_cash_fund", precision: 18, scale: 2, default: "0.0", null: false
+    t.decimal "expected_total", precision: 18, scale: 2, default: "0.0", null: false
+    t.index ["approved_by_id"], name: "index_cuadre_cajas_on_approved_by_id"
+    t.index ["closing_date"], name: "idx_cuadre_cajas_unique_active_closing_date", unique: true, where: "((status)::text <> 'cancelled'::text)"
+    t.index ["prepared_by_id"], name: "index_cuadre_cajas_on_prepared_by_id"
+    t.index ["rejected_by_id"], name: "index_cuadre_cajas_on_rejected_by_id"
+    t.index ["reopened_by_id"], name: "index_cuadre_cajas_on_reopened_by_id"
+    t.index ["submitted_by_id"], name: "index_cuadre_cajas_on_submitted_by_id"
     t.index ["user_id"], name: "index_cuadre_cajas_on_user_id"
   end
 
@@ -230,6 +440,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.integer "detalle_factura_nota"
     t.boolean "is_devuelto"
     t.boolean "is_defectuoso"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalle_facturas_on_articulo_id"
     t.index ["cabecera_factura_id"], name: "index_detalle_facturas_on_cabecera_factura_id"
   end
@@ -246,6 +457,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.boolean "is_ultimo"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.float "mora"
     t.index ["cabecera_factura_id"], name: "index_detalle_recibos_on_cabecera_factura_id"
     t.index ["recibos_ingreso_id"], name: "index_detalle_recibos_on_recibos_ingreso_id"
   end
@@ -268,6 +480,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.float "itbis_real"
     t.float "descuento_real"
     t.bigint "tipo_factura_id"
+    t.float "cantidad_origin"
+    t.string "codigo"
     t.index ["articulo_id"], name: "index_detalles_facturas_notas_on_articulo_id"
     t.index ["detalle_factura_id"], name: "index_detalles_facturas_notas_on_detalle_factura_id"
     t.index ["factura_aplicada_id"], name: "index_detalles_facturas_notas_on_factura_aplicada_id"
@@ -286,6 +500,33 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.index ["produccion_id"], name: "index_detalles_produccion_on_produccion_id"
   end
 
+  create_table "divisas", force: :cascade do |t|
+    t.string "nombre"
+    t.string "simbolo"
+    t.boolean "is_principal"
+    t.boolean "estado", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.float "current_tasa", default: 1.0
+    t.boolean "predeterminado", default: false
+    t.string "code"
+    t.index ["code"], name: "index_divisas_on_code"
+  end
+
+  create_table "document_references", force: :cascade do |t|
+    t.string "document_origin_type", null: false
+    t.bigint "document_origin_id", null: false
+    t.string "document_referenced_type", null: false
+    t.bigint "document_referenced_id", null: false
+    t.datetime "referenced_at"
+    t.bigint "referenced_by_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_origin_type", "document_origin_id"], name: "index_document_references_on_document_origin"
+    t.index ["document_referenced_type", "document_referenced_id"], name: "index_document_references_on_document_referenced"
+    t.index ["referenced_by_id"], name: "index_document_references_on_referenced_by_id"
+  end
+
   create_table "documentos_de_identidad", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "cliente_id"
@@ -297,10 +538,25 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "origen_type"
     t.bigint "origen_id"
+    t.index "immutable_unaccent((documento)::text) gin_trgm_ops", name: "index_documentos_identidad_on_unaccent_documento_trgm", using: :gin
     t.index ["cliente_id"], name: "index_documentos_de_identidad_on_cliente_id"
     t.index ["origen_type", "origen_id"], name: "index_documentos_de_identidad_on_origen_type_and_origen_id"
     t.index ["suplidor_id"], name: "index_documentos_de_identidad_on_suplidor_id"
     t.index ["user_id"], name: "index_documentos_de_identidad_on_user_id"
+  end
+
+  create_table "ecf_receptions", force: :cascade do |t|
+    t.bigint "suplidor_id"
+    t.string "eNCF"
+    t.string "rnc_emisor"
+    t.string "rnc_comprador"
+    t.float "monto_total"
+    t.boolean "approved"
+    t.string "fecha_emision"
+    t.string "xml_file_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["suplidor_id"], name: "index_ecf_receptions_on_suplidor_id"
   end
 
   create_table "facturas_aplicadas", force: :cascade do |t|
@@ -327,6 +583,27 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.index ["articulo_id"], name: "index_formulas_productos_terminados_on_articulo_id"
   end
 
+  create_table "global_holidays", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "country_code", default: "DO", null: false
+    t.string "holiday_key", null: false
+    t.string "name", null: false
+    t.date "date", null: false
+    t.date "observed_date"
+    t.integer "year", null: false
+    t.string "source", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_working_day", default: false, null: false
+    t.index ["country_code", "date", "name"], name: "index_global_holidays_on_country_code_and_date_and_name", unique: true
+    t.index ["country_code", "holiday_key"], name: "index_global_holidays_on_country_code_and_holiday_key", unique: true
+    t.index ["country_code"], name: "index_global_holidays_on_country_code"
+    t.index ["date"], name: "index_global_holidays_on_date"
+    t.index ["is_working_day"], name: "index_global_holidays_on_is_working_day"
+    t.index ["observed_date"], name: "index_global_holidays_on_observed_date"
+    t.index ["year"], name: "index_global_holidays_on_year"
+  end
+
   create_table "historico_producciones", force: :cascade do |t|
     t.bigint "user_id"
     t.bigint "articulo_id"
@@ -341,9 +618,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   create_table "imagenes", force: :cascade do |t|
     t.string "file_name"
     t.string "base_64"
-    t.string "path"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "origen_img_type"
+    t.bigint "origen_img_id"
+    t.string "file_hash"
+    t.index ["origen_img_type", "origen_img_id"], name: "index_imagenes_on_origen"
   end
 
   create_table "incidencias", force: :cascade do |t|
@@ -450,6 +730,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "nombre"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "codigo"
     t.index ["provincia_id"], name: "index_municipios_on_provincia_id"
   end
 
@@ -468,6 +749,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "fecha_valida", precision: nil
+    t.string "fecha_hora_firma"
+    t.string "trackId"
+    t.string "security_code"
+    t.string "xml_file_name"
+    t.string "qr_url_dgii"
+    t.string "serie"
+    t.string "razon"
+    t.float "bruto"
+    t.float "itbis"
+    t.string "is_aceptada"
+    t.string "dgii_message"
+    t.string "no_cliente_rnc"
     t.index ["cliente_id"], name: "index_notas_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_notas_on_tipo_factura_id"
     t.index ["user_id"], name: "index_notas_on_user_id"
@@ -505,6 +798,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "nombre"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "codigo"
   end
 
   create_table "recibos_ingresos", force: :cascade do |t|
@@ -522,6 +816,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "estado"
+    t.float "bruto"
+    t.float "mora"
+    t.float "balance_cliente"
     t.index ["cliente_id"], name: "index_recibos_ingresos_on_cliente_id"
     t.index ["tipo_factura_id"], name: "index_recibos_ingresos_on_tipo_factura_id"
     t.index ["user_id"], name: "index_recibos_ingresos_on_user_id"
@@ -580,6 +877,24 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.boolean "estado"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.index "immutable_unaccent((direccion)::text) gin_trgm_ops", name: "index_suplidores_on_unaccent_direccion_trgm", using: :gin
+    t.index "immutable_unaccent((email)::text) gin_trgm_ops", name: "index_suplidores_on_unaccent_email_trgm", using: :gin
+    t.index "immutable_unaccent((nombre)::text) gin_trgm_ops", name: "index_suplidores_on_unaccent_nombre_trgm", using: :gin
+    t.index ["nombre"], name: "index_suplidores_on_nombre"
+  end
+
+  create_table "tasas_de_cambio", force: :cascade do |t|
+    t.bigint "divisa_id", null: false
+    t.bigint "user_id"
+    t.bigint "last_user_update_id"
+    t.date "fecha_equivalente"
+    t.float "valor", default: 0.0
+    t.integer "secuencia", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["divisa_id"], name: "index_tasas_de_cambio_on_divisa_id"
+    t.index ["last_user_update_id"], name: "index_tasas_de_cambio_on_last_user_update_id"
+    t.index ["user_id"], name: "index_tasas_de_cambio_on_user_id"
   end
 
   create_table "tipo_articulos", force: :cascade do |t|
@@ -595,6 +910,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
     t.string "descripcion"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.string "serie"
+    t.string "key"
   end
 
   create_table "users", force: :cascade do |t|
@@ -665,15 +982,33 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   add_foreign_key "cabecera_facturas", "suplidores"
   add_foreign_key "cabecera_facturas", "tipo_facturas"
   add_foreign_key "cabecera_facturas", "users"
+  add_foreign_key "calendar_event_links", "calendar_events"
+  add_foreign_key "calendar_events", "calendar_event_types"
+  add_foreign_key "calendar_events", "users", column: "created_by_id"
+  add_foreign_key "calendar_events", "users", column: "updated_by_id"
   add_foreign_key "camiones_viajes", "vehiculos"
   add_foreign_key "choferes_viajes", "recibos_ingresos"
   add_foreign_key "choferes_viajes", "users"
   add_foreign_key "clientes", "imagenes"
+  add_foreign_key "clientes", "municipios"
+  add_foreign_key "commertial_approval_receptions", "cabecera_facturas"
+  add_foreign_key "commertial_approval_receptions", "suplidores"
   add_foreign_key "contenido_articulos", "articulos"
   add_foreign_key "costo_fletes", "municipios"
   add_foreign_key "costos_fletes_historiales", "costo_fletes"
   add_foreign_key "costos_fletes_historiales", "users"
+  add_foreign_key "cuadre_caja_denominaciones", "cuadre_cajas"
+  add_foreign_key "cuadre_caja_denominaciones", "divisas"
+  add_foreign_key "cuadre_caja_denominaciones", "tasas_de_cambio"
+  add_foreign_key "cuadre_caja_eventos", "cuadre_cajas"
+  add_foreign_key "cuadre_caja_eventos", "users"
+  add_foreign_key "cuadre_caja_movimientos", "cuadre_cajas"
   add_foreign_key "cuadre_cajas", "users"
+  add_foreign_key "cuadre_cajas", "users", column: "approved_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "prepared_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "rejected_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "reopened_by_id"
+  add_foreign_key "cuadre_cajas", "users", column: "submitted_by_id"
   add_foreign_key "detalle_conduces", "articulos"
   add_foreign_key "detalle_conduces", "cabecera_conduces"
   add_foreign_key "detalle_conduces", "detalle_facturas"
@@ -686,9 +1021,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   add_foreign_key "detalles_facturas_notas", "facturas_aplicadas"
   add_foreign_key "detalles_produccion", "articulos"
   add_foreign_key "detalles_produccion", "producciones"
+  add_foreign_key "document_references", "users", column: "referenced_by_id"
   add_foreign_key "documentos_de_identidad", "clientes"
   add_foreign_key "documentos_de_identidad", "suplidores"
   add_foreign_key "documentos_de_identidad", "users"
+  add_foreign_key "ecf_receptions", "suplidores"
   add_foreign_key "facturas_aplicadas", "cabecera_facturas"
   add_foreign_key "facturas_aplicadas", "notas"
   add_foreign_key "formulas_productos_terminados", "articulos"
@@ -717,6 +1054,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_124909) do
   add_foreign_key "roles_permisos_acciones", "roles"
   add_foreign_key "secuencia_comprobantes", "tipo_facturas"
   add_foreign_key "secuencia_facturas", "tipo_facturas"
+  add_foreign_key "tasas_de_cambio", "divisas"
+  add_foreign_key "tasas_de_cambio", "users"
+  add_foreign_key "tasas_de_cambio", "users", column: "last_user_update_id"
   add_foreign_key "users", "imagenes"
   add_foreign_key "vehiculos", "users"
 end

@@ -10,9 +10,15 @@ class CabeceraConduce < ApplicationRecord
     includes = [
       {user: :documentos_de_identidad},
       {cliente: :documentos_de_identidad},
-      {detalle_conduces: [ :cabecera_conduce]},
+      {detalle_conduces: [:cabecera_conduce, :articulo]},
     ]
     return includes
+  end
+
+  def self.models_includes_for(params={})
+    return nil unless params[:all] || params[:cliente] || params[:detalle_conduces]
+
+    models_includes
   end
 
 
@@ -22,12 +28,12 @@ class CabeceraConduce < ApplicationRecord
     res = Response.new
     CabeceraConduce.transaction do
 
-      conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_create
+      conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_initialize
 
       conduce.numero_conduce       = SecuenciaFactura.find_secuencia(15)
       conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       conduce.cliente_id           = params["cliente_id"]
-      conduce.user_id              = get_current_user['id']
+      conduce.user_id              = get_current_user[:id]
 			conduce.estado               = true
 
       conduce.valid?
@@ -45,7 +51,7 @@ class CabeceraConduce < ApplicationRecord
         res                        = updateSecuencias(15)
 
         if res.status_valid
-          res.set_data(serialize_parser(conduce, {all: true}))
+          res.set_data(conduce, {all: true})
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Conduce #{action} correctamente.")
 

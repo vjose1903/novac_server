@@ -1,19 +1,27 @@
 class RoleSerializer < ActiveModel::Serializer
+	extend FastSerializer
 
-	attribute :id,                         if: Proc.new { self.get_param('id') || self.get_param('all') }
-	attribute :descripcion,                if: Proc.new { self.get_param('descripcion') || self.get_param('all') }
-	attribute :nombre,                     if: Proc.new { self.get_param('nombre') || self.get_param('all') }
-	attribute :ruta_defecto,               if: Proc.new { self.get_param('ruta_defecto') || self.get_param('all') }
-	attribute :estado,                     if: Proc.new { self.get_param('estado') || self.get_param('all') }
+	def self.to_hash(object, params={}, include_permisos_acciones: nil)
+		include_permisos_acciones = params[:permisos_acciones] if include_permisos_acciones.nil? && params.respond_to?(:[])
+		fields = params.empty? ? default_fields : default_fields.select { |field| show_serialized_field?(params, field) }
+		data = serialize_record(object, fields)
 
-  attribute :permisos_acciones,          if: Proc.new { self.get_param('permisos_acciones')}
-
-
-	def permisos_acciones
-		serialize_parser(object.permisos_acciones, {all: true})
+		data[:permisos_acciones] = object.permisos_acciones.map { |permiso_accion| permiso_accion_to_hash(permiso_accion) } if include_permisos_acciones
+		data
 	end
 
-	def get_param(col)
-		return @instance_options[:"#{col}"]
+	def self.collection_to_hash(collection, params={}, include_permisos_acciones: nil)
+		include_permisos_acciones = params[:permisos_acciones] if include_permisos_acciones.nil? && params.respond_to?(:[])
+		collection.map { |object| to_hash(object, params, include_permisos_acciones: include_permisos_acciones) }
 	end
+
+	def self.default_fields
+		[:id, :descripcion, :nombre, :ruta_defecto, :estado]
+	end
+
+	def self.permiso_accion_to_hash(permiso_accion)
+		PermisoAccionSerializer.to_hash(permiso_accion)
+	end
+	private_class_method :default_fields, :permiso_accion_to_hash
+
 end

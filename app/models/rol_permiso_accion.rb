@@ -6,7 +6,7 @@ class RolPermisoAccion < ApplicationRecord
   def self.crear_actualizar(params, padre, is_save=false)
     res = Response.new
 
-    rolPermisoAccion                     = RolPermisoAccion.where(:id => params["id"]).first_or_create
+    rolPermisoAccion                     = RolPermisoAccion.where(:id => params["id"]).first_or_initialize
 
     rolPermisoAccion.permiso_accion_id   = params["permiso_accion_id"]
 

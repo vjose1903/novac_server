@@ -2,66 +2,75 @@ class ReportesController < ApplicationController
 
   def getReportes
 
-    tipo_reporte = params["tipo_reporte"]
-    tipo         = params["tipo"]
+    tipo_reporte = params[:tipo_reporte]
+    tipo         = params[:tipo]
     tipo_tabla   = 'normal'
 
-    muestra_sub_titulo = ['inventario','ventas_productos','suplidor_prod','cuentas_con_pagos', 'notas', 'ventas_cliente', 'movimientos_vehiculo']
-    muestra_sub_titulo.push("cxc") if tipo_reporte == "cuentas_cobrar" && params["tipo"] == '1'
+    muestra_sub_titulo = ['inventario', 'ventas_productos', 'suplidor_prod', 'cuentas_con_pagos', 'notas', 'ventas_cliente', 'movimientos_vehiculo', 'recibos', 'recibos_agrupado', 'cxc', 'cxc_ant_detallado', 'cxc_ant_agrupado' ]
 
 
     if  tipo_reporte == 'ventas_rango' || tipo_reporte == 'ventas_diarias' || tipo_reporte == 'ventas_cliente'
       # ------------------- REPORTE DE VENTAS --------------------
       body           = Reporte.get_ventas(params)
 
-      titulo         = "Reporte de ventas #{ params["tipo"] == TipoReporteVentas.ventas_hoy ? 'diarias' : "desde #{formatearFecha(params["desde"], TipoFecha.sin_hora)} hasta #{formatearFecha(params["hasta"], TipoFecha.sin_hora)}" }"
-      titulo         = "Reporte de ventas por cliente" if tipo_reporte == 'ventas_cliente'
+      titulo         = "Ventas #{ params[:tipo] == TipoReporteVentas.ventas_hoy ? 'diarias' : "desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}" }"
+      titulo         = "Ventas por cliente" if tipo_reporte == 'ventas_cliente'
 
       tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
 
     elsif tipo_reporte == 'cuentas_cobrar'
       # ------------------- REPORTE DE CUENTAS POR COBRAR --------------------
-      body   = Reporte.get_cuentas_cobrar(params)
-      titulo = "Reporte de cuentas por cobrar #{ params["tipo"] == '1' ? 'por cliente' : '' } #{ params["tipo"] == '1' ? '' : params["tipo"] == '2' ? '- DETALLADO -' : '- AGRUPADO -' }"
+      if params[:tipo] == Report::CxC.historico
+        body   = Reporte.get_balance_cliente_historico(params)
+        titulo = "Cuentas por cobrar por cliente histórico"
+      else
+        body   = Reporte.get_cuentas_cobrar(params)
+        titulo = "Cuentas por cobrar #{ params[:tipo] == Report::CxC.por_cliente ? 'por cliente' : '' } #{ params[:tipo] == Report::CxC.por_cliente ? '' : params[:tipo] == Report::CxC.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+      end
 
-      tipo_reporte   = 'cxc'               if params["tipo"] == '1'
-      tipo_reporte   = 'cxc_ant_detallado' if params["tipo"] == '2'
-      tipo_reporte   = 'cxc_ant_agrupado'  if params["tipo"] != '2' && params["tipo"] != '1'
 
+      tipo_reporte   = 'cxc'               if params[:tipo] == Report::CxC.por_cliente
+      tipo_reporte   = 'cxc_historico'     if params[:tipo] == Report::CxC.historico
+      tipo_reporte   = 'cxc_ant_detallado' if params[:tipo] == Report::CxC.detallado
+      tipo_reporte   = 'cxc_ant_agrupado'  if params[:tipo] == Report::CxC.agrupado
+
+    elsif tipo_reporte == 'cxc_historico'
+      # ------------------- REPORTE DE CUENTAS POR COBRAR HISTORICO --------------------
+      body   = Reporte.get_balance_cliente_historico(params)
+      titulo = "Cuentas por cobrar histórico"
 
     elsif tipo_reporte == 'movimientos_vehiculo'
       # ------------------- REPORTE DE MOVIMIENTOS POR VEHICULO --------------------
       body       = Reporte.get_movimientos_vehiculo(params)
-      titulo     = 'Reporte de Movimientos por camión'
+      titulo     = 'Movimientos por camión'
 
     elsif tipo_reporte == 'inventario'
       # ------------------- REPORTE DE INVENTARIO --------------------
       body   = Reporte.get_inventario(params)
-      titulo = 'Reporte de inventario'
+      titulo = 'Inventario'
 
     elsif tipo_reporte == 'recibos'
       # ------------------- REPORTE DE RECIBOS --------------------
       body   = Reporte.get_recibos(params)
-      titulo = 'Reporte de Recibos de ingreso'
+      titulo = "Recibos de ingreso #{params[:tipo] == Report::ReciboIngreso.detallado ? '- DETALLADO -' : '- AGRUPADO -'}"
 
-      tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
+      tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == Report::ReciboIngreso.agrupado
 
     elsif tipo_reporte == 'ventas_productos'
       # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
       body               = Reporte.get_ventas_por_producto(params)
-      titulo             = 'Reporte de ventas por producto'
+      titulo             = 'Ventas por producto'
       tipo_tabla         = 'agrupado'
 
     elsif tipo_reporte == 'suplidor_prod'
       # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
       body     = Reporte.get_suplidores_por_producto(params)
-      titulo   = 'Reporte de suplidores por producto'
+      titulo   = 'Suplidores por producto'
 
     elsif tipo_reporte == 'cuentas_con_pagos'
       # ------------------- REPORTE DE CUENTAS POR COBRAR CLIENTES CON SUS PAGOS --------------------
       body       = Reporte.get_cuentas_con_pagos(params)
-      titulo     = 'Reporte de facturas a crédito con sus pagos'
-      tipo_tabla = 'agrupado'
+      titulo     = 'Facturas a crédito con sus pagos'
 
     elsif tipo_reporte == 'notas'
       # ------------------- REPORTE DE NOTAS --------------------
@@ -69,7 +78,7 @@ class ReportesController < ApplicationController
       tipo_de_factura = TipoFactura.find_by_id(params['tipo_factura_id'])
 
       tipo_nota       = tipo_de_factura.nil? ? 'Crédito y Débito' : tipo_de_factura.descripcion == TiposFacturasDescripcion.nota_de_credito  ? 'Crédito' : 'Débito'
-      titulo          = "Reporte de notas de #{tipo_nota}"
+      titulo          = "Notas de #{tipo_nota}"
 
     end
 

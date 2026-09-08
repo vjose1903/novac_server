@@ -9,7 +9,7 @@ class CamionViaje < ApplicationRecord
     res_valid   = Response.new
 
     CamionViaje.transaction do
-      camion_viaje                         = CamionViaje.where(:id => params["id"]).first_or_create
+      camion_viaje                         = CamionViaje.where(:id => params["id"]).first_or_initialize
 
       camion_viaje.vehiculo_id             = params["vehiculo_id"]
       camion_viaje.origen                  = padre

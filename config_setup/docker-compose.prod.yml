@@ -1,38 +1,105 @@
-version: "3.8"
-
 services:
   db-prod:
-    image: postgres:13.7
+    image: postgres:18.6
     volumes:
-      - ./tmp/$$DB_PATH$$:/var/lib/postgresql/data
+      - ./tmp/$$DB_PATH$$-pg18:/var/lib/postgresql
+    container_name: db-prod
     environment:
       POSTGRES_PASSWORD: N0v@cgu@rd
       POSTGRES_USER: novacSystem
+      PGDATA: /var/lib/postgresql/18/docker
     ports:
       - 127.0.0.1:9731:5432
     restart: always
 
-  $$ENVIRONMENT_NAME_IMG$$:
+  $$PROD_ENVIRONMENT_NAME_IMG$$:
     build:
       context: .
-      dockerfile: docker/services/server/Dockerfile
+      dockerfile: docker/Dockerfile
+    container_name: $$PROD_ENVIRONMENT_NAME_IMG$$
     environment:
+      VIRTUAL_HOST: "$$FRONTEND_HOST$$,$$FRONTEND_HOST_SECONDARY$$,$$HOST_ID$$"
+      LETSENCRYPT_HOST: "$$FRONTEND_HOST$$,$$FRONTEND_HOST_SECONDARY$$"
+      LETSENCRYPT_EMAIL: "$$EMAIL$$"
       ALMACEN: "$$ALMACEN$$"
       RAILS_ENV: "production"
       TULU: "N0v@cgu@rd"
       FRAGA: "novacSystem"
+      MONTU: "$$MONTU$$"
       RAILS_SERVE_STATIC_FILES: "true"
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
+      API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-prod:$$DGII_MICROSERVICE_PORT$$"
+      DGII_CERTIFICATION_DATE: "$$DGII_DATE$$"
+      PORT: "$$DB_PORT$$"
+      RAILS_MAX_THREADS: "$$RAILS_MAX_THREADS$$"
+      WEB_CONCURRENCY: "$$WEB_CONCURRENCY$$"
+      GOOGLE_APPLICATION_CREDENTIALS: "/run/secrets/firebase-service-account.json"
+    expose:
+      - "$$DB_PORT$$"
     depends_on:
       - db-prod
     restart: always
+    volumes:
+      - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     command: >
-      sh -c "./wait-for-it.sh db-prod:5432 -- cron && sh ./run_server.sh"
+      sh -c "./wait-for-it.sh db-prod:5432 -- sh ./run_server.sh"
 
-  nginx-proxy-prod:
-    build: ./docker/services/nginx
-    ports:
-      - $$FRONT_PORT$$:$$FRONT_PORT$$
-    depends_on:
-      - $$ENVIRONMENT_NAME_IMG$$
+  dgii-microservice-prod:
+    build:
+      context: ./dgii_signature_microservice
+      dockerfile: Dockerfile
+    container_name: dgii-microservice-prod
+    env_file:
+      - ./dgii_signature_microservice/.env
+    environment:
+      ENV: "PROD"
+    expose:
+      - "$$DGII_MICROSERVICE_PORT$$"
     restart: always
+    depends_on:
+      - db-prod
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./html:/usr/share/nginx/html
+      - ./logs/nginx:/var/log/nginx
+    restart: unless-stopped
+    depends_on:
+      - db-prod
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-letsencrypt
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      DEFAULT_EMAIL: novacagrodemi@gmail.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./html:/usr/share/nginx/html
+      - ./acme:/etc/acme.sh
+    depends_on:
+      - nginx-proxy
+    restart: unless-stopped
+
+  fail2ban:
+    image: crazymax/fail2ban:latest
+    container_name: fail2ban
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./fail2ban/data:/data
+      - ./logs/nginx:/var/log/nginx:ro  # Leer logs planos
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      TZ: "America/Santo_Domingo"
+    restart: unless-stopped

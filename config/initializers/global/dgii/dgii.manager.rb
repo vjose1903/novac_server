@@ -1,0 +1,365 @@
+module DGII_MANAGER
+  @certification_params = nil
+  @is_nota    = false
+  @is_factura = false
+
+  # ========================================================================================================
+  # ENVIAR FACTURAS Y NOTAS A DGII
+  # ========================================================================================================
+
+  def self.send(document, certification_params = nil)
+    DGII_MANAGER.determinate_document(document)
+
+    @certification_params = certification_params
+
+    document_parsed       = DGII_MANAGER.parse(document)
+
+    puts "DGII numero_comprobante enviado >>> ".yellow + "#{document_parsed[:numero_comprobante]}"
+
+    response = send_document_to_dgii(document_parsed)
+    log_dgii_response(response)
+
+    data_response = response.with_indifferent_access[:data].with_indifferent_access
+
+    estado = data_response[:estado].present? ? data_response[:estado] : nil
+
+    document.is_aceptada          = estado.nil? ? response.with_indifferent_access[:status] == 200 ? 'Aceptado' : 'Rechazado' : estado
+    document.dgii_message         = response[:message]
+    not_valid                     = document.is_aceptada.downcase == 'rechazado' || document.is_aceptada.nil?
+
+    document.estado               = false if not_valid
+
+    assign_dgii_response_data(document, data_response)
+
+    document.save!
+
+    res = build_dgii_response(data_response, response[:message], not_valid)
+
+    # TODO: SI GET_DATA DEL RES TIENE LA PROPIEDAD 'secuenciaUtilizada' independientemente del estado tengo que sumar la secuencia
+    return res
+  end
+
+  def self.send_document_to_dgii(document_parsed)
+    client = BaseRequest::Client.new('novac-dgii')
+    client.create_one(document_parsed)
+  rescue StandardError => e
+    puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
+    e.with_indifferent_access
+  end
+
+  def self.log_dgii_response(response)
+    puts " "
+    puts " "
+    puts " "
+    puts " response >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{response.to_json}"
+    puts " "
+    puts " "
+    puts " "
+  end
+
+  def self.assign_dgii_response_data(document, data_response)
+    document.fecha_hora_firma   = data_response[:fecha_hora_firma] if data_response[:fecha_hora_firma].present?
+    document.trackId            = data_response[:trackId]          if data_response[:trackId].present?
+    document.security_code      = data_response[:security_code]    if data_response[:security_code].present?
+    document.xml_file_name      = data_response[:xml_file_name]    if data_response[:xml_file_name].present?
+    document.qr_url_dgii        = data_response[:qr_url_dgii]      if data_response[:qr_url_dgii].present?
+    document.razon              = data_response[:razon]            if @is_nota && data_response[:razon].present?
+  end
+
+  def self.build_dgii_response(data_response, message, not_valid)
+    res = Response.new
+    res.set_data(data_response)
+    res.add_msg(message)
+    res.set_status(HTTP_STATUS_CODE[:conflict]) if not_valid
+    res
+  end
+
+  def self.determinate_document(document)
+    model_name  = document.model_name.element
+
+    @is_nota    = model_name == 'nota'
+    @is_factura = model_name == 'cabecera_factura'
+  end
+
+  def self.parse(document)
+    process                     = document.attributes
+
+    process[:cliente]           = parse_cliente(document)
+    process[:fecha_vencimiento] = validate_fecha_vencimiento(document)
+    process[:ncf_modificado]    = document.ncf_modificado
+
+    return parse_factura(process, document) if @is_factura
+    return parse_nota(process, document)    if @is_nota
+  end
+
+  # ========================================================================================================
+  # FACTURAS
+  # ========================================================================================================
+
+  def self.parse_factura(process, document)
+    process[:document_type]          = DocumentType.factura
+    process[:TipoeCF]                = document.tipo_factura.referencia
+
+    process[:detalle_facturas]       = parse_detalles(document)
+
+    unless @certification_params == nil
+      process[:TipoeCF]              = @certification_params[:TipoeCF]
+      process[:numero_comprobante]   = @certification_params[:numero_comprobante]
+    end
+
+    process.with_indifferent_access
+  end
+
+  def self.parse_detalles(document)
+    detalles = document.detalle_facturas.map do | detalle |
+      detalle_parsed = detalle.attributes
+
+      articulo       = detalle.articulo
+      add_articulo(detalle_parsed, articulo)
+
+      detalle_parsed[:codigo]      = articulo.codigo
+      detalle_parsed[:descripcion] = articulo.nombre.strip
+
+      detalle_parsed.with_indifferent_access
+    end
+
+    detalles
+  end
+
+
+  # ========================================================================================================
+  # NOTAS
+  # ========================================================================================================
+
+  def self.parse_nota(process, document)
+    process[:document_type]            = DocumentType.nota
+    process[:TipoeCF]                  = document.tipo_factura.referencia
+
+    process[:facturas_aplicadas]       = parse_detalles_notas(document)
+
+
+    unless @certification_params == nil
+      process[:TipoeCF]                = @certification_params[:TipoeCF]
+      process[:numero_comprobante]     = @certification_params[:numero_comprobante]
+    end
+
+    process.with_indifferent_access
+  end
+
+  def self.parse_detalles_notas(document)
+    detalles_nota = document.facturas_aplicadas.map do | detalle |
+      detalle_nota_parsed           = detalle.attributes
+
+      # TODO: hacer un metodo que me convierta el comprobante de la factura a tipo electronico si hay certification_params
+      factura                       = detalle.cabecera_factura
+      detalle_nota_parsed[:factura] = factura.attributes
+
+      unless @certification_params == nil
+      detalle_nota_parsed[:factura][:fecha_vencimiento] = validate_fecha_vencimiento(factura.attributes.with_indifferent_access)
+
+      end
+
+      detalle_nota_parsed[:detalles_facturas_notas] = detalle.detalles_facturas_notas.map do | detalle_factura_nota |
+        detalle_factura_nota_parsed = detalle_factura_nota.attributes
+
+        articulo                    = detalle_factura_nota.articulo
+        add_articulo(detalle_factura_nota_parsed, articulo)
+
+        detalle_factura_nota_parsed[:codigo]      = articulo.codigo
+        detalle_factura_nota_parsed[:descripcion] = articulo.nombre.strip
+
+        detalle_factura_nota_parsed.with_indifferent_access
+      end
+
+      detalle_nota_parsed.with_indifferent_access
+    end
+
+    return detalles_nota
+  end
+
+
+  # ========================================================================================================
+  # SHARED
+  # ========================================================================================================
+
+  def self.parse_cliente(document)
+    cliente            = document.cliente || nil
+
+    return parse_cliente_registrado(cliente) unless cliente.nil?
+
+    parse_cliente_casual(document)
+  end
+
+  def self.parse_cliente_casual(document)
+    cliente_attributes                    = {}
+    cliente_attributes[:nombre_completo]  = cliente_casual_nombre(document)
+    cliente_attributes[:direccion]        = cliente_casual_direccion(document)
+
+    documento       = cliente_casual_documento(document)
+    tipo_documento  = tipo_documento_identidad(documento)
+
+    if documento.present? && tipo_documento.present?
+      cliente_attributes[:documentos_de_identidad] = [
+        { descripcion: tipo_documento, documento: documento, principal: true }
+      ]
+    end
+
+    cliente_attributes
+  end
+
+  def self.parse_cliente_registrado(cliente)
+    cliente_attributes                           = cliente.attributes
+    cliente_attributes[:nombre_completo]         = cliente.nombre_completo
+    cliente_attributes[:documentos_de_identidad] = cliente.documentos_de_identidad
+    cliente_attributes[:limite_credito]          = cliente.limite_credito
+    cliente_attributes[:municipio]               = cliente.municipio
+    cliente_attributes[:provincia]               = cliente.provincia
+    cliente_attributes
+  end
+
+  def self.cliente_casual_nombre(document)
+    return document.NoCliente_nombre if @is_factura
+
+    document.no_cliente_nombre
+  end
+
+  def self.cliente_casual_direccion(document)
+    return document.NoCliente_direccion if @is_factura
+
+    document.no_cliente_direccion
+  end
+
+  def self.cliente_casual_documento(document)
+    if @is_factura
+      return document.NoCliente_rnc.presence if document.respond_to?(:NoCliente_rnc)
+      return nil
+    end
+
+    return document.no_cliente_rnc.presence if document.respond_to?(:no_cliente_rnc)
+
+    document.facturas_aplicadas.first&.cabecera_factura&.NoCliente_rnc.presence
+  end
+
+  def self.tipo_documento_identidad(documento)
+    digitos = documento.to_s.gsub(/[^0-9]/, '').length
+
+    return Documentos.rnc    if digitos == 9
+    return Documentos.cedula if digitos == 11
+
+    nil
+  end
+
+  def self.add_articulo(detalle_parsed, articulo)
+    detalle_parsed[:articulo] = { **articulo.attributes, tipo_articulo: articulo.tipo_articulo.attributes }
+  end
+
+  def self.validate_fecha_vencimiento(document)
+    fecha_vencimiento = document[:fecha_vencimiento]
+    puts " "
+    puts " "
+    puts " "
+    puts "document          ".green + " #{document}"
+    puts "fecha_vencimiento ".green + " #{fecha_vencimiento}"
+    puts " "
+    puts " "
+    puts " "
+
+    if fecha_vencimiento.nil?
+      return nil
+    end
+
+    unless @certification_params == nil
+      cliente = document[:cliente]
+      dias_credito = 30 # valor por defecto
+
+      # Si existe cliente y tiene limite_credito, usamos ese valor
+      if cliente && cliente[:limite_credito].present?
+        dias_credito = cliente[:limite_credito]
+      end
+
+      # Calcular fecha base (fecha actual + días de crédito)
+      fecha_base = Date.today + dias_credito.days
+
+      # Crear DateTime con hora específica (7:59 AM)
+      fecha_con_hora = DateTime.new(fecha_base.year, fecha_base.month, fecha_base.day, 7, 59, 0)
+      # Convertir a formato ISO 8601 con milisegundos
+      return fecha_con_hora.utc.iso8601(3)
+    end
+
+    return fecha_vencimiento
+
+  end
+
+
+  # ========================================================================================================
+  # RECEPCION DE FACTURAS
+  # ========================================================================================================
+
+  def self.reception(params)
+    res      = Response.new
+    client   = BaseRequest::Client.new('novac-dgii-reception')
+
+
+    begin
+      response      = client.create_one(params)
+    rescue StandardError => e
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
+      response = e.with_indifferent_access
+    end
+
+    data_response = response.with_indifferent_access[:data]
+
+    res.set_data({xml: data_response}.with_indifferent_access)
+
+    return res
+  end
+
+
+  # ========================================================================================================
+  # VALIDATE COMMERCIAL APPROVAL
+  # ========================================================================================================
+
+  def self.validate_commercial_approval(params)
+    res      = Response.new
+    client   = BaseRequest::Client.new('novac-dgii-validate-commercial-approval')
+
+    begin
+      response      = client.create_one(params)
+    rescue StandardError => e
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
+      response = e.with_indifferent_access
+    end
+
+    data_response = response.with_indifferent_access[:data]
+
+    res.set_data(data_response.with_indifferent_access)
+
+    return res
+  end
+
+
+  # ========================================================================================================
+  # AUTHENTICATION TEST
+  # ========================================================================================================
+
+  def self.auth_test
+    res      = Response.new
+    client   = BaseRequest::Client.new('novac-dgii-test-authentication')
+
+    begin
+      response = client.get_all()
+    rescue StandardError => e
+      puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
+      response = e.with_indifferent_access
+    end
+
+    response = response.with_indifferent_access
+    data_response = response[:data].is_a?(Hash) ? response[:data].with_indifferent_access : {}
+
+    res.set_data(data_response)
+    res.add_msg(response[:message]) if response[:message].present?
+    res.set_status(response[:status].to_i == 200 && data_response[:token].present? ? HTTP_STATUS_CODE[:ok] : HTTP_STATUS_CODE[:conflict])
+
+    return res
+  end
+end

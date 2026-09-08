@@ -3,3 +3,4 @@
 *.vcproj text eol=crlf
 *.sh text eol=lf
 *.jpg -text
+secrets/firebase-service-account.json filter=git-crypt diff=git-crypt

@@ -1,35 +1,59 @@
 class Cliente < ApplicationRecord
+  after_initialize :init, if: :new_record?
 
-  belongs_to :imagen, optional: true
+  belongs_to :imagen,    optional: true
+  belongs_to :municipio, optional: true,                  class_name: 'Municipio'
+  belongs_to :vendedor,  optional: true,                  class_name: 'User'
+
   accepts_nested_attributes_for :imagen
 
-  has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
+  has_many :documentos_de_identidad, dependent: :destroy, class_name: 'DocumentoDeIdentidad', :as => :origen
+  has_one  :provincia,                                    class_name: 'Provincia', through: :municipio
 
-  validates :nombre,              presence: { :message => "Nombre del cliente no puede estar vacio." },         uniqueness: { scope: [:estado, :apellido], case_sensitive: false, :message => "Cliente ya esta registrado" }, :if => :estado
-  validates :apellido,            presence: { :message => "Apellido del cliente no puede estar vacio." }
-  validates :telefono,            presence: { :message => "Telefono del cliente no puede estar vacio." }
-  validates :sexo,                presence: { :message => "Sexo del cliente no puede estar vacio." }
-  validates :limite_credito,      presence: { :message => "Dias de crédito del cliente no puede estar vacio." }
-  validates :maximo_credito,      presence: { :message => "Cantidad de crédito del cliente no puede estar vacio." }
-  validates :vendedor_id,         presence: { :message => "Debe de seleccionar un vendedor para el cliente." }
-  validates :direccion,           presence: { :message => "Direccion del cliente no puede estar vacio." }
+  validates :nombre,              presence: { :message => 'Nombre del cliente no puede estar vacio.' }
+  validates :apellido,            presence: { :message => 'Apellido del cliente no puede estar vacio.' }
+  validates :telefono,            presence: { :message => 'Telefono del cliente no puede estar vacio.' }
+  validates :sexo,                presence: { :message => 'Sexo del cliente no puede estar vacio.' }
+  validates :limite_credito,      presence: { :message => 'Dias de crédito del cliente no puede estar vacio.' }
+  validates :maximo_credito,      presence: { :message => 'Cantidad de crédito del cliente no puede estar vacio.' }
+  validates :vendedor_id,         presence: { :message => 'Debe de seleccionar un vendedor para el cliente.' }
+  validates :direccion,           presence: { :message => 'Direccion del cliente no puede estar vacio.' }
+  validates :municipio,           presence: { message: 'Municipio del cliente no puede estar vacio.' }, if: -> { create_validations }
+
+  attr_accessor :create_validations
 
   def init
-    self.balance = 0 unless self.balance
+    self.balance = 0                unless self.balance
   end
 
-
-
-
   def self.models_includes
-    includes = [:documentos_de_identidad]
+    includes = [:documentos_de_identidad, :municipio, :provincia, :vendedor]
     return includes
+  end
+
+  def self.filter_order_columns
+    {
+      "id" => "clientes.id",
+      "nombre" => "clientes.nombre",
+      "apellido" => "clientes.apellido",
+      "telefono" => "clientes.telefono",
+      "direccion" => "clientes.direccion",
+      "limite_credito" => "clientes.limite_credito",
+      "maximo_credito" => "clientes.maximo_credito",
+      "balance" => "clientes.balance",
+      "created_at" => "clientes.created_at",
+      "updated_at" => "clientes.updated_at"
+    }
+  end
+
+  def self.parse_filter_order(order_by)
+    ORDER_MANAGER.parse_safe(order_by, filter_order_columns, "clientes.id ASC")
   end
 
   def nombre_completo
     nombre    = self.nombre.capitalize
     nombre    += " #{self.apellido.capitalize}" unless self.apellido.blank?
-    nombre    = nombre.gsub("  ", " ").strip
+    nombre    = nombre.gsub('  ', ' ').strip
     nombre
   end
 
@@ -39,36 +63,38 @@ class Cliente < ApplicationRecord
     res                            = Response.new
     Cliente.transaction do
 
-      cliente                      = Cliente.where(:id => params["id"]).first_or_create
+      cliente                      = Cliente.where(:id => params[:id]).first_or_initialize
 
-      cliente.imagen_id            = params["imagen_id"]
-      cliente.nombre               = params["nombre"]
-      cliente.apellido             = params["apellido"]
-      cliente.limite_credito       = params["limite_credito"]
-      cliente.telefono             = params["telefono"]
-      cliente.direccion            = params["direccion"]
-      cliente.sexo                 = params["sexo"]
-      cliente.maximo_credito       = params["maximo_credito"]
-      cliente.vendedor_id          = params["vendedor_id"]
-      cliente.balance              = params["balance"] ? params["balance"] : 0
+      cliente.imagen_id            = params[:imagen_id]                       if params.obj_has?(:imagen_id)
+      cliente.nombre               = params[:nombre]                          if params.obj_has?(:nombre)
+      cliente.apellido             = params[:apellido]                        if params.obj_has?(:apellido)
+      cliente.limite_credito       = params[:limite_credito]                  if params.obj_has?(:limite_credito)
+      cliente.telefono             = params[:telefono]                        if params.obj_has?(:telefono)
+      cliente.direccion            = params[:direccion]                       if params.obj_has?(:direccion)
+      cliente.sexo                 = params[:sexo]                            if params.obj_has?(:sexo)
+      cliente.maximo_credito       = params[:maximo_credito]                  if params.obj_has?(:maximo_credito)
+      cliente.vendedor_id          = params[:vendedor_id]                     if params.obj_has?(:vendedor_id)
+      cliente.municipio_id         = params[:municipio_id]                    if params.obj_has?(:municipio_id)
       cliente.estado               = true
 
+      cliente.create_validations   = true
       cliente.valid?
 
       if cliente.errors.empty?
-        dependencias = [{modelo:DocumentoDeIdentidad, key_object:"documentos_de_identidad", padre:cliente}]
+        dependencias = [{modelo: DocumentoDeIdentidad, key_object: 'documentos_de_identidad', padre: cliente}]
 
         res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
           cliente.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
         }
 
         if res.status_valid && cliente.save!
-          res.set_data(serialize_parser(cliente, {all: true}))
+          res.set_data(cliente, {all: true})
 
-          action = params["id"] ? 'actualizado' : 'creado'
+          action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Cliente #{action} correctamente.")
         end
       end
+
 
       unless cliente.errors.empty?
         res.add_msgs(cliente.errors.to_a)
@@ -88,20 +114,33 @@ class Cliente < ApplicationRecord
     res = Response.new(params)
 
     clientes = Cliente
-    .joins("left join documentos_de_identidad on clientes.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Cliente' AND documentos_de_identidad.principal = true")
-    .where("lower(clientes.nombre || ' ' || clientes.apellido || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND clientes.estado = true AND clientes.sexo IS NOT NULL")
-    .order("clientes.id ASC")
+      .where(estado: true)
+      .where('clientes.sexo IS NOT NULL')
+      .joins("LEFT JOIN documentos_de_identidad ON clientes.id = documentos_de_identidad.origen_id
+        AND documentos_de_identidad.origen_type = 'Cliente'
+        AND documentos_de_identidad.principal = true")
+      .distinct
 
-    if clientes.length > 0
-      res.set_data(clientes, {all: true}, Cliente.models_includes)
-    else
-      res.set_data([])
-      cantidad_registros = Cliente.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen clientes registrados." : "No existe cliente con las especificaciones introducidas")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+    arg.to_s.downcase.split.each do |palabra|
+      palabra = "%#{ActiveRecord::Base.sanitize_sql_like(palabra)}%"
+      clientes = clientes.where(
+        "immutable_unaccent(clientes.nombre) ILIKE immutable_unaccent(:palabra)
+          OR immutable_unaccent(clientes.apellido) ILIKE immutable_unaccent(:palabra)
+          OR immutable_unaccent(documentos_de_identidad.documento) ILIKE immutable_unaccent(:palabra)",
+        palabra: palabra
+      )
     end
 
-    return res
+    clientes = clientes.order(Arel.sql(parse_filter_order(params["order_by"])))
+
+    return res.tap { |response| response.set_data(clientes, {all: true}, Cliente.models_includes) } if clientes.exists?
+
+    res.set_data([])
+    cantidad_registros = Cliente.where(estado: true).count
+    res.add_msg(cantidad_registros == 0 ? 'No existen clientes registrados.' : 'No existe cliente con las especificaciones introducidas')
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+
+    res
   end
 
 
@@ -111,23 +150,27 @@ class Cliente < ApplicationRecord
     paginate_class               = Paginator.new(paginate_options)
     res                          = Response.new()
     cliente_en_turno             = self
+    order_by                     = ORDER_MANAGER.parse(params[:order_by])
 
     factura_a_buscar             = params[:factura_a_buscar]
-    next_page       = nil
     next_page                    = nil
 
     query      = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND (cabecera_facturas.tipo = 'venta' OR cabecera_facturas.tipo = 'pre_venta') AND cabecera_facturas.estado = true  AND cabecera_facturas.cliente_id = #{cliente_en_turno.id}"
 
     data       = {'balances' => { 'total_facturado' => 0, 'notas_credito' => 0, 'notas_debito' => 0, 'debiendo' => 0, 'abonado' => 0}, 'facturas' => [], 'page' => paginate_class.get_page}
 
-    facturas   = CabeceraFactura.where(query).order('id DESC').includes(CabeceraFactura.models_includes).each do | factura |
+    facturas   = CabeceraFactura.where(query).order(order_by ? order_by : 'id DESC').includes(CabeceraFactura.models_includes).each do | factura |
 
       data['balances']['total_facturado'] += factura.total_factura
       data['balances']['debiendo']        += factura.balance
 
-      facturas_aplicadas                   = factura.facturas_aplicadas
-      notas_credito                        = facturas_aplicadas.select { | factura_aplicada | factura_aplicada.nota.tipo_factura_id == TiposNotasId.credito }
-      notas_debito                         = facturas_aplicadas.select { | factura_aplicada | factura_aplicada.nota.tipo_factura_id == TiposNotasId.debito }
+      facturas_aplicadas = factura.facturas_aplicadas.select { |factura_aplicada| factura_aplicada.nota.estado }
+
+      tipos_nota_credito = [TiposNotasId.credito, TiposNotasId.credito_electronica]
+      notas_credito      = facturas_aplicadas.select { | factura_aplicada | tipos_nota_credito.include?(factura_aplicada.nota.tipo_factura_id) }
+
+      tipos_nota_debito  = [TiposNotasId.debito, TiposNotasId.debito_electronica]
+      notas_debito       = facturas_aplicadas.select { | factura_aplicada | tipos_nota_debito.include?(factura_aplicada.nota.tipo_factura_id) }
 
       data['balances']['notas_credito']   += notas_credito.reduce(0) { | acu, item |  (item.total).abs + acu }
       data['balances']['notas_debito']    += notas_debito.reduce(0) { | acu, item |  (item.total).abs + acu }
@@ -139,10 +182,9 @@ class Cliente < ApplicationRecord
 
     unless factura_a_buscar.nil?
       index_factura_a_buscar = facturas.index { |fact| "#{fact.id}" == "#{factura_a_buscar}" }
-
       unless index_factura_a_buscar.nil?
         next_page              = (index_factura_a_buscar / paginate_class.get_per_page.to_f).ceil
-        next_page = 1 if next_page == 0
+        next_page              = 1 if next_page == 0
 
         paginate_class.set_page(next_page)
         data['page']           = paginate_class.get_page
@@ -152,7 +194,7 @@ class Cliente < ApplicationRecord
     paginate_class.paginate_data(facturas)
 
     data['facturas']         = paginate_class.data_paginated
-    data['facturas']['data'] = serialize_parser(paginate_class.get_data, {all: true})
+    data['facturas']['data'] = CabeceraFacturaSerializer.collection_to_hash(paginate_class.get_data, { all: true, movimientos_viaje: true })
 
     res.set_data(data)
     return res
@@ -161,24 +203,19 @@ class Cliente < ApplicationRecord
   # =========================================================================================================================================================
 
   def self.calculate_balance_cliente(id, totalFactura, operacion, ignoreMontoMayor=false)
-
     res = Response.new
 
     cliente          = Cliente.find_by_id(id)
     balance          = cliente.balance.nil? ? 0 : cliente.balance
 
-
-    if operacion == "-" && totalFactura.to_f > balance
-      unless ignoreMontoMayor
-        res.add_msg("El monto ingresado es mayor al balance del cliente")
-        res.set_status(HTTP_STATUS_CODE[:conflict])
-        return res
-      end
+    if monto_mayor_al_balance?(operacion, totalFactura, balance, ignoreMontoMayor)
+      res.add_msg('El monto ingresado es mayor al balance del cliente')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
     end
 
-    new_balance      = eval "#{balance} #{operacion} #{totalFactura.to_f}"
-    new_balance      = new_balance.to_d.truncate(2).to_f
-    cliente.balance  = new_balance
+    cliente.balance = nuevo_balance_cliente(balance, totalFactura, operacion)
+
     cliente.valid?
 
     if !cliente.errors.empty? || !cliente.save!
@@ -189,4 +226,14 @@ class Cliente < ApplicationRecord
     return res
   end
 
+  def self.monto_mayor_al_balance?(operacion, totalFactura, balance, ignoreMontoMayor)
+    operacion == '-' && totalFactura.to_f > balance && !ignoreMontoMayor
+  end
+
+  def self.nuevo_balance_cliente(balance, totalFactura, operacion)
+    new_balance = operacion == '-' ? balance - totalFactura.to_f : balance + totalFactura.to_f
+    new_balance.to_d.truncate(2).to_f
+  end
+
+  private
 end

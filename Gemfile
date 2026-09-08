@@ -1,18 +1,16 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '3.0.4'
+ruby '3.3.12'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails'
+gem 'rails', '7.2.3.2'
 # Use postgresql as the database for Active Record
 gem 'pg'
 # Use Puma as the app server
 gem 'puma'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 # gem 'jbuilder', '~> 2.5'
-# Use Redis adapter to run Action Cable in production
-# gem 'redis', '~> 4.0'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
@@ -30,6 +28,7 @@ gem 'bootsnap', require: false
 
 gem 'whenever', require: false
 gem 'google-api-client', require: false
+gem 'googleauth', require: false
 # gem 'google-apis-drive_v3', '~> 0.5.0'
 gem 'wdm', '>= 0.1.0', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
@@ -46,7 +45,7 @@ group :development do
   gem 'spring-watcher-listen'
 end
 
-# gem 'nokogiri'
+gem 'nokogiri'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data'
@@ -59,6 +58,8 @@ gem 'rack-cors'
 gem 'colorize'
 gem 'zlib'
 gem "rolify"
+gem 'mime-types'
+gem 'faraday'
 
 
 # source 'https://rubygems.org'
@@ -75,8 +76,6 @@ gem "rolify"
 # gem 'puma'
 # # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 # # gem 'jbuilder', '~> 2.5'
-# # Use Redis adapter to run Action Cable in production
-# # gem 'redis', '~> 4.0'
 # # Use ActiveModel has_secure_password
 # # gem 'bcrypt', '~> 3.1.7'
 

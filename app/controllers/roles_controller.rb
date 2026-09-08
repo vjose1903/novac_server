@@ -3,12 +3,12 @@ class RolesController < ApplicationController
 
   # GET /roles
   def index
-    return Response.new(params, nil, Role.all.order('id DESC'), nil, get_parametros_opcionales).send_response self
+    return Response.new(params, HTTP_STATUS_CODE[:ok], Role.all.order('id DESC'), nil, get_parametros_opcionales, Role.models_includes).send_response self
   end
 
 	# GET /roles/1
 	def show
-		return Response.new(params, nil, @role, nil, get_parametros_opcionales).send_response self
+		return Response.new(params, HTTP_STATUS_CODE[:ok], @role, nil, get_parametros_opcionales, Role.models_includes).send_response self
 	end
 
   def getRolesFiltrados
@@ -46,7 +46,7 @@ class RolesController < ApplicationController
 	def get_parametros_opcionales
     return {
       all: true,
-      permisos_acciones: params['permisos_acciones'] || false,
+      permisos_acciones: validate_optional_param(params, 'permisos_acciones') ? params['permisos_acciones'].to_boolean : false,
     }
   end
 

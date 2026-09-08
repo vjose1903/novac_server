@@ -1,0 +1,180 @@
+class TasaCambio < ApplicationRecord
+  self.table_name = 'tasas_de_cambio'
+
+  belongs_to :divisa
+
+  # ============================================================================================================================================
+
+  def self.create_tasa_cambio(params, divisa, is_save)
+    res      = Response.new
+
+    TasaCambio.transaction do
+      divisa = Divisa.find_by_id( params[:divisa_id] ) if divisa.nil?
+
+      unless divisa.nil?
+        tasa_cambio                    = TasaCambio.where(:id => params[:id]).first_or_initialize
+
+
+        tasa_cambio.valor              = params[:valor]              unless params[:valor].nil?
+        tasa_cambio.divisa_id          = params[:divisa_id]          unless params[:divisa_id].nil?
+        tasa_cambio.fecha_equivalente  = params[:fecha_equivalente]  unless params[:fecha_equivalente].nil?
+        tasa_cambio.user_id            = get_current_user[:id]       unless get_current_user.nil?
+
+        tasa_cambio.valor              = 1 if tasa_cambio.divisa.is_principal
+
+        tasa_cambio.valid?
+
+        if tasa_cambio.errors.empty? && (!is_save || (is_save && tasa_cambio.save!))
+
+          res.set_data(tasa_cambio)
+          action = params[:id] ? 'actualizada' : 'creada'
+          res.add_msg("Tasa de Cambio #{action} correctamente.")
+
+        end
+
+        unless tasa_cambio.errors.empty?
+          res.add_msgs(tasa_cambio.errors.to_a)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
+        transaction_rollback if !tasa_cambio.errors.empty? || !res.status_valid
+      else
+        res.add_msg("Para crear una tasa de cambio debe de seleccionar la divisa correspondiente.")
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
+
+    end
+    return res
+  end
+
+  # ============================================================================================================================================
+
+  def self.update_tasa_cambio(params)
+    res             = Response.new
+
+    if Date.parse(params[:fecha_equivalente]).beginning_of_day > Date.today.beginning_of_day
+      res.add_msg('No puede modificar la tasa de cambio de una divisa, en un día posterior al día actual.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    current_divisa = Divisa.find_by_id(params[:id])
+
+    if !current_divisa.nil? && current_divisa.estado
+
+      TasaCambio.transaction do
+        tasas                 = []
+
+        start_date            = Date.new(Date.parse(params[:fecha_equivalente]).year, 1, 1)
+        end_date              = Date.new(Date.parse(params[:fecha_equivalente]).year, 12, 31)
+
+        is_today_change       = Date.parse(params[:fecha_equivalente]) == Date.today
+
+        tasa_en_turno         = TasaCambio.where({divisa_id: params[:divisa_id], fecha_equivalente: Date.parse(params[:fecha_equivalente]).beginning_of_day..Date.parse(params[:fecha_equivalente]).end_of_day}).first unless is_today_change
+
+        where_clause          = is_today_change ? "fecha_equivalente >= '#{params[:fecha_equivalente]}'" : "secuencia = #{tasa_en_turno.secuencia}"
+        tasas                 = TasaCambio.where("divisa_id = #{params[:divisa_id]} AND #{where_clause} AND (fecha_equivalente between '#{start_date}' AND '#{end_date}')").order("id ASC")
+
+        updates                   = { valor: params[:valor] }
+        updates[:last_user_update_id] = get_current_user[:id] unless get_current_user.nil?
+        updates[:secuencia]       = Arel.sql('secuencia + 1') if is_today_change
+
+        tasas.update_all(updates)
+
+        current_divisa.current_tasa = params[:valor]
+
+        if current_divisa.save!
+          res.add_msg('Tasa de Cambio modificada correctamente.')
+        else
+          res.add_msg("Error actualizando la tasa actual para la divisa #{current_divisa.nombre}.")
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
+
+        transaction_rollback if !current_divisa.errors.empty? || !res.status_valid
+      end
+
+
+    else
+
+      razon = current_divisa.nil? ? 'no existe' : 'está desactivada'
+      res.add_msg("La divisa que esta intentando cambiar la tasa, #{razon}.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+
+    end
+
+
+    return res
+  end
+
+  # ============================================================================================================================================
+
+  def self.create_year_tasa_cambio(divisa, current_tasa=0 )
+
+    res_valid   = Response.new
+
+    start_date  = Date.new(Date.today.year, 1, 1)
+    end_date    = Date.new(Date.today.year, 12, 31)
+
+    valor       = divisa.is_principal ? 1 : current_tasa
+    usuario     = get_current_user
+    existentes  = TasaCambio.where(divisa_id: divisa.id, fecha_equivalente: start_date..end_date).pluck(:fecha_equivalente).to_set
+
+    nuevas_tasas = []
+    (start_date..end_date).each do | date |
+      nueva_tasa = { divisa_id: divisa.id, valor: valor, fecha_equivalente: formatearFecha(date.to_s, TipoFecha.sin_hora) }
+      nueva_tasa[:user_id] = usuario[:id] unless usuario.nil?
+      nuevas_tasas << nueva_tasa unless existentes.include?(date)
+    end
+
+    array_valid = TasaCambio.where(divisa_id: divisa.id, fecha_equivalente: start_date..end_date).order('fecha_equivalente ASC').to_a
+
+    unless nuevas_tasas.empty?
+      TasaCambio.insert_all(nuevas_tasas)
+      array_valid = TasaCambio.where(divisa_id: divisa.id, fecha_equivalente: start_date..end_date).order('fecha_equivalente ASC').to_a
+    end
+
+    res_valid.set_data array_valid
+    return res_valid
+
+  end
+
+  # ============================================================================================================================================
+
+  def self.register_tasas_of_new_year()
+    res             = Response.new
+
+    Divisa.where({ estado: true }).each do | divisa |
+      result_tasa   = TasaCambio.create_year_tasa_cambio(divisa, divisa.current_tasa)
+
+      unless result_tasa.status_valid
+        return res
+      end
+    end
+
+    return res
+  end
+
+  # ============================================================================================================================================
+
+  def self.get_history_changes(params)
+    res = Response.new
+
+    desde = Date.parse(params[:desde])
+    hasta = Date.parse(params[:hasta])
+
+    tasas_rango = TasaCambio.where("divisa_id = #{params[:divisa_id]} AND valor > 0 AND (fecha_equivalente between '#{desde}' AND '#{hasta}')")
+
+    if tasas_rango.exists? && tasas_rango.select('DISTINCT valor').count == 1
+      tasa_del_dia = tasas_rango.where(fecha_equivalente: hasta).first || tasas_rango.order('fecha_equivalente DESC').first
+      res.set_data([tasa_del_dia], {all: true})
+      return res
+    end
+
+    ids = tasas_rango.select('MIN(id) as id').group('secuencia').to_a
+    tasas_de_cambio = TasaCambio.where({id: ids}).order('secuencia ASC')
+
+    res.set_data(tasas_de_cambio, {all: true})
+
+    return res
+  end
+end

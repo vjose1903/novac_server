@@ -2,7 +2,8 @@ class PermisosController < ApplicationController
 	before_action :set_permiso, only: [:show]
 	# GET /permiso
 	def index
-		return Response.new(params, nil, Permiso.get_all, nil, get_parametros_opcionales).send_response self
+		opciones = get_parametros_opcionales
+		return Response.new(params, HTTP_STATUS_CODE[:ok], Permiso.get_all, nil, opciones, Permiso.models_includes).send_response self
 	end
 
 	# GET /permiso/1
@@ -17,8 +18,8 @@ class PermisosController < ApplicationController
 
 	def get_parametros_opcionales
     return {
-      acciones: params['acciones'] || false,
-      permisos_acciones: params['permisos_acciones'] || false,
+      acciones:          validate_optional_param(params, 'acciones') ?          params['acciones'].to_boolean :          false,
+      permisos_acciones: validate_optional_param(params, 'permisos_acciones') ? params['permisos_acciones'].to_boolean : false,
     }
   end
 

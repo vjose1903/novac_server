@@ -9,49 +9,59 @@ class ContenidoArticulo < ApplicationRecord
 
 
   def self.crear_actualizar_contenido_articulo(params, padre, is_save=false)
-    res = Response.new
-
-		contenido                   = ContenidoArticulo.where(:id => params["id"]).first_or_create
-
-    contenido.referencia        = params["referencia"] || nil
-    contenido.costo             = params["costo"]
-    contenido.precio            = params["precio"]
-    contenido.cantidad          = params["cantidad"]
-    contenido.medida            = params["medida"]
-    contenido.condicion         = params["condicion"]
-    contenido.calcular_itbis    = params["calcular_itbis"]
-
+    contenido = build_from_params(params)
     contenido.valid?
+    contenido.errors.delete(:articulo) unless is_save
 
-    contenido.errors.delete(:articulo) if !is_save
+    return response_with_data(contenido) if valid_or_saved?(contenido, is_save)
 
-    if contenido.errors.empty? && (!is_save || (is_save && contenido.save!))
-      res.set_data(contenido)
-    else
-      res.add_msgs(contenido.errors.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
-
-    return res
+    response_with_errors(contenido.errors.to_a)
   end
 
   def self.validar_e_inicializar(items, padre, save)
-    res_valid = Response.new
-    array_valid=[]
+    contenidos = []
 
     items.each do |item|
-      res_temp = self.crear_actualizar_contenido_articulo(item, padre, !item[:id].nil?)
+      res_temp = crear_actualizar_contenido_articulo(item, padre, item_id?(item))
+      return res_temp unless res_temp.status_valid
 
-      if res_temp.status_valid
-        array_valid.push(res_temp.get_data)
-      else
-        return res_temp
-      end
+      contenidos.push(res_temp.get_data)
     end
 
-    res_valid.set_data array_valid
-    return res_valid
+    response_with_data(contenidos)
   end
 
+  def self.build_from_params(params)
+    ContenidoArticulo.where(:id => params["id"]).first_or_initialize.tap do |contenido|
+      contenido.referencia        = params["referencia"] || nil
+      contenido.costo             = params["costo"]
+      contenido.precio            = params["precio"]
+      contenido.cantidad          = params["cantidad"]
+      contenido.medida            = params["medida"]
+      contenido.condicion         = params["condicion"]
+      contenido.calcular_itbis    = params["calcular_itbis"]
+    end
+  end
+
+  def self.item_id?(item)
+    item[:id].present? || item["id"].present?
+  end
+
+  def self.valid_or_saved?(record, is_save)
+    record.errors.empty? && (!is_save || record.save!)
+  end
+
+  def self.response_with_data(data)
+    Response.new.tap { |res| res.set_data(data) }
+  end
+
+  def self.response_with_errors(errors)
+    Response.new.tap do |res|
+      res.add_msgs(errors)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+  end
+
+  private_class_method :build_from_params, :item_id?, :valid_or_saved?, :response_with_data, :response_with_errors
 
 end

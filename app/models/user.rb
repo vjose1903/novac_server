@@ -9,8 +9,8 @@ class User < ApplicationRecord
   has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
   accepts_nested_attributes_for :documentos_de_identidad
 
-  has_many :users_roles, dependent: :destroy
-  has_and_belongs_to_many :roles, join_table: :users_roles
+  # has_many :users_roles, dependent: :destroy
+  # has_and_belongs_to_many :roles, join_table: :users_roles
 
   has_many :roles_permisos_acciones, through: :roles
 
@@ -33,6 +33,14 @@ class User < ApplicationRecord
   def self.models_includes
     includes = [:documentos_de_identidad, {roles_permisos_acciones: [:role, :permiso_accion]}]
     return includes
+  end
+
+  def self.models_includes_for(params)
+    includes = []
+    includes << :documentos_de_identidad if params[:all] || params[:documentos_de_identidad]
+    includes << :roles if params[:roles]
+    includes << {roles_permisos_acciones: [:role, :permiso_accion]} if params[:permisos]
+    includes
   end
 
   def nombre_completo
@@ -63,6 +71,19 @@ class User < ApplicationRecord
     end
 
   end
+
+  def self.serialized_response(users, params, serializer_params, msg=nil)
+    paginate_class = Paginator.new(params)
+    includes = User.models_includes_for(serializer_params)
+    paginate_class.paginate_data(users, includes.empty? ? nil : includes)
+
+    res = {status: HTTP_STATUS_CODE[:ok], data: UserSerializer.collection_to_hash(paginate_class.get_data, serializer_params), msg: msg}
+    if paginate_class.is_paginated
+      res[:total_registros] = paginate_class.get_total_registros
+      res[:total_paginas] = paginate_class.get_total_paginas
+    end
+    res
+  end
   # =====================================================================================================================
 
   def checkRoles(params)
@@ -74,7 +95,7 @@ class User < ApplicationRecord
   def self.crear_actualizar_user(params , is_save=false)
     res                           = Response.new
     User.transaction do
-      user                        = User.where(:id => params["id"]).first_or_create
+      user                        = User.where(:id => params["id"]).first_or_initialize
 
       user.nombre                 = params["nombre"]
       user.apellido               = params["apellido"]
@@ -99,7 +120,7 @@ class User < ApplicationRecord
         }
 
         if res.status_valid && user.save!
-          res.set_data(serialize_parser(user, {all: true}))
+          res.set_data(user, {all: true})
 
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Empleado #{action} correctamente.")
@@ -119,23 +140,21 @@ class User < ApplicationRecord
 
   # =====================================================================================================================
   def self.filtrarUsusarios(arg, params)
-    res = Response.new(params)
+    arg = ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)
+    serializer_params = {all: true, roles: true}
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
-    .where("lower(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
+    .where("LOWER(COALESCE(users.nombre, '') || ' ' || COALESCE(users.apellido, '') || ' ' || COALESCE(users.email, '') || ' ' || COALESCE(documentos_de_identidad.documento, '')) LIKE LOWER(?) AND users.estado = true AND sexo != 'i'", "%#{arg}%")
     .order("users.id ASC")
 
-    if users.length > 0
-      res.set_data(users, {all: true, roles: true}, User.models_includes)
-      # res.set_data(users, {all: true, roles: true})
-    else
-      res.set_data([])
-      cantidad_registros = User.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-    end
+    return Response.new(params, HTTP_STATUS_CODE[:ok], users, [], serializer_params, User.models_includes_for(serializer_params)) if users.exists?
 
-    return res
+    res = Response.new(params)
+    res.set_data([])
+    cantidad_registros = User.where({estado: true}).count
+    res.add_msg(cantidad_registros == 0 ? "No existen empleados registrados." : "No existe empleado con las especificaciones introducidas")
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res
   end
 
     # =========================================================================================================================================================

@@ -1,5 +1,18 @@
 Rails.application.routes.draw do
 
+  get "up" => "health#show"
+  get "up/dgii" => "health#dgii"
+
+  scope :api do
+    get "dashboard" => "dashboard#index", as: :api_dashboard
+  end
+
+  namespace :calendar do
+    resources :events, only: [:index, :create, :update, :destroy]
+    resources :event_types, only: [:index, :create, :update, :destroy]
+    get "linkables/search" => "linkables#search"
+  end
+
   resources :costos_fletes_historiales
   resources :provincias
   resources :municipios
@@ -23,6 +36,8 @@ Rails.application.routes.draw do
   resources :acciones
   resources :detalles_facturas_notas
   resources :config_articulos
+  resources :configuracion_cuadres, only: [:show, :update]
+
 
 
   resources :roles do
@@ -41,6 +56,15 @@ Rails.application.routes.draw do
     collection do
       post "custom"            => "cuadre_cajas#create"
       get "check_today_cuadre" => "cuadre_cajas#checkTodayCuadre"
+      get "check_datetime_cuadre" => "cuadre_cajas#checkDateTimeCuadre"
+      get "system_income_preview" => "cuadre_cajas#systemIncomePreview"
+      post "prepare"           => "cuadre_cajas#prepare"
+    end
+    member do
+      post "submit"            => "cuadre_cajas#submit"
+      post "approve"           => "cuadre_cajas#approve"
+      post "reject"            => "cuadre_cajas#reject"
+      post "reopen"            => "cuadre_cajas#reopen"
     end
   end
 
@@ -140,7 +164,6 @@ Rails.application.routes.draw do
 
   resources :cabecera_facturas do
     collection do
-
       # cabecera facturas
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
@@ -148,6 +171,7 @@ Rails.application.routes.draw do
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
       get "custom/:ruta_complemento"                              => "cabecera_facturas#custom_route"
       patch ":id/update/movimientos_viaje"                        => "cabecera_facturas#updateMovimientosViaje"
+      patch ":id/dgii/eNCF/replace"                               => "cabecera_facturas#remplace_encf"
     end
   end
 
@@ -158,11 +182,47 @@ Rails.application.routes.draw do
     end
   end
 
-  post "ruta/test"              => "application#testFunction"
+
+  # -------------------------------------------------------------------------------------------------------------------------------
+  # Facturacion Electronica
+  # -------------------------------------------------------------------------------------------------------------------------------
+  scope :fe do
+    post 'recepcion/api/ecf',           to: 'facturacion_electronica#recepcion'
+    post 'aprobacioncomercial/api/ecf', to: 'facturacion_electronica#aprobacion_comercial'
+  end
+
+  scope :dgii do
+    get 'login/prueba',                   to: 'facturacion_electronica#login_prueba'
+  end
+
+  resources :ecf_receptions, only: [:index, :show] do
+    member do
+      post 'approve_deny', to: 'ecf_receptions#approveDenyEcf'
+    end
+  end
+
+  resources :commertial_approval_receptions, only: [:index, :show]
+
+  # -------------------------------------------------------------------------------------------------------------------------------
+
+  get "ruta/test"              => "application#testFunction"
 
   resources :permisos do
     collection do
       get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
+    end
+  end
+
+  resources :tasas_de_cambio do
+    collection do
+      get "custom/get_history_changes" => "tasas_de_cambio#getHistoryChanges"
+    end
+  end
+
+  resources :divisas do
+    collection do
+      patch ":id/deactivate_or_reactivate" => "divisas#deactivateOrReactivate"
+      get "custom/get_principal"           => "divisas#getPrincipalDivisa"
     end
   end
 
@@ -171,6 +231,9 @@ Rails.application.routes.draw do
                                         registrations: "devise_token_auth/registrations",
                                         token_validations: "devise_token_auth/token_validations",
                                       }
+
+  post 'firebase/logos', to: 'firebase_logos#create'
+  post 'firebase/configuration', to: 'firebase_configuration#create'
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end

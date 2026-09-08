@@ -3,21 +3,21 @@ class SuplidoresController < ApplicationController
 
   # GET /suplidores
   def index    
-    return Response.new(params, nil, Suplidor.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, HTTP_STATUS_CODE[:ok], Suplidor.where({ estado: true}).order('id DESC'), nil, {all: true}, Suplidor.models_includes).send_response self
   end
 
   # GET /suplidores/1
   def show
-    return Response.new(params, nil, @suplidor, nil, {all: true}).send_response self
+    return Response.new(params, HTTP_STATUS_CODE[:ok], @suplidor, nil, {all: true}, Suplidor.models_includes).send_response self
   end 
 
   def getNombresSuplidores
-    return Response.new(params, nil, Suplidor.all.where({ estado: true}).order('id DESC'), nil, {id: true, nombre: true}).send_response self
+    return Response.new(params, HTTP_STATUS_CODE[:ok], Suplidor.where({ estado: true}).order('id DESC'), nil, {id: true, nombre: true}).send_response self
   end
 
   def getSuplidoresFiltrados
     arg = params["arg"]
-    resultado = Suplidor.filtrarSuplidores(arg, set_paginate_options(params))
+    resultado = Suplidor.filtrarSuplidores(arg, set_paginate_options(params).merge("order_by" => params[:order_by]))
     resultado.send_response self
   end
 
@@ -56,4 +56,5 @@ class SuplidoresController < ApplicationController
     
     return respuesta.send_response self if @suplidor.nil?
   end
+
 end

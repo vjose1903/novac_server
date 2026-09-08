@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "target": "es2017",
+      "module": "commonjs",
+      "outDir": "./dist",
+      // "strict": true,
+      "esModuleInterop": true,
+      "types": ["node"],
+      "moduleResolution": "node",
+      "baseUrl": "./",
+      "paths": {
+        "@core/*": ["src/core/*"],
+        "@controllers/*": ["src/controllers/*"],
+        "@utils/*": ["src/utils/*"]
+      }
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+  }

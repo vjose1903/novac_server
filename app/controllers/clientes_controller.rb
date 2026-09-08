@@ -3,7 +3,7 @@ class ClientesController < ApplicationController
 
   # GET /clientes
   def index
-    return Response.new(params, nil, Cliente.all.where({ estado: true}).order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, nil, Cliente.where({ estado: true}).order('id DESC'), nil, {all: true}, Cliente.models_includes).send_response self
   end
 
 	# GET /clientes/1
@@ -13,7 +13,7 @@ class ClientesController < ApplicationController
 
   def getClientesFiltrados
     arg       = params[:arg]
-    resultado = Cliente.filtrarCliente(arg, set_paginate_options(params))
+    resultado = Cliente.filtrarCliente(arg, set_paginate_options(params).merge("order_by" => params[:order_by]))
     resultado.send_response self
   end
 

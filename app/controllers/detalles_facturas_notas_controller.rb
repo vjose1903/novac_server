@@ -5,12 +5,12 @@ class DetallesFacturasNotasController < ApplicationController
   def index
     @detalles_facturas_notas = DetalleFacturaNota.all
 
-    render json: @detalles_facturas_notas
+    render body: DetalleFacturaNotaSerializer.collection_to_hash(@detalles_facturas_notas).to_json, content_type: 'application/json'
   end
 
   # GET /detalles_facturas_notas/1
   def show
-    render json: @detalle_factura_nota
+    render body: DetalleFacturaNotaSerializer.to_hash(@detalle_factura_nota).to_json, content_type: 'application/json'
   end
 
   # POST /detalles_facturas_notas

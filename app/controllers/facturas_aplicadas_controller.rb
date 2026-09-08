@@ -10,12 +10,12 @@ class FacturasAplicadasController < ApplicationController
   def index
     @facturas_aplicadas = FacturaAplicada.all
 
-    render json: @facturas_aplicadas
+    return Response.new(params, HTTP_STATUS_CODE[:ok], @facturas_aplicadas, nil, {all: true}, FacturaAplicada.models_includes).send_response self
   end
 
   # GET /facturas_aplicadas/1
   def show
-    render json: @factura_aplicada
+    return Response.new(params, nil, @factura_aplicada, nil, {all: true}, FacturaAplicada.models_includes).send_response self
   end
 
   # POST /facturas_aplicadas
@@ -23,7 +23,7 @@ class FacturasAplicadasController < ApplicationController
     @factura_aplicada = FacturaAplicada.new(factura_aplicada_params)
 
     if @factura_aplicada.save
-      render json: @factura_aplicada, status: :created, location: @factura_aplicada
+      return Response.new(params, HTTP_STATUS_CODE[:created], @factura_aplicada, nil, {all: true}, FacturaAplicada.models_includes).send_response self
     else
       render json: @factura_aplicada.errors, status: :unprocessable_entity
     end
@@ -32,7 +32,7 @@ class FacturasAplicadasController < ApplicationController
   # PATCH/PUT /facturas_aplicadas/1
   def update
     if @factura_aplicada.update(factura_aplicada_params)
-      render json: @factura_aplicada
+      return Response.new(params, nil, @factura_aplicada, nil, {all: true}, FacturaAplicada.models_includes).send_response self
     else
       render json: @factura_aplicada.errors, status: :unprocessable_entity
     end
