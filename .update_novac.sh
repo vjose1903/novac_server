@@ -33,8 +33,10 @@ git clean -fd
 echo '      OK'
 echo
 
-echo '[5/8] Cambiando a la rama publicada y alineándola con origin...'
-git checkout -B "$BRANCH" "origin/$BRANCH"
+echo '[5/8] Cambiando forzosamente a la rama publicada...'
+git checkout -f -B "$BRANCH" "origin/$BRANCH"
+git reset --hard "origin/$BRANCH"
+git clean -fd
 echo '      OK'
 echo
 
