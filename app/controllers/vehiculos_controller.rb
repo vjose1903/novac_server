@@ -1,4 +1,5 @@
 class VehiculosController < ApplicationController
+  before_action :validate_travel_module!, only: [:index, :show, :getVehiculosFiltrados]
   before_action :set_vehiculo, only: [:show, :update, :destroy]
 
   # GET /vehiculos
@@ -49,6 +50,13 @@ class VehiculosController < ApplicationController
   end
 
   private
+
+    def validate_travel_module!
+      return if FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].presence || request.headers['X-Empresa-Id'])
+
+      render json: { msg: ['El módulo de viajes no está habilitado para este servidor.'] }, status: HTTP_STATUS_CODE[:forbidden]
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_vehiculo
       respuesta = set_entidad(Vehiculo, params)

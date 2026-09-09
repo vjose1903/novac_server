@@ -116,6 +116,7 @@ class Dashboard
     return invalid_date_range if @start_date > @end_date
 
     requested_blocks = parse_blocks
+    requested_blocks -= ['top_vehicles_by_trips'] unless travel_module_enabled?
     invalid_blocks = requested_blocks - ALL_BLOCKS
     return invalid_blocks_response(invalid_blocks) if invalid_blocks.any?
 
@@ -141,6 +142,10 @@ class Dashboard
   def parse_blocks
     blocks = params[:blocks].to_s.split(',').map(&:strip).reject(&:blank?)
     blocks.any? ? blocks : ALL_BLOCKS
+  end
+
+  def travel_module_enabled?
+    FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].to_s)
   end
 
   def build_hero(requested_blocks)
