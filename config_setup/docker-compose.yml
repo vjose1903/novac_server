@@ -25,6 +25,7 @@ services:
       VIRTUAL_HOST: "localhost,novac.loca.lt,10.0.0.252"
       API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-dev:$$DGII_MICROSERVICE_PORT$$"
       DGII_CERTIFICATION_DATE: "$$DGII_DATE$$"
+      USE_DGII_MICROSERVICE: "$$USE_DGII_MICROSERVICE$$"
       PORT: "$$DB_PORT$$"
       RAILS_MAX_THREADS: "5"
       WEB_CONCURRENCY: "0"
@@ -39,6 +40,8 @@ services:
     command: ["./wait-for-it.sh", "db-dev:5432", "--", "sh", "./run_server.sh"]
 
   dgii-microservice-dev:
+    profiles:
+      - "dgii"
     build:
       context: ./dgii_signature_microservice
       dockerfile: Dockerfile.dev
@@ -69,6 +72,7 @@ services:
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./logs/nginx:/var/log/nginx
+      - ./config/nginx/client-body-size.conf:/etc/nginx/conf.d/client-body-size.conf:ro
     logging:
       driver: "json-file"
       options:

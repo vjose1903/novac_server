@@ -17,11 +17,21 @@ if [ ! -d .git/git-crypt ]; then
   echo "  git-crypt export-key ~/novac-server-git-crypt.key" >&2
 fi
 
-if [ ! -f secrets/firebase-service-account.json ]; then
-  echo "Falta secrets/firebase-service-account.json. Coloca la credencial y vuelve a ejecutar git add." >&2
-  exit 1
-fi
+secret_files=(
+  secrets/firebase-service-account.json
+  config/google_api_credentials.json
+  config/initializers/google/google_api_credentials.json
+  dgii_signature_microservice/src/utils/google_api_credentials.json
+  dgii_signature_microservice/src/utils/firma-digital.p12
+)
 
-git add .gitattributes secrets/firebase-service-account.json
-echo "Credencial preparada para quedar cifrada al hacer commit." >&2
+for secret_file in "${secret_files[@]}"; do
+  if [ ! -f "$secret_file" ]; then
+    echo "Falta el archivo secreto: $secret_file" >&2
+    exit 1
+  fi
+done
+
+git add .gitattributes "${secret_files[@]}"
+echo "Credenciales Firebase/Google y certificado DGII preparados para quedar cifrados al hacer commit." >&2
 echo "Comprueba el cambio y realiza el commit manualmente." >&2

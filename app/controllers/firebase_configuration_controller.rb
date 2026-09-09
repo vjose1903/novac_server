@@ -1,4 +1,5 @@
 class FirebaseConfigurationController < ApplicationController
+  skip_around_action :encarsular_usuario
   before_action :set_user_by_token
   before_action :require_authenticated_user
 
@@ -19,7 +20,7 @@ class FirebaseConfigurationController < ApplicationController
   private
 
   def require_authenticated_user
-    return if user_signed_in?
+    return if @resource.present?
 
     render json: { msg: 'Para realizar esta acción debe iniciar sesión.', action: 'close_session' }, status: :unauthorized
   end

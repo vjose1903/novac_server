@@ -30,6 +30,7 @@ services:
       DISABLE_DATABASE_ENVIRONMENT_CHECK: 1
       API_BASE_URL_DGII_MICROSERVICE: "http://dgii-microservice-prod:$$DGII_MICROSERVICE_PORT$$"
       DGII_CERTIFICATION_DATE: "$$DGII_DATE$$"
+      USE_DGII_MICROSERVICE: "$$USE_DGII_MICROSERVICE$$"
       PORT: "$$DB_PORT$$"
       RAILS_MAX_THREADS: "$$RAILS_MAX_THREADS$$"
       WEB_CONCURRENCY: "$$WEB_CONCURRENCY$$"
@@ -45,6 +46,8 @@ services:
       sh -c "./wait-for-it.sh db-prod:5432 -- sh ./run_server.sh"
 
   dgii-microservice-prod:
+    profiles:
+      - "dgii"
     build:
       context: ./dgii_signature_microservice
       dockerfile: Dockerfile
@@ -70,6 +73,7 @@ services:
       - ./certs:/etc/nginx/certs
       - ./html:/usr/share/nginx/html
       - ./logs/nginx:/var/log/nginx
+      - ./config/nginx/client-body-size.conf:/etc/nginx/conf.d/client-body-size.conf:ro
     restart: unless-stopped
     depends_on:
       - db-prod

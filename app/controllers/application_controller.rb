@@ -76,6 +76,12 @@ class ApplicationController < ActionController::API
 
   protected
 
+  # DeviseTokenAuth's SetUserByToken concern uses this mapping when a
+  # controller is not one of the generated Devise controllers.
+  def resource_name
+    :user
+  end
+
   def configure_permitted_parameters
     permits = [:id, :nombre, :usuario, :estado, :cedula, :apellido, :sexo, :fotoPerfil, :fotoPerfil_cache, :telefono, :email, :fecha_nacimiento, :role, :password,
                :password_confirmation,

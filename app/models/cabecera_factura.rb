@@ -254,9 +254,15 @@ class CabeceraFactura < ApplicationRecord
   end
 
   private_class_method def self.enviar_a_dgii?(cabecera_factura)
+    return false unless dgii_microservice_enabled?
+
     es_compra = @tipo_de_documento.descripcion == TiposFacturasDescripcion.compra
 
     @is_electronica && !es_compra && cabecera_factura.is_external == false
+  end
+
+  private_class_method def self.dgii_microservice_enabled?
+    ActiveModel::Type::Boolean.new.cast(ENV.fetch('USE_DGII_MICROSERVICE', 'true'))
   end
 
   private_class_method def self.finalizar_cabecera_factura(cabecera_factura, data_secuencias)

@@ -19,7 +19,8 @@ const setup = {
     FRONTEND_HOST_SECONDARY: '8n3mw1zq-9093.use2.devtunnels.ms',
     EMAIL: 'novacdemo@gmail.com',
     MONTU: '1Wt7ND-m7yZidbgRyf_89fNeK71gyz7fn',
-		DGII_DATE: '',
+    DGII_DATE: '',
+    USE_DGII_MICROSERVICE: 'false',
     HOST_ID: '10.0.0.9',
     RAILS_MAX_THREADS: '5',
     WEB_CONCURRENCY: '2'
@@ -38,6 +39,7 @@ const setup = {
     EMAIL: 'novacagrodemi@gmail.com',
     MONTU: '1RzMbNCVAhqkNzH0mTO8f27-kfq1oum6a',
 		DGII_DATE: '2025-05-15',
+		USE_DGII_MICROSERVICE: 'true',
 		HOST_ID: '10.0.0.9',
     RAILS_MAX_THREADS: '5',
     WEB_CONCURRENCY: '2'
@@ -56,6 +58,7 @@ const setup = {
     EMAIL: 'novacbrendy@gmail.com',
     MONTU: '1C96yS20EDDyX7rgi2Y5OQju_4FQ8G5_C',
 		DGII_DATE: '',
+    USE_DGII_MICROSERVICE: 'false',
     HOST_ID: '10.0.0.9',
     RAILS_MAX_THREADS: '5',
     WEB_CONCURRENCY: '2'
@@ -74,6 +77,7 @@ const setup = {
     EMAIL: 'novacvasquez@gmail.com',
     MONTU: '17pDTnH139lHpSRj3_xoPWP8jJYHR0roa',
 		DGII_DATE: '',
+    USE_DGII_MICROSERVICE: 'false',
     HOST_ID: '10.0.0.9',
     RAILS_MAX_THREADS: '5',
     WEB_CONCURRENCY: '2'
@@ -113,6 +117,7 @@ function makeSetup(cliente) {
     });
 
     fs.writeFileSync(pathAdd('../config_setup/actual_cliente.txt'), cliente);
+    fs.writeFileSync(pathAdd('../config_setup/actual_dgii.txt'), setup[cliente].USE_DGII_MICROSERVICE);
   } else {
     console.log('********************************************');
     console.log('**                                        **');

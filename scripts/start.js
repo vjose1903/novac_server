@@ -80,11 +80,16 @@ function dockerCommand(command) {
 
   const isBackground = command === 'up' && BACKGROUND === 'yes' ? '-d' : '';
 
+	const useDgii = fs.existsSync(pathAdd('../config_setup/actual_dgii.txt'))
+		&& fs.readFileSync(pathAdd('../config_setup/actual_dgii.txt'), 'utf8').trim() === 'true';
+	const includeDgiiProfile = useDgii || ['down', 'stop', 'restart'].includes(command);
+	const composeProfiles = includeDgiiProfile ? 'COMPOSE_PROFILES=dgii ' : '';
+
 	execSync(`cd ..`, { stdio: 'inherit' });
   if (PRODUCTION === 'yes') {
-		execSync(`docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`${composeProfiles}docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
   } else {
-		execSync(`docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`${composeProfiles}docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
   }
 	execSync(`cd scripts`, { stdio: 'inherit' });
 }
