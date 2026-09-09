@@ -154,36 +154,21 @@ modelos.each do |modelo|
   end
 end
 
-PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
-
-  provincia_db = Provincia.find_by_nombre(provincia_seed[:nombre])
-
-  if provincia_db.nil?
-    provincia_db = Provincia.create({nombre: provincia_seed[:nombre], codigo: provincia_seed[:codigo]})
-  else
+Provincia.transaction do
+  PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
+    nombre_provincia = provincia_seed[:nombre].strip
+    provincia_db = Provincia.where('LOWER(TRIM(nombre)) = LOWER(?)', nombre_provincia).first_or_initialize
+    provincia_db.nombre = nombre_provincia if provincia_db.new_record?
     provincia_db.codigo = provincia_seed[:codigo]
     provincia_db.save!
-  end
 
-
-  puts " "
-  puts "ERROR- provincia: ".red + "#{provincia_db.errors.to_json}" if !provincia_db.errors.empty?
-
-
-  provincia_seed[:municipios].each do |municipio_seed|
-    municipio_db = Municipio.find_by(:nombre => municipio_seed[:nombre], :provincia_id => provincia_db[:id])
-
-
-    if municipio_db.nil?
-      municipio_db = Municipio.create({nombre: municipio_seed[:nombre], provincia_id: provincia_db[:id], codigo: municipio_seed[:codigo]})
-    else
+    provincia_seed[:municipios].each do |municipio_seed|
+      nombre_municipio = municipio_seed[:nombre].strip
+      municipio_db = provincia_db.municipios.where('LOWER(TRIM(nombre)) = LOWER(?)', nombre_municipio).first_or_initialize
+      municipio_db.nombre = nombre_municipio if municipio_db.new_record?
       municipio_db.codigo = municipio_seed[:codigo]
       municipio_db.save!
     end
-
-    puts " "
-    puts "ERROR- municipio: ".red + "#{municipio_db.errors.to_json}" if !municipio_db.errors.empty?
-
   end
 end
 
