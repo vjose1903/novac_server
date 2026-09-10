@@ -89,17 +89,22 @@ tipos_factura = [
   { "referencia": nil,  "serie": 'electronica', key: 'venta_credito',                  "descripcion": 'Venta Credito' },
 ]
 
-tipos_factura.each do |tipo_fac|
-  tipo_factura = TipoFactura.where({ descripcion: tipo_fac[:descripcion], serie: tipo_fac[:serie] })
+TipoFactura.transaction do
+  tipos_factura.each do |tipo_fac|
+    tipos = TipoFactura.where(serie: tipo_fac[:serie])
+    tipo = if tipo_fac[:referencia].present?
+      tipos.find_by(referencia: tipo_fac[:referencia])
+    else
+      tipos.find_by(key: tipo_fac[:key]) || tipos.where('LOWER(TRIM(descripcion)) = LOWER(?)', tipo_fac[:descripcion].strip).first
+    end
 
-  if tipo_factura.empty?
-    tipo = TipoFactura.create(tipo_fac)
-    puts " "
-    puts "ERROR- tipo_factura: ".red + "#{tipo.errors.to_json}" if !tipo.errors.empty?
+    tipo ||= TipoFactura.new(tipo_fac)
+    tipo.key = tipo_fac[:key]
+    tipo.save!
 
-    secuencia = SecuenciaFactura.create( { "tipo_factura_id": tipo.id, "secuencia": 0, } )
-    puts " "
-    puts "ERROR - secuencia_factura: ".red + "#{secuencia.errors.to_json}" if !secuencia.errors.empty?
+    SecuenciaFactura.find_or_create_by!(tipo_factura_id: tipo.id) do |secuencia|
+      secuencia.secuencia = 0
+    end
   end
 end
 
