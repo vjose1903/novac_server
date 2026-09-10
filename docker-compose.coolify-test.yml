@@ -43,7 +43,7 @@ services:
         condition: service_healthy
     volumes:
       - /home/novac/proyects/novac-server/secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
-    command: ["sh", "-lc", "bundle exec rails db:prepare && exec sh ./run_server.sh"]
+    command: ["sh", "-lc", "bundle exec rails db:create db:migrate && exec sh ./run_server.sh"]
     restart: unless-stopped
 
 volumes:
