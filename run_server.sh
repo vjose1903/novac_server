@@ -16,11 +16,7 @@ service cron start
 
 bundle exec whenever --update-crontab
 
-# Mantiene disponibles los feriados del año actual y los próximos dos años.
-# La tarea es idempotente: solo genera los años que todavía no tienen datos.
-bundle exec rails calendar:holidays:ensure_next_three_years
-
-export PORT="${PORT:-3002}"
+export PORT="${PORT:-3000}"
 exec bundle exec puma -C config/puma.rb
 
 

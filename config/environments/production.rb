@@ -105,7 +105,7 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.hosts << "vasquez.inspot-technology.com"
-  config.hosts << "novac-vasquez.ddns.net"
+  config.hosts << "agrodemi.inspot-technology.com"
+  config.hosts << "admservidor.ddns.net"
   config.hosts << "localhost"
 end

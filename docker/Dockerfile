@@ -12,7 +12,7 @@ RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
 
 ENV TZ="America/Santo_Domingo"
-ENV PORT="3002"
+ENV PORT="3000"
 
 WORKDIR /usr/src/novac_server
 COPY ["Gemfile", "Gemfile.lock", "package.json", "package-lock.json", "/usr/src/novac_server/"]

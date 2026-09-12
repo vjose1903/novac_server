@@ -23,7 +23,9 @@ class FirebaseConfigurationService
     return cached[:value] if cached && cached[:expires_at] > Time.now
 
     fields = new.read_document("Empresas/#{empresa_id}/general_configuration/app")
-    value = fields.dig('fields', 'usa_modulo_viajes', 'booleanValue') == true
+    raw_value = fields.dig('fields', 'usa_modulo_viajes', 'booleanValue')
+    raw_value = fields.dig('fields', 'usa_modulo_viajes', 'stringValue') if raw_value.nil?
+    value = ActiveModel::Type::Boolean.new.cast(raw_value)
     @travel_cache[empresa_id] = { value: value, expires_at: Time.now + TRAVEL_CACHE_TTL }
     value
   rescue StandardError => e

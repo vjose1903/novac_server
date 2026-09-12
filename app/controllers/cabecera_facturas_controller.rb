@@ -85,7 +85,9 @@ class CabeceraFacturasController < ApplicationController
     return if FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].presence || request.headers['X-Empresa-Id'])
     return unless ActiveModel::Type::Boolean.new.cast(params[:is_viaje]) || params[:movimientos_viaje].present?
 
-    render json: { msg: ['El módulo de viajes no está habilitado para este servidor.'] }, status: HTTP_STATUS_CODE[:forbidden]
+    params[:is_viaje] = false
+    params[:fecha_viaje] = nil
+    params[:movimientos_viaje] = []
   end
 
   # Use callbacks to share common setup or constraints between actions.
