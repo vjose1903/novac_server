@@ -3,3 +3,8 @@
 *.vcproj text eol=crlf
 *.sh text eol=lf
 *.jpg -text
+secrets/firebase-service-account.json filter=git-crypt diff=git-crypt
+config/google_api_credentials.json filter=git-crypt diff=git-crypt
+config/initializers/google/google_api_credentials.json filter=git-crypt diff=git-crypt
+dgii_signature_microservice/src/utils/google_api_credentials.json filter=git-crypt diff=git-crypt
+dgii_signature_microservice/src/utils/firma-digital.p12 filter=git-crypt diff=git-crypt -text

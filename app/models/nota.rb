@@ -92,8 +92,8 @@ class Nota < ApplicationRecord
                 nota.identificador          = Nota.makeIdentificador(nota)
 
                 if nota.save!
-                  if @is_electronica
-                    @res_valid_dgii                 = DGII_MANAGER.send(nota) if @is_electronica
+                  if @is_electronica && dgii_microservice_enabled?
+                    @res_valid_dgii                 = DGII_MANAGER.send(nota)
                     
                     data_response_dgii              = @res_valid_dgii.get_data
 
@@ -253,6 +253,10 @@ class Nota < ApplicationRecord
     return true unless factura.serie == SerieFactura.electronica
 
     factura.is_aceptada.to_s.downcase == 'aceptado'
+  end
+
+  def self.dgii_microservice_enabled?
+    ActiveModel::Type::Boolean.new.cast(ENV.fetch('USE_DGII_MICROSERVICE', 'true'))
   end
 
   def self.normalizar_documento_cliente_casual(documento)

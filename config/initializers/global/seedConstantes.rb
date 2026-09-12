@@ -1,12 +1,12 @@
 G_usuarios =
 [
   {
-    'nombre': 'AGRODEMI',
+    'nombre': 'Tienda',
     'usuario': 'adm01',
     'uid': 'adm01',
-    'apellido': '01',
+    'apellido': '1',
     'sexo': 'i',
-    'telefono': '(809) 573-0060',
+    'telefono': '(809) 573-3934',
     'email': 'adm@gmail.com',
     'fecha_nacimiento': '2022-01-01',
     'role': 'V',
@@ -16,28 +16,28 @@ G_usuarios =
     'imagen_id': nil,
   },
   {
-    'nombre': 'Administrador',
+    'nombre': 'José',
     'usuario': 'ADMIN',
     'uid': 'ADMIN',
-    'apellido': 'sistema',
-    'sexo': 'f',
-    'telefono': '(829) 292-8772',
-    'email': 'admin@hotmail.com',
-    'fecha_nacimiento': '2022-01-01',
+    'apellido': 'Vásquez',
+    'sexo': 'm',
+    'telefono': '(809) 757-9205',
+    'email': 'vasquezsantos@claro.net.do',
+    'fecha_nacimiento': '1963-11-26',
     'role': 'A',
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
     'imagen_id': nil,
   },
-	{
+  {
     'nombre': 'Novac',
     'usuario': 'novac',
     'uid': 'novac',
     'apellido': 'system',
     'sexo': 'i',
     'telefono': '(000) 000-0000',
-    'email': 'novacagrodemi@gmail.com',
+    'email': 'novacvasquez@gmail.com',
     'fecha_nacimiento': '1998-03-19',
     'role': 'A',
     'password': '1234567',
@@ -54,7 +54,7 @@ G_clientes = [
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',
-    'direccion': 'Autopista duarte KM 0 el Higuero',
+    'direccion': 'C. Juana Saltitopa No. 37, Villa Real, La Vega. R.D.',
     'sexo': 'i',
     'limite_credito': 0,
     'maximo_credito': 0,
@@ -63,30 +63,30 @@ G_clientes = [
 ]
 
 G_documentos_de_identidad = [
-	{
+  {
     'origen_type': 'User',
-		'origen_entity': 'adm01',
+    'origen_entity': 'adm01',
     'descripcion': 'cedula',
-    'documento': '047-0099635-0',
+    'documento': '000-0000000-0',
     'principal': true,
   },
   {
     'origen_type': 'User',
-		'origen_entity': 'ADMIN',
+    'origen_entity': 'ADMIN',
     'descripcion': 'cedula',
-    'documento': '047-0099635-0',
+    'documento': '407-0123350-6',
     'principal': true,
   },
   {
     'origen_type': 'User',
-		'origen_entity': 'novac',
+    'origen_entity': 'novac',
     'descripcion': 'cedula',
     'documento': '000-0000000-1',
     'principal': true,
   },
   {
     'origen_type': 'Cliente',
-		'origen_entity': 'Cliente contado',
+    'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
     'principal': true,
@@ -95,20 +95,18 @@ G_documentos_de_identidad = [
 
 
 G_tipos_articulo = [
-  { 'descripcion': 'Materia prima',       'tipo': 'venta_normal', 'codigo': 'materia_prima' },
-  { 'descripcion': 'Veterinaria',         'tipo': 'venta_normal', 'codigo': 'veterinaria' },
-  { 'descripcion': 'Producto terminado',  'tipo': 'venta_normal', 'codigo': 'producto_terminado' },
-  { 'descripcion': 'Nucleo',              'tipo': 'venta_normal', 'codigo': 'nucleo' },
-  { 'descripcion': 'Otros',               'tipo': 'venta_normal', 'codigo': 'otros' },
+  { 'descripcion': 'Materiales de Oficina', 'tipo': 'venta_normal', 'codigo': 'materiales_de_oficina' },
+  { 'descripcion': 'Servicios legales', 'tipo': 'servicio', 'codigo': 'servicios_legales' },
+  { 'descripcion': 'Servicios contables', 'tipo': 'servicio', 'codigo': 'servicios_contables' },
 ]
 
 
-CREATE_ACTION   = { nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create' }
-READ_ALL_ACTION = { nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'}
-READ_ONE_ACTION = { nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'}
-UPDATE_ACTION   = { nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'}
-
-ACCIONES_COMUNES = [ CREATE_ACTION, READ_ALL_ACTION, READ_ONE_ACTION, UPDATE_ACTION ]
+ACCIONES_COMUNES = [
+  {nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create'},
+  {nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'},
+  {nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'},
+  {nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'},
+]
 
 ACCION_DESTROY = [{ nombre:'eliminar', mostrar_front: true, descripcion: 'destroy', metodo: 'destroy'}]
 
@@ -116,7 +114,7 @@ ACCION_DESTROY = [{ nombre:'eliminar', mostrar_front: true, descripcion: 'destro
 G_PERMISOS = [
   { nombre: 'articulos',                     mostrar_front: true,     descripcion: 'articulo',                          controlador: 'Articulos',                      acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'ver inventario',mostrar_front: true, descripcion: 'get_stock', metodo: 'getStock'}, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getArticulosFiltrados'}, {nombre:'verificar si excede',mostrar_front: true, descripcion: 'check_excede',metodo: 'checkIfExcede'}, {nombre:'ver formulas',mostrar_front: true, descripcion: 'read_formula',metodo: nil}, {nombre:'editar formular',mostrar_front: true, descripcion: 'update_formula', metodo: nil} ]},
   { nombre: 'conduces',                      mostrar_front: true,     descripcion: 'conduce',                           controlador: 'CabeceraConduces',               acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
-  { nombre: 'facturas venta',                mostrar_front: true,     descripcion: 'factura_venta',                     controlador: 'CabeceraFacturas',               acciones: [*ACCIONES_COMUNES, {nombre:'buscar facturas por parametros',mostrar_front: true, descripcion: 'get_facturas_by_params', metodo: 'getFacturasByParams'}, {nombre:'comprobar serial',mostrar_front: true, descripcion: 'comprobar_serial', metodo: 'comprobarSerial'}, {nombre:'verificar si puede editar',mostrar_front: true, descripcion: 'verificate_can_update_id', metodo: 'verificateCanUpdateById'}, {nombre:'buscar viajes sin completar',mostrar_front: true, descripcion: 'get_viajes_sin_completar', metodo: 'getViajesSinCompletar'}, {nombre:'buscar facturas por cliente y estado',mostrar_front: true, descripcion: 'get_facturas_by_cliente_estado', metodo: 'getFacturasByClienteIdAndEstado'}, {nombre:'cancelar factura',mostrar_front: true, descripcion: 'cancelar_factura', metodo: 'cancelarFactura'}, {nombre:'seleccionar camion en facturacion',mostrar_front: true, descripcion: 'seleccionar_camion_en_facturacion', metodo: nil}]},
+  { nombre: 'facturas venta',                mostrar_front: true,     descripcion: 'factura_venta',                     controlador: 'CabeceraFacturas',               acciones: [*ACCIONES_COMUNES, {nombre:'buscar facturas por parametros',mostrar_front: true, descripcion: 'get_facturas_by_params', metodo: 'getFacturasByParams'}, {nombre:'comprobar serial',mostrar_front: true, descripcion: 'comprobar_serial', metodo: 'comprobarSerial'}, {nombre:'verificar si puede editar',mostrar_front: true, descripcion: 'verificate_can_update_id', metodo: 'verificateCanUpdateById'}, {nombre:'buscar viajes sin completar',mostrar_front: true, descripcion: 'get_viajes_sin_completar', metodo: 'getViajesSinCompletar'}, {nombre:'buscar facturas por cliente y estado',mostrar_front: true, descripcion: 'get_facturas_by_cliente_estado', metodo: 'getFacturasByClienteIdAndEstado'}, {nombre:'cancelar factura',mostrar_front: true, descripcion: 'cancelar_factura', metodo: 'cancelarFactura'}, {nombre:'seleccionar camion en facturacion',mostrar_front: false, descripcion: 'seleccionar_camion_en_facturacion', metodo: nil}]},
   { nombre: 'facturas compra',               mostrar_front: true,     descripcion: 'factura_compra',                    controlador: 'CabeceraFacturas',               acciones: [*ACCIONES_COMUNES, {nombre:'buscar facturas por parametros',mostrar_front: true, descripcion: 'get_facturas_by_params', metodo: 'getFacturasByParams'}, {nombre:'comprobar serial',mostrar_front: true, descripcion: 'comprobar_serial', metodo: 'comprobarSerial'}, {nombre:'verificar si puede editar',mostrar_front: true, descripcion: 'verificate_can_update_id', metodo: 'verificateCanUpdateById'}, {nombre:'buscar facturas por suplidor y estado',mostrar_front: true, descripcion: 'get_facturas_by_suplidor_estado', metodo: 'getFacturasBySuplidorIdAndEstado'}, {nombre:'cancelar factura',mostrar_front: true, descripcion: 'cancelar_factura', metodo: 'cancelarFactura'}]},
   { nombre: 'pre venta',                     mostrar_front: false,    descripcion: 'pre_venta',                         controlador: 'CabeceraFacturas',               acciones: [*ACCIONES_COMUNES, {nombre:'comprobar serial',mostrar_front: true, descripcion: 'comprobar_serial', metodo: 'comprobarSerial'}]},
   { nombre: 'cotizaciones',                  mostrar_front: true,     descripcion: 'cotizacion',                        controlador: 'CabeceraFacturas',               acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY]},
@@ -150,25 +148,21 @@ G_PERMISOS = [
   { nombre: 'roles',                         mostrar_front: true,     descripcion: 'role',                              controlador: 'Roles',                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getRolesFiltrados'}]},
   { nombre: 'divisa',                        mostrar_front: true,     descripcion: 'divisa',                            controlador: 'Divisa',                         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
   { nombre: 'tasa de cambio',                mostrar_front: true,     descripcion: 'tasa_cambio',                       controlador: 'TasaCambio',                     acciones: [ {nombre:'ver todos', mostrar_front: true, descripcion: 'read_all', metodo: 'index'}, {nombre:'buscar uno', mostrar_front: true, descripcion: 'read_one', metodo: 'show'}, {nombre:'editar', mostrar_front: true, descripcion: 'update', metodo: 'update'}, {nombre:'obtener historicos de tasas de cambio', mostrar_front: true, descripcion: 'get_history_changes', metodo: 'getHistoryChanges'} ]},
-  { nombre: 'Recepcion Ecf',                 mostrar_front: true,     descripcion: 'ecf_reception',                     controlador: 'EcfReception',                   acciones: [READ_ALL_ACTION, READ_ONE_ACTION, { nombre: 'Responder recibo de factura', mostrar_front: true, descripcion: 'response_receive', metodo: 'approveDenyEcf'}]},
-  { nombre: 'Aprobaciónes comerciales',      mostrar_front: true,     descripcion: 'commertial_approval_reception',     controlador: 'CommertialApprovalReception',    acciones: [READ_ALL_ACTION, READ_ONE_ACTION]}
 ]
 
 # ejemplo de permisos_acciones
 # {permiso_descripcion:'algo', acciones:['descripcion', 'descripcion2']}
 G_ROLES_CUSTOM = [
-  {  nombre: 'Chofer', key: 'chofer', descripcion: 'Persona encargada de realizar los viajes de pedidos a los clientes.', ruta_defecto:'/', estado: true, permisos_acciones: []},
   {  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
 ]
 
 G_CONFIG_ARTICULOS = [
-	{ porciento_ganancia: 15}
+  { porciento_ganancia: 10}
 ]
 
 G_DIVISA_DEFAULT = [
-  { nombre: 'Peso Dominicano',      simbolo: 'RD$', code: 'DOP', is_principal: true,  estado: true, current_tasa: 1,  predeterminado: true, imagenes: [{ file_name: 'peso_dominicano', base_64: G_IMG_PESO }] },
-  { nombre: 'Dolar Estadounidense', simbolo: 'US$', code: 'USD', is_principal: false, estado: true, current_tasa: 56, predeterminado: true, imagenes: [{ file_name: 'dolar_estadounidense', base_64: G_IMG_DOLAR }] },
+  { nombre: 'Peso Dominicano',      simbolo: 'RD$', is_principal: true,  estado: true, current_tasa: 1,  predeterminado: true, imagenes: [{ file_name: 'peso_dominicano', base_64: G_IMG_PESO }] },
+  { nombre: 'Dolar Estadounidense', simbolo: 'US$', is_principal: false, estado: true, current_tasa: 56, predeterminado: true, imagenes: [{ file_name: 'dolar_estadounidense', base_64: G_IMG_DOLAR }] },
 ]
 
-
-G_CONFIG_CUADRES = { target_fondo: 12000 }
+G_CONFIG_CUADRES = { target_fondo: 0, auto_apply_difference: false }

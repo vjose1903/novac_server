@@ -51,5 +51,10 @@ logs/nginx/*
 # Ignore serena memory/config folder
 /.serena
 
+# Firebase service account is tracked encrypted with git-crypt.
+# Keep any accidental plaintext copies out of Git.
+/secrets/*.json
+!/secrets/firebase-service-account.json
+
 
 

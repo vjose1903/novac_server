@@ -313,6 +313,7 @@ DEPENDENCIES
   devise_token_auth
   faraday
   google-api-client
+  googleauth
   listen
   mime-types
   nokogiri

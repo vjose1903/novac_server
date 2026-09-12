@@ -12,6 +12,24 @@ const white = chalk.white;
 const yellow = chalk.yellow;
 const cyan = chalk.cyan;
 
+function unlockGitCryptSecrets() {
+	if (!fs.existsSync(pathAdd('../.git')) || !fs.existsSync(pathAdd('../.gitattributes'))) return;
+	const credentialPath = pathAdd('../secrets/firebase-service-account.json');
+	if (!fs.existsSync(credentialPath)) return;
+
+	const header = fs.readFileSync(credentialPath).subarray(0, 8).toString('utf8');
+	if (header === 'GITCRYPT') {
+		const keyPath = process.env.NOVAC_GIT_CRYPT_KEY || path.join(process.env.HOME || '', '.config/novac/git-crypt.key');
+		if (!fs.existsSync(keyPath)) {
+			console.log(`${yellow('Falta desbloquear la credencial Firebase.')}`);
+			console.log(`${white(`Ejecuta: git-crypt unlock ${keyPath}`)}`);
+			return;
+		}
+
+		execSync(`git-crypt unlock "${keyPath}"`, { cwd: pathAdd('..'), stdio: 'inherit' });
+	}
+}
+
 let PRODUCTION = 'no';
 let BACKGROUND = 'no';
 
@@ -62,11 +80,16 @@ function dockerCommand(command) {
 
   const isBackground = command === 'up' && BACKGROUND === 'yes' ? '-d' : '';
 
+	const useDgii = fs.existsSync(pathAdd('../config_setup/actual_dgii.txt'))
+		&& fs.readFileSync(pathAdd('../config_setup/actual_dgii.txt'), 'utf8').trim() === 'true';
+	const includeDgiiProfile = useDgii || ['down', 'stop', 'restart'].includes(command);
+	const composeProfiles = includeDgiiProfile ? 'COMPOSE_PROFILES=dgii ' : '';
+
 	execSync(`cd ..`, { stdio: 'inherit' });
   if (PRODUCTION === 'yes') {
-		execSync(`docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`${composeProfiles}docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
   } else {
-		execSync(`docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
+		execSync(`${composeProfiles}docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
   }
 	execSync(`cd scripts`, { stdio: 'inherit' });
 }
@@ -122,6 +145,7 @@ function pathAdd(str_path) {
 }
 
 async function processArgs() {
+	unlockGitCryptSecrets();
 	const args = process.argv.slice(2);
 
 	while (args.length) {

@@ -17,8 +17,8 @@ every '0 9-13 * * 6' do
 	rake 'db:backup'
 end
 
-# Sincroniza feriados globales de República Dominicana para el año actual y los próximos 2 años.
-# Corre cada 10 de diciembre a las 3:00 AM.
-every '0 3 10 12 *' do
-	rake 'calendar:holidays:sync_next_three_years'
+# Verifica diariamente los feriados globales de República Dominicana para el año actual
+# y los próximos 2 años. La tarea solo genera los años faltantes.
+every '0 3 * * *' do
+	rake 'calendar:holidays:ensure_next_three_years'
 end

@@ -1,5 +1,6 @@
 class DashboardController < ApplicationController
   def index
+    params[:empresa_id] ||= request.headers['X-Empresa-Id']
     result = Dashboard.build(params)
 
     if result[:status] == :ok

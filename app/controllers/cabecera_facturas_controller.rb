@@ -3,6 +3,7 @@ include ActionView::Helpers::NumberHelper
 class CabeceraFacturasController < ApplicationController
   before_action :set_cabecera_factura, only: [:show, :update, :destroy, :remplace_encf]
   before_action :validate_date_dgii,   only: [:remplace_encf]
+  before_action :validate_travel_invoice!, only: [:create, :update, :updateMovimientosViaje]
   # GET /cabecera_facturas
   def index
     optional_params = get_parametros_opcionales
@@ -79,6 +80,13 @@ class CabeceraFacturasController < ApplicationController
   end
 
   private
+
+  def validate_travel_invoice!
+    return if FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].presence || request.headers['X-Empresa-Id'])
+    return unless ActiveModel::Type::Boolean.new.cast(params[:is_viaje]) || params[:movimientos_viaje].present?
+
+    render json: { msg: ['El módulo de viajes no está habilitado para este servidor.'] }, status: HTTP_STATUS_CODE[:forbidden]
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_cabecera_factura

@@ -89,17 +89,22 @@ tipos_factura = [
   { "referencia": nil,  "serie": 'electronica', key: 'venta_credito',                  "descripcion": 'Venta Credito' },
 ]
 
-tipos_factura.each do |tipo_fac|
-  tipo_factura = TipoFactura.where({ descripcion: tipo_fac[:descripcion], serie: tipo_fac[:serie] })
+TipoFactura.transaction do
+  tipos_factura.each do |tipo_fac|
+    tipos = TipoFactura.where(serie: tipo_fac[:serie])
+    tipo = if tipo_fac[:referencia].present?
+      tipos.find_by(referencia: tipo_fac[:referencia])
+    else
+      tipos.find_by(key: tipo_fac[:key]) || tipos.where('LOWER(TRIM(descripcion)) = LOWER(?)', tipo_fac[:descripcion].strip).first
+    end
 
-  if tipo_factura.empty?
-    tipo = TipoFactura.create(tipo_fac)
-    puts " "
-    puts "ERROR- tipo_factura: ".red + "#{tipo.errors.to_json}" if !tipo.errors.empty?
+    tipo ||= TipoFactura.new(tipo_fac)
+    tipo.key = tipo_fac[:key]
+    tipo.save!
 
-    secuencia = SecuenciaFactura.create( { "tipo_factura_id": tipo.id, "secuencia": 0, } )
-    puts " "
-    puts "ERROR - secuencia_factura: ".red + "#{secuencia.errors.to_json}" if !secuencia.errors.empty?
+    SecuenciaFactura.find_or_create_by!(tipo_factura_id: tipo.id) do |secuencia|
+      secuencia.secuencia = 0
+    end
   end
 end
 
@@ -154,36 +159,21 @@ modelos.each do |modelo|
   end
 end
 
-PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
-
-  provincia_db = Provincia.find_by_nombre(provincia_seed[:nombre])
-
-  if provincia_db.nil?
-    provincia_db = Provincia.create({nombre: provincia_seed[:nombre], codigo: provincia_seed[:codigo]})
-  else
+Provincia.transaction do
+  PROVINCIAS_MUNICIPIOS.each do |provincia_seed|
+    nombre_provincia = provincia_seed[:nombre].strip
+    provincia_db = Provincia.where('LOWER(TRIM(nombre)) = LOWER(?)', nombre_provincia).first_or_initialize
+    provincia_db.nombre = nombre_provincia if provincia_db.new_record?
     provincia_db.codigo = provincia_seed[:codigo]
     provincia_db.save!
-  end
 
-
-  puts " "
-  puts "ERROR- provincia: ".red + "#{provincia_db.errors.to_json}" if !provincia_db.errors.empty?
-
-
-  provincia_seed[:municipios].each do |municipio_seed|
-    municipio_db = Municipio.find_by(:nombre => municipio_seed[:nombre], :provincia_id => provincia_db[:id])
-
-
-    if municipio_db.nil?
-      municipio_db = Municipio.create({nombre: municipio_seed[:nombre], provincia_id: provincia_db[:id], codigo: municipio_seed[:codigo]})
-    else
+    provincia_seed[:municipios].each do |municipio_seed|
+      nombre_municipio = municipio_seed[:nombre].strip
+      municipio_db = provincia_db.municipios.where('LOWER(TRIM(nombre)) = LOWER(?)', nombre_municipio).first_or_initialize
+      municipio_db.nombre = nombre_municipio if municipio_db.new_record?
       municipio_db.codigo = municipio_seed[:codigo]
       municipio_db.save!
     end
-
-    puts " "
-    puts "ERROR- municipio: ".red + "#{municipio_db.errors.to_json}" if !municipio_db.errors.empty?
-
   end
 end
 
