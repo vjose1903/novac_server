@@ -39,7 +39,8 @@ async function uploadBackup() {
 		console.log("*         ERROR SUBIENDO EL BACKUP AL DRIVE        *");
 		console.log("****************************************************\n");
 
-		console.log('\n', err, '\n');
+		console.error('\n', err, '\n');
+		process.exitCode = 1;
 	}
 }
 

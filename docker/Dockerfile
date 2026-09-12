@@ -3,16 +3,21 @@ FROM ruby:3.3.12
 ARG NODE_MAJOR=20
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends curl ca-certificates gnupg && \
+    install -d /usr/share/postgresql-common/pgdg && \
+    curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+      -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc && \
+    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo \"$VERSION_CODENAME\")-pgdg main" \
+      > /etc/apt/sources.list.d/pgdg.list && \
     curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - && \
     apt-get update -qq && \
-    apt-get install -y --no-install-recommends build-essential apt-utils postgresql-client git tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron nodejs python3 python3-holidays && \
+    apt-get install -y --no-install-recommends build-essential apt-utils postgresql-client-18 git tzdata graphviz libgmp3-dev libxslt-dev libxml2-dev pkg-config nano cron nodejs python3 python3-holidays && \
     rm -rf /var/lib/apt/lists/*
 
 RUN ln -fs /usr/share/zoneinfo/America/Santo_Domingo /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
 
 ENV TZ="America/Santo_Domingo"
-ENV PORT="3002"
+ENV PORT="3000"
 
 WORKDIR /usr/src/novac_server
 COPY ["Gemfile", "Gemfile.lock", "package.json", "package-lock.json", "/usr/src/novac_server/"]
