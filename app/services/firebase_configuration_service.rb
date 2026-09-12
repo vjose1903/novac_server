@@ -7,7 +7,7 @@ class FirebaseConfigurationService
   GENERAL_KEYS = %w[
     cliente nombre_empresa rnc_empresa direccion_empresa telefono_empresa color_app
     url_servidor url_servidor_respaldo config_password usa_url_principal usa_facturas_externas
-    is_produccion has_contabilidad calcular_itbis is_db_local facturacion_editar_precio
+    is_produccion has_contabilidad calcular_itbis usa_mora is_db_local facturacion_editar_precio
     vende_sin_inventario use_ecf usa_modulo_viajes documentos_a_imprimir serie_default medida_producto_terminado
     logo_empresa_path logo_impresion_path
   ].freeze
