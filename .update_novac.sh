@@ -16,6 +16,16 @@ unlock_git_crypt_files() {
 
   local key_path="${NOVAC_GIT_CRYPT_KEY:-$HOME/.config/novac/git-crypt.key}"
   local encrypted_files
+  local remaining_encrypted=''
+
+  is_git_crypt_locked() {
+    local file="$1"
+    local header
+
+    [[ -f "$file" ]] || return 1
+    header="$(od -An -tx1 -N9 "$file" | tr -d '[:space:]')"
+    [[ "$header" == '004749544352595054' ]]
+  }
 
   encrypted_files="$(git-crypt status | awk '$1 == "encrypted:" { print $2 }')"
 
@@ -33,10 +43,16 @@ unlock_git_crypt_files() {
 
   git-crypt unlock "$key_path"
 
-  encrypted_files="$(git-crypt status | awk '$1 == "encrypted:" { print $2 }')"
-  if [[ -n "$encrypted_files" ]]; then
+  while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    if is_git_crypt_locked "$file"; then
+      remaining_encrypted+="$file\n"
+    fi
+  done <<< "$encrypted_files"
+
+  if [[ -n "$remaining_encrypted" ]]; then
     echo 'ERROR: quedaron archivos git-crypt cifrados después del desbloqueo.' >&2
-    printf '%s\n' "$encrypted_files" >&2
+    printf '%b' "$remaining_encrypted" >&2
     return 1
   fi
 
