@@ -23,7 +23,9 @@ namespace :db do
 
     if status.success?
       puts "\n============ BACKUP #{rails_env} CREADO ============\n"
-      upload_file(backup_name, montu) if rails_env != "development"
+      if rails_env != "development" && !upload_file(backup_name, montu)
+        raise "El backup fue creado, pero no pudo subirse a Google Drive"
+      end
     else
       puts "\n|=========================================|"
       puts "|         ERROR AL REALIZAR BACKUP        |"
