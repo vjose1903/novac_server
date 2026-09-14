@@ -16,7 +16,6 @@ class CuadreCajaMovimiento < ApplicationRecord
 
   validates :movement_group, inclusion: { in: MOVEMENT_GROUPS }
   validates :payment_method, inclusion: { in: PAYMENT_METHODS }
-  validates :description, presence: true
   validates :amount, numericality: { greater_than_or_equal_to: 0 }
 
   before_validation :normalize_fields
