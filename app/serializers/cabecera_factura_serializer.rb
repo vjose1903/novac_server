@@ -34,7 +34,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 	end
 
 	def self.default_fields
-		[:id, :tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_viaje, :fecha_equivalente, :fecha_vencimiento, :fecha_valida, :fecha_completada, :numero_comprobante, :numero_factura, :condicion, :forma_pago, :total_factura, :itbis, :descuento, :Bruto, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :NoCliente_rnc, :costoYgasto, :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :is_viaje, :is_external, :tiene_nota, :aplicada_a, :identificador, :serie, :fecha_hora_firma, :qr_url_dgii, :trackId, :security_code, :is_aceptada, :dgii_message, :movimientos_viaje, :tipo_factura, :detalle_facturas, :cliente, :suplidor, :usuario, :vendedor, :notas, :pagos, :cotizacion, :pre_factura, :document_reference, :is_ncf_modificado]
+		[:id, :tipo_factura_id, :suplidor_id, :cliente_id, :user_id, :fecha_viaje, :fecha_equivalente, :fecha_vencimiento, :fecha_valida, :fecha_completada, :numero_comprobante, :numero_factura, :condicion, :forma_pago, :metodos_de_pago, :total_factura, :itbis, :descuento, :Bruto, :estado, :tipo, :NoCliente_nombre, :NoCliente_direccion, :NoCliente_rnc, :costoYgasto, :pagada, :vendedor_id, :balance, :devuelta, :is_adelantada, :is_nota, :is_viaje, :is_external, :tiene_nota, :aplicada_a, :identificador, :serie, :fecha_hora_firma, :qr_url_dgii, :trackId, :security_code, :is_aceptada, :dgii_message, :movimientos_viaje, :tipo_factura, :detalle_facturas, :cliente, :suplidor, :usuario, :vendedor, :notas, :pagos, :cotizacion, :pre_factura, :document_reference, :is_ncf_modificado]
 	end
 
 	def self.show_field?(field, params, object)
@@ -62,6 +62,7 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 			vendedor: ->(record) { vendedor_to_hash(record) },
 			notas: ->(record) { notas_to_hash(record) },
 			pagos: ->(record) { pagos_to_hash(record) },
+			metodos_de_pago: ->(record) { record.metodos_de_pago.map { |pago| { id: pago.id, forma_pago: pago.forma_pago, monto: pago.monto } } },
 			movimientos_viaje: ->(record) { MovimientoViajeSerializer.collection_to_hash(record.movimientos_viaje, params) },
 			document_reference: ->(record) { document_reference_to_hash(record, params) }
 		}

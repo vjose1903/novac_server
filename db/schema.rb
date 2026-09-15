@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_17_090000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_15_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -689,6 +689,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_17_090000) do
     t.string "descripcion"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+  end
+
+  create_table "metodo_de_pago", force: :cascade do |t|
+    t.string "metodo_de_pago_able_type", null: false
+    t.bigint "metodo_de_pago_able_id", null: false
+    t.string "forma_pago", null: false
+    t.decimal "monto", precision: 15, scale: 2, default: "0.0", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["metodo_de_pago_able_type", "metodo_de_pago_able_id"], name: "index_metodo_de_pago_on_able"
+    t.check_constraint "monto >= 0::numeric", name: "metodo_de_pago_monto_no_negativo"
   end
 
   create_table "modelos", force: :cascade do |t|

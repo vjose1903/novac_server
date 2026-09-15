@@ -3,7 +3,7 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
 
 
 
-  ALL_OR_FIELD_FIELDS = [:id, :user_id, :cliente_id, :bruto, :mora, :total, :balance_cliente, :forma_pago, :tipo_factura_id, :devuelta, :fecha_equivalente, :estado, :numero_recibo, :detalle_recibos, :cliente, :user].freeze
+  ALL_OR_FIELD_FIELDS = [:id, :user_id, :cliente_id, :bruto, :mora, :total, :balance_cliente, :forma_pago, :metodos_de_pago, :tipo_factura_id, :devuelta, :fecha_equivalente, :estado, :numero_recibo, :detalle_recibos, :cliente, :user].freeze
 
 
 
@@ -20,7 +20,7 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
   end
 
   def self.default_fields
-    [:id, :user_id, :cliente_id, :bruto, :mora, :total, :balance_cliente, :forma_pago, :tipo_factura_id, :devuelta, :fecha_equivalente, :estado, :numero_recibo, :detalle_recibos, :incidencias, :cliente, :user]
+    [:id, :user_id, :cliente_id, :bruto, :mora, :total, :balance_cliente, :forma_pago, :metodos_de_pago, :tipo_factura_id, :devuelta, :fecha_equivalente, :estado, :numero_recibo, :detalle_recibos, :incidencias, :cliente, :user]
   end
 
   def self.show_field?(field, params)
@@ -32,6 +32,7 @@ class RecibosIngresoSerializer < ActiveModel::Serializer
       cliente: ->(record) { ClienteSerializer.to_hash(record.cliente, {documentos_de_identidad: true, nombre: true, apellido: true, direccion: true, balance: true, telefono: true, nombre_completo: true}) },
       user: ->(record) { UserSerializer.to_hash(record.user, {nombre: true, apellido: true}) },
       detalle_recibos: ->(record) { DetalleReciboSerializer.collection_to_hash(record.detalle_recibos, {all: true}) },
+      metodos_de_pago: ->(record) { record.metodos_de_pago.map { |pago| { id: pago.id, forma_pago: pago.forma_pago, monto: pago.monto } } },
       incidencias: ->(record) { IncidenciaSerializer.collection_to_hash(record.incidencias, {all: true}) }
     }
   end

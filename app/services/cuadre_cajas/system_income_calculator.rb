@@ -46,7 +46,7 @@ module CuadreCajas
 
     def income_receipts_total
       RecibosIngreso
-        .where(forma_pago: PAYMENT_METHODS, estado: true)
+        .where(estado: true)
         .where(fecha_equivalente: closing_day_range)
         .sum(:total)
     end
@@ -58,7 +58,7 @@ module CuadreCajas
 
     def invoices_by_payment_method
       result = empty_payment_methods
-      invoice_scope.group(:forma_pago).sum(:total_factura).each do |payment_method, total|
+      invoice_payment_scope.group(:forma_pago).sum(:monto).each do |payment_method, total|
         result[payment_method_key(payment_method)] = money(total)
       end
       invoice_notes_adjustment_by_payment_method.each do |payment_method, total|
@@ -70,11 +70,9 @@ module CuadreCajas
 
     def receipts_by_payment_method
       result = empty_payment_methods
-      RecibosIngreso
-        .where(forma_pago: PAYMENT_METHODS, estado: true)
-        .where(fecha_equivalente: closing_day_range)
+      receipt_payment_scope
         .group(:forma_pago)
-        .sum(:total)
+        .sum(:monto)
         .each do |payment_method, total|
           result[payment_method_key(payment_method)] = money(total)
         end
@@ -82,14 +80,15 @@ module CuadreCajas
     end
 
     def invoice_documents
-      invoice_scope.includes(:cliente).order('id ASC').map do |invoice|
+      invoice_payment_scope.order('metodo_de_pago.id ASC').map do |pago|
+        invoice = pago.metodo_de_pago_able
         {
           id: invoice.id,
           numero_factura: invoice.numero_factura,
           numero_comprobante: invoice.numero_comprobante,
-          forma_pago: invoice.forma_pago,
+          forma_pago: pago.forma_pago,
           cliente_nombre: document_client_name(invoice),
-          total: decimal_string(invoice.total_factura),
+          total: decimal_string(pago.monto),
           fecha_equivalente: invoice.fecha_equivalente,
           fecha_completada: invoice.fecha_completada
         }
@@ -97,18 +96,14 @@ module CuadreCajas
     end
 
     def receipt_documents
-      RecibosIngreso
-        .includes(:cliente)
-        .where(forma_pago: PAYMENT_METHODS, estado: true)
-        .where(fecha_equivalente: closing_day_range)
-        .order('id ASC')
-        .map do |receipt|
+      receipt_payment_scope.order('metodo_de_pago.id ASC').map do |pago|
+        receipt = pago.metodo_de_pago_able
           {
             id: receipt.id,
             numero_recibo: receipt.numero_recibo,
-            forma_pago: receipt.forma_pago,
+            forma_pago: pago.forma_pago,
             cliente_nombre: receipt.cliente&.nombre_completo,
-            total: decimal_string(receipt.total),
+            total: decimal_string(pago.monto),
             fecha_equivalente: receipt.fecha_equivalente
           }
         end
@@ -140,11 +135,28 @@ module CuadreCajas
 
     def invoice_scope
       CabeceraFactura
-        .where(forma_pago: PAYMENT_METHODS, estado: true)
+        .where(estado: true)
         .where(fecha_equivalente: closing_day_range)
         .where("LOWER(tipo) = 'venta'")
         .where("LOWER(condicion) = 'contado'")
         .where(non_external_invoice_condition)
+    end
+
+    def invoice_payment_scope
+      MetodoDePago
+        .joins('INNER JOIN cabecera_facturas ON cabecera_facturas.id = metodo_de_pago.metodo_de_pago_able_id')
+        .where(metodo_de_pago_able_type: 'CabeceraFactura')
+        .where(cabecera_facturas: { estado: true, fecha_equivalente: closing_day_range })
+        .where("LOWER(cabecera_facturas.tipo) = 'venta'")
+        .where("LOWER(cabecera_facturas.condicion) = 'contado'")
+        .where(non_external_invoice_condition)
+    end
+
+    def receipt_payment_scope
+      MetodoDePago
+        .joins('INNER JOIN recibos_ingresos ON recibos_ingresos.id = metodo_de_pago.metodo_de_pago_able_id')
+        .where(metodo_de_pago_able_type: 'RecibosIngreso')
+        .where(recibos_ingresos: { estado: true, fecha_equivalente: closing_day_range })
     end
 
     def credit_invoice_scope
@@ -158,7 +170,7 @@ module CuadreCajas
 
     def invoice_notes_adjustment
       scope = FacturaAplicada.joins(:cabecera_factura, :tipo_factura)
-        .where(cabecera_facturas: { forma_pago: PAYMENT_METHODS, estado: true })
+        .where(cabecera_facturas: { estado: true })
         .where(cabecera_facturas: { fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'contado'")
@@ -169,16 +181,16 @@ module CuadreCajas
     end
 
     def invoice_notes_adjustment_by_payment_method
-      scope = FacturaAplicada.joins(:cabecera_factura, :tipo_factura)
-        .where(cabecera_facturas: { forma_pago: PAYMENT_METHODS, estado: true })
-        .where(cabecera_facturas: { fecha_equivalente: closing_day_range })
+      FacturaAplicada
+        .joins(:cabecera_factura, :tipo_factura)
+        .joins("INNER JOIN metodo_de_pago ON metodo_de_pago.metodo_de_pago_able_type = 'CabeceraFactura' AND metodo_de_pago.metodo_de_pago_able_id = cabecera_facturas.id")
+        .where(cabecera_facturas: { estado: true, fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'contado'")
         .where(non_external_invoice_condition)
         .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
-
-      scope.group("cabecera_facturas.forma_pago")
-        .sum("CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END")
+        .group('metodo_de_pago.forma_pago')
+        .sum("(CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END) * metodo_de_pago.monto / NULLIF(cabecera_facturas.total_factura, 0)")
     end
 
     def credit_invoice_notes_adjustment

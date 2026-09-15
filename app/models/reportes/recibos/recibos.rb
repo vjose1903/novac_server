@@ -18,8 +18,22 @@ module Reportes
         query['cliente_id'] = cliente_id if buscar_por == Report::ReciboBuscarPor.por_cliente
 
         temp = RecibosIngreso
-               .select("recibos_ingresos.*, trim(clientes.nombre || ' ' || clientes.apellido) as cliente_nombre")
+               .select(<<~SQL.squish)
+                 recibos_ingresos.*, trim(clientes.nombre || ' ' || clientes.apellido) as cliente_nombre,
+                 COALESCE(metodos.formas_pago, recibos_ingresos.forma_pago) as forma_pago
+               SQL
                .joins(:cliente)
+               .where(query)
+               .order("recibos_ingresos.id #{order}")
+
+        temp = temp.joins(<<~SQL.squish)
+          LEFT JOIN LATERAL (
+            SELECT string_agg(CONCAT(forma_pago, ' (', to_char(monto, 'FM999999999990.00'), ')'), ', ' ORDER BY id) AS formas_pago
+            FROM metodo_de_pago
+            WHERE metodo_de_pago_able_type = 'RecibosIngreso'
+              AND metodo_de_pago_able_id = recibos_ingresos.id
+          ) metodos ON true
+        SQL
                .where(query)
                .order("recibos_ingresos.id #{order}")
 
