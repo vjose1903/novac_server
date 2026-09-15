@@ -41,6 +41,7 @@ module CuadreCajas
 
     def final_consumer_invoices_total
       total = invoice_scope.sum(:total_factura)
+      total += external_card_invoice_payment_scope.sum(:monto)
       total + invoice_notes_adjustment
     end
 
@@ -149,7 +150,18 @@ module CuadreCajas
         .where(cabecera_facturas: { estado: true, fecha_equivalente: closing_day_range })
         .where("LOWER(cabecera_facturas.tipo) = 'venta'")
         .where("LOWER(cabecera_facturas.condicion) = 'contado'")
-        .where(non_external_invoice_condition)
+        .where(invoice_payment_inclusion_condition)
+    end
+
+    def external_card_invoice_payment_scope
+      MetodoDePago
+        .joins('INNER JOIN cabecera_facturas ON cabecera_facturas.id = metodo_de_pago.metodo_de_pago_able_id')
+        .where(metodo_de_pago_able_type: 'CabeceraFactura')
+        .where(cabecera_facturas: { estado: true, fecha_equivalente: closing_day_range })
+        .where("LOWER(cabecera_facturas.tipo) = 'venta'")
+        .where("LOWER(cabecera_facturas.condicion) = 'contado'")
+        .where('COALESCE(cabecera_facturas.is_external, false) = true')
+        .where("LOWER(metodo_de_pago.forma_pago) = 'tarjeta'")
     end
 
     def receipt_payment_scope
@@ -205,6 +217,10 @@ module CuadreCajas
 
     def non_external_invoice_condition
       'COALESCE(cabecera_facturas.is_external, false) = false'
+    end
+
+    def invoice_payment_inclusion_condition
+      "(#{non_external_invoice_condition} OR (COALESCE(cabecera_facturas.is_external, false) = true AND LOWER(metodo_de_pago.forma_pago) = 'tarjeta'))"
     end
 
     def invoice_criteria
