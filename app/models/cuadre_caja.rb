@@ -632,7 +632,7 @@ class CuadreCaja < ApplicationRecord
     {
       movement_group: 'other_payment_methods',
       payment_method: payment_method,
-      description: "#{document_type} de #{client_name}",
+      description: client_name,
       reference: document[:numero_comprobante] || document[:numero_factura] || document[:numero_recibo],
       amount: format('%.2f', BigDecimal(document[:total].to_s.presence || '0')),
       source: 'system_suggestion'
