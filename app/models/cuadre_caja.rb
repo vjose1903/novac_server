@@ -51,6 +51,10 @@ class CuadreCaja < ApplicationRecord
     blocking_for_documents_on(Date.current).exists?
   end
 
+  def self.submitted_or_approved_today?
+    where(fecha_equivalente: Date.current.beginning_of_day..Date.current.end_of_day, status: %w[submitted approved]).exists?
+  end
+
   def self.check_document_datetime(params)
     res = Response.new(params)
     raw_datetime = params[:fecha_hora] || params[:fecha_equivalente] || params[:datetime] || params[:date_time]

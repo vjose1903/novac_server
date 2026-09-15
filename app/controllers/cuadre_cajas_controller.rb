@@ -64,7 +64,7 @@ class CuadreCajasController < ApplicationController
   end
 
   def checkTodayCuadre
-    return Response.new(params, nil, { existe_cuadre_hoy: CuadreCaja.blocks_documents_today? } , nil, {all: true}).send_response self
+    return Response.new(params, nil, { existe_cuadre_hoy: CuadreCaja.submitted_or_approved_today? } , nil, {all: true}).send_response self
   end
 
   def checkDateTimeCuadre
