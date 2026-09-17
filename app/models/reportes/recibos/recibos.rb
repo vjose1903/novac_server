@@ -11,17 +11,31 @@ module Reportes
         tipo = params[:tipo]
         buscar_por = params[:search_by].present? ? params[:search_by].to_i : Report::ReciboBuscarPor.general
         cliente_id = params[:cliente_id]
+        mostrar_forma_pago = ActiveModel::Type::Boolean.new.cast(params[:mostrar_forma_pago])
 
         query = {}
         query['fecha_equivalente'] = Date.parse(desde).beginning_of_day..Date.parse(hasta).end_of_day
         query['estado'] = true
         query['cliente_id'] = cliente_id if buscar_por == Report::ReciboBuscarPor.por_cliente
 
+        select_sql = "recibos_ingresos.*, trim(clientes.nombre || ' ' || clientes.apellido) as cliente_nombre"
+        select_sql += ', COALESCE(metodos.formas_pago, recibos_ingresos.forma_pago) as forma_pago' if mostrar_forma_pago
         temp = RecibosIngreso
-               .select("recibos_ingresos.*, trim(clientes.nombre || ' ' || clientes.apellido) as cliente_nombre")
+               .select(select_sql)
                .joins(:cliente)
                .where(query)
                .order("recibos_ingresos.id #{order}")
+
+        if mostrar_forma_pago
+          temp = temp.joins(<<~SQL.squish)
+          LEFT JOIN LATERAL (
+            SELECT CASE WHEN COUNT(*) > 1 THEN string_agg(forma_pago, ' • ' ORDER BY id) ELSE MAX(forma_pago) END AS formas_pago
+            FROM metodo_de_pago
+            WHERE metodo_de_pago_able_type = 'RecibosIngreso'
+              AND metodo_de_pago_able_id = recibos_ingresos.id
+          ) metodos ON true
+          SQL
+        end
 
         total_recibido = 0
         total_mora = 0

@@ -7,6 +7,7 @@ class CabeceraFactura < ApplicationRecord
 
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos,  dependent: :destroy
+  has_many :metodos_de_pago, as: :metodo_de_pago_able, class_name: 'MetodoDePago', dependent: :destroy
   has_many :facturas_aplicadas
 
   has_one  :document_reference_as_origin,     :as => :document_origin,     dependent: :destroy, class_name: 'DocumentReference'
@@ -61,6 +62,7 @@ class CabeceraFactura < ApplicationRecord
         {user: user_includes},
         {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}},
         {detalle_recibos: {recibos_ingreso: :user}},
+        :metodos_de_pago,
         {movimientos_viaje: [{user: :documentos_de_identidad}, {vehiculo: :user}]},
         {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]},
         :document_reference_as_origin,
@@ -77,6 +79,7 @@ class CabeceraFactura < ApplicationRecord
       :vendedor,
       { detalle_facturas: { articulo: [:tipo_articulo, :contenido_articulos] } },
       { detalle_recibos: { recibos_ingreso: :user } },
+      :metodos_de_pago,
       { facturas_aplicadas: [:nota, { detalles_facturas_notas: :articulo }] },
       { suplidor: :documentos_de_identidad },
       :document_reference_as_origin,
@@ -126,11 +129,21 @@ class CabeceraFactura < ApplicationRecord
     return set_error_response(Response.new, res_balance.get_msgs.to_a) unless res_balance.status_valid
 
     cabecera_factura = build_cabecera_factura(params, data_secuencias)
+    pagos = nil
+    unless factura_de_compra?(params[:tipo])
+      begin
+        pagos = MetodoDePago.normalizar(params[:metodos_de_pago], cabecera_factura.total_factura, cabecera_factura.forma_pago)
+      rescue ArgumentError => error
+        return set_error_response(Response.new, error.message)
+      end
+      cabecera_factura.forma_pago = MetodoDePago.resumen(pagos)
+    end
 
     res = crear_dependencias_factura(cabecera_factura, params)
     return set_error_response(res, cabecera_factura.errors.to_a) unless res.status_valid && cabecera_factura.errors.empty?
 
     return set_error_response(res, cabecera_factura.errors.to_a) unless cabecera_factura.save!
+    MetodoDePago.reemplazar!(cabecera_factura, pagos) if pagos
 
     procesar_dgii(cabecera_factura)
 
@@ -170,6 +183,10 @@ class CabeceraFactura < ApplicationRecord
     set_error_response(res, 'No se puede crear la factura en esta fecha/hora porque ya existe un cuadre realizado para esa fecha.')
   rescue ArgumentError
     set_error_response(res, 'La fecha equivalente enviada no es valida.')
+  end
+
+  private_class_method def self.factura_de_compra?(tipo)
+    tipo.to_s.downcase == TiposFacturasDescripcion.compra.to_s.downcase
   end
 
   private_class_method def self.requiere_validacion_credito?(params)
@@ -747,9 +764,20 @@ class CabeceraFactura < ApplicationRecord
           factura_original.pagada          = factura_nueva['pagada']
           factura_original.balance         = factura_nueva['balance']
           factura_original.devuelta        = factura_nueva['devuelta']
-          factura_original.forma_pago      = factura_nueva['forma_pago']
+          pagos = nil
+          unless factura_de_compra?(factura_nueva[:tipo] || factura_original.tipo)
+            begin
+              pagos = MetodoDePago.normalizar(factura_nueva[:metodos_de_pago], factura_nueva['total_factura'], factura_nueva['forma_pago'])
+            rescue ArgumentError => error
+              res.add_msg(error.message)
+              res.set_status(HTTP_STATUS_CODE[:conflict])
+              return res
+            end
+            factura_original.forma_pago = MetodoDePago.resumen(pagos)
+          end
 
           if factura_original.save!
+            MetodoDePago.reemplazar!(factura_original, pagos) if pagos
             factura_editada                = CabeceraFactura.find_by_id(params[:id])
             res.set_data(factura_editada, {all: true, movimientos_viaje: true})
             res.add_msg('Factura editada correctamente.')

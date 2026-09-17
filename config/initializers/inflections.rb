@@ -24,6 +24,7 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "detalle_produccion",                     "detalles_produccion"
   inflect.irregular "incidencia",                             "incidencias"
   inflect.irregular "forma_de_pago",                          "formas_de_pago"
+  inflect.irregular "metodo_de_pago",                         "metodos_de_pago"
   inflect.irregular "municipio",                              "municipios"
   inflect.irregular "provincia",                              "provincias"
   inflect.irregular "costo_flete_historial",                  "costos_fletes_historiales"

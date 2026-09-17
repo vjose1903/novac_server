@@ -43,11 +43,18 @@ es:
       required: "El campo: '%{attribute}', es requerido."
       blank: "El campo: '%{attribute}', no puede estar vacio."
       taken: "" #"it cant be empty"
+      invalid: "no es válido."
 
   # aqui van los mensajes internos que maneja ruby por debajo como son el caso de los belong_to
   activerecord:
     errors:
       models:
+        cuadre_caja:
+          invalid: "no es válido."
+          attributes:
+            movimientos:
+              invalid: "contiene movimientos inválidos."
+
         costo_flete:
           attributes:
             costo:

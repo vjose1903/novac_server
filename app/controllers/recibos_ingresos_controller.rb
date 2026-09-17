@@ -60,6 +60,7 @@ class RecibosIngresosController < ApplicationController
       cliente_id:         validate_optional_param(params, 'cliente_id') ?        params['cliente_id'].to_boolean :        false,
       total:              validate_optional_param(params, 'total') ?             params['total'].to_boolean :             false,
       forma_pago:         validate_optional_param(params, 'forma_pago') ?        params['forma_pago'].to_boolean :        false,
+      metodos_de_pago:    validate_optional_param(params, 'metodos_de_pago') ?   params['metodos_de_pago'].to_boolean :   false,
       tipo_factura_id:    validate_optional_param(params, 'tipo_factura_id') ?   params['tipo_factura_id'].to_boolean :   false,
       devuelta:           validate_optional_param(params, 'devuelta') ?          params['devuelta'].to_boolean :          false,
       fecha_equivalente:  validate_optional_param(params, 'fecha_equivalente') ? params['fecha_equivalente'].to_boolean : false,

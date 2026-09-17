@@ -11,11 +11,19 @@ module Reportes
         desde = params[:desde]
         hasta = params[:hasta]
         formas_pago = params[:formas_pago]
+        mostrar_forma_pago = ActiveModel::Type::Boolean.new.cast(params[:mostrar_forma_pago])
         serie = params[:serie].present? ? params[:serie] : SerieFactura.all
         cliente_id = params[:cliente_id]
         sub_titulo = ''
 
-        where_formas = "forma_pago IN #{formas_pago}"
+        where_formas = <<~SQL.squish
+          EXISTS (
+            SELECT 1 FROM metodo_de_pago
+            WHERE metodo_de_pago.metodo_de_pago_able_type = 'CabeceraFactura'
+              AND metodo_de_pago.metodo_de_pago_able_id = cabecera_facturas.id
+              AND metodo_de_pago.forma_pago IN #{formas_pago}
+          )
+        SQL
         query = {}
 
         is_viaje_credito = "( lower(condicion) = 'crédito' )"
@@ -44,12 +52,17 @@ module Reportes
 		cabecera_facturas.total_factura, cabecera_facturas.itbis, cabecera_facturas.descuento,
 		coalesce( SUM (CASE WHEN notas.tipo_factura_id IN (#{tipos_nota_credito.join(',')}) THEN facturas_aplicadas.total ELSE 0 END), 0) as total_devuelto"
         select_ += ', "cabecera_facturas"."Bruto"'
+        select_ += ', COALESCE(metodos.formas_pago, cabecera_facturas.forma_pago) AS forma_pago' if mostrar_forma_pago
 
         joins_ = "LEFT JOIN clientes ON cabecera_facturas.cliente_id = clientes.id
                     LEFT JOIN facturas_aplicadas ON cabecera_facturas.id = facturas_aplicadas.cabecera_factura_id
                     LEFT JOIN notas ON notas.id = facturas_aplicadas.nota_id"
+        if mostrar_forma_pago
+          joins_ += " LEFT JOIN LATERAL (SELECT CASE WHEN COUNT(*) > 1 THEN string_agg(forma_pago, ' • ' ORDER BY id) ELSE MAX(forma_pago) END AS formas_pago FROM metodo_de_pago WHERE metodo_de_pago_able_type = 'CabeceraFactura' AND metodo_de_pago_able_id = cabecera_facturas.id) metodos ON true"
+        end
 
         group_by = 'cabecera_facturas.id, clientes.nombre, clientes.apellido'
+        group_by += ', metodos.formas_pago, cabecera_facturas.forma_pago' if mostrar_forma_pago
 
         total_devuelto = 0
         bruto = 0

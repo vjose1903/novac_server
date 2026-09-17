@@ -29,7 +29,7 @@ class ApplicationController < ActionController::API
 
     res = Response.new
     fecha            = params[:fecha] ? params[:fecha] : DateTime.now
-    ventas_contado_total_facturado_    = CabeceraFactura.where("( forma_pago = 'Efectivo' OR forma_pago = 'Cheque' OR forma_pago ='Tarjeta' OR forma_pago = 'Transferencia' ) and fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado'").sum(:total_factura)
+    ventas_contado_total_facturado_ = CabeceraFactura.where("fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado'").sum(:total_factura)
     # factura = CabeceraFactura.find_by_id(55723)
     # factura = CabeceraFactura.find_by_id(55736)
     # ncf_modificado = factura.ncf_modificado

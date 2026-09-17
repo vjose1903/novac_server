@@ -4,6 +4,7 @@ class RecibosIngreso < ApplicationRecord
   belongs_to :cliente
 
   has_many :detalle_recibos, dependent: :destroy
+  has_many :metodos_de_pago, as: :metodo_de_pago_able, class_name: 'MetodoDePago', dependent: :destroy
 
   has_many :incidencias, :as => :origen, dependent: :destroy, class_name: "Incidencia"
 
@@ -16,7 +17,8 @@ class RecibosIngreso < ApplicationRecord
 			{user: :documentos_de_identidad},
 			{cliente: :documentos_de_identidad},
 			:tipo_factura,
-			{detalle_recibos: [:recibos_ingreso, :cabecera_factura]},
+		{detalle_recibos: [:recibos_ingreso, :cabecera_factura]},
+		:metodos_de_pago,
 		]
 		return includes
 	end
@@ -38,7 +40,14 @@ class RecibosIngreso < ApplicationRecord
       recibo.fecha_equivalente     = fecha_equivalente
       recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
       recibo.cliente_id            = params[:cliente_id]
-      recibo.forma_pago            = params[:forma_pago]
+      begin
+        pagos                       = MetodoDePago.normalizar(params[:metodos_de_pago], params[:total], params[:forma_pago])
+      rescue ArgumentError => error
+        res.add_msg(error.message)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        return res
+      end
+      recibo.forma_pago            = MetodoDePago.resumen(pagos)
       recibo.tipo_factura_id       = params[:tipo_factura_id]
       recibo.estado                = params[:estado]
 
@@ -65,6 +74,7 @@ class RecibosIngreso < ApplicationRecord
 
       if res.status_valid
         if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
+          MetodoDePago.reemplazar!(recibo, pagos)
 
           res_valid                = updateSecuencias(17)
 
