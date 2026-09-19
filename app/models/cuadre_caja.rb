@@ -130,7 +130,10 @@ class CuadreCaja < ApplicationRecord
       .first
 
     if existing_closing
-      existing_closing.ensure_system_income_snapshot! if existing_closing.detailed?
+      if existing_closing.detailed?
+        existing_closing.refresh_system_income_snapshot! if existing_closing.status == 'reopened'
+        existing_closing.ensure_system_income_snapshot!
+      end
       payload = {
         exists_cuadre: true,
         source: 'stored',
@@ -215,7 +218,7 @@ class CuadreCaja < ApplicationRecord
     transaction do
       assign_transition_attributes(target_status, user, reason, transition_time)
       save!
-      restore_shifted_documents!(transition_time) if should_restore_shifted_documents?(target_status)
+      refresh_system_income_snapshot! if target_status == 'reopened' && detailed?
       eventos.create!(user: user, event_type: target_status, from_status: from_status, to_status: status, reason: reason)
     end
 
@@ -236,6 +239,10 @@ class CuadreCaja < ApplicationRecord
     stored = normalized_system_income_details
     return if stored[:payment_methods].present? && stored[:invoice_payment_methods].present? && stored[:receipt_payment_methods].present?
 
+    refresh_system_income_snapshot!
+  end
+
+  def refresh_system_income_snapshot!
     snapshot = self.class.system_income_snapshot_for(closing_date || fecha_equivalente&.to_date)
     update_columns(
       system_income_details: snapshot,
@@ -305,17 +312,6 @@ class CuadreCaja < ApplicationRecord
       prepared_by: prepared_by ? UserSerializer.to_hash(prepared_by, { id: true, nombre: true, apellido: true, nombre_completo: true }) : nil,
       usuario: (prepared_by || user)&.nombre_completo
     }
-  end
-
-  def restore_shifted_documents!(transition_time)
-    shifted_documents_scope(CabeceraFactura).find_each do |factura|
-      attrs = { fecha_equivalente: transition_time }
-      attrs[:fecha_completada] = transition_time if factura.condicion == 'Contado'
-      factura.update_columns(attrs)
-    end
-
-    shifted_documents_scope(RecibosIngreso).update_all(fecha_equivalente: transition_time)
-    shifted_documents_scope(Nota).update_all(fecha_equivalente: transition_time)
   end
 
   def listado_item
@@ -728,10 +724,6 @@ class CuadreCaja < ApplicationRecord
     created_at&.in_time_zone&.to_date == Time.zone.today
   end
 
-  def should_restore_shifted_documents?(target_status)
-    target_status == 'rejected' || (target_status == 'reopened' && created_today?)
-  end
-
   def normalized_system_income_details
     stored = system_income_details.presence || {}
     stored.respond_to?(:deep_symbolize_keys) ? stored.deep_symbolize_keys : stored
@@ -741,15 +733,6 @@ class CuadreCaja < ApplicationRecord
     value = decimal_value(difference_amount)
     return 'balanced' if value.zero?
     value.positive? ? 'surplus' : 'shortage'
-  end
-
-  def shifted_documents_scope(model)
-    shifted_date = CalendarEvent.next_working_day_after(closing_date || fecha_equivalente.to_date)
-
-    model
-      .where(created_at: created_at..)
-      .where(fecha_equivalente: shifted_date.beginning_of_day..shifted_date.end_of_day)
-      .where(estado: true)
   end
 
   def amount_string(value)
