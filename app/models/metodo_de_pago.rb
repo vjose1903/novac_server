@@ -19,8 +19,6 @@ class MetodoDePago < ApplicationRecord
       { forma_pago: forma_pago, monto: monto }
     end
     raise ArgumentError, 'Debe indicar al menos una forma de pago.' if lineas.empty?
-    raise ArgumentError, 'La suma de las formas de pago debe coincidir con el total del documento.' unless lineas.sum { |pago| pago[:monto] } == BigDecimal(total.to_s).round(2)
-
     lineas
   end
 
