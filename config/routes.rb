@@ -65,6 +65,7 @@ Rails.application.routes.draw do
       post "approve"           => "cuadre_cajas#approve"
       post "reject"            => "cuadre_cajas#reject"
       post "reopen"            => "cuadre_cajas#reopen"
+      post "notes"             => "cuadre_cajas#update_notes"
     end
   end
 
