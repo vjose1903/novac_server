@@ -2,10 +2,38 @@ class FirebaseLogosController < ApplicationController
   skip_around_action :encarsular_usuario
   before_action :set_user_by_token
   before_action :require_authenticated_user
+  skip_before_action :validateUserIsLogging!, only: :create_prelogin, raise: false
+  skip_before_action :set_user_by_token, :require_authenticated_user, only: :create_prelogin
 
   def create
-    empresa_id = params.require(:empresa_id).to_s
+    paths = upload_logos
+    render json: { data: paths }, status: :ok
+  rescue ActionController::ParameterMissing, ArgumentError => e
+    render json: { msg: e.message }, status: :unprocessable_entity
+  rescue StandardError => e
+    Rails.logger.error("Firebase logos: #{e.full_message}")
+    render json: { msg: 'No se pudieron guardar los logos.' }, status: :bad_gateway
+  end
 
+  def create_prelogin
+    empresa_id = params.require(:empresa_id).to_s
+    FirebaseConfigurationService.new.authorize_prelogin!(
+      empresa_id: empresa_id,
+      config_password: params[:config_password].to_s
+    )
+
+    render json: { data: upload_logos }, status: :ok
+  rescue ActionController::ParameterMissing, ArgumentError => e
+    render json: { msg: e.message }, status: :unprocessable_entity
+  rescue StandardError => e
+    Rails.logger.error("Firebase logos prelogin: #{e.full_message}")
+    render json: { msg: 'No se pudieron guardar los logos.' }, status: :bad_gateway
+  end
+
+  private
+
+  def upload_logos
+    empresa_id = params.require(:empresa_id).to_s
     logos = params.require(:logos).permit(:logo_empresa, :logo_impresion)
     service = FirebaseStorageLogoService.new
     paths = {}
@@ -15,15 +43,8 @@ class FirebaseLogosController < ApplicationController
       paths["#{key}_path"] = service.upload(empresa_id: empresa_id, key: key, data_url: value) if value.present?
     end
 
-    render json: { data: paths }, status: :ok
-  rescue ActionController::ParameterMissing, ArgumentError => e
-    render json: { msg: e.message }, status: :unprocessable_entity
-  rescue StandardError => e
-    Rails.logger.error("Firebase logos: #{e.full_message}")
-    render json: { msg: 'No se pudieron guardar los logos.' }, status: :bad_gateway
+    paths
   end
-
-  private
 
   def require_authenticated_user
     return if @resource.present?

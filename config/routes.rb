@@ -234,7 +234,9 @@ Rails.application.routes.draw do
                                       }
 
   post 'firebase/logos', to: 'firebase_logos#create'
+  post 'firebase/logos/prelogin', to: 'firebase_logos#create_prelogin'
   post 'firebase/configuration', to: 'firebase_configuration#create'
+  post 'firebase/configuration/prelogin', to: 'firebase_configuration#create_prelogin'
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end

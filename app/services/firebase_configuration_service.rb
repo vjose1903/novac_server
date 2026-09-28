@@ -2,6 +2,7 @@ require 'googleauth'
 require 'json'
 require 'net/http'
 require 'uri'
+require 'active_support/security_utils'
 
 class FirebaseConfigurationService
   GENERAL_KEYS = %w[
@@ -41,16 +42,36 @@ class FirebaseConfigurationService
     )
   end
 
-  def update(empresa_id:, machine_id:, config:)
+  def update(empresa_id:, machine_id:, config:, only_missing: false)
     raise ArgumentError, 'Empresa inválida' if empresa_id.blank?
     raise ArgumentError, 'Máquina inválida' if machine_id.blank?
 
     general = select(config, GENERAL_KEYS)
     machine = select(config, MACHINE_KEYS).merge('machineId' => machine_id)
-    patch_document("Empresas/#{empresa_id}/general_configuration/app", general)
-    patch_document("Empresas/#{empresa_id}/configuration/#{machine_id}", machine)
+    patch_document("Empresas/#{empresa_id}/general_configuration/app", general, only_missing: only_missing)
+    patch_document("Empresas/#{empresa_id}/configuration/#{machine_id}", machine, only_missing: only_missing)
     self.class.instance_variable_get(:@travel_cache)&.delete(empresa_id)
     { 'firebase_empresa_id' => empresa_id, 'machineId' => machine_id }
+  end
+
+  def update_prelogin(empresa_id:, machine_id:, config:, config_password:)
+    authorize_prelogin!(empresa_id: empresa_id, config_password: config_password)
+    update(empresa_id: empresa_id, machine_id: machine_id, config: config)
+  end
+
+  def authorize_prelogin!(empresa_id:, config_password:)
+    return true if Rails.env.development?
+
+    stored_password = firestore_fields_to_hash(
+      read_document("Empresas/#{empresa_id}/general_configuration/app")['fields']
+    )['config_password'].to_s
+    supplied_password = config_password.to_s
+
+    valid = stored_password.present? && supplied_password.present? &&
+      stored_password.bytesize == supplied_password.bytesize &&
+      ActiveSupport::SecurityUtils.secure_compare(stored_password, supplied_password)
+
+    raise ArgumentError, 'La contraseña de configuración no es válida.' unless valid
   end
 
   def read_document(document_path)
@@ -89,7 +110,46 @@ class FirebaseConfigurationService
     end
   end
 
-  def patch_document(document_path, data)
+  def firestore_fields_to_hash(fields)
+    fields.to_h.each_with_object({}) do |(key, value), result|
+      result[key] = firestore_value_to_ruby(value)
+    end
+  end
+
+  def firestore_value_to_ruby(value)
+    return nil if value.nil?
+    return value['stringValue'] if value.key?('stringValue')
+    return value['booleanValue'] if value.key?('booleanValue')
+    return value['integerValue'].to_i if value.key?('integerValue')
+    return value['doubleValue'] if value.key?('doubleValue')
+    return value['timestampValue'] if value.key?('timestampValue')
+    return value['nullValue'] if value.key?('nullValue')
+    return firestore_fields_to_hash(value.dig('mapValue', 'fields')) if value.key?('mapValue')
+    return value.dig('arrayValue', 'values').to_a.map { |item| firestore_value_to_ruby(item) } if value.key?('arrayValue')
+
+    nil
+  end
+
+  def merge_configuration(existing, incoming, only_missing: false)
+    incoming.to_h.each_with_object(existing.to_h.dup) do |(key, value), result|
+      unless result.key?(key)
+        result[key] = value
+        next
+      end
+
+      if result[key].is_a?(Hash) && value.is_a?(Hash)
+        result[key] = merge_configuration(result[key], value, only_missing: only_missing)
+      elsif !only_missing
+        result[key] = value
+      end
+    end
+  end
+
+  def patch_document(document_path, data, only_missing: false)
+    existing_document = read_document(document_path)
+    existing_fields = firestore_fields_to_hash(existing_document['fields'])
+    merged_data = merge_configuration(existing_fields, data, only_missing: only_missing)
+
     credentials = Google::Auth::ServiceAccountCredentials.make_creds(
       json_key_io: File.open(@credentials_path),
       scope: SCOPE
@@ -99,7 +159,7 @@ class FirebaseConfigurationService
     request = Net::HTTP::Patch.new(uri)
     request['Authorization'] = "Bearer #{credentials.access_token}"
     request['Content-Type'] = 'application/json'
-    request.body = JSON.generate('fields' => data.transform_values { |value| firestore_value(value) })
+    request.body = JSON.generate('fields' => merged_data.transform_values { |value| firestore_value(value) })
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
     return if response.is_a?(Net::HTTPSuccess)
 
