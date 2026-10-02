@@ -41,6 +41,7 @@ services:
       - db-prod
     restart: always
     volumes:
+      - ./public/img:/usr/src/novac_server/public/img
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
     command: >
       sh -c "./wait-for-it.sh db-prod:5432 -- sh ./run_server.sh"

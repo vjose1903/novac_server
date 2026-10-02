@@ -30,6 +30,7 @@ Rails.application.routes.draw do
   resources :detalle_facturas
   resources :tipo_facturas
   resources :imagenes
+  get "img/:file_name" => "imagenes#file"
   resources :contenido_articulos
   resources :tipo_articulos
   resources :secuencia_facturas
