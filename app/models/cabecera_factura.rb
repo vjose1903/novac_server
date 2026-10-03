@@ -145,7 +145,8 @@ class CabeceraFactura < ApplicationRecord
     return set_error_response(res, cabecera_factura.errors.to_a) unless cabecera_factura.save!
     MetodoDePago.reemplazar!(cabecera_factura, pagos) if pagos
 
-    procesar_dgii(cabecera_factura, data_secuencias)
+    res_dgii = procesar_dgii(cabecera_factura, data_secuencias)
+    return set_error_response(res, res_dgii.get_msgs.to_a) unless res_dgii.status_valid
 
     res_valid = finalizar_cabecera_factura(cabecera_factura, data_secuencias)
 
@@ -262,7 +263,7 @@ class CabeceraFactura < ApplicationRecord
   private_class_method def self.procesar_dgii(cabecera_factura, data_secuencias = nil)
     unless enviar_a_dgii?(cabecera_factura)
       @increment_secuencia_comprobante = true
-      return
+      return Response.new
     end
 
     max_reintentos = 5
@@ -270,20 +271,25 @@ class CabeceraFactura < ApplicationRecord
 
     loop do
       @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
-      data_response_dgii = @res_valid_dgii.get_data
+      data_response_dgii = (@res_valid_dgii.get_data || {}).with_indifferent_access
       break unless !@res_valid_dgii.status_valid && data_response_dgii[:secuenciaUtilizada] == true && data_secuencias && reintentos < max_reintentos
 
       reintentos += 1
-      break unless reasignar_secuencia_dgii(cabecera_factura, data_secuencias)
+      unless reasignar_secuencia_dgii(cabecera_factura, data_secuencias)
+        @res_valid_dgii = Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, ['No quedan paquetes de comprobantes disponibles para continuar con el envío.'])
+        break
+      end
     end
 
-    data_response_dgii = @res_valid_dgii.get_data
+    data_response_dgii = (@res_valid_dgii.get_data || {}).with_indifferent_access
     @increment_secuencia_comprobante = data_response_dgii[:secuenciaUtilizada] == true
+    @res_valid_dgii
   end
 
   private_class_method def self.reasignar_secuencia_dgii(cabecera_factura, data_secuencias)
     paquete = data_secuencias[:actual_paquete_comprobante]
     return false unless paquete && paquete[:id]
+    return false unless SecuenciaComprobante.puede_avanzar_secuencia?(paquete)
 
     res = SecuenciaComprobante.aumentar_secuencia_comprobante(paquete[:id])
     return false unless res.status_valid
@@ -1105,7 +1111,8 @@ class CabeceraFactura < ApplicationRecord
     return set_error_response(res, current_factura.errors.to_a) unless current_factura.save!
 
     # Procesar DGII
-    procesar_dgii(nueva_factura, data_secuencias)
+    res_dgii = procesar_dgii(nueva_factura, data_secuencias)
+    return set_error_response(res, res_dgii.get_msgs.to_a) unless res_dgii.status_valid
 
     # Crear referencia entre documentos
     res_reference = DocumentReference.create_reference(current_factura, nueva_factura)

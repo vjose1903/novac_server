@@ -9,7 +9,7 @@ import { NotaI } from '@core/types/notas.types';
 import { EcfXmlJson } from '@core/types/xml/xml_json';
 import { codigo_modificacion_labelE, num_codigo_modificacion_to_label, tipoComprobanteE } from '@core/constants/factura.const';
 import { rootElNameE } from '@core/constants/xml.const';
-import { QrUrlDgiiData } from '@core/constants/dgii.const';
+import { codigo_rechazo_dgiiE, QrUrlDgiiData } from '@core/constants/dgii.const';
 import { DgiiAuthService } from './DgiiAuth.service';
 import GoogleDriveUtils from '@utils/typescript/google/google_drive.utils';
 import { resolveFolderId } from '@utils/typescript/folder.utils';
@@ -83,15 +83,7 @@ export class DgiiEcfService {
         const fileName = `${this.environment.RNC_EMISOR}${this.jsonData.numero_comprobante}.xml`;
 
         const qr_url_dgii_data = this.initializeQrData(factura, parser);
-        // La consulta se mantiene como diagnóstico, pero la respuesta de DGII
-        // al envío sigue siendo la única fuente para secuenciaUtilizada.
-        const [{ signedXml, signedExtendedXml }] = await Promise.all([
-          this.signDocuments(factura, qr_url_dgii_data),
-          this.consultarSecuencia(parser.eNCF),
-        ]);
-
-        // TEMPORAL: permite comparar el XML firmado real con la respuesta de DGII.
-        console.log(`[DGII] XML firmado enviado (${fileName}):\n${signedXml}`);
+        const { signedXml, signedExtendedXml } = await this.signDocuments(factura, qr_url_dgii_data);
 
         const sendResponse = await this.sendDocument(signedXml, fileName);
         const qr_url_dgii = this.generateQrUrl(qr_url_dgii_data, factura, parser);
@@ -116,9 +108,25 @@ export class DgiiEcfService {
 
         const raw_msg = this.getMessage(error);
         const msg = hasValue(raw_msg) ? `DGII mensaje: ${raw_msg}` : 'Error al firmar y enviar el XML.';
-        reject({ success: false, message: msg, secuenciaUtilizada: false, ...error });
+        const secuenciaUtilizada = this.esRechazoPorSecuenciaUtilizada(error);
+        reject({
+          success: false,
+          message: msg,
+          secuenciaUtilizada,
+          sequenceStatus: secuenciaUtilizada ? 'used' : 'unknown',
+          ...error,
+          secuenciaUtilizada,
+          sequenceStatus: secuenciaUtilizada ? 'used' : 'unknown',
+        });
       }
     });
+  }
+
+  private esRechazoPorSecuenciaUtilizada(error: any): boolean {
+    const data = error?.data || error?.response?.data;
+    const mensajes = data?.mensajes || error?.mensajes || [];
+
+    return mensajes.some((mensaje: any) => String(mensaje?.codigo) === codigo_rechazo_dgiiE.e_ncf_y_codigo_seguridad_utilizados);
   }
 
   private initializeQrData(factura: EcfXmlJson, parser: ParseDocument): QrUrlDgiiData {
@@ -133,8 +141,6 @@ export class DgiiEcfService {
   private async signDocuments(factura: EcfXmlJson, qr_url_dgii_data: QrUrlDgiiData): Promise<{ signedXml: string; signedExtendedXml: string }> {
     const xml = this.transformer.json2xml(factura);
     let signedXml = this.signature.signXml(xml, rootElNameE.ECF);
-    // TEMPORAL: permite copiar el XML ECF completo antes de generar el resumen RFCE.
-    console.log(`[DGII] XML ECF completo firmado (${qr_url_dgii_data.encf}):\n${signedXml}`);
     qr_url_dgii_data.codigoseguridad = getCodeSixDigitfromSignature(signedXml);
 
     let signedExtendedXml = '';
@@ -199,23 +205,6 @@ export class DgiiEcfService {
     };
 
     return attemptSend();
-  }
-
-  private async consultarSecuencia(encf: string): Promise<void> {
-    const timeoutMs = 1500;
-    let timeoutId: NodeJS.Timeout | undefined;
-
-    try {
-      const timeout = new Promise<null>(resolve => {
-        timeoutId = setTimeout(() => resolve(null), timeoutMs);
-      });
-      const respuesta = await Promise.race([this.ecf.trackStatuses(this.rnc_emisor, encf), timeout]);
-      console.log('[DGII] Consulta previa de secuencia:', { encf, respuesta });
-    } catch (error) {
-      console.warn(`No se pudo consultar previamente el e-NCF ${encf}:`, error?.message || error);
-    } finally {
-      if (timeoutId) clearTimeout(timeoutId);
-    }
   }
 
   private isAuthenticationError(error: any): boolean {

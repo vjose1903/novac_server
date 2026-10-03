@@ -333,13 +333,6 @@ export class ParseDocument {
     // DGII valida MontoPago contra el MontoTotal exacto del XML, no contra
     // el total recibido desde Rails antes de redondear las partidas.
     if (formaPagoPrincipal) formaPagoPrincipal.MontoPago = totales.MontoTotal;
-    if (formaPagoPrincipal) {
-      console.log('[DGII] Valores de pago del XML:', {
-        formaPago: formaPagoPrincipal.FormaPago,
-        montoPago: formaPagoPrincipal.MontoPago,
-        montoTotal: totales.MontoTotal,
-      });
-    }
 
     // DETALLESITEMS
     document_parsed.ECF.DetallesItems = this.detallesClass.parse(this.detalles, this.isFactura);

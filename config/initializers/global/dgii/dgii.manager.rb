@@ -17,7 +17,6 @@ module DGII_MANAGER
     puts "DGII numero_comprobante enviado >>> ".yellow + "#{document_parsed[:numero_comprobante]}"
 
     response = send_document_to_dgii(document_parsed)
-    log_dgii_response(response)
 
     response = response.with_indifferent_access
     data_response = (response[:data] || {}).with_indifferent_access
@@ -50,16 +49,6 @@ module DGII_MANAGER
   rescue StandardError => e
     puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
     e.with_indifferent_access
-  end
-
-  def self.log_dgii_response(response)
-    puts " "
-    puts " "
-    puts " "
-    puts " response >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{response.to_json}"
-    puts " "
-    puts " "
-    puts " "
   end
 
   def self.assign_dgii_response_data(document, data_response)

@@ -71,19 +71,29 @@ La reconciliación debe seguir este flujo:
 
 La consulta `consultaestado/api/consultas/estado` por RNC, e-NCF, RNC comprador y código de seguridad puede utilizarse como verificación fiscal secundaria cuando esos datos estén disponibles, pero no reemplaza la consulta de `TrackId` para resolver un POST cuyo resultado de transporte es desconocido.
 
-### 3.1. Validación previa como barrera de envío
+### 3.1. Respuesta de recepción como fuente de secuencia
 
-La consulta previa del e-NCF no debe quedarse como un log diagnóstico. Debe ser una barrera explícita antes del POST de recepción. El microservicio debe consultar el endpoint de DGII que busca `TrackId` por `(RNC emisor, e-NCF)` y clasificar la respuesta en tres estados:
+No se utilizará una consulta previa a DGII como autorización para enviar. `ConsultaTrackIds` y `ConsultaEstado` solo informan lo que DGII ya tiene registrado; un resultado `No encontrado` no garantiza que el e-NCF esté libre ni evita una condición de carrera.
 
-- `used`: DGII devuelve uno o más registros para el e-NCF. No se realiza el POST. Se devuelve `sequence_status: used` para que Rails avance la secuencia y genere el siguiente e-NCF.
-- `available`: DGII confirma que no existe recepción para el e-NCF. Se permite el POST.
-- `unknown`: timeout, error de autenticación, respuesta incompleta o indisponibilidad de la consulta. No se realiza el POST ni se reutiliza la secuencia; el envío queda pendiente de verificación.
+El POST de recepción será la fuente principal. Rails debe interpretar la propiedad `secuenciaUtilizada` de la respuesta de DGII:
 
-Para reducir la latencia, el firmado del XML y esta consulta pueden ejecutarse en paralelo. El POST solo comienza después de que la consulta termine con `available`. Si devuelve `used`, se descarta el XML firmado y se evita enviar una factura que ya tiene una secuencia ocupada. No se debe interpretar un timeout como `available`.
+- `true`: la secuencia no puede reutilizarse.
+- `false`: la secuencia puede reutilizarse únicamente cuando DGII haya confirmado un rechazo por una causa que permita hacerlo.
+- timeout, conexión cerrada o respuesta desconocida: no asumir que está libre; pasar el envío a reconciliación.
 
-La consulta no debe depender de analizar mensajes libres ni de inferir el estado a partir de `trackId` ausente. La respuesta estructurada del microservicio debe incluir `sequence_status`, `e_ncf`, `track_id` si existe y un código estable. Rails debe conservar la reserva del e-NCF mediante una operación atómica y una restricción única por `(RNC emisor, e-NCF)`, de modo que dos workers no puedan validar y enviar la misma secuencia simultáneamente.
+Como protección para el ambiente de pruebas, el código DGII `75` (“combinación e-NCF y código de seguridad ya utilizada”) se normaliza como `secuenciaUtilizada: true`, aunque la respuesta defectuosa de ese ambiente lo entregue como `false`. No se analiza texto libre cuando exista un código estructurado.
 
-La respuesta `available` solo autoriza ese intento de envío; no debe almacenarse como una garantía permanente, porque otro proceso podría ocupar la secuencia después de la consulta. Si la consulta de DGII devuelve `No encontrado` pero existe una respuesta inconsistente o no concluyente, se debe tratar como `unknown` y no enviar.
+### 3.2. Asignación segura dentro de paquetes de comprobantes
+
+Rails es responsable de seleccionar el e-NCF siguiente antes de que el usuario cree la factura. El valor de `secuencia_comprobantes.secuencia` representa la próxima secuencia candidata del paquete activo.
+
+- Rails reserva la secuencia localmente antes del POST dentro de la transacción de creación.
+- Si DGII devuelve `secuenciaUtilizada: true` o código `75`, Rails avanza al siguiente número y reintenta únicamente si el número todavía está dentro del paquete o existe un paquete posterior `estado=false, usado=false` para activar.
+- Si el paquete llegó a `hasta` y no existe un paquete posterior disponible, no se intenta enviar otra secuencia. La operación se rechaza y la transacción local se revierte para no dejar una factura fiscalmente inválida.
+- Después de una reasignación, Rails vuelve a cargar el paquete activo. Esto cubre el cambio de paquete en el límite y evita que el incremento final se pierda por atributos virtuales de ActiveRecord.
+- Una respuesta `unknown` no libera ni reutiliza el e-NCF ni dispara un POST ciego; queda pendiente de reconciliación.
+
+La comprobación de disponibilidad del paquete debe ejecutarse dentro de la misma transacción que reserva la secuencia. En una siguiente iteración se añadirá bloqueo de fila/restricción única para impedir que dos workers asignen simultáneamente el mismo e-NCF.
 
 ### 4. Reparar el manejo de excepciones en Rails
 
@@ -235,7 +245,7 @@ La impresión de contingencia seguirá la documentación de la DGII: incluirá e
 
 1. Normalizar errores en el microservicio y Rails, eliminando `with_indifferent_access` sobre excepciones.
 2. Añadir timeouts explícitos y cancelación en Axios/Faraday.
-3. Implementar la barrera previa `used/available/unknown` por RNC/e-NCF.
+3. Conectar `secuenciaUtilizada` y el código DGII `75` al flujo de reserva de paquetes.
 4. Crear la cola durable, leases, reintentos y circuit breaker para la DGII.
 5. Persistir inmediatamente el `trackId` recibido y confirmar esa escritura antes del sondeo.
 6. Implementar el contrato `unknown`, la consulta por RNC/e-NCF y la consulta por `TrackId` antes de reenviar.
