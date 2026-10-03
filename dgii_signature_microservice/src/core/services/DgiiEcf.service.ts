@@ -83,7 +83,15 @@ export class DgiiEcfService {
         const fileName = `${this.environment.RNC_EMISOR}${this.jsonData.numero_comprobante}.xml`;
 
         const qr_url_dgii_data = this.initializeQrData(factura, parser);
-        const { signedXml, signedExtendedXml } = await this.signDocuments(factura, qr_url_dgii_data);
+        // La consulta se mantiene como diagnóstico, pero la respuesta de DGII
+        // al envío sigue siendo la única fuente para secuenciaUtilizada.
+        const [{ signedXml, signedExtendedXml }] = await Promise.all([
+          this.signDocuments(factura, qr_url_dgii_data),
+          this.consultarSecuencia(parser.eNCF),
+        ]);
+
+        // TEMPORAL: permite comparar el XML firmado real con la respuesta de DGII.
+        console.log(`[DGII] XML firmado enviado (${fileName}):\n${signedXml}`);
 
         const sendResponse = await this.sendDocument(signedXml, fileName);
         const qr_url_dgii = this.generateQrUrl(qr_url_dgii_data, factura, parser);
@@ -125,6 +133,8 @@ export class DgiiEcfService {
   private async signDocuments(factura: EcfXmlJson, qr_url_dgii_data: QrUrlDgiiData): Promise<{ signedXml: string; signedExtendedXml: string }> {
     const xml = this.transformer.json2xml(factura);
     let signedXml = this.signature.signXml(xml, rootElNameE.ECF);
+    // TEMPORAL: permite copiar el XML ECF completo antes de generar el resumen RFCE.
+    console.log(`[DGII] XML ECF completo firmado (${qr_url_dgii_data.encf}):\n${signedXml}`);
     qr_url_dgii_data.codigoseguridad = getCodeSixDigitfromSignature(signedXml);
 
     let signedExtendedXml = '';
@@ -179,6 +189,23 @@ export class DgiiEcfService {
     };
 
     return attemptSend();
+  }
+
+  private async consultarSecuencia(encf: string): Promise<void> {
+    const timeoutMs = 1500;
+    let timeoutId: NodeJS.Timeout | undefined;
+
+    try {
+      const timeout = new Promise<null>(resolve => {
+        timeoutId = setTimeout(() => resolve(null), timeoutMs);
+      });
+      const respuesta = await Promise.race([this.ecf.trackStatuses(this.rnc_emisor, encf), timeout]);
+      console.log('[DGII] Consulta previa de secuencia:', { encf, respuesta });
+    } catch (error) {
+      console.warn(`No se pudo consultar previamente el e-NCF ${encf}:`, error?.message || error);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
   }
 
   private isAuthenticationError(error: any): boolean {
@@ -279,7 +306,7 @@ export class DgiiEcfService {
       xml_file_name: fileName,
       // DGII consume el e-NCF aunque la respuesta final sea un rechazo.
       // Un estado o TrackId confirma que el documento llego a DGII.
-      secuenciaUtilizada: getProperty(response, 'secuenciaUtilizada') === true || Boolean(trackId) || Boolean(estado) || (Array.isArray(mensajes) && mensajes.length > 0),
+      secuenciaUtilizada: getProperty(response, 'secuenciaUtilizada') === true,
       qr_url_dgii,
       estado: estado || null,
       trackId: trackId || null,

@@ -145,7 +145,7 @@ class CabeceraFactura < ApplicationRecord
     return set_error_response(res, cabecera_factura.errors.to_a) unless cabecera_factura.save!
     MetodoDePago.reemplazar!(cabecera_factura, pagos) if pagos
 
-    procesar_dgii(cabecera_factura)
+    procesar_dgii(cabecera_factura, data_secuencias)
 
     res_valid = finalizar_cabecera_factura(cabecera_factura, data_secuencias)
 
@@ -259,15 +259,42 @@ class CabeceraFactura < ApplicationRecord
     end
   end
 
-  private_class_method def self.procesar_dgii(cabecera_factura)
+  private_class_method def self.procesar_dgii(cabecera_factura, data_secuencias = nil)
     unless enviar_a_dgii?(cabecera_factura)
       @increment_secuencia_comprobante = true
       return
     end
 
-    @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
+    max_reintentos = 5
+    reintentos = 0
+
+    loop do
+      @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
+      data_response_dgii = @res_valid_dgii.get_data
+      break unless !@res_valid_dgii.status_valid && data_response_dgii[:secuenciaUtilizada] == true && data_secuencias && reintentos < max_reintentos
+
+      reintentos += 1
+      break unless reasignar_secuencia_dgii(cabecera_factura, data_secuencias)
+    end
+
     data_response_dgii = @res_valid_dgii.get_data
     @increment_secuencia_comprobante = data_response_dgii[:secuenciaUtilizada] == true
+  end
+
+  private_class_method def self.reasignar_secuencia_dgii(cabecera_factura, data_secuencias)
+    paquete = data_secuencias[:actual_paquete_comprobante]
+    return false unless paquete && paquete[:id]
+
+    res = SecuenciaComprobante.aumentar_secuencia_comprobante(paquete[:id])
+    return false unless res.status_valid
+
+    paquete.reload
+    comprobante = cabecera_factura.numero_comprobante.to_s
+    cabecera_factura.numero_comprobante = comprobante.sub(/\d{10}\z/, format('%010d', paquete.secuencia))
+    return false unless cabecera_factura.save!
+
+    data_secuencias[:numero_comprobante] = cabecera_factura.numero_comprobante
+    true
   end
 
   private_class_method def self.enviar_a_dgii?(cabecera_factura)
@@ -1071,7 +1098,7 @@ class CabeceraFactura < ApplicationRecord
     return set_error_response(res, current_factura.errors.to_a) unless current_factura.save!
 
     # Procesar DGII
-    procesar_dgii(nueva_factura)
+    procesar_dgii(nueva_factura, data_secuencias)
 
     # Crear referencia entre documentos
     res_reference = DocumentReference.create_reference(current_factura, nueva_factura)

@@ -315,12 +315,12 @@ export class ParseDocument {
     document_parsed.ECF.Encabezado.IdDoc.TipoPago = this.factura.condicion === condicionE.contado ? tipo_pago_codeE.contado : this.factura.condicion === condicionE.credito ? tipo_pago_codeE.credito : tipo_pago_codeE.gratuito;
 
     document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago = [];
+    let formaPagoPrincipal: FormaDePagoE | null = null;
 
     if (this.isFactura && this.factura.condicion != condicionE.credito) {
-      const forma_pago: FormaDePagoE = { FormaPago: forma_pago_codeE[normalizarTexto(this.factura.forma_pago)] };
-      forma_pago.MontoPago = this.factura.total_factura;
+      formaPagoPrincipal = { FormaPago: forma_pago_codeE[normalizarTexto(this.factura.forma_pago)] };
 
-      document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago.push(forma_pago);
+      document_parsed.ECF.Encabezado.IdDoc.TablaFormasPago.FormaDePago.push(formaPagoPrincipal);
     }
 
     // ENCABEZADO COMPRADOR
@@ -329,6 +329,17 @@ export class ParseDocument {
     // ENCABEZADO TOTALES
     const totales = this.totalizacionClass.run(this.detalles, this.isFactura);
     document_parsed.ECF.Encabezado.Totales = totales as any;
+
+    // DGII valida MontoPago contra el MontoTotal exacto del XML, no contra
+    // el total recibido desde Rails antes de redondear las partidas.
+    if (formaPagoPrincipal) formaPagoPrincipal.MontoPago = totales.MontoTotal;
+    if (formaPagoPrincipal) {
+      console.log('[DGII] Valores de pago del XML:', {
+        formaPago: formaPagoPrincipal.FormaPago,
+        montoPago: formaPagoPrincipal.MontoPago,
+        montoTotal: totales.MontoTotal,
+      });
+    }
 
     // DETALLESITEMS
     document_parsed.ECF.DetallesItems = this.detallesClass.parse(this.detalles, this.isFactura);

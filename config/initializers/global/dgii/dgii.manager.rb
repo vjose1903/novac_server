@@ -41,12 +41,7 @@ module DGII_MANAGER
   end
 
   def self.secuencia_utilizada?(response, data_response)
-    return true if data_response[:secuenciaUtilizada] == true
-    return true if data_response[:trackId].present?
-    return true if data_response[:estado].present?
-    return true if response[:status].to_i == 200
-
-    response[:message].to_s.match?(/utilizados previamente|utilizado previamente/i)
+    data_response[:secuenciaUtilizada] == true
   end
 
   def self.send_document_to_dgii(document_parsed)

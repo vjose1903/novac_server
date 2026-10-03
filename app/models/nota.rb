@@ -96,6 +96,16 @@ class Nota < ApplicationRecord
                     @res_valid_dgii                 = DGII_MANAGER.send(nota)
                     
                     data_response_dgii              = @res_valid_dgii.get_data
+                    max_reintentos                  = 5
+                    reintentos                      = 0
+
+                    while !@res_valid_dgii.status_valid && data_response_dgii[:secuenciaUtilizada] == true && data_secuencias && reintentos < max_reintentos
+                      break unless reasignar_secuencia_dgii(nota, data_secuencias)
+
+                      reintentos += 1
+                      @res_valid_dgii    = DGII_MANAGER.send(nota)
+                      data_response_dgii = @res_valid_dgii.get_data
+                    end
 
                     if data_response_dgii[:secuenciaUtilizada]
                       @increment_secuencia_comprobante = true
@@ -166,6 +176,22 @@ class Nota < ApplicationRecord
     res = @res_valid_dgii if !@res_valid_dgii.nil? && !@res_valid_dgii.status_valid
 
     return res
+  end
+
+  private_class_method def self.reasignar_secuencia_dgii(nota, data_secuencias)
+    paquete = data_secuencias[:actual_paquete_comprobante]
+    return false unless paquete && paquete[:id]
+
+    res = SecuenciaComprobante.aumentar_secuencia_comprobante(paquete[:id])
+    return false unless res.status_valid
+
+    paquete.reload
+    comprobante = nota.numero_comprobante.to_s
+    nota.numero_comprobante = comprobante.sub(/\d{10}\z/, format('%010d', paquete.secuencia))
+    return false unless nota.save!
+
+    data_secuencias[:numero_comprobante] = nota.numero_comprobante
+    true
   end
 
   # ===================================================================================================================================================
