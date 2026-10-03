@@ -269,14 +269,20 @@ export class DgiiEcfService {
   }
 
   private buildResponseData(factura: EcfXmlJson, qr_url_dgii_data: QrUrlDgiiData, fileName: string, qr_url_dgii: string, response: any): any {
+    const estado = getProperty(response, 'estado');
+    const trackId = getProperty(response, 'trackId');
+    const mensajes = getProperty(response, 'mensajes');
+
     const data: any = {
       fecha_hora_firma: factura.ECF.FechaHoraFirma,
       security_code: qr_url_dgii_data.codigoseguridad,
       xml_file_name: fileName,
-      secuenciaUtilizada: getProperty(response, 'secuenciaUtilizada') || false,
+      // DGII consume el e-NCF aunque la respuesta final sea un rechazo.
+      // Un estado o TrackId confirma que el documento llego a DGII.
+      secuenciaUtilizada: getProperty(response, 'secuenciaUtilizada') === true || Boolean(trackId) || Boolean(estado) || (Array.isArray(mensajes) && mensajes.length > 0),
       qr_url_dgii,
-      estado: 'estado' in response ? response?.estado : null,
-      trackId: 'trackId' in response ? response?.trackId : null,
+      estado: estado || null,
+      trackId: trackId || null,
     };
 
     if (this.jsonData.TipoeCF === tipoComprobanteE.nota_de_credito || this.jsonData.TipoeCF === tipoComprobanteE.nota_de_debito) {
@@ -315,14 +321,26 @@ export class DgiiEcfService {
           task: () => this.ecf.statusTrackId(sendResponse.trackId),
           retryWhen: (response: TrackingStatusResponse) => response.estado === TrackStatusEnum.IN_PROCESS,
           onSuccess: resolve,
-          onError: () => reject({ success: false, message: 'Error al obtener el estado de la factura.', secuenciaUtilizada: false }),
+          // Si ya existe TrackId, el envio fue aceptado por DGII aunque
+          // falle la consulta posterior del estado. No reutilizar el e-NCF.
+          onError: () => reject({
+            success: false,
+            message: 'Error al obtener el estado de la factura.',
+            secuenciaUtilizada: Boolean(sendResponse.trackId),
+            data: { trackId: sendResponse.trackId, secuenciaUtilizada: Boolean(sendResponse.trackId) },
+          }),
           delayBetweenRetries: 200,
           retryMax: 15,
           useBackoff: true,
           maxBackoffDelay: 2000,
         });
       } catch (error) {
-        reject({ success: false, message: error.message || 'Error al obtener el estado de la factura.' });
+        reject({
+          success: false,
+          message: error.message || 'Error al obtener el estado de la factura.',
+          secuenciaUtilizada: Boolean(sendResponse.trackId),
+          data: { trackId: sendResponse.trackId, secuenciaUtilizada: Boolean(sendResponse.trackId) },
+        });
       }
     });
   }

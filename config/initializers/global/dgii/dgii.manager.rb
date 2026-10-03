@@ -19,11 +19,13 @@ module DGII_MANAGER
     response = send_document_to_dgii(document_parsed)
     log_dgii_response(response)
 
-    data_response = response.with_indifferent_access[:data].with_indifferent_access
+    response = response.with_indifferent_access
+    data_response = (response[:data] || {}).with_indifferent_access
+    data_response[:secuenciaUtilizada] = secuencia_utilizada?(response, data_response)
 
     estado = data_response[:estado].present? ? data_response[:estado] : nil
 
-    document.is_aceptada          = estado.nil? ? response.with_indifferent_access[:status] == 200 ? 'Aceptado' : 'Rechazado' : estado
+    document.is_aceptada          = estado.nil? ? response[:status] == 200 ? 'Aceptado' : 'Rechazado' : estado
     document.dgii_message         = response[:message]
     not_valid                     = document.is_aceptada.downcase == 'rechazado' || document.is_aceptada.nil?
 
@@ -35,8 +37,16 @@ module DGII_MANAGER
 
     res = build_dgii_response(data_response, response[:message], not_valid)
 
-    # TODO: SI GET_DATA DEL RES TIENE LA PROPIEDAD 'secuenciaUtilizada' independientemente del estado tengo que sumar la secuencia
     return res
+  end
+
+  def self.secuencia_utilizada?(response, data_response)
+    return true if data_response[:secuenciaUtilizada] == true
+    return true if data_response[:trackId].present?
+    return true if data_response[:estado].present?
+    return true if response[:status].to_i == 200
+
+    response[:message].to_s.match?(/utilizados previamente|utilizado previamente/i)
   end
 
   def self.send_document_to_dgii(document_parsed)
