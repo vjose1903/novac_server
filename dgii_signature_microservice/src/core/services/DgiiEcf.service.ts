@@ -142,7 +142,17 @@ export class DgiiEcfService {
     if (this.isFCLessThan250K) {
       const { xml: rfcXml } = convertECF32ToRFCE(signedXml);
       signedExtendedXml = signedXml;
-      signedXml = this.signature.signXml(rfcXml, rootElNameE.RFCE);
+
+      // La tabla de formas de pago es opcional en el RFCE. Se conserva en el
+      // ECF extendido, pero se omite del resumen enviado a la DGII.
+      const rfceJson = this.transformer.xml2Json(rfcXml) as any;
+      if (rfceJson?.RFCE?.Encabezado?.IdDoc) {
+        delete rfceJson.RFCE.Encabezado.IdDoc.TablaFormasPago;
+      }
+      signedXml = this.signature.signXml(
+        this.transformer.json2xml(rfceJson),
+        rootElNameE.RFCE
+      );
     }
 
     return { signedXml, signedExtendedXml };
