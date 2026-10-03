@@ -288,7 +288,14 @@ class CabeceraFactura < ApplicationRecord
     res = SecuenciaComprobante.aumentar_secuencia_comprobante(paquete[:id])
     return false unless res.status_valid
 
-    paquete.reload
+    # La reasignación puede cerrar el paquete actual y activar el siguiente.
+    # Volver a consultar el paquete activo evita reutilizar el anterior y
+    # conserva el marcador `is_paquete` usado al finalizar el documento.
+    res_paquete = SecuenciaComprobante.get_paquete_rnc_by_estado(paquete[:tipo_factura_id], true)
+    return false unless res_paquete.status_valid
+
+    paquete = res_paquete.get_data
+    data_secuencias[:actual_paquete_comprobante] = paquete
     comprobante = cabecera_factura.numero_comprobante.to_s
     cabecera_factura.numero_comprobante = comprobante.sub(/\d{10}\z/, format('%010d', paquete.secuencia))
     return false unless cabecera_factura.save!
@@ -494,7 +501,7 @@ class CabeceraFactura < ApplicationRecord
   private_class_method def self.debe_aumentar_paquete_comprobante?(data_secuencias)
     @increment_secuencia_comprobante &&
       !data_secuencias[:actual_paquete_comprobante].nil? &&
-      data_secuencias[:actual_paquete_comprobante][:is_paquete]
+      data_secuencias[:actual_paquete_comprobante][:id].present?
   end
 
   private_class_method def self.log_increment_secuencia_comprobante
