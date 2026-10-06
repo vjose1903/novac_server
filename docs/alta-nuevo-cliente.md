@@ -184,7 +184,7 @@ También está disponible la versión equivalente en Node.js:
 node .update_novac.js
 ```
 
-Ambas versiones aceptan `NOVAC_BRANCH`, `NOVAC_CLIENT`, `NOVAC_PROJECT_DIR` y `NOVAC_GIT_CRYPT_KEY` para sobrescribir los valores predeterminados.
+La versión Node.js usa el directorio actual del terminal como proyecto. Ambas versiones aceptan `NOVAC_BRANCH`, `NOVAC_CLIENT`, `NOVAC_PROJECT_DIR` y `NOVAC_GIT_CRYPT_KEY` para sobrescribir sus valores predeterminados.
 
 `scripts/start.js` desbloquea automáticamente los archivos `git-crypt` usando `~/.config/novac/git-crypt.key`.
 
