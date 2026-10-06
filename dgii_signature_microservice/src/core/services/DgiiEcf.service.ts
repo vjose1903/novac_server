@@ -112,8 +112,6 @@ export class DgiiEcfService {
         reject({
           success: false,
           message: msg,
-          secuenciaUtilizada,
-          sequenceStatus: secuenciaUtilizada ? 'used' : 'unknown',
           ...error,
           secuenciaUtilizada,
           sequenceStatus: secuenciaUtilizada ? 'used' : 'unknown',
