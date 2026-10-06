@@ -130,8 +130,9 @@ class CabeceraFactura < ApplicationRecord
 
     cabecera_factura = build_cabecera_factura(params, data_secuencias)
     pagos = nil
-    if factura_sin_metodo_pago?(params[:tipo])
+    if factura_sin_metodo_pago?(params[:tipo], @tipo_de_documento&.descripcion, @tipo_de_factura&.descripcion)
       cabecera_factura.forma_pago = nil
+      pagos = []
     else
       begin
         pagos = MetodoDePago.normalizar(params[:metodos_de_pago], cabecera_factura.total_factura, cabecera_factura.forma_pago)
@@ -188,14 +189,12 @@ class CabeceraFactura < ApplicationRecord
     set_error_response(res, 'La fecha equivalente enviada no es valida.')
   end
 
-  private_class_method def self.factura_de_compra?(tipo)
-    tipo.to_s.downcase == TiposFacturasDescripcion.compra.to_s.downcase
-  end
+  private_class_method def self.factura_sin_metodo_pago?(*tipos)
+    tipos_sin_pago = [TiposFacturasDescripcion.compra, TiposFacturasDescripcion.cotizacion, TiposFacturasDescripcion.pre_venta]
+      .map { |tipo| tipo.to_s.downcase }
 
-  private_class_method def self.factura_sin_metodo_pago?(tipo)
-    tipo_downcase = tipo.to_s.downcase
-    [TiposFacturasDescripcion.compra, TiposFacturasDescripcion.cotizacion, TiposFacturasDescripcion.pre_venta].any? do |tipo_sin_pago|
-      tipo_downcase == tipo_sin_pago.to_s.downcase
+    tipos.compact.any? do |tipo|
+      tipos_sin_pago.include?(tipo.to_s.downcase)
     end
   end
 
@@ -814,7 +813,10 @@ class CabeceraFactura < ApplicationRecord
           factura_original.balance         = factura_nueva['balance']
           factura_original.devuelta        = factura_nueva['devuelta']
           pagos = nil
-          unless factura_de_compra?(factura_nueva[:tipo] || factura_original.tipo)
+          if factura_sin_metodo_pago?(factura_nueva[:tipo], factura_original.tipo, factura_original.tipo_factura&.descripcion)
+            factura_original.forma_pago = nil
+            pagos = []
+          else
             begin
               pagos = MetodoDePago.normalizar(factura_nueva[:metodos_de_pago], factura_nueva['total_factura'], factura_nueva['forma_pago'])
             rescue ArgumentError => error
