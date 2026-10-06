@@ -9,7 +9,7 @@ class FirebaseConfigurationService
     cliente nombre_empresa rnc_empresa direccion_empresa telefono_empresa color_app
     url_servidor url_servidor_respaldo config_password usa_url_principal usa_facturas_externas
     is_produccion has_contabilidad calcular_itbis usa_mora is_db_local facturacion_editar_precio
-    vende_sin_inventario use_ecf usa_modulo_viajes documentos_a_imprimir serie_default medida_producto_terminado
+    vende_sin_inventario use_ecf usa_modulo_viajes usa_facturacion_electronica documentos_a_imprimir serie_default medida_producto_terminado
     logo_empresa_path logo_impresion_path
   ].freeze
   MACHINE_KEYS = %w[machineId mode_app pages_sizes printer_selected].freeze
@@ -47,8 +47,18 @@ class FirebaseConfigurationService
     raise ArgumentError, 'Máquina inválida' if machine_id.blank?
 
     general = select(config, GENERAL_KEYS)
+    general_document_path = "Empresas/#{empresa_id}/general_configuration/app"
+    existing_general = firestore_fields_to_hash(read_document(general_document_path)['fields'])
+    usa_facturacion_electronica = general.fetch('usa_facturacion_electronica', existing_general['usa_facturacion_electronica'])
+    force_normal_serie = usa_facturacion_electronica != true && existing_general['serie_default'] != 'normal'
+    general['serie_default'] = 'normal' unless usa_facturacion_electronica == true
     machine = select(config, MACHINE_KEYS).merge('machineId' => machine_id)
-    patch_document("Empresas/#{empresa_id}/general_configuration/app", general, only_missing: only_missing)
+    if only_missing && force_normal_serie
+      patch_document(general_document_path, general.except('serie_default'), only_missing: true)
+      patch_document(general_document_path, { 'serie_default' => 'normal' }, only_missing: false)
+    else
+      patch_document(general_document_path, general, only_missing: only_missing)
+    end
     patch_document("Empresas/#{empresa_id}/configuration/#{machine_id}", machine, only_missing: only_missing)
     self.class.instance_variable_get(:@travel_cache)&.delete(empresa_id)
     { 'firebase_empresa_id' => empresa_id, 'machineId' => machine_id }

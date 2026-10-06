@@ -130,7 +130,9 @@ class CabeceraFactura < ApplicationRecord
 
     cabecera_factura = build_cabecera_factura(params, data_secuencias)
     pagos = nil
-    unless factura_de_compra?(params[:tipo])
+    if factura_sin_metodo_pago?(params[:tipo])
+      cabecera_factura.forma_pago = nil
+    else
       begin
         pagos = MetodoDePago.normalizar(params[:metodos_de_pago], cabecera_factura.total_factura, cabecera_factura.forma_pago)
       rescue ArgumentError => error
@@ -188,6 +190,13 @@ class CabeceraFactura < ApplicationRecord
 
   private_class_method def self.factura_de_compra?(tipo)
     tipo.to_s.downcase == TiposFacturasDescripcion.compra.to_s.downcase
+  end
+
+  private_class_method def self.factura_sin_metodo_pago?(tipo)
+    tipo_downcase = tipo.to_s.downcase
+    [TiposFacturasDescripcion.compra, TiposFacturasDescripcion.cotizacion, TiposFacturasDescripcion.pre_venta].any? do |tipo_sin_pago|
+      tipo_downcase == tipo_sin_pago.to_s.downcase
+    end
   end
 
   private_class_method def self.requiere_validacion_credito?(params)
