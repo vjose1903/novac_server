@@ -8,9 +8,11 @@ SOURCE_DATA_DIR="${SOURCE_DATA_DIR:-tmp/db-agrodemi-data}"
 TARGET_IMAGE="${TARGET_IMAGE:-postgres:18.6}"
 TARGET_CONTAINER="${TARGET_CONTAINER:-novac-postgres18-staging}"
 TARGET_DATA_DIR="${TARGET_DATA_DIR:-tmp/db-agrodemi-data-pg18}"
-BACKUP_DIR="${BACKUP_DIR:-tmp/postgres-upgrade-backups/$(date +%Y%m%d%H%M%S)}"
+BACKUP_DIR="${BACKUP_DIR:-tmp/postgres-upgrade-backups/$(date +%Y%m%d%H%M%S)-$$}"
 POSTGRES_USER="${POSTGRES_USER:-novacSystem}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-N0v@cgu@rd}"
+REQUIRED_DATABASE="${REQUIRED_DATABASE:-}"
+RESTORE_CLIENT="${RESTORE_CLIENT:-unknown}"
 FORCE_TARGET_RESET="${FORCE_TARGET_RESET:-0}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -18,6 +20,28 @@ cd "$ROOT_DIR"
 
 SOURCE_DATA_PATH="$ROOT_DIR/$SOURCE_DATA_DIR"
 TARGET_DATA_PATH="$ROOT_DIR/$TARGET_DATA_DIR"
+RESTORE_MARKER="${RESTORE_MARKER:-${TARGET_DATA_PATH}.restore-complete}"
+ARCHIVED_TARGET=""
+
+cleanup() {
+  local exit_status=$?
+  docker rm -f "$SOURCE_CONTAINER" >/dev/null 2>&1 || true
+  docker rm -f "$TARGET_CONTAINER" >/dev/null 2>&1 || true
+
+  if [ "$exit_status" -ne 0 ] && [ -n "$ARCHIVED_TARGET" ] && [ -d "$ARCHIVED_TARGET" ]; then
+    if [ -e "$TARGET_DATA_PATH" ]; then
+      failed_target="${TARGET_DATA_PATH}.failed-$(date +%Y%m%d%H%M%S)-$$"
+      mv "$TARGET_DATA_PATH" "$failed_target"
+      echo "Destino incompleto conservado en: ${failed_target#$ROOT_DIR/}"
+    fi
+    mv "$ARCHIVED_TARGET" "$TARGET_DATA_PATH"
+    echo "Destino previo restaurado en: ${TARGET_DATA_DIR}"
+  elif [ "$exit_status" -ne 0 ]; then
+    rm -f "$RESTORE_MARKER"
+  fi
+  return "$exit_status"
+}
+trap cleanup EXIT
 
 if [ ! -d "$SOURCE_DATA_PATH" ]; then
   echo "No existe SOURCE_DATA_DIR: $SOURCE_DATA_DIR"
@@ -46,9 +70,9 @@ mkdir -p "$BACKUP_DIR"
 
 if [ -e "$TARGET_DATA_PATH" ] && [ "$(find "$TARGET_DATA_PATH" -mindepth 1 -maxdepth 1 2>/dev/null | head -n 1)" ]; then
   if [ "$FORCE_TARGET_RESET" = "1" ]; then
-    archived_target="${TARGET_DATA_PATH}.bak-$(date +%Y%m%d%H%M%S)"
-    mv "$TARGET_DATA_PATH" "$archived_target"
-    echo "Data destino existente archivada en: ${archived_target#$ROOT_DIR/}"
+    ARCHIVED_TARGET="${TARGET_DATA_PATH}.bak-$(date +%Y%m%d%H%M%S)-$$"
+    mv "$TARGET_DATA_PATH" "$ARCHIVED_TARGET"
+    echo "Data destino existente archivada en: ${ARCHIVED_TARGET#$ROOT_DIR/}"
   else
     echo "El destino ya tiene data: $TARGET_DATA_DIR"
     echo "Usa otro TARGET_DATA_DIR o FORCE_TARGET_RESET=1 para archivarlo y reconstruirlo."
@@ -88,12 +112,6 @@ docker run -d \
   -v "$ROOT_DIR/$TARGET_DATA_DIR:/var/lib/postgresql" \
   "$TARGET_IMAGE" >/dev/null
 
-cleanup() {
-  docker rm -f "$SOURCE_CONTAINER" >/dev/null 2>&1 || true
-  docker rm -f "$TARGET_CONTAINER" >/dev/null 2>&1 || true
-}
-trap cleanup EXIT
-
 until docker exec "$SOURCE_CONTAINER" pg_isready -U "$POSTGRES_USER" >/dev/null 2>&1; do
   sleep 1
 done
@@ -106,6 +124,14 @@ DATABASES_FILE="$BACKUP_DIR/databases.txt"
 docker exec "$SOURCE_CONTAINER" \
   psql -U "$POSTGRES_USER" -d postgres -Atc \
   "select datname from pg_database where datistemplate = false and datname <> 'postgres' order by datname" > "$DATABASES_FILE"
+
+if [ -n "$REQUIRED_DATABASE" ] && ! grep -Fxq "$REQUIRED_DATABASE" "$DATABASES_FILE"; then
+  echo "La base requerida '$REQUIRED_DATABASE' no existe en el origen PostgreSQL 13."
+  echo "Bases encontradas:"
+  cat "$DATABASES_FILE"
+  echo "No se completará la migración; el destino previo se restaurará si existía."
+  exit 1
+fi
 
 while IFS= read -r db <&3; do
   [ -z "$db" ] && continue
@@ -158,4 +184,18 @@ while IFS= read -r db <&3; do
 done 3< "$DATABASES_FILE"
 
 docker exec "$TARGET_CONTAINER" psql -U "$POSTGRES_USER" -d postgres -Atc "select version()"
+echo "Upgrade staging completado."
+marker_tmp="${RESTORE_MARKER}.tmp-$$"
+{
+  echo "status=complete"
+  echo "client=$RESTORE_CLIENT"
+  echo "source=$SOURCE_DATA_DIR"
+  echo "target=$TARGET_DATA_DIR"
+  echo "image=$TARGET_IMAGE"
+  while IFS= read -r db; do
+    [ -z "$db" ] || echo "database=$db"
+  done < "$DATABASES_FILE"
+} > "$marker_tmp"
+mv "$marker_tmp" "$RESTORE_MARKER"
+echo "Registro de restauración escrito: ${RESTORE_MARKER#$ROOT_DIR/}"
 echo "Upgrade staging completado."

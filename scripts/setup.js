@@ -159,5 +159,6 @@ function pathAdd(str_path) {
   return path_resolved;
 }
 
-makeSetup(clienteSelected);
-return 1;
+if (require.main === module) makeSetup(clienteSelected);
+
+module.exports = { setup, clientes };
