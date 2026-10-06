@@ -8,7 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const home = process.env.HOME || os.homedir();
-const projectDir = process.env.NOVAC_PROJECT_DIR || path.join(home, 'proyects/novac-server');
+const projectDir = process.env.NOVAC_PROJECT_DIR || process.cwd();
 const branch = process.env.NOVAC_BRANCH || 'ADM';
 const client = process.env.NOVAC_CLIENT || 'agrodemi';
 
