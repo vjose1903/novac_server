@@ -86,7 +86,7 @@ module Reportes
 
         total_ventas = ((bruto + itbis) - descuento) - total_devuelto
         if tipo_reporte == TipoReporteVentas.ventas_cliente
-          sub_titulo = "Cliente: #{Reportes::Shared::CommonHelpers.buscar_cliente({ cliente_id: params[:cliente_id] }.with_indifferent_access, 125, ['nombre'])['nombre']}"
+          sub_titulo = "Cliente: #{Reportes::Shared::CommonHelpers.buscar_cliente({ cliente_id: params[:cliente_id] }.with_indifferent_access, ['nombre'])['nombre']}"
         end
 
         ventas = sum_by_day(ventas) if tipo == 'agrupado'

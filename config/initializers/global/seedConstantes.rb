@@ -1,13 +1,13 @@
 G_usuarios =
 [
   {
-    'nombre': 'Panaderia Brendy',
+    'nombre': 'AGRODEMI',
     'usuario': 'adm01',
     'uid': 'adm01',
     'apellido': '01',
     'sexo': 'i',
     'telefono': '(809) 573-0060',
-    'email': 'panaderia_brendy@gmail.com',
+    'email': 'adm@gmail.com',
     'fecha_nacimiento': '2022-01-01',
     'role': 'V',
     'password': '1234567',
@@ -37,7 +37,7 @@ G_usuarios =
     'apellido': 'system',
     'sexo': 'i',
     'telefono': '(000) 000-0000',
-    'email': 'novacbrendy@gmail.com',
+    'email': 'novacagrodemi@gmail.com',
     'fecha_nacimiento': '1998-03-19',
     'role': 'A',
     'password': '1234567',
@@ -54,7 +54,7 @@ G_clientes = [
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',
-    'direccion': 'El higuerito, frente a la escuela, La Vega Rep. Dom.',
+    'direccion': 'Autopista duarte KM 0 el Higuero',
     'sexo': 'i',
     'limite_credito': 0,
     'maximo_credito': 0,
@@ -65,27 +65,27 @@ G_clientes = [
 G_documentos_de_identidad = [
 	{
     'origen_type': 'User',
-    'origen_entity': 'adm01',
+		'origen_entity': 'adm01',
     'descripcion': 'cedula',
-    'documento': '000-00000000-0',
+    'documento': '047-0099635-0',
     'principal': true,
   },
   {
-		'origen_type': 'User',
+    'origen_type': 'User',
 		'origen_entity': 'ADMIN',
     'descripcion': 'cedula',
-    'documento': '402-2287186-1',
+    'documento': '047-0099635-0',
     'principal': true,
   },
-	{
-		'origen_type': 'User',
+  {
+    'origen_type': 'User',
 		'origen_entity': 'novac',
     'descripcion': 'cedula',
     'documento': '000-0000000-1',
     'principal': true,
   },
   {
-		'origen_type': 'Cliente',
+    'origen_type': 'Cliente',
 		'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
@@ -95,19 +95,20 @@ G_documentos_de_identidad = [
 
 
 G_tipos_articulo = [
-  { 'descripcion': 'Dulces',              'tipo': 'venta_normal', 'codigo': 'dulces' },
   { 'descripcion': 'Materia prima',       'tipo': 'venta_normal', 'codigo': 'materia_prima' },
+  { 'descripcion': 'Veterinaria',         'tipo': 'venta_normal', 'codigo': 'veterinaria' },
   { 'descripcion': 'Producto terminado',  'tipo': 'venta_normal', 'codigo': 'producto_terminado' },
+  { 'descripcion': 'Nucleo',              'tipo': 'venta_normal', 'codigo': 'nucleo' },
   { 'descripcion': 'Otros',               'tipo': 'venta_normal', 'codigo': 'otros' },
 ]
 
 
-ACCIONES_COMUNES = [
-	{nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create'},
-	{nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'},
-	{nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'},
-	{nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'},
-]
+CREATE_ACTION   = { nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create' }
+READ_ALL_ACTION = { nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'}
+READ_ONE_ACTION = { nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'}
+UPDATE_ACTION   = { nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'}
+
+ACCIONES_COMUNES = [ CREATE_ACTION, READ_ALL_ACTION, READ_ONE_ACTION, UPDATE_ACTION ]
 
 ACCION_DESTROY = [{ nombre:'eliminar', mostrar_front: true, descripcion: 'destroy', metodo: 'destroy'}]
 
@@ -149,21 +150,25 @@ G_PERMISOS = [
   { nombre: 'roles',                         mostrar_front: true,     descripcion: 'role',                              controlador: 'Roles',                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getRolesFiltrados'}]},
   { nombre: 'divisa',                        mostrar_front: true,     descripcion: 'divisa',                            controlador: 'Divisa',                         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
   { nombre: 'tasa de cambio',                mostrar_front: true,     descripcion: 'tasa_cambio',                       controlador: 'TasaCambio',                     acciones: [ {nombre:'ver todos', mostrar_front: true, descripcion: 'read_all', metodo: 'index'}, {nombre:'buscar uno', mostrar_front: true, descripcion: 'read_one', metodo: 'show'}, {nombre:'editar', mostrar_front: true, descripcion: 'update', metodo: 'update'}, {nombre:'obtener historicos de tasas de cambio', mostrar_front: true, descripcion: 'get_history_changes', metodo: 'getHistoryChanges'} ]},
+  { nombre: 'Recepcion Ecf',                 mostrar_front: true,     descripcion: 'ecf_reception',                     controlador: 'EcfReception',                   acciones: [READ_ALL_ACTION, READ_ONE_ACTION, { nombre: 'Responder recibo de factura', mostrar_front: true, descripcion: 'response_receive', metodo: 'approveDenyEcf'}]},
+  { nombre: 'Aprobaciónes comerciales',      mostrar_front: true,     descripcion: 'commertial_approval_reception',     controlador: 'CommertialApprovalReception',    acciones: [READ_ALL_ACTION, READ_ONE_ACTION]}
 ]
 
 # ejemplo de permisos_acciones
 # {permiso_descripcion:'algo', acciones:['descripcion', 'descripcion2']}
 G_ROLES_CUSTOM = [
-	{  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
+  {  nombre: 'Chofer', key: 'chofer', descripcion: 'Persona encargada de realizar los viajes de pedidos a los clientes.', ruta_defecto:'/', estado: true, permisos_acciones: []},
+  {  nombre: "Vendedor", key:'vendedor', descripcion: "Persona encargada de captar clientes para la empresa.", ruta_defecto:"/", estado: true, permisos_acciones: []}
 ]
 
 G_CONFIG_ARTICULOS = [
-		{ porciento_ganancia: 10}
+	{ porciento_ganancia: 15}
 ]
 
 G_DIVISA_DEFAULT = [
-  { nombre: 'Peso Dominicano',      simbolo: 'RD$', is_principal: true,  estado: true, current_tasa: 1,  predeterminado: true, imagenes: [{ file_name: 'peso_dominicano', base_64: G_IMG_PESO }] },
-  { nombre: 'Dolar Estadounidense', simbolo: 'US$', is_principal: false, estado: true, current_tasa: 56, predeterminado: true, imagenes: [{ file_name: 'dolar_estadounidense', base_64: G_IMG_DOLAR }] },
+  { nombre: 'Peso Dominicano',      simbolo: 'RD$', code: 'DOP', is_principal: true,  estado: true, current_tasa: 1,  predeterminado: true, imagenes: [{ file_name: 'peso_dominicano', base_64: G_IMG_PESO }] },
+  { nombre: 'Dolar Estadounidense', simbolo: 'US$', code: 'USD', is_principal: false, estado: true, current_tasa: 56, predeterminado: true, imagenes: [{ file_name: 'dolar_estadounidense', base_64: G_IMG_DOLAR }] },
 ]
 
-G_CONFIG_CUADRES = { target_fondo: 0, auto_apply_difference: false }
+
+G_CONFIG_CUADRES = { target_fondo: 12000, auto_apply_difference: true }

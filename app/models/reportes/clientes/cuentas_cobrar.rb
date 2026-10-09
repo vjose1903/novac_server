@@ -19,12 +19,6 @@ module Reportes
         fecha_desde = Date.parse(desde).beginning_of_day
         fecha_hasta = Date.parse(hasta).end_of_day
 
-        longitud = if has_permiso_pre_venta
-          tipo == Report::CxC.por_cliente ? 49 : (tipo == Report::CxC.detallado ? 30 : 40)
-        else
-          tipo == Report::CxC.por_cliente ? 60 : (tipo == Report::CxC.detallado ? 38 : 47)
-        end
-
         query = {
           'cabecera_facturas.tipo' => has_permiso_pre_venta ? %w[venta pre_venta] : ['venta'],
           'cabecera_facturas.estado' => true,
@@ -32,9 +26,7 @@ module Reportes
         }
         query['cabecera_facturas.cliente_id'] = cliente_id if cliente_id.present?
 
-        cliente_nombre = "CASE WHEN LENGTH(clientes.nombre || ' ' || clientes.apellido) > #{longitud}
-                            THEN CONCAT(SUBSTRING(clientes.nombre || ' ' || clientes.apellido, 1, #{longitud}), '...')
-                        ELSE clientes.nombre || ' ' || clientes.apellido END AS cliente_nombre"
+        cliente_nombre = "clientes.nombre || ' ' || clientes.apellido AS cliente_nombre"
 
         base_select = "#{cliente_nombre}, clientes.id"
         bucket_selects = antiguedad_bucket_selects(antiguedad_columns, tipo)
@@ -123,7 +115,7 @@ module Reportes
 
         cuentas.sort_by! { |item| -item['total_pendiente'].to_f } if tipo == Report::CxC.agrupado
 
-        sub_titulo = cliente_id.present? ? "Cliente: #{Reportes::Shared::CommonHelpers.buscar_cliente({ cliente_id: cliente_id }.with_indifferent_access, 125, ['nombre'])['nombre']}, " : ''
+        sub_titulo = cliente_id.present? ? "Cliente: #{Reportes::Shared::CommonHelpers.buscar_cliente({ cliente_id: cliente_id }.with_indifferent_access, ['nombre'])['nombre']}, " : ''
         sub_titulo += "Desde: #{formatearFecha(params['desde'], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params['hasta'], TipoFecha.sin_hora)}"
 
         {

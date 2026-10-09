@@ -16,7 +16,7 @@ service cron start
 
 bundle exec whenever --update-crontab
 
-export PORT="${PORT:-3001}"
+export PORT="${PORT:-3000}"
 exec bundle exec puma -C config/puma.rb
 
 
