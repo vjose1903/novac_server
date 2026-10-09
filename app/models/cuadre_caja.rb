@@ -193,14 +193,44 @@ class CuadreCaja < ApplicationRecord
   def self.update_detailed_closing(cuadre_caja, params, event_type='updated')
     res = Response.new
     current_user = get_current_user
+    attrs = normalized_params(params)
 
-    if cuadre_caja.approved?
+    if cuadre_caja.persisted? && cuadre_caja.status != 'reopened'
+      return update_notes(cuadre_caja, attrs, current_user) if notes_only_params?(attrs)
+
       res.set_status(HTTP_STATUS_CODE[:conflict])
-      res.add_msg('No se puede editar un cuadre aprobado')
+      res.add_msg('Solo se pueden editar las observaciones. Reabra el cuadre para modificar los demás datos.')
       return res
     end
 
-    save_detailed_closing(cuadre_caja, normalized_params(params), current_user, res, event_type)
+    save_detailed_closing(cuadre_caja, attrs, current_user, res, event_type)
+  end
+
+  def self.update_notes(cuadre_caja, params, current_user=get_current_user)
+    res = Response.new
+    attrs = normalized_params(params)
+    unless notes_only_params?(attrs)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.add_msg('Solo se pueden enviar las observaciones en este campo.')
+      return res
+    end
+
+    notes = attrs.key?(:notes) ? attrs[:notes] : attrs[:observaciones]
+    transaction do
+      cuadre_caja.lock!
+      from_status = cuadre_caja.status
+      cuadre_caja.notes = notes
+      cuadre_caja.save!
+      cuadre_caja.eventos.create!(user: current_user, event_type: 'notes_updated', from_status: from_status, to_status: cuadre_caja.status)
+    end
+
+    res.set_data(cuadre_caja.reload, { all: true })
+    res.add_msg('Observaciones guardadas correctamente')
+    res
+  rescue ActiveRecord::RecordInvalid => e
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    res.add_msg(e.record.errors.full_messages.join(', '))
+    res
   end
 
   def transition_to!(target_status, user, reason=nil)
@@ -528,6 +558,10 @@ class CuadreCaja < ApplicationRecord
     attrs[:cuadre_caja] || attrs[:cash_closing] || attrs
   end
 
+  def self.notes_only_params?(attrs)
+    (attrs.keys - %i[notes observaciones]).empty? && (attrs.key?(:notes) || attrs.key?(:observaciones))
+  end
+
   def self.closing_status(cuadre_caja, attrs)
     return attrs[:status] if attrs[:status].present?
     return cuadre_caja.status if cuadre_caja.persisted? && cuadre_caja.status.present?
@@ -688,6 +722,7 @@ class CuadreCaja < ApplicationRecord
   def approved_closing_cannot_change
     return unless status_was == 'approved'
     return if status == 'reopened'
+    return if status == status_was && (changes.keys - ['notes']).empty?
     errors.add(:base, 'No se puede editar un cuadre aprobado')
   end
 

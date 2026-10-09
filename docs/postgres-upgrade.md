@@ -1,56 +1,32 @@
 # Upgrade PostgreSQL Docker
 
-Este proyecto no debe subir PostgreSQL reemplazando directamente el volumen viejo.
+El cambio de versión usa dump/restore. No se debe montar directamente el volumen PostgreSQL 13 con PostgreSQL 18.
 
-## Flujo seguro
+## Producción
 
-1. Ejecutar backup y restore de prueba:
-
-   ```bash
-   docker compose stop agrodemi-dev db-dev
-   ./scripts/postgres-upgrade-staging.sh
-   ```
-
-2. Validar que el script termina con:
-
-   ```text
-   Upgrade staging completado.
-   ```
-
-3. Levantar la app contra el volumen restaurado:
-
-   ```bash
-   docker compose up -d db-dev agrodemi-dev
-   ```
-
-4. Validar salud y flujo principal:
-
-   ```bash
-   curl http://localhost:9090/up
-   ```
-
-## Produccion
-
-Ejecutar el deploy seguro completo:
+Desde la carpeta del proyecto, seleccionar la base que se quiere migrar:
 
 ```bash
-./scripts/postgres-prod-upgrade.sh
+./scripts/postgres-prod-upgrade.sh dev
+./scripts/postgres-prod-upgrade.sh prod
 ```
 
-Para otro cliente, usar el path correspondiente:
+`dev` exige la base `<ALMACEN>_development` y levanta los servicios de desarrollo; `prod` exige `<ALMACEN>_production` y levanta los servicios de producción. El script lee el cliente de `config_setup/actual_cliente.txt` y su `DB_PATH` y `ALMACEN` de `scripts/setup.js`. Con esos valores determina el volumen PostgreSQL 13 (`tmp/<DB_PATH>`) y el destino PostgreSQL 18 (`tmp/<DB_PATH>-pg18`).
+
+El flujo registra las restauraciones completas en `<destino>.restore-complete`. Si el registro corresponde al cliente, origen, destino e imagen actuales, omite el dump/restore y continúa con las migraciones y las comprobaciones. Exige que la base del modo elegido exista en el destino. Si la restauración falla, conserva el destino incompleto y devuelve a su ubicación el destino previo archivado.
+
+Para forzar una nueva copia desde PostgreSQL 13, por ejemplo si cambió el origen:
 
 ```bash
-SOURCE_DATA_DIR=tmp/db-brendy-data TARGET_DATA_DIR=tmp/db-brendy-data-pg18 ./scripts/postgres-prod-upgrade.sh
+FORCE_RESTORE=1 ./scripts/postgres-prod-upgrade.sh dev
 ```
 
-## Rollback
+Conservar el volumen PostgreSQL 13 y los directorios `.bak-*` hasta verificar los flujos principales del cliente. El script no elimina el volumen de origen.
 
-Si algo falla antes de borrar el volumen viejo, volver temporalmente a PostgreSQL 13.7 cambiando el compose al path anterior:
+## Restauración de staging
 
-```yaml
-image: postgres:13.7
-volumes:
-  - ./tmp/db-agrodemi-data:/var/lib/postgresql/data
+Para ejecutar solamente el dump/restore sin actualizar los servicios de producción, el script standalone usa por defecto las rutas de Agrodemi. Para otro cliente hay que indicar sus carpetas origen y destino:
+
+```bash
+SOURCE_DATA_DIR=tmp/db-brendy-data TARGET_DATA_DIR=tmp/db-brendy-data-pg18 ./scripts/postgres-upgrade-staging.sh
 ```
-
-No borrar `tmp/db-*-data` hasta completar varios smokes exitosos en PostgreSQL 18.6.

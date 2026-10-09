@@ -1,5 +1,5 @@
 class CuadreCajasController < ApplicationController
-  before_action :set_cuadre, only: [:show, :update, :destroy, :submit, :approve, :reject, :reopen]
+  before_action :set_cuadre, only: [:show, :update, :destroy, :submit, :approve, :reject, :reopen, :update_notes]
 
   # GET /cuadre_cajas
   def index
@@ -61,6 +61,12 @@ class CuadreCajasController < ApplicationController
 
   def reopen
     transition('reopened')
+  end
+
+  def update_notes
+    notes = params.key?(:notes) ? params[:notes] : params[:observaciones]
+    resultado = CuadreCaja.update_notes(@cuadre_caja, { notes: notes })
+    resultado.send_response self
   end
 
   def checkTodayCuadre

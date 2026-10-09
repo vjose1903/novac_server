@@ -49,7 +49,7 @@ module Reportes
           recibos.push(att.with_indifferent_access)
 		end
 
-        recibos = sum_by_day(recibos) if tipo == Report::ReciboIngreso.agrupado
+        recibos = sum_by_day_recibos(recibos) if tipo == Report::ReciboIngreso.agrupado
         cliente = Cliente.find_by_id(cliente_id) if buscar_por == Report::ReciboBuscarPor.por_cliente
 
         sub_titulo = "Desde: #{formatearFecha(params['desde'], TipoFecha.sin_hora)}, Hasta: #{formatearFecha(params['hasta'], TipoFecha.sin_hora)}"
@@ -61,10 +61,6 @@ module Reportes
       alias call get_recibos
 
       def sum_by_day_recibos(records)
-        sum_by_day(records)
-      end
-
-      def sum_by_day(records)
         records.group_by { |record| record[:fecha_equivalente].to_date }.map do |date, group|
           {
             fecha: formatearFecha(date.to_s, TipoFecha.sin_hora),

@@ -1,4 +1,4 @@
-var { execSync } = require('child_process');
+var { execFileSync, execSync } = require('child_process');
 var fs = require('fs');
 var chalk = require('chalk');
 var path = require('path');
@@ -83,15 +83,18 @@ function dockerCommand(command) {
 	const useDgii = fs.existsSync(pathAdd('../config_setup/actual_dgii.txt'))
 		&& fs.readFileSync(pathAdd('../config_setup/actual_dgii.txt'), 'utf8').trim() === 'true';
 	const includeDgiiProfile = useDgii || ['down', 'stop', 'restart'].includes(command);
-	const composeProfiles = includeDgiiProfile ? 'COMPOSE_PROFILES=dgii ' : '';
+	const options = {
+		stdio: 'inherit',
+		cwd: pathAdd('..'),
+		env: includeDgiiProfile ? { ...process.env, COMPOSE_PROFILES: 'dgii' } : process.env
+	};
+	const composeArgs = ['compose'];
 
-	execSync(`cd ..`, { stdio: 'inherit' });
-  if (PRODUCTION === 'yes') {
-		execSync(`${composeProfiles}docker compose -f docker-compose.prod.yml ${command} ${isBackground}`, { stdio: 'inherit' });
-  } else {
-		execSync(`${composeProfiles}docker compose ${command} ${isBackground}`, { stdio: 'inherit' });
-  }
-	execSync(`cd scripts`, { stdio: 'inherit' });
+	if (PRODUCTION === 'yes') composeArgs.push('-f', 'docker-compose.prod.yml');
+	composeArgs.push(command);
+	if (isBackground) composeArgs.push(isBackground);
+
+	execFileSync('docker', composeArgs, options);
 }
 
 function execCommandInContainer(commandKey) {

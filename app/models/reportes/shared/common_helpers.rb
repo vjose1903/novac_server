@@ -30,7 +30,7 @@ module Reportes
           titulo_reporte: arg[:titulo],
           tipo_reporte: arg[:tipo_reporte],
           fecha: formatearFecha(DateTime.now.to_s, TipoFecha.con_hora),
-          realizado_por: truncate_label(temp_emp, 15),
+          realizado_por: temp_emp,
           mostrar_sub_titulo: sub_titulo[:bool],
           sub_titulo: sub_titulo[:sub_t],
           tipo_tabla: arg[:tipo_tabla],
@@ -44,21 +44,21 @@ module Reportes
         response
       end
 
-      def buscar_suplidor(supli, max_lengt = 0)
+      def buscar_suplidor(supli)
         {
-          'nombre' => truncate_label(supli.nombre_completo, max_lengt),
+          'nombre' => supli.nombre_completo,
           'rnc' => principal_documento_or_default(supli, DEFAULT_RNC)
         }
       end
 
-      def buscar_cliente(factura, max_lengt, retornar)
+      def buscar_cliente(factura, retornar)
         cliente = {}
         include_nombre = retornar.my_includes_str('nombre')
         include_rnc = retornar.my_includes_str('rnc')
 
         if !factura[:cliente_id].nil?
           cli = cliente_from_factura(factura)
-          cliente['nombre'] = truncate_label(cli.nombre_completo, max_lengt) if include_nombre
+          cliente['nombre'] = cli.nombre_completo if include_nombre
           cliente['rnc'] = principal_documento_or_default(cli, DEFAULT_RNC) if include_rnc
         elsif !factura['NoCliente_nombre'].nil?
           cliente['nombre'] = factura['NoCliente_nombre'] if include_nombre
@@ -102,12 +102,6 @@ module Reportes
 
         raw_value = params.key?(:is_external) ? params[:is_external] : params['is_external']
         ActiveRecord::Type::Boolean.new.cast(raw_value)
-      end
-
-      def truncate_label(value, max_lengt)
-        return value if max_lengt.to_i <= 0 || value.length <= max_lengt
-
-        "#{value[0, (max_lengt + 1)]}..."
       end
 
       def cliente_from_factura(factura)

@@ -17,13 +17,14 @@ module DGII_MANAGER
     puts "DGII numero_comprobante enviado >>> ".yellow + "#{document_parsed[:numero_comprobante]}"
 
     response = send_document_to_dgii(document_parsed)
-    log_dgii_response(response)
 
-    data_response = response.with_indifferent_access[:data].with_indifferent_access
+    response = response.with_indifferent_access
+    data_response = (response[:data] || {}).with_indifferent_access
+    data_response[:secuenciaUtilizada] = secuencia_utilizada?(response, data_response)
 
     estado = data_response[:estado].present? ? data_response[:estado] : nil
 
-    document.is_aceptada          = estado.nil? ? response.with_indifferent_access[:status] == 200 ? 'Aceptado' : 'Rechazado' : estado
+    document.is_aceptada          = estado.nil? ? response[:status] == 200 ? 'Aceptado' : 'Rechazado' : estado
     document.dgii_message         = response[:message]
     not_valid                     = document.is_aceptada.downcase == 'rechazado' || document.is_aceptada.nil?
 
@@ -35,8 +36,11 @@ module DGII_MANAGER
 
     res = build_dgii_response(data_response, response[:message], not_valid)
 
-    # TODO: SI GET_DATA DEL RES TIENE LA PROPIEDAD 'secuenciaUtilizada' independientemente del estado tengo que sumar la secuencia
     return res
+  end
+
+  def self.secuencia_utilizada?(response, data_response)
+    data_response[:secuenciaUtilizada] == true
   end
 
   def self.send_document_to_dgii(document_parsed)
@@ -45,16 +49,6 @@ module DGII_MANAGER
   rescue StandardError => e
     puts "ERROR EN EL MICROSERVICIO DE DGII".red  + " #{e.to_json}"
     e.with_indifferent_access
-  end
-
-  def self.log_dgii_response(response)
-    puts " "
-    puts " "
-    puts " "
-    puts " response >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ".red + " #{response.to_json}"
-    puts " "
-    puts " "
-    puts " "
   end
 
   def self.assign_dgii_response_data(document, data_response)

@@ -130,7 +130,10 @@ class CabeceraFactura < ApplicationRecord
 
     cabecera_factura = build_cabecera_factura(params, data_secuencias)
     pagos = nil
-    unless factura_de_compra?(params[:tipo])
+    if factura_sin_metodo_pago?(params[:tipo], @tipo_de_documento&.descripcion, @tipo_de_factura&.descripcion)
+      cabecera_factura.forma_pago = nil
+      pagos = []
+    else
       begin
         pagos = MetodoDePago.normalizar(params[:metodos_de_pago], cabecera_factura.total_factura, cabecera_factura.forma_pago)
       rescue ArgumentError => error
@@ -145,7 +148,8 @@ class CabeceraFactura < ApplicationRecord
     return set_error_response(res, cabecera_factura.errors.to_a) unless cabecera_factura.save!
     MetodoDePago.reemplazar!(cabecera_factura, pagos) if pagos
 
-    procesar_dgii(cabecera_factura)
+    res_dgii = procesar_dgii(cabecera_factura, data_secuencias)
+    return set_error_response(res, res_dgii.get_msgs.to_a) unless res_dgii.status_valid
 
     res_valid = finalizar_cabecera_factura(cabecera_factura, data_secuencias)
 
@@ -185,8 +189,13 @@ class CabeceraFactura < ApplicationRecord
     set_error_response(res, 'La fecha equivalente enviada no es valida.')
   end
 
-  private_class_method def self.factura_de_compra?(tipo)
-    tipo.to_s.downcase == TiposFacturasDescripcion.compra.to_s.downcase
+  private_class_method def self.factura_sin_metodo_pago?(*tipos)
+    tipos_sin_pago = [TiposFacturasDescripcion.compra, TiposFacturasDescripcion.cotizacion, TiposFacturasDescripcion.pre_venta]
+      .map { |tipo| tipo.to_s.downcase }
+
+    tipos.compact.any? do |tipo|
+      tipos_sin_pago.include?(tipo.to_s.downcase)
+    end
   end
 
   private_class_method def self.requiere_validacion_credito?(params)
@@ -259,15 +268,54 @@ class CabeceraFactura < ApplicationRecord
     end
   end
 
-  private_class_method def self.procesar_dgii(cabecera_factura)
+  private_class_method def self.procesar_dgii(cabecera_factura, data_secuencias = nil)
     unless enviar_a_dgii?(cabecera_factura)
       @increment_secuencia_comprobante = true
-      return
+      return Response.new
     end
 
-    @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
-    data_response_dgii = @res_valid_dgii.get_data
+    max_reintentos = 5
+    reintentos = 0
+
+    loop do
+      @res_valid_dgii = DGII_MANAGER.send(cabecera_factura)
+      data_response_dgii = (@res_valid_dgii.get_data || {}).with_indifferent_access
+      break unless !@res_valid_dgii.status_valid && data_response_dgii[:secuenciaUtilizada] == true && data_secuencias && reintentos < max_reintentos
+
+      reintentos += 1
+      unless reasignar_secuencia_dgii(cabecera_factura, data_secuencias)
+        @res_valid_dgii = Response.new(nil, HTTP_STATUS_CODE[:conflict], nil, ['No quedan paquetes de comprobantes disponibles para continuar con el envío.'])
+        break
+      end
+    end
+
+    data_response_dgii = (@res_valid_dgii.get_data || {}).with_indifferent_access
     @increment_secuencia_comprobante = data_response_dgii[:secuenciaUtilizada] == true
+    @res_valid_dgii
+  end
+
+  private_class_method def self.reasignar_secuencia_dgii(cabecera_factura, data_secuencias)
+    paquete = data_secuencias[:actual_paquete_comprobante]
+    return false unless paquete && paquete[:id]
+    return false unless SecuenciaComprobante.puede_avanzar_secuencia?(paquete)
+
+    res = SecuenciaComprobante.aumentar_secuencia_comprobante(paquete[:id])
+    return false unless res.status_valid
+
+    # La reasignación puede cerrar el paquete actual y activar el siguiente.
+    # Volver a consultar el paquete activo evita reutilizar el anterior y
+    # conserva el marcador `is_paquete` usado al finalizar el documento.
+    res_paquete = SecuenciaComprobante.get_paquete_rnc_by_estado(paquete[:tipo_factura_id], true)
+    return false unless res_paquete.status_valid
+
+    paquete = res_paquete.get_data
+    data_secuencias[:actual_paquete_comprobante] = paquete
+    comprobante = cabecera_factura.numero_comprobante.to_s
+    cabecera_factura.numero_comprobante = comprobante.sub(/\d{10}\z/, format('%010d', paquete.secuencia))
+    return false unless cabecera_factura.save!
+
+    data_secuencias[:numero_comprobante] = cabecera_factura.numero_comprobante
+    true
   end
 
   private_class_method def self.enviar_a_dgii?(cabecera_factura)
@@ -467,7 +515,7 @@ class CabeceraFactura < ApplicationRecord
   private_class_method def self.debe_aumentar_paquete_comprobante?(data_secuencias)
     @increment_secuencia_comprobante &&
       !data_secuencias[:actual_paquete_comprobante].nil? &&
-      data_secuencias[:actual_paquete_comprobante][:is_paquete]
+      data_secuencias[:actual_paquete_comprobante][:id].present?
   end
 
   private_class_method def self.log_increment_secuencia_comprobante
@@ -765,7 +813,10 @@ class CabeceraFactura < ApplicationRecord
           factura_original.balance         = factura_nueva['balance']
           factura_original.devuelta        = factura_nueva['devuelta']
           pagos = nil
-          unless factura_de_compra?(factura_nueva[:tipo] || factura_original.tipo)
+          if factura_sin_metodo_pago?(factura_nueva[:tipo], factura_original.tipo, factura_original.tipo_factura&.descripcion)
+            factura_original.forma_pago = nil
+            pagos = []
+          else
             begin
               pagos = MetodoDePago.normalizar(factura_nueva[:metodos_de_pago], factura_nueva['total_factura'], factura_nueva['forma_pago'])
             rescue ArgumentError => error
@@ -1071,7 +1122,8 @@ class CabeceraFactura < ApplicationRecord
     return set_error_response(res, current_factura.errors.to_a) unless current_factura.save!
 
     # Procesar DGII
-    procesar_dgii(nueva_factura)
+    res_dgii = procesar_dgii(nueva_factura, data_secuencias)
+    return set_error_response(res, res_dgii.get_msgs.to_a) unless res_dgii.status_valid
 
     # Crear referencia entre documentos
     res_reference = DocumentReference.create_reference(current_factura, nueva_factura)

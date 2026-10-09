@@ -19,7 +19,18 @@ class MetodoDePago < ApplicationRecord
       { forma_pago: forma_pago, monto: monto }
     end
     raise ArgumentError, 'Debe indicar al menos una forma de pago.' if lineas.empty?
-    raise ArgumentError, 'La suma de las formas de pago debe coincidir con el total del documento.' unless lineas.sum { |pago| pago[:monto] } == BigDecimal(total.to_s).round(2)
+    total_documento = BigDecimal(total.to_s).round(2)
+    total_pagado = lineas.sum { |pago| pago[:monto] }
+    total_tarjeta = lineas.select { |pago| pago[:forma_pago] == 'Tarjeta' }.sum { |pago| pago[:monto] }
+    tiene_otro_metodo = lineas.any? { |pago| pago[:forma_pago] != 'Tarjeta' }
+
+    raise ArgumentError, 'La suma de las formas de pago no puede ser menor que el total del documento.' if total_pagado < total_documento
+    if total_tarjeta > total_documento
+      raise ArgumentError, 'El monto pagado con tarjeta no puede superar el total del documento.'
+    end
+    if total_pagado > total_documento && !tiene_otro_metodo
+      raise ArgumentError, 'La devuelta debe corresponder a un método de pago distinto a tarjeta.'
+    end
 
     lineas
   end

@@ -147,6 +147,13 @@ class SecuenciaComprobante < ApplicationRecord
     res
   end
 
+  def self.puede_avanzar_secuencia?(paquete)
+    return false unless paquete
+    return true if paquete[:secuencia].to_i < paquete[:hasta].to_i
+
+    where(estado: false, usado: false, tipo_factura_id: paquete[:tipo_factura_id]).exists?
+  end
+
   private_class_method def self.cerrar_paquete_actual_y_activar_siguiente(paquete, res)
     res_nuevo = get_paquetes_por_activar(paquete["tipo_factura_id"])
 
