@@ -7,7 +7,7 @@
     "clean": "rimraf dist",
     "build:ts": "tsc && tsc-alias",
     "test-function": "node --trace-deprecation -r dotenv/config -r tsconfig-paths/register -r ts-node/register src/utils/test.ts",
-    "copy:assets": "node -e \"const fs=require('fs');const path=require('path');fs.mkdirSync('dist/utils',{recursive:true});for(const file of fs.readdirSync('src/utils')){if(/\\.(p12|xml|json)$/.test(file)){fs.copyFileSync(path.join('src/utils',file),path.join('dist/utils',file));}}\"",
+    "copy:assets": "node -e \"const fs=require('fs');const path=require('path');fs.mkdirSync('dist/utils',{recursive:true});for(const file of fs.readdirSync('src/utils')){if(/\\.xml$/.test(file)){fs.copyFileSync(path.join('src/utils',file),path.join('dist/utils',file));}}\"",
     "build": "npm run clean && npm run build:ts && npm run copy:assets",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -37,7 +37,8 @@ services:
     volumes:
       - .:/usr/src/novac_server
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
-    command: ["./wait-for-it.sh", "db-dev:5432", "--", "sh", "./run_server.sh"]
+    command: >
+      sh -c "./wait-for-it.sh db-dev:5432 -- sh -c 'until pg_isready -h db-dev -p 5432; do sleep 1; done; exec sh ./run_server.sh'"
 
   dgii-microservice-dev:
     profiles:

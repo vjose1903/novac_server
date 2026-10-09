@@ -1,0 +1,8 @@
+.git
+node_modules/
+dist/
+logs/
+.env
+.env.*
+src/utils/google_api_credentials.json
+src/utils/firma-digital.p12
