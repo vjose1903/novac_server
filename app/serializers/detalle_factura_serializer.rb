@@ -146,16 +146,21 @@ class DetalleFacturaSerializer < ActiveModel::Serializer
     if articulo.calcular_saco || (es_producto_terminado && articulo["vendido_en"] == "Saco")
       costo_libra = obj.dig("Libra", "costo")
       precio_libra = obj.dig("Libra", "precio")
-      usar_precio_libra = es_producto_terminado && costo_libra && precio_libra
-      costo_quintal = usar_precio_libra ? costo_libra * 100 : (obj.dig("Quintal", "costo") || (costo_libra && costo_libra * 100))
-      precio_quintal = usar_precio_libra ? precio_libra * 100 : (obj.dig("Quintal", "precio") || (precio_libra && precio_libra * 100))
+      medida_principal = obj.dig(articulo.medida)
+      base_saco = if es_producto_terminado
+        medida_principal
+      else
+        costo_quintal = obj.dig("Quintal", "costo") || (costo_libra && costo_libra * 100)
+        precio_quintal = obj.dig("Quintal", "precio") || (precio_libra && precio_libra * 100)
+        { "costo" => costo_quintal, "precio" => precio_quintal }
+      end
 
-      return obj unless costo_quintal && precio_quintal
+      return obj unless base_saco&.dig("costo") && base_saco&.dig("precio")
 
       [100, 50, 25].each do | peso |
         obj["Saco_#{peso}"]              = {}
-        obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * costo_quintal
-        obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * precio_quintal
+        obj["Saco_#{peso}"]['costo']     = (peso / 100.to_f) * base_saco["costo"]
+        obj["Saco_#{peso}"]['precio']    = (peso / 100.to_f) * base_saco["precio"]
       end
     end
 

@@ -64,15 +64,16 @@ module ArticuloMedidas
       return costos unless articulo.calcular_saco || (es_producto_terminado && articulo["vendido_en"] == "Saco")
 
       costo_libra = costos["Libra"]
-      base_saco = if es_producto_terminado && costo_libra && costo_libra["costo"] && costo_libra["precio"]
-        { "costo" => costo_libra["costo"] * 100, "precio" => costo_libra["precio"] * 100 }
+      costo_quintal = costos["Quintal"]
+      base_saco = if es_producto_terminado
+        costos[articulo.medida]
       else
-        costos["Quintal"] || (costo_libra && costo_libra["costo"] && costo_libra["precio"] && {
+        costo_quintal || (costo_libra && costo_libra["costo"] && costo_libra["precio"] && {
           "costo" => costo_libra["costo"] * 100,
           "precio" => costo_libra["precio"] * 100
         })
       end
-      return costos unless base_saco
+      return costos unless base_saco && base_saco["costo"] && base_saco["precio"]
 
       SACOS_CALCULADOS.each do |peso|
         costos["Saco_#{peso}"] = {
