@@ -60,12 +60,24 @@ module ArticuloMedidas
         }
       end
 
-      return costos unless articulo.calcular_saco && costos["Quintal"].present?
+      es_producto_terminado = articulo.tipo_articulo&.codigo == "producto_terminado"
+      return costos unless articulo.calcular_saco || (es_producto_terminado && articulo["vendido_en"] == "Saco")
+
+      costo_libra = costos["Libra"]
+      base_saco = if es_producto_terminado && costo_libra && costo_libra["costo"] && costo_libra["precio"]
+        { "costo" => costo_libra["costo"] * 100, "precio" => costo_libra["precio"] * 100 }
+      else
+        costos["Quintal"] || (costo_libra && costo_libra["costo"] && costo_libra["precio"] && {
+          "costo" => costo_libra["costo"] * 100,
+          "precio" => costo_libra["precio"] * 100
+        })
+      end
+      return costos unless base_saco
 
       SACOS_CALCULADOS.each do |peso|
         costos["Saco_#{peso}"] = {
-          "costo" => (peso / 100.to_f) * costos["Quintal"]["costo"],
-          "precio" => (peso / 100.to_f) * costos["Quintal"]["precio"]
+          "costo" => (peso / 100.to_f) * base_saco["costo"],
+          "precio" => (peso / 100.to_f) * base_saco["precio"]
         }.with_indifferent_access
       end
 
@@ -80,7 +92,8 @@ module ArticuloMedidas
     end
 
     def sacos_calculados(articulo, sacos)
-      return {} unless sacos && articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
+      es_producto_terminado = articulo.tipo_articulo&.codigo == "producto_terminado"
+      return {} unless sacos && articulo["vendido_en"] == "Saco" && (articulo["calcular_saco"] || es_producto_terminado)
 
       SACOS_CALCULADOS.each_with_object({}) { |peso, contenidos| contenidos["Saco_#{peso}"] = peso }
     end
