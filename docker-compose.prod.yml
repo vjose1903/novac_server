@@ -43,8 +43,9 @@ services:
     volumes:
       - ./public/img:/usr/src/novac_server/public/img
       - ./secrets/firebase-service-account.json:/run/secrets/firebase-service-account.json:ro
+      - ./config/initializers/google/google_api_credentials.json:/usr/src/novac_server/config/initializers/google/google_api_credentials.json:ro
     command: >
-      sh -c "./wait-for-it.sh db-prod:5432 -- sh ./run_server.sh"
+      sh -c "./wait-for-it.sh db-prod:5432 -- sh -c 'until pg_isready -h db-prod -p 5432; do sleep 1; done; exec sh ./run_server.sh'"
 
   dgii-microservice-prod:
     profiles:
@@ -59,6 +60,9 @@ services:
       ENV: "PROD"
     expose:
       - "9091"
+    volumes:
+      - ./dgii_signature_microservice/src/utils/google_api_credentials.json:/app/dist/utils/google_api_credentials.json:ro
+      - ./dgii_signature_microservice/src/utils/firma-digital.p12:/app/dist/utils/firma-digital.p12:ro
     restart: always
     depends_on:
       - db-prod

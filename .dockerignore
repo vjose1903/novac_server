@@ -30,3 +30,17 @@ npm-debug.log*
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+# Certificados SSL montados mediante Docker Compose.
+# No deben incluirse en la imagen de Rails.
+/certs/
+
+# Configuración sensible entregada al contenedor mediante volúmenes.
+/secrets/
+/config/google_api_credentials.json
+/config/initializers/google/google_api_credentials.json
+/dgii_signature_microservice/src/utils/google_api_credentials.json
+/dgii_signature_microservice/src/utils/firma-digital.p12
+
+# Variables locales y credenciales del microservicio DGII.
+**/.env
+**/.env.*

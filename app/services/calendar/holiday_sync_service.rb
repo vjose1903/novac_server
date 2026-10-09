@@ -1,6 +1,8 @@
 module Calendar
   class HolidaySyncService
     COUNTRY_CODE = 'DO'.freeze
+    SYNC_LOCK_NAMESPACE = 20261009
+    SYNC_LOCK_ID = 1
 
     def initialize(years:, provider: nil)
       @years = Array(years).map(&:to_i).uniq.sort
@@ -11,6 +13,7 @@ module Calendar
       res = Response.new
 
       CalendarEvent.transaction do
+        ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(#{SYNC_LOCK_NAMESPACE}, #{SYNC_LOCK_ID})")
         CalendarEventType.seed_defaults
         event_type = CalendarEventType.holiday_type
         holidays = @provider.call

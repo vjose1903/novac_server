@@ -1,7 +1,8 @@
-var { execFileSync, execSync } = require('child_process');
+var { execFileSync } = require('child_process');
 var fs = require('fs');
 var chalk = require('chalk');
 var path = require('path');
+var os = require('os');
 
 // Importar el script de configuración de variables de entorno
 const setupEnv = require('./env-setup');
@@ -19,14 +20,14 @@ function unlockGitCryptSecrets() {
 
 	const header = fs.readFileSync(credentialPath).subarray(0, 8).toString('utf8');
 	if (header === 'GITCRYPT') {
-		const keyPath = process.env.NOVAC_GIT_CRYPT_KEY || path.join(process.env.HOME || '', '.config/novac/git-crypt.key');
+		const keyPath = process.env.NOVAC_GIT_CRYPT_KEY || path.join(os.homedir(), '.config', 'novac', 'git-crypt.key');
 		if (!fs.existsSync(keyPath)) {
 			console.log(`${yellow('Falta desbloquear la credencial Firebase.')}`);
 			console.log(`${white(`Ejecuta: git-crypt unlock ${keyPath}`)}`);
 			return;
 		}
 
-		execSync(`git-crypt unlock "${keyPath}"`, { cwd: pathAdd('..'), stdio: 'inherit' });
+		execFileSync('git-crypt', ['unlock', keyPath], { cwd: pathAdd('..'), stdio: 'inherit' });
 	}
 }
 
@@ -34,14 +35,16 @@ let PRODUCTION = 'no';
 let BACKGROUND = 'no';
 
 function shDockerContainer() {
-
   const cliente = fs.readFileSync(pathAdd('../config_setup/actual_cliente.txt'), 'utf8').trim();
   const environmentSelected = PRODUCTION === 'yes' ? '-prod' : '-dev';
 
   console.log(`${green(' docker compose exec ')}${cliente}${environmentSelected} sh`);
   console.log(`${white(' ')}`);
 
-  execSync(`docker compose exec ${cliente}${environmentSelected} sh`, { stdio: 'inherit' });
+  execFileSync('docker', ['compose', 'exec', `${cliente}${environmentSelected}`, 'sh'], {
+    cwd: pathAdd('..'),
+    stdio: 'inherit'
+  });
 }
 
 function getActualClient() {
@@ -63,7 +66,10 @@ function setClient(client) {
   const environmentSelected = PRODUCTION === 'yes' ? 'prod' : 'dev';
 
   if (['agrodemi', 'brendy', 'vasquez', 'demo'].includes(client)) {
-    execSync(`node ${pathAdd('./setup.js')} ${client} ${environmentSelected}`, { stdio: 'inherit' });
+    execFileSync(process.execPath, [pathAdd('./setup.js'), client, environmentSelected], {
+      cwd: pathAdd('..'),
+      stdio: 'inherit'
+    });
   } else {
     console.log(`${red('*************************************')}`);
     console.log(`${red('**                                 **')}`);
@@ -110,17 +116,18 @@ function execCommandInContainer(commandKey) {
 	const systemCommands = { 'cron-update': 'whenever --update-crontab' }
 
 	if (commandKey in rakeCommands) {
-		execDockerContainer(`rake db:${rakeCommands[commandKey]}`)
+		execDockerContainer(['rake', `db:${rakeCommands[commandKey]}`])
 	} else if (commandKey in railsCommands) {
-		execDockerContainer(`rails ${railsCommands[commandKey]}`)
+		execDockerContainer(['rails', railsCommands[commandKey]])
 	} else if (commandKey in systemCommands) {
-		execDockerContainer(systemCommands[commandKey])
+		execDockerContainer(systemCommands[commandKey].split(/\s+/))
 	}
 }
 
-function execDockerContainer(command) {
+function execDockerContainer(commandArgs) {
 	const cliente = fs.readFileSync(pathAdd('../config_setup/actual_cliente.txt'), 'utf8').trim();
 	const environmentSelected = PRODUCTION === "yes" ? "-prod" : "-dev";
+	const command = commandArgs.join(' ');
 
 	console.log(
 		`${green(
@@ -129,8 +136,9 @@ function execDockerContainer(command) {
 	);
 	console.log(`${white(" ")}`);
 
-	execSync(`docker compose exec ${cliente}${environmentSelected} ${command}`, {
-		stdio: "inherit",
+	execFileSync('docker', ['compose', 'exec', `${cliente}${environmentSelected}`, ...commandArgs], {
+		cwd: pathAdd('..'),
+		stdio: 'inherit'
 	});
 }
 
@@ -163,7 +171,7 @@ async function processArgs() {
 					break;
 				case '-w':
 					console.log('la opcion -w');
-					execSync('docker system prune -f', {stdio: 'inherit'});
+					execFileSync('docker', ['system', 'prune', '-f'], {stdio: 'inherit', cwd: pathAdd('..')});
 					break;
 				case '-r':
 					console.log('la opcion -r');
