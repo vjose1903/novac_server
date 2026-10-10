@@ -130,7 +130,7 @@ class CabeceraFactura < ApplicationRecord
 
     cabecera_factura = build_cabecera_factura(params, data_secuencias)
     pagos = nil
-    if factura_sin_metodo_pago?(params[:tipo], @tipo_de_documento&.descripcion, @tipo_de_factura&.descripcion)
+    if params[:condicion] == 'Crédito' || factura_sin_metodo_pago?(params[:tipo], @tipo_de_documento&.descripcion, @tipo_de_factura&.descripcion)
       cabecera_factura.forma_pago = nil
       pagos = []
     else
