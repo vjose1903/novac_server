@@ -17,11 +17,14 @@ module Reportes
         sub_titulo = ''
 
         where_formas = <<~SQL.squish
-          EXISTS (
-            SELECT 1 FROM metodo_de_pago
-            WHERE metodo_de_pago.metodo_de_pago_able_type = 'CabeceraFactura'
-              AND metodo_de_pago.metodo_de_pago_able_id = cabecera_facturas.id
-              AND metodo_de_pago.forma_pago IN #{formas_pago}
+          (
+            lower(cabecera_facturas.condicion) = 'crédito'
+            OR EXISTS (
+              SELECT 1 FROM metodo_de_pago
+              WHERE metodo_de_pago.metodo_de_pago_able_type = 'CabeceraFactura'
+                AND metodo_de_pago.metodo_de_pago_able_id = cabecera_facturas.id
+                AND metodo_de_pago.forma_pago IN #{formas_pago}
+            )
           )
         SQL
         query = {}
