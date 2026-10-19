@@ -30,7 +30,7 @@ Rails.application.routes.draw do
   resources :detalle_facturas
   resources :tipo_facturas
   resources :imagenes
-  get "img/:file_name" => "imagenes#file", format: false
+  get "img/:file_name" => "imagenes#file", constraints: { file_name: /[^\/]+/ }, format: false
   resources :contenido_articulos
   resources :tipo_articulos
   resources :secuencia_facturas
