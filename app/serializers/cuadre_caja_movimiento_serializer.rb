@@ -2,7 +2,7 @@ class CuadreCajaMovimientoSerializer < ActiveModel::Serializer
   extend FastSerializer
 
 
-  ALL_OR_FIELD_FIELDS = [:id, :movement_group, :payment_method, :description, :reference, :counterparty_name, :bank_name, :amount, :position, :notes].freeze
+  ALL_OR_FIELD_FIELDS = [:id, :movement_group, :payment_method, :description, :reference, :counterparty_name, :bank_name, :amount, :position, :notes, :source_key].freeze
 
 
 
@@ -16,7 +16,7 @@ class CuadreCajaMovimientoSerializer < ActiveModel::Serializer
   end
 
   def self.default_fields
-    [:id, :movement_group, :payment_method, :description, :reference, :counterparty_name, :bank_name, :amount, :position, :notes]
+    [:id, :movement_group, :payment_method, :description, :reference, :counterparty_name, :bank_name, :amount, :position, :notes, :source_key]
   end
 
   def self.show_field?(field, params)

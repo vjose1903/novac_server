@@ -81,15 +81,18 @@ module CuadreCajas
     end
 
     def invoice_documents
+      adjustments = invoice_notes_adjustment_by_payment_id
       invoice_payment_scope.order('metodo_de_pago.id ASC').map do |pago|
         invoice = pago.metodo_de_pago_able
         {
           id: invoice.id,
+          source_key: "payment:#{pago.id}",
+          payment_id: pago.id,
           numero_factura: invoice.numero_factura,
           numero_comprobante: invoice.numero_comprobante,
           forma_pago: pago.forma_pago,
           cliente_nombre: document_client_name(invoice),
-          total: decimal_string(pago.monto),
+          total: decimal_string(BigDecimal(pago.monto.to_s) + adjustments.fetch(pago.id, 0)),
           fecha_equivalente: invoice.fecha_equivalente,
           fecha_completada: invoice.fecha_completada
         }
@@ -101,6 +104,8 @@ module CuadreCajas
         receipt = pago.metodo_de_pago_able
           {
             id: receipt.id,
+            source_key: "payment:#{pago.id}",
+            payment_id: pago.id,
             numero_recibo: receipt.numero_recibo,
             forma_pago: pago.forma_pago,
             cliente_nombre: receipt.cliente&.nombre_completo,
@@ -202,6 +207,19 @@ module CuadreCajas
         .where(non_external_invoice_condition)
         .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
         .group('metodo_de_pago.forma_pago')
+        .sum("(CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END) * metodo_de_pago.monto / NULLIF(cabecera_facturas.total_factura, 0)")
+    end
+
+    def invoice_notes_adjustment_by_payment_id
+      FacturaAplicada
+        .joins(:cabecera_factura, :tipo_factura)
+        .joins("INNER JOIN metodo_de_pago ON metodo_de_pago.metodo_de_pago_able_type = 'CabeceraFactura' AND metodo_de_pago.metodo_de_pago_able_id = cabecera_facturas.id")
+        .where(cabecera_facturas: { estado: true, fecha_equivalente: closing_day_range })
+        .where("LOWER(cabecera_facturas.tipo) = 'venta'")
+        .where("LOWER(cabecera_facturas.condicion) = 'contado'")
+        .where(non_external_invoice_condition)
+        .where(tipo_facturas: { key: ['nota_de_credito', 'nota_de_debito'] })
+        .group('metodo_de_pago.id')
         .sum("(CASE WHEN tipo_facturas.key = 'nota_de_debito' THEN facturas_aplicadas.total ELSE -facturas_aplicadas.total END) * metodo_de_pago.monto / NULLIF(cabecera_facturas.total_factura, 0)")
     end
 

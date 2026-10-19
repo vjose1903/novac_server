@@ -274,6 +274,15 @@ class CuadreCaja < ApplicationRecord
 
   def refresh_system_income_snapshot!
     snapshot = self.class.system_income_snapshot_for(closing_date || fecha_equivalente&.to_date)
+    sync_system_income_movements!(snapshot)
+    totals = CuadreCajas::CalculateTotals.call(
+      denominaciones: denominaciones.reload.to_a,
+      movimientos: movimientos.reload.to_a,
+      system_income: snapshot,
+      tolerance: reconciliation_tolerance,
+      opening_cash_fund: opening_cash_fund,
+      next_day_cash_fund: next_day_cash_fund
+    )
     update_columns(
       system_income_details: snapshot,
       final_consumer_invoices_total: snapshot[:final_consumer_invoices_total],
@@ -281,9 +290,39 @@ class CuadreCaja < ApplicationRecord
       system_income_total: snapshot[:system_income_total],
       total_venta_contado: snapshot[:final_consumer_invoices_total],
       total_recibo_ingreso: snapshot[:income_receipts_total],
-      total_venta_credito: snapshot[:credit_invoices_total]
+      total_general: totals[:operational_total],
+      total_venta_credito: snapshot[:credit_invoices_total],
+      **totals.except(:system_income_details)
     )
     self.system_income_details = snapshot
+  end
+
+  def sync_system_income_movements!(snapshot)
+    suggestions = self.class.suggested_system_movements(snapshot.deep_symbolize_keys)
+    suggestions.each do |suggestion|
+      movement = movimientos.find_by(source_key: suggestion[:source_key])
+      movement ||= legacy_system_movement_for(suggestion)
+      if movement
+        movement.update!(suggestion.except(:source))
+      else
+        movimientos.create!(suggestion.except(:source))
+      end
+    end
+
+    current_keys = suggestions.map { |item| item[:source_key] }
+    stale = movimientos.where.not(source_key: nil)
+    stale = current_keys.any? ? stale.where.not(source_key: current_keys) : stale
+    stale.destroy_all
+  end
+
+  def legacy_system_movement_for(suggestion)
+    # shortcut: old rows have no source key; use a unique signature until they are reconciled once.
+    candidates = movimientos.where(source_key: nil, movement_group: suggestion[:movement_group],
+      payment_method: suggestion[:payment_method], reference: suggestion[:reference],
+      description: suggestion[:description])
+    exact_amount = candidates.find_by(amount: suggestion[:amount])
+    return exact_amount if exact_amount
+    candidates.first if candidates.count == 1
   end
 
   def system_income_payload
@@ -536,7 +575,8 @@ class CuadreCaja < ApplicationRecord
         bank_name: data[:bank_name] || data[:banco],
         amount: data[:amount] || data[:monto] || 0,
         position: data[:position] || index,
-        notes: data[:notes] || data[:observaciones]
+        notes: data[:notes] || data[:observaciones],
+        source_key: data[:source_key]
       )
     end
   end
@@ -669,7 +709,8 @@ class CuadreCaja < ApplicationRecord
       description: client_name,
       reference: document[:numero_comprobante] || document[:numero_factura] || document[:numero_recibo],
       amount: format('%.2f', BigDecimal(document[:total].to_s.presence || '0')),
-      source: 'system_suggestion'
+      source: 'system_suggestion',
+      source_key: document[:source_key]
     }
   end
 

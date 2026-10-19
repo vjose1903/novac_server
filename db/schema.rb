@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_15_100000) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_19_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
@@ -346,9 +346,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_15_100000) do
     t.decimal "amount", precision: 18, scale: 2, default: "0.0", null: false
     t.integer "position", default: 0, null: false
     t.text "notes"
+    t.string "source_key"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["cuadre_caja_id", "movement_group"], name: "idx_cuadre_movimientos_group"
+    t.index ["cuadre_caja_id", "source_key"], name: "idx_cuadre_movimientos_source_key", unique: true, where: "(source_key IS NOT NULL)"
     t.index ["cuadre_caja_id"], name: "index_cuadre_caja_movimientos_on_cuadre_caja_id"
   end
 
