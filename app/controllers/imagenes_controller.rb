@@ -1,5 +1,9 @@
 class ImagenesController < ApplicationController
+  # Las etiquetas <img> del front no pueden enviar los headers de autenticación.
+  skip_before_action :validateUserIsLogging!, only: :file, raise: false
   before_action :set_imagen, only: [:show, :update, :destroy]
+  before_action :set_file_image, only: :file
+  before_action :validate_file_access!, only: :file
 
   # GET /imagenes
   def index
@@ -15,7 +19,7 @@ class ImagenesController < ApplicationController
 
   # Serve the persisted file first and use the database copy as a fallback.
   def file
-    imagen = Imagen.find_by(file_name: params[:file_name])
+    imagen = @file_image
     return head :not_found unless imagen
 
     file_path = File.join(IMAGES_PATH, imagen.file_name)
@@ -83,5 +87,19 @@ class ImagenesController < ApplicationController
     RestoreImagenFileJob.perform_later(imagen.id)
   rescue StandardError => error
     Rails.logger.warn("No se pudo programar la restauración de la imagen #{imagen.id}: #{error.message}")
+  end
+
+  def set_file_image
+    @file_image = if user_signed_in?
+      Imagen.find_by(file_name: params[:file_name])
+    else
+      Imagen.find_by(file_name: params[:file_name], origen_img_type: 'Divisa')
+    end
+  end
+
+  def validate_file_access!
+    return if user_signed_in? || @file_image
+
+    render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_session" }, status: HTTP_STATUS_CODE[:unauthorized]
   end
 end
