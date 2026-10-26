@@ -616,17 +616,28 @@ class CabeceraFactura < ApplicationRecord
   def self.get_viajes_by_completar(params, paginate_options, parametros_opcionales)
     res                  = Response.new(paginate_options)
 
-    palabra_a_buscar     = params[:palabra_a_buscar].to_s
-    where                = "is_viaje = true AND cabecera_facturas.estado = true AND ( fecha_completada is null or (fecha_completada between '#{DateTime.now.beginning_of_day - 3.days}' AND '#{DateTime.now.end_of_day}') )"
-    joins_               = 'inner join clientes on clientes.id = cabecera_facturas.cliente_id'
-    search_sql           = "lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower(?)"
-    search_value         = "%#{ActiveRecord::Base.sanitize_sql_like(palabra_a_buscar)}%"
+    palabra_a_buscar = params[:palabra_a_buscar].to_s
+    mostrar_completadas = ActiveModel::Type::Boolean.new.cast(params[:mostrar_completadas])
+    condicion = params[:condicion].presence
+    camion_id = params[:camion_id].presence
+    chofer_id = params[:chofer_id].presence
+    joins_ = 'inner join clientes on clientes.id = cabecera_facturas.cliente_id'
+    search_sql = "lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower(?)"
+    search_value = "%#{ActiveRecord::Base.sanitize_sql_like(palabra_a_buscar)}%"
 
-    cabeceras    = CabeceraFactura
-    .joins(joins_)
-    .where(where)
-    .where(search_sql, search_value)
-    .order('cabecera_facturas.id DESC').group('cabecera_facturas.id')
+    cabeceras = CabeceraFactura.joins(joins_).where(is_viaje: true, estado: true)
+    unless mostrar_completadas
+      cabeceras = cabeceras.where('cabecera_facturas.fecha_completada IS NULL OR (cabecera_facturas.fecha_completada BETWEEN ? AND ?)', DateTime.now.beginning_of_day - 3.days, DateTime.now.end_of_day)
+    end
+    cabeceras = cabeceras.where(condicion: condicion) if condicion
+
+    if camion_id || chofer_id
+      cabeceras = cabeceras.joins(:movimientos_viaje)
+      cabeceras = cabeceras.where(movimientos_viaje: { vehiculo_id: camion_id }) if camion_id
+      cabeceras = cabeceras.where(movimientos_viaje: { user_id: chofer_id }) if chofer_id
+    end
+
+    cabeceras = cabeceras.where(search_sql, search_value).order('cabecera_facturas.id DESC').group('cabecera_facturas.id')
 
     total_registros, summary = get_viajes_by_completar_summary(cabeceras)
     res.set_summary(summary, total_registros)
