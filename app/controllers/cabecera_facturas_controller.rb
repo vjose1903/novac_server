@@ -71,6 +71,11 @@ class CabeceraFacturasController < ApplicationController
     resultado.send_response self
   end
 
+  def editar_fecha_viaje
+    resultado = CabeceraFactura.editar_fecha_viaje(params)
+    resultado.send_response self
+  end
+
   def transferir_viaje
     resultado = CabeceraFactura.transferir_viaje(params)
     resultado.send_response self

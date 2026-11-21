@@ -1135,6 +1135,60 @@ class CabeceraFactura < ApplicationRecord
     res
   end
 
+  def self.editar_fecha_viaje(params)
+    res = Response.new
+    factura = CabeceraFactura.find_by_id(params[:id])
+
+    unless factura
+      res.add_msg('La factura no existe.')
+      res.set_status(HTTP_STATUS_CODE[:not_found])
+      return res
+    end
+
+    unless factura.is_viaje && factura.movimientos_viaje.exists?
+      res.add_msg('La factura no tiene un viaje asignado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    if factura.fecha_completada.present? || factura.verificateFacturaHasPagos.get_data
+      res.add_msg('No se puede modificar la fecha de un viaje que ya tiene pagos o está completado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    fecha_viaje = params[:fecha_viaje].presence
+    begin
+      fecha_viaje = Time.zone.parse(fecha_viaje.to_s) if fecha_viaje.present?
+    rescue ArgumentError, TypeError
+      fecha_viaje = nil
+    end
+
+    if fecha_viaje.nil?
+      res.add_msg('La fecha del viaje es obligatoria y debe ser válida.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    fecha_minima = [Time.zone.today, factura.fecha_viaje&.to_date].compact.min
+    if fecha_viaje.to_date < fecha_minima
+      res.add_msg("La fecha del viaje no puede ser anterior al #{fecha_minima.strftime('%d/%m/%Y')}.")
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    begin
+      factura.update!(fecha_viaje: fecha_viaje)
+      res.set_data(factura.reload, { all: true, movimientos_viaje: true })
+      res.add_msg('Fecha del viaje actualizada correctamente.')
+    rescue ActiveRecord::RecordInvalid => error
+      res.add_msgs(error.record.errors.full_messages)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    res
+  end
+
   def self.transferir_viaje(params)
     res = Response.new
     factura_origen = CabeceraFactura.find_by_id(params[:id])
