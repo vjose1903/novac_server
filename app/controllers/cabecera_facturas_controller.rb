@@ -4,6 +4,7 @@ class CabeceraFacturasController < ApplicationController
   before_action :set_cabecera_factura, only: [:show, :update, :destroy, :remplace_encf]
   before_action :validate_date_dgii,   only: [:remplace_encf]
   before_action :validate_travel_invoice!, only: [:create, :update, :updateMovimientosViaje]
+  before_action :validate_travel_module_enabled!, only: [:updateMovimientosViaje, :convertir_a_viaje, :desasignar_viaje, :editar_fecha_viaje, :transferir_viaje]
   # GET /cabecera_facturas
   def index
     optional_params = get_parametros_opcionales
@@ -54,14 +55,6 @@ class CabeceraFacturasController < ApplicationController
 	end
 
   def convertir_a_viaje
-    resultado = Response.new
-
-    unless FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].presence || request.headers['X-Empresa-Id'])
-      resultado.add_msg('El módulo de viajes no está habilitado.')
-      resultado.set_status(HTTP_STATUS_CODE[:conflict])
-      return resultado.send_response self
-    end
-
     resultado = CabeceraFactura.convertir_a_viaje(params)
     resultado.send_response self
   end
@@ -110,6 +103,15 @@ class CabeceraFacturasController < ApplicationController
   end
 
   private
+
+  def validate_travel_module_enabled!
+    return if FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].presence || request.headers['X-Empresa-Id'])
+
+    resultado = Response.new
+    resultado.add_msg('El módulo de viajes no está habilitado.')
+    resultado.set_status(HTTP_STATUS_CODE[:conflict])
+    resultado.send_response self
+  end
 
   def validate_travel_invoice!
     return if FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].presence || request.headers['X-Empresa-Id'])

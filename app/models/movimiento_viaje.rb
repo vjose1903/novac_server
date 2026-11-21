@@ -3,14 +3,24 @@ class MovimientoViaje < ApplicationRecord
   belongs_to :vehiculo, optional: true
   belongs_to :cabecera_factura
 
+  after_create :incrementar_cantidad_viajes
+  after_update :ajustar_cantidad_viajes_si_cambio
+  after_destroy :decrementar_cantidad_viajes
+
   def self.crear_actualizar_movimiento_viaje(params, padre, is_save=false)
     res = Response.new
 
     MovimientoViaje.transaction do
+      vehiculo = Vehiculo.where(id: params["vehiculo_id"], estado: true).first
       movimiento_viaje = build_movimiento_viaje(params, is_save)
-      res_valid        = movimiento_viaje.vehiculo.ajustarCantViaje("+")
 
-      res = persist_movimiento_viaje(movimiento_viaje, res_valid, is_save)
+      unless vehiculo
+        res.add_msg('El camión seleccionado no existe o está inactivo.')
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        raise ActiveRecord::Rollback
+      end
+
+      res = persist_movimiento_viaje(movimiento_viaje, res, is_save)
 
       raise ActiveRecord::Rollback if !movimiento_viaje.errors.empty? || !res.status_valid
     end
@@ -58,5 +68,23 @@ class MovimientoViaje < ApplicationRecord
 
     res_valid.set_data array_valid
     return res_valid
+  end
+
+  private
+
+  def incrementar_cantidad_viajes
+    vehiculo&.ajustarCantViaje('+')
+  end
+
+  def ajustar_cantidad_viajes_si_cambio
+    return unless saved_changes.key?('vehiculo_id')
+
+    vehiculo_anterior_id, vehiculo_nuevo_id = saved_changes['vehiculo_id']
+    Vehiculo.find_by(id: vehiculo_anterior_id)&.ajustarCantViaje('-')
+    Vehiculo.find_by(id: vehiculo_nuevo_id)&.ajustarCantViaje('+')
+  end
+
+  def decrementar_cantidad_viajes
+    vehiculo&.ajustarCantViaje('-')
   end
 end
