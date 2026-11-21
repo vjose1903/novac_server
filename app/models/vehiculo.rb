@@ -99,4 +99,10 @@ class Vehiculo < ApplicationRecord
     return res
   end
 
+  def sincronizar_cantidad_viajes
+    with_lock do
+      update!(cantidad_viajes: MovimientoViaje.where(vehiculo_id: id).count)
+    end
+  end
+
 end

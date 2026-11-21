@@ -73,18 +73,18 @@ class MovimientoViaje < ApplicationRecord
   private
 
   def incrementar_cantidad_viajes
-    vehiculo&.ajustarCantViaje('+')
+    vehiculo&.sincronizar_cantidad_viajes
   end
 
   def ajustar_cantidad_viajes_si_cambio
     return unless saved_changes.key?('vehiculo_id')
 
     vehiculo_anterior_id, vehiculo_nuevo_id = saved_changes['vehiculo_id']
-    Vehiculo.find_by(id: vehiculo_anterior_id)&.ajustarCantViaje('-')
-    Vehiculo.find_by(id: vehiculo_nuevo_id)&.ajustarCantViaje('+')
+    Vehiculo.find_by(id: vehiculo_anterior_id)&.sincronizar_cantidad_viajes
+    Vehiculo.find_by(id: vehiculo_nuevo_id)&.sincronizar_cantidad_viajes
   end
 
   def decrementar_cantidad_viajes
-    vehiculo&.ajustarCantViaje('-')
+    vehiculo&.sincronizar_cantidad_viajes
   end
 end
