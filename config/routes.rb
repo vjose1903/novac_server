@@ -173,6 +173,9 @@ Rails.application.routes.draw do
       patch "custom/update/:id"                                   => "cabecera_facturas#update"
       get "custom/:ruta_complemento"                              => "cabecera_facturas#custom_route"
       patch ":id/update/movimientos_viaje"                        => "cabecera_facturas#updateMovimientosViaje"
+      patch ":id/convertir_viaje"                                 => "cabecera_facturas#convertir_a_viaje"
+      patch ":id/desasignar_viaje"                                => "cabecera_facturas#desasignar_viaje"
+      patch ":id/transferir_viaje"                                => "cabecera_facturas#transferir_viaje"
       patch ":id/dgii/eNCF/replace"                               => "cabecera_facturas#remplace_encf"
     end
   end

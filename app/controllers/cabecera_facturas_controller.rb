@@ -27,6 +27,8 @@ class CabeceraFacturasController < ApplicationController
       resultado = CabeceraFactura.get_facturas_by_params(params, set_paginate_options(params), get_parametros_opcionales)
     when 'viajes'
       resultado = CabeceraFactura.get_viajes_by_completar(params, set_paginate_options(params), get_parametros_opcionales)
+    when 'transferibles'
+      resultado = CabeceraFactura.get_facturas_transferibles(params, set_paginate_options(params), get_parametros_opcionales)
     when 'comprobar_serial'
       resultado = CabeceraFactura.comprobar_serial(params)
     when 'can_update'
@@ -50,6 +52,29 @@ class CabeceraFacturasController < ApplicationController
 		resultado = CabeceraFactura.update_movimientos_viaje(params)
 		resultado.send_response self
 	end
+
+  def convertir_a_viaje
+    resultado = Response.new
+
+    unless FirebaseConfigurationService.travel_module_enabled?(params[:empresa_id].presence || request.headers['X-Empresa-Id'])
+      resultado.add_msg('El módulo de viajes no está habilitado.')
+      resultado.set_status(HTTP_STATUS_CODE[:conflict])
+      return resultado.send_response self
+    end
+
+    resultado = CabeceraFactura.convertir_a_viaje(params)
+    resultado.send_response self
+  end
+
+  def desasignar_viaje
+    resultado = CabeceraFactura.desasignar_viaje(params)
+    resultado.send_response self
+  end
+
+  def transferir_viaje
+    resultado = CabeceraFactura.transferir_viaje(params)
+    resultado.send_response self
+  end
 
   def getFacturasByClienteIdAndEstado
     resultado = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params, set_paginate_options(params))

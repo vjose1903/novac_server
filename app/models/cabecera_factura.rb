@@ -617,18 +617,20 @@ class CabeceraFactura < ApplicationRecord
     res                  = Response.new(paginate_options)
 
     palabra_a_buscar = params[:palabra_a_buscar].to_s
+    factura_id = params[:factura_id].presence
     mostrar_completadas = ActiveModel::Type::Boolean.new.cast(params[:mostrar_completadas])
     condicion = params[:condicion].presence
     camion_id = params[:camion_id].presence
     chofer_id = params[:chofer_id].presence
-    joins_ = 'inner join clientes on clientes.id = cabecera_facturas.cliente_id'
-    search_sql = "lower(cabecera_facturas.numero_comprobante || ' ' || cabecera_facturas.numero_factura || ' ' || clientes.nombre || ' ' || clientes.apellido) like lower(?)"
+    joins_ = 'left join clientes on clientes.id = cabecera_facturas.cliente_id'
+    search_sql = "lower(concat_ws(' ', cabecera_facturas.numero_comprobante, cabecera_facturas.numero_factura, clientes.nombre, clientes.apellido)) like lower(?)"
     search_value = "%#{ActiveRecord::Base.sanitize_sql_like(palabra_a_buscar)}%"
 
     cabeceras = CabeceraFactura.joins(joins_).where(is_viaje: true, estado: true)
-    unless mostrar_completadas
+    unless mostrar_completadas || factura_id
       cabeceras = cabeceras.where('cabecera_facturas.fecha_completada IS NULL OR (cabecera_facturas.fecha_completada BETWEEN ? AND ?)', DateTime.now.beginning_of_day - 3.days, DateTime.now.end_of_day)
     end
+    cabeceras = cabeceras.where(id: factura_id) if factura_id
     cabeceras = cabeceras.where(condicion: condicion) if condicion
 
     if camion_id || chofer_id
@@ -637,7 +639,8 @@ class CabeceraFactura < ApplicationRecord
       cabeceras = cabeceras.where(movimientos_viaje: { user_id: chofer_id }) if chofer_id
     end
 
-    cabeceras = cabeceras.where(search_sql, search_value).order('cabecera_facturas.id DESC').group('cabecera_facturas.id')
+    cabeceras = cabeceras.where(search_sql, search_value) unless factura_id
+    cabeceras = cabeceras.order('cabecera_facturas.id DESC').group('cabecera_facturas.id')
 
     total_registros, summary = get_viajes_by_completar_summary(cabeceras)
     res.set_summary(summary, total_registros)
@@ -681,6 +684,40 @@ class CabeceraFactura < ApplicationRecord
     }
 
     [total_registros, summary]
+  end
+
+  def self.get_facturas_transferibles(params, paginate_options, parametros_opcionales)
+    res = Response.new(paginate_options)
+    exclude_id = params[:exclude_id].presence
+    palabra_a_buscar = params[:palabra_a_buscar].to_s.strip
+    search_value = "%#{ActiveRecord::Base.sanitize_sql_like(palabra_a_buscar)}%"
+
+    facturas = CabeceraFactura
+      .left_joins(:cliente, :tipo_factura)
+      .where(estado: true)
+      .where('COALESCE(cabecera_facturas.is_viaje, false) = false')
+      .where.not(numero_comprobante: nil)
+      .where.not(cliente_id: nil)
+      .where(fecha_completada: nil)
+      .where.not(id: exclude_id)
+
+    if palabra_a_buscar.present?
+      facturas = facturas.where(
+        "lower(concat_ws(' ', cabecera_facturas.numero_comprobante, cabecera_facturas.numero_factura, cabecera_facturas.condicion, cabecera_facturas.total_factura::text, clientes.nombre, clientes.apellido, tipo_facturas.descripcion)) like lower(?)",
+        search_value
+      )
+    end
+
+    facturas = facturas.order('cabecera_facturas.id DESC').limit(50)
+
+    if facturas.exists?
+      res.set_data(facturas, { all: true, **parametros_opcionales }, CabeceraFactura.models_includes_for(movimientos_viaje: false))
+    else
+      res.add_msg('No existen facturas disponibles para transferir el viaje.')
+      res.set_status(HTTP_STATUS_CODE[:not_found])
+    end
+
+    res
   end
 
   def self.porcentaje_viajes(count, total_registros)
@@ -895,6 +932,361 @@ class CabeceraFactura < ApplicationRecord
 		end
 
     return res
+  end
+
+  # Asigna un viaje a una factura ya realizada sin ejecutar el flujo de edición
+  # de facturas ni ninguna operación relacionada con DGII.
+  def self.convertir_a_viaje(params)
+    res = Response.new
+    factura = CabeceraFactura.find_by_id(params[:id])
+
+    unless factura
+      res.add_msg('La factura no existe.')
+      res.set_status(HTTP_STATUS_CODE[:not_found])
+      return res
+    end
+
+    unless factura.estado
+      res.add_msg('Solo se pueden convertir facturas activas.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    unless factura.numero_comprobante.present?
+      res.add_msg('Solo se pueden convertir facturas ya realizadas.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    if factura.is_viaje || factura.movimientos_viaje.exists?
+      res.add_msg('La factura ya tiene un viaje asignado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    cliente_id = params[:cliente_id].presence
+    cliente_a_asignar = nil
+
+    if factura.cliente_id.blank?
+      if cliente_id.blank?
+        res.add_msg('Debe asignar un cliente antes de convertir la factura en viaje.')
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        return res
+      end
+
+      cliente_a_asignar = Cliente.where(id: cliente_id, estado: true).first
+      unless cliente_a_asignar
+        res.add_msg('El cliente seleccionado no existe o está inactivo.')
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+        return res
+      end
+    elsif cliente_id.present? && factura.cliente_id.to_i != cliente_id.to_i
+      res.add_msg('La factura ya tiene un cliente asignado diferente.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    fecha_viaje = params[:fecha_viaje].presence
+    movimientos_param = params[:movimientos_viaje].presence
+
+    if movimientos_param.blank? && params[:vehiculo_id].present?
+      movimientos_param = [{ vehiculo_id: params[:vehiculo_id], user_id: params[:chofer_id].presence || params[:user_id] }]
+    end
+
+    if fecha_viaje.blank?
+      res.add_msg('La fecha del viaje es obligatoria.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    begin
+      fecha_viaje = Time.zone.parse(fecha_viaje.to_s)
+    rescue ArgumentError, TypeError
+      fecha_viaje = nil
+    end
+
+    if fecha_viaje.nil?
+      res.add_msg('La fecha del viaje no es válida.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    movimientos = Array(movimientos_param).map do |movimiento|
+      {
+        vehiculo_id: movimiento[:vehiculo_id].presence || movimiento['vehiculo_id'].presence,
+        user_id: movimiento[:user_id].presence || movimiento['user_id'].presence || movimiento[:chofer_id].presence || movimiento['chofer_id'].presence,
+      }
+    end
+
+    if movimientos.empty? || movimientos.any? { |movimiento| movimiento[:vehiculo_id].blank? || movimiento[:user_id].blank? }
+      res.add_msg('Debe seleccionar al menos un camión y un chofer para cada camión.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    vehiculo_ids = movimientos.map { |movimiento| movimiento[:vehiculo_id].to_i }
+    if vehiculo_ids.uniq.length != vehiculo_ids.length
+      res.add_msg('No se puede asignar el mismo camión más de una vez.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    vehiculos = Vehiculo.where(id: vehiculo_ids, estado: true).index_by(&:id)
+    if vehiculos.length != vehiculo_ids.length
+      res.add_msg('Uno o más camiones no existen o están inactivos.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    chofer_ids = movimientos.map { |movimiento| movimiento[:user_id].to_i }.uniq
+    chofer_ids_con_rol = User.joins(:roles).where(roles: { key: 'chofer' }).select(:id)
+    choferes = User.where(id: chofer_ids, estado: true).where(id: chofer_ids_con_rol).index_by(&:id)
+    if choferes.length != chofer_ids.length
+      res.add_msg('Uno o más choferes no existen, están inactivos o no tienen el rol de chofer.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    begin
+      CabeceraFactura.transaction do
+        factura.with_lock do
+          if factura.is_viaje || factura.movimientos_viaje.exists?
+            res.add_msg('La factura ya tiene un viaje asignado.')
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+            raise ActiveRecord::Rollback
+          end
+
+          factura.cliente_id = cliente_a_asignar.id if cliente_a_asignar
+          factura.update!(is_viaje: true, fecha_viaje: fecha_viaje)
+
+          movimientos.each do |movimiento|
+            vehiculo = vehiculos.fetch(movimiento[:vehiculo_id].to_i)
+            chofer = choferes.fetch(movimiento[:user_id].to_i)
+
+            vehiculo.with_lock do
+              MovimientoViaje.create!(cabecera_factura: factura, vehiculo: vehiculo, user: chofer)
+              vehiculo.update!(cantidad_viajes: vehiculo.cantidad_viajes.to_i + 1)
+            end
+          end
+        end
+
+        res.set_data(factura, { all: true, movimientos_viaje: true })
+        res.add_msg('Viaje asignado correctamente.') if res.status_valid
+        raise ActiveRecord::Rollback unless res.status_valid
+      end
+    rescue ActiveRecord::RecordInvalid => error
+      res.add_msgs(error.record.errors.full_messages)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    rescue ActiveRecord::RecordNotFound
+      res.add_msg('No se pudo encontrar una de las entidades seleccionadas.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    res
+  end
+
+  def self.desasignar_viaje(params)
+    res = Response.new
+    factura = CabeceraFactura.find_by_id(params[:id])
+
+    unless factura
+      res.add_msg('La factura no existe.')
+      res.set_status(HTTP_STATUS_CODE[:not_found])
+      return res
+    end
+
+    unless factura.is_viaje && factura.movimientos_viaje.exists?
+      res.add_msg('La factura no tiene un viaje asignado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    if factura.fecha_completada.present? || factura.verificateFacturaHasPagos.get_data
+      res.add_msg('No se puede desasignar un viaje que ya tiene pagos o está completado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    begin
+      CabeceraFactura.transaction do
+        factura.with_lock do
+          movimientos = factura.movimientos_viaje.includes(:vehiculo).to_a
+          movimientos.each do |movimiento|
+            vehiculo = movimiento.vehiculo
+            if vehiculo
+              vehiculo.with_lock do
+                vehiculo.update!(cantidad_viajes: [vehiculo.cantidad_viajes.to_i - 1, 0].max)
+              end
+            end
+            movimiento.destroy!
+          end
+
+          factura.update!(is_viaje: false, fecha_viaje: nil)
+        end
+      end
+
+      res.set_data(factura, { all: true, movimientos_viaje: true })
+      res.add_msg('Viaje desasignado correctamente.')
+    rescue ActiveRecord::RecordInvalid => error
+      res.add_msgs(error.record.errors.full_messages)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    res
+  end
+
+  def self.transferir_viaje(params)
+    res = Response.new
+    factura_origen = CabeceraFactura.find_by_id(params[:id])
+    factura_destino_id = params[:factura_destino_id].presence || params[:target_id].presence
+    factura_destino = CabeceraFactura.find_by_id(factura_destino_id)
+
+    unless factura_origen
+      res.add_msg('La factura origen no existe.')
+      res.set_status(HTTP_STATUS_CODE[:not_found])
+      return res
+    end
+
+    unless factura_destino
+      res.add_msg('La factura destino no existe.')
+      res.set_status(HTTP_STATUS_CODE[:not_found])
+      return res
+    end
+
+    if factura_origen.id == factura_destino.id
+      res.add_msg('La factura destino debe ser diferente a la factura origen.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    unless factura_origen.is_viaje && factura_origen.movimientos_viaje.exists?
+      res.add_msg('La factura origen no tiene un viaje asignado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    if factura_origen.fecha_completada.present? || factura_origen.verificateFacturaHasPagos.get_data
+      res.add_msg('No se puede transferir un viaje que ya tiene pagos o está completado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    unless factura_destino.estado && factura_destino.numero_comprobante.present? && factura_destino.fecha_completada.blank? && !factura_destino.is_viaje && !factura_destino.movimientos_viaje.exists?
+      res.add_msg('La factura destino debe estar activa, realizada, pendiente y no tener un viaje asignado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    unless factura_destino.cliente_id.present?
+      res.add_msg('La factura destino debe tener un cliente asignado.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    if factura_destino.verificateFacturaHasPagos.get_data
+      res.add_msg('La factura destino ya tiene pagos y no puede recibir el viaje.')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      return res
+    end
+
+    editar_datos_viaje = params[:fecha_viaje].present? || params[:movimientos_viaje].present?
+    fecha_viaje = factura_origen.fecha_viaje
+    movimientos_nuevos = nil
+
+    if editar_datos_viaje
+      if params[:fecha_viaje].present?
+        begin
+          fecha_viaje = Time.zone.parse(params[:fecha_viaje].to_s)
+        rescue ArgumentError, TypeError
+          fecha_viaje = nil
+        end
+
+        if fecha_viaje.nil?
+          res.add_msg('La fecha del viaje no es válida.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          return res
+        end
+      end
+
+      if params[:movimientos_viaje].present?
+        movimientos_nuevos = Array(params[:movimientos_viaje]).map do |movimiento|
+          {
+            vehiculo_id: movimiento[:vehiculo_id].presence || movimiento['vehiculo_id'].presence,
+            user_id: movimiento[:user_id].presence || movimiento['user_id'].presence || movimiento[:chofer_id].presence || movimiento['chofer_id'].presence,
+          }
+        end
+
+        if movimientos_nuevos.empty? || movimientos_nuevos.any? { |movimiento| movimiento[:vehiculo_id].blank? || movimiento[:user_id].blank? }
+          res.add_msg('Debe seleccionar al menos un camión y un chofer para cada camión.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          return res
+        end
+
+        vehiculo_ids = movimientos_nuevos.map { |movimiento| movimiento[:vehiculo_id].to_i }
+        if vehiculo_ids.uniq.length != vehiculo_ids.length
+          res.add_msg('No se puede asignar el mismo camión más de una vez.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          return res
+        end
+
+        vehiculos = Vehiculo.where(id: vehiculo_ids, estado: true).index_by(&:id)
+        if vehiculos.length != vehiculo_ids.length
+          res.add_msg('Uno o más camiones no existen o están inactivos.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          return res
+        end
+
+        chofer_ids = movimientos_nuevos.map { |movimiento| movimiento[:user_id].to_i }.uniq
+        chofer_ids_con_rol = User.joins(:roles).where(roles: { key: 'chofer' }).select(:id)
+        choferes = User.where(id: chofer_ids, estado: true).where(id: chofer_ids_con_rol).index_by(&:id)
+        if choferes.length != chofer_ids.length
+          res.add_msg('Uno o más choferes no existen, están inactivos o no tienen el rol de chofer.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          return res
+        end
+      end
+    end
+
+    begin
+      CabeceraFactura.transaction do
+        facturas_bloqueadas = CabeceraFactura.where(id: [factura_origen.id, factura_destino.id].sort).lock.to_a.index_by(&:id)
+        origen = facturas_bloqueadas.fetch(factura_origen.id)
+        destino = facturas_bloqueadas.fetch(factura_destino.id)
+        movimientos = origen.movimientos_viaje.to_a
+
+        if movimientos_nuevos
+          vehiculos_anterior_ids = movimientos.map(&:vehiculo_id).compact.map(&:to_i)
+          vehiculos_nuevos_ids = movimientos_nuevos.map { |movimiento| movimiento[:vehiculo_id].to_i }
+          vehiculos_bloqueados = Vehiculo.where(id: (vehiculos_anterior_ids + vehiculos_nuevos_ids).uniq.sort).lock.index_by(&:id)
+
+          movimientos.each do |movimiento|
+            vehiculo = vehiculos_bloqueados[movimiento.vehiculo_id.to_i]
+            vehiculo&.update!(cantidad_viajes: [vehiculo.cantidad_viajes.to_i - 1, 0].max)
+            movimiento.destroy!
+          end
+
+          movimientos_nuevos.each do |movimiento|
+            vehiculo = vehiculos_bloqueados.fetch(movimiento[:vehiculo_id].to_i)
+            chofer = choferes.fetch(movimiento[:user_id].to_i)
+            MovimientoViaje.create!(cabecera_factura: destino, vehiculo: vehiculo, user: chofer)
+            vehiculo.update!(cantidad_viajes: vehiculo.cantidad_viajes.to_i + 1)
+          end
+        else
+          movimientos.each { |movimiento| movimiento.update!(cabecera_factura: destino) }
+        end
+
+        origen.update!(is_viaje: false, fecha_viaje: nil)
+        destino.update!(is_viaje: true, fecha_viaje: fecha_viaje)
+      end
+
+      res.set_data(factura_destino.reload, { all: true, movimientos_viaje: true })
+      res.add_msg('Viaje transferido correctamente.')
+    rescue ActiveRecord::RecordInvalid => error
+      res.add_msgs(error.record.errors.full_messages)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    res
   end
 
   # ====================================================================================================
