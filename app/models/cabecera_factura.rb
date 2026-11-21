@@ -691,6 +691,7 @@ class CabeceraFactura < ApplicationRecord
     exclude_id = params[:exclude_id].presence
     palabra_a_buscar = params[:palabra_a_buscar].to_s.strip
     search_value = "%#{ActiveRecord::Base.sanitize_sql_like(palabra_a_buscar)}%"
+    total_buscado = palabra_a_buscar.delete(',').strip
 
     facturas = CabeceraFactura
       .left_joins(:cliente, :tipo_factura)
@@ -702,10 +703,12 @@ class CabeceraFactura < ApplicationRecord
       .where.not(id: exclude_id)
 
     if palabra_a_buscar.present?
-      facturas = facturas.where(
-        "lower(concat_ws(' ', cabecera_facturas.numero_comprobante, cabecera_facturas.numero_factura, cabecera_facturas.condicion, cabecera_facturas.total_factura::text, clientes.nombre, clientes.apellido, tipo_facturas.descripcion)) like lower(?)",
-        search_value
-      )
+      texto_busqueda = "lower(concat_ws(' ', cabecera_facturas.numero_comprobante, cabecera_facturas.numero_factura, cabecera_facturas.condicion, cabecera_facturas.total_factura::text, clientes.nombre, clientes.apellido, tipo_facturas.descripcion)) like lower(?)"
+      if total_buscado.match?(/\A\d+(?:\.\d+)?\z/)
+        facturas = facturas.where("#{texto_busqueda} OR cabecera_facturas.total_factura = ?", search_value, total_buscado.to_f)
+      else
+        facturas = facturas.where(texto_busqueda, search_value)
+      end
     end
 
     facturas = facturas.order('cabecera_facturas.id DESC').limit(50)
@@ -906,33 +909,49 @@ class CabeceraFactura < ApplicationRecord
   def self.update_movimientos_viaje(params)
     res                          = Response.new
     factura                      = CabeceraFactura.find_by_id(params[:id])
-		CabeceraFactura.transaction do
-			# TODO: validar que los campos necesarios del movimiento lleguen
 
-			factura.movimientos_viaje.each do | movimiento |
-				movimiento.vehiculo.ajustarCantViaje('-') unless movimiento.vehiculo_id.nil?
-				movimiento.destroy
-			end
+    unless factura
+      res.add_msg('La factura no existe.')
+      res.set_status(HTTP_STATUS_CODE[:not_found])
+      return res
+    end
 
-			dependencias                 = [ {modelo: MovimientoViaje,    key_object: 'movimientos_viaje',  padre: factura} ]
+    CabeceraFactura.transaction do
+      factura.with_lock do
+        # TODO: validar que los campos necesarios del movimiento lleguen
+        factura.movimientos_viaje.includes(:vehiculo).each do |movimiento|
+          movimiento.vehiculo&.ajustarCantViaje('-')
+          movimiento.destroy!
+        end
 
-			res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+        dependencias = [{ modelo: MovimientoViaje, key_object: 'movimientos_viaje', padre: factura }]
+        res = crear_actualizar_dependencias(dependencias, params, false) do |key_object, dependencia_data|
+          factura.movimientos_viaje = dependencia_data if key_object == 'movimientos_viaje'
+        end
 
-				factura.movimientos_viaje  = dependencia_data if key_object == 'movimientos_viaje'
-			}
+        if factura.save!
+          res.add_msg('Pedido actualizado correctamente.')
+        else
+          res.add_msgs(factura.errors.to_a)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+        end
 
-			if factura.save!
-				res.add_msg('Pedido actualizado correctamente.')
-			else
-				res.add_msgs(factura.errors.to_a)
-				res.set_status(HTTP_STATUS_CODE[:conflict])
-			end
-
-			raise ActiveRecord::Rollback if !factura.errors.empty? || !res.status_valid
-		end
+        raise ActiveRecord::Rollback if !factura.errors.empty? || !res.status_valid
+      end
+    end
 
     return res
   end
+
+  def self.validar_fecha_viaje_minima(res, fecha_viaje, fecha_existente = nil)
+    fecha_minima = [Time.zone.today, fecha_existente&.to_date].compact.min
+    return true if fecha_viaje.present? && fecha_viaje.to_date >= fecha_minima
+
+    res.add_msg("La fecha del viaje no puede ser anterior al #{fecha_minima.strftime('%d/%m/%Y')}.")
+    res.set_status(HTTP_STATUS_CODE[:conflict])
+    false
+  end
+  private_class_method :validar_fecha_viaje_minima
 
   # Asigna un viaje a una factura ya realizada sin ejecutar el flujo de edición
   # de facturas ni ninguna operación relacionada con DGII.
@@ -1011,6 +1030,8 @@ class CabeceraFactura < ApplicationRecord
       return res
     end
 
+    return res unless validar_fecha_viaje_minima(res, fecha_viaje)
+
     movimientos = Array(movimientos_param).map do |movimiento|
       {
         vehiculo_id: movimiento[:vehiculo_id].presence || movimiento['vehiculo_id'].presence,
@@ -1050,8 +1071,20 @@ class CabeceraFactura < ApplicationRecord
     begin
       CabeceraFactura.transaction do
         factura.with_lock do
+          if !factura.estado || !factura.numero_comprobante.present?
+            res.add_msg('Solo se pueden convertir facturas activas y ya realizadas.')
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+            raise ActiveRecord::Rollback
+          end
+
           if factura.is_viaje || factura.movimientos_viaje.exists?
             res.add_msg('La factura ya tiene un viaje asignado.')
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+            raise ActiveRecord::Rollback
+          end
+
+          if cliente_a_asignar && factura.cliente_id.present? && factura.cliente_id.to_i != cliente_a_asignar.id.to_i
+            res.add_msg('La factura ya tiene un cliente asignado diferente.')
             res.set_status(HTTP_STATUS_CODE[:conflict])
             raise ActiveRecord::Rollback
           end
@@ -1110,6 +1143,18 @@ class CabeceraFactura < ApplicationRecord
     begin
       CabeceraFactura.transaction do
         factura.with_lock do
+          unless factura.is_viaje && factura.movimientos_viaje.exists?
+            res.add_msg('La factura no tiene un viaje asignado.')
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+            raise ActiveRecord::Rollback
+          end
+
+          if factura.fecha_completada.present? || factura.verificateFacturaHasPagos.get_data
+            res.add_msg('No se puede desasignar un viaje que ya tiene pagos o está completado.')
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+            raise ActiveRecord::Rollback
+          end
+
           movimientos = factura.movimientos_viaje.includes(:vehiculo).to_a
           movimientos.each do |movimiento|
             vehiculo = movimiento.vehiculo
@@ -1170,17 +1215,33 @@ class CabeceraFactura < ApplicationRecord
       return res
     end
 
-    fecha_minima = [Time.zone.today, factura.fecha_viaje&.to_date].compact.min
-    if fecha_viaje.to_date < fecha_minima
-      res.add_msg("La fecha del viaje no puede ser anterior al #{fecha_minima.strftime('%d/%m/%Y')}.")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
-      return res
-    end
-
     begin
-      factura.update!(fecha_viaje: fecha_viaje)
-      res.set_data(factura.reload, { all: true, movimientos_viaje: true })
-      res.add_msg('Fecha del viaje actualizada correctamente.')
+      CabeceraFactura.transaction do
+        factura.with_lock do
+          unless factura.is_viaje && factura.movimientos_viaje.exists?
+            res.add_msg('La factura no tiene un viaje asignado.')
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+            raise ActiveRecord::Rollback
+          end
+
+          if factura.fecha_completada.present? || factura.verificateFacturaHasPagos.get_data
+            res.add_msg('No se puede modificar la fecha de un viaje que ya tiene pagos o está completado.')
+            res.set_status(HTTP_STATUS_CODE[:conflict])
+            raise ActiveRecord::Rollback
+          end
+
+          unless validar_fecha_viaje_minima(res, fecha_viaje, factura.fecha_viaje)
+            raise ActiveRecord::Rollback
+          end
+
+          factura.update!(fecha_viaje: fecha_viaje)
+        end
+      end
+
+      if res.status_valid
+        res.set_data(factura.reload, { all: true, movimientos_viaje: true })
+        res.add_msg('Fecha del viaje actualizada correctamente.')
+      end
     rescue ActiveRecord::RecordInvalid => error
       res.add_msgs(error.record.errors.full_messages)
       res.set_status(HTTP_STATUS_CODE[:conflict])
@@ -1306,6 +1367,29 @@ class CabeceraFactura < ApplicationRecord
         facturas_bloqueadas = CabeceraFactura.where(id: [factura_origen.id, factura_destino.id].sort).lock.to_a.index_by(&:id)
         origen = facturas_bloqueadas.fetch(factura_origen.id)
         destino = facturas_bloqueadas.fetch(factura_destino.id)
+
+        unless origen.is_viaje && origen.movimientos_viaje.exists?
+          res.add_msg('La factura origen no tiene un viaje asignado.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          raise ActiveRecord::Rollback
+        end
+
+        if origen.fecha_completada.present? || origen.verificateFacturaHasPagos.get_data
+          res.add_msg('No se puede transferir un viaje que ya tiene pagos o está completado.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          raise ActiveRecord::Rollback
+        end
+
+        unless destino.estado && destino.numero_comprobante.present? && destino.fecha_completada.blank? && !destino.is_viaje && !destino.movimientos_viaje.exists? && destino.cliente_id.present? && !destino.verificateFacturaHasPagos.get_data
+          res.add_msg('La factura destino debe estar activa, realizada, pendiente, tener cliente y no tener un viaje asignado ni pagos.')
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          raise ActiveRecord::Rollback
+        end
+
+        unless validar_fecha_viaje_minima(res, fecha_viaje, origen.fecha_viaje)
+          raise ActiveRecord::Rollback
+        end
+
         movimientos = origen.movimientos_viaje.to_a
 
         if movimientos_nuevos
@@ -1337,6 +1421,9 @@ class CabeceraFactura < ApplicationRecord
       res.add_msg('Viaje transferido correctamente.')
     rescue ActiveRecord::RecordInvalid => error
       res.add_msgs(error.record.errors.full_messages)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    rescue KeyError
+      res.add_msg('No se pudo encontrar una de las facturas durante la transferencia.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 

@@ -85,11 +85,15 @@ class Vehiculo < ApplicationRecord
   # ==========================================================================================
 
   def ajustarCantViaje(signo)
-    res                = Response.new
-    newCant = signo == "+" ? self.cantidad_viajes + 1 : self.cantidad_viajes - 1
-    unless self.update({ cantidad_viajes: newCant})
-      res.add_msgs(self.errors.to_a)
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+    res = Response.new
+
+    with_lock do
+      cantidad_actual = cantidad_viajes.to_i
+      nueva_cantidad = signo == "+" ? cantidad_actual + 1 : [cantidad_actual - 1, 0].max
+      unless update(cantidad_viajes: nueva_cantidad)
+        res.add_msgs(errors.to_a)
+        res.set_status(HTTP_STATUS_CODE[:conflict])
+      end
     end
 
     return res
