@@ -455,11 +455,16 @@ def updateSecuencias(tipo_factura_id)
 
 # ---------------------------------------------------------------------------------------------------------
 
-def crear_actualizar_dependencias(dependencias, parametros, save)
+def crear_actualizar_dependencias(dependencias, parametros, save=false)
   dependencias.each do |dependencia|
     next unless parametros[dependencia[:key_object]].kind_of?(Array)
 
-    res_dependencia = dependencia[:modelo].validar_e_inicializar(parametros[dependencia[:key_object]], dependencia[:padre], save)
+    validar_dependencia = dependencia[:modelo].method(:validar_e_inicializar)
+    res_dependencia = if validar_dependencia.arity == 2
+      validar_dependencia.call(parametros[dependencia[:key_object]], dependencia[:padre])
+    else
+      validar_dependencia.call(parametros[dependencia[:key_object]], dependencia[:padre], save)
+    end
     return res_dependencia unless res_dependencia.status_valid
 
     yield dependencia[:key_object], res_dependencia.get_data if block_given?
