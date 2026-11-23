@@ -1,93 +1,91 @@
 class Suplidor < ApplicationRecord
+  belongs_to  :divisa
 
-  validates :nombre, presence: { :message => "El nombre del suplidor no puede estar vacio." }, uniqueness: { case_sensitive: false, :message => "Este suplidor ya esta registrado" }
+  has_many    :documentos_de_identidad,    :as => :origen,         dependent: :destroy, class_name: "DocumentoDeIdentidad"
+  has_many    :entidad_cuentas_contables,  :as => :origen_entidad, dependent: :destroy, class_name: 'EntidadCuentaContable'
 
-  has_many :documentos_de_identidad, :as => :origen, dependent: :destroy, class_name: "DocumentoDeIdentidad"
+  validates :nombre,     presence: { :message => 'Nombre del suplidor no puede estar vacío.' },      uniqueness: { scope: :estado, case_sensitive: false, :message => 'Suplidor ya está registrado.' }, :if => :estado
+  validates :direccion,  presence: { :message => 'Dirección del suplidor no puede estar vacío.' }
 
-  accepts_nested_attributes_for :documentos_de_identidad, :allow_destroy => true
+  def otras_validaciones(params, has_contabilidad)
+    if has_contabilidad
+      suplidor_configs     = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
+      usa_moneda_nacional  = self.divisa.is_principal
+      cantidad_cuentas     = !usa_moneda_nacional ? suplidor_configs.length : ( suplidor_configs.length - 1 )
 
-  validates :nombre,              presence: { :message => "Nombre del suplidor no puede estar vacio." },      uniqueness: { scope: :estado, case_sensitive: false, :message => "Suplidor ya esta registrado" }, :if => :estado
-  validates :direccion,           presence: { :message => "Dirección del suplidor no puede estar vacio." }
+      if !params.has_key?(:cuentas_contables) || params[:cuentas_contables].nil? || ( params[:cuentas_contables].length < cantidad_cuentas )
+        self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')
+      end
+    end
+  end
 
+  # =========================================================================================================================================================
   def nombre_completo
     nombre    = self.nombre.capitalize
     nombre    = nombre.gsub("  ", " ").strip
     nombre
   end
 
+  # ============================================================================================================================================
+
   def self.models_includes
-    [:documentos_de_identidad]
+    includes = [
+        :documentos_de_identidad,
+        { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
+      ]
+    return includes
   end
 
-  def self.models_includes_for(params)
-    return [:documentos_de_identidad] if params[:all] || params[:documentos_de_identidad]
+  # ============================================================================================================================================
 
-    []
-  end
+  def self.create_update_suplidor(params, is_save=false)
+    res               = Response.new
+    @has_contabilidad = system_has_contabilidad
 
-  def self.serialized_response(suplidores, params, serializer_params, msg=nil)
-    paginate_class = Paginator.new(params)
-    includes = models_includes_for(serializer_params)
-    paginate_class.paginate_data(suplidores, includes.empty? ? nil : includes)
-
-    res = {status: HTTP_STATUS_CODE[:ok], data: SuplidorSerializer.collection_to_hash(paginate_class.get_data, serializer_params), msg: msg}
-    if paginate_class.is_paginated
-      res[:total_registros] = paginate_class.get_total_registros
-      res[:total_paginas] = paginate_class.get_total_paginas
-    end
-    res
-  end
-
-  def self.filter_order_columns
-    {
-      "id" => "suplidores.id",
-      "nombre" => "suplidores.nombre",
-      "telefono" => "suplidores.telefono",
-      "direccion" => "suplidores.direccion",
-      "email" => "suplidores.email",
-      "created_at" => "suplidores.created_at",
-      "updated_at" => "suplidores.updated_at"
-    }
-  end
-
-  def self.parse_filter_order(order_by)
-    ORDER_MANAGER.parse_safe(order_by, filter_order_columns, "suplidores.id ASC")
-  end
-
-  def self.create_update_suplidor(params , is_save=false)
-    res                          = Response.new
     Suplidor.transaction do
 
-      suplidor                   = Suplidor.where(:id => params["id"]).first_or_initialize
+      suplidor                   = Suplidor.where(:id => params[:id]).first_or_initialize
 
-      suplidor.nombre            = params["nombre"]
-      suplidor.telefono          = params["telefono"]
-      suplidor.direccion         = params["direccion"]
-      suplidor.email             = params["email"]
-      suplidor.estado            = true
+      suplidor.divisa_id                       = params[:divisa_id]
+      suplidor.nombre                          = params[:nombre]
+      suplidor.telefono                        = params[:telefono]
+      suplidor.direccion                       = params[:direccion]
+      suplidor.email                           = params[:email]
+      suplidor.estado                          = true
       suplidor.valid?
 
-      if suplidor.errors.empty?
-        dependencias = [{modelo: DocumentoDeIdentidad, key_object: "documentos_de_identidad", padre: suplidor }]
+      suplidor.otras_validaciones(params, @has_contabilidad)
 
-        res = crear_actualizar_dependencias(dependencias, params, true) { |key_object, dependencia_data|
-          suplidor.documentos_de_identidad = dependencia_data if key_object == 'documentos_de_identidad'
+      if @has_contabilidad
+        cuentas_config = { view_prima: true, usa_moneda_nacional: suplidor.divisa.is_principal, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: suplidor.nombre_completo }.with_indifferent_access
+        EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true ) if suplidor.errors.empty?
+      end
+
+      if suplidor.errors.empty?
+        dependencias = [ { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: suplidor } ]
+        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }) if @has_contabilidad
+
+
+        res = crear_actualizar_dependencias(dependencias, params) { | key_object, dependencia_data |
+          suplidor.entidad_cuentas_contables  = dependencia_data if key_object == 'entidad_cuentas_contables'
+          suplidor.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
         }
 
-        if res.status_valid && suplidor.save!
-          res.set_data(suplidor, {all:true})
 
-          action = params["id"] ? 'actualizado' : 'creado'
+        if res.status_valid && suplidor.save!
+          res.set_data( serialize_parser( suplidor, { all: true } ))
+
+          action = params[:id] ? 'actualizado' : 'creado'
           res.add_msg("Suplidor #{action} correctamente.")
         end
       end
 
-      unless suplidor.errors.empty?
+      if !suplidor.errors.empty? || !res.status_valid
         res.add_msgs(suplidor.errors.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !suplidor.errors.empty? || !res.status_valid
+      transaction_rollback if !suplidor.errors.empty? || !res.status_valid
 
     end
 
@@ -97,35 +95,33 @@ class Suplidor < ApplicationRecord
   # ============================================================================================================================================
 
   def self.filtrarSuplidores(arg, params)
-    serializer_params = {all: true}
-    suplidores = Suplidor
-      .where(estado: true)
-      .joins("LEFT JOIN documentos_de_identidad ON suplidores.id = documentos_de_identidad.origen_id
-        AND documentos_de_identidad.origen_type = 'Suplidor'
-        AND documentos_de_identidad.principal = true")
-      .distinct
+    res = Response.new(params)
 
-    arg.to_s.downcase.split.each do |palabra|
-      palabra = "%#{ActiveRecord::Base.sanitize_sql_like(palabra)}%"
-      suplidores = suplidores.where(
-        "immutable_unaccent(suplidores.nombre) ILIKE immutable_unaccent(:palabra)
-          OR immutable_unaccent(suplidores.direccion) ILIKE immutable_unaccent(:palabra)
-          OR immutable_unaccent(suplidores.email) ILIKE immutable_unaccent(:palabra)
-          OR immutable_unaccent(documentos_de_identidad.documento) ILIKE immutable_unaccent(:palabra)",
-        palabra: palabra
-      )
+    suplidores = Suplidor
+    .joins("left join documentos_de_identidad on suplidores.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Suplidor' AND documentos_de_identidad.principal = true")
+    .where("lower(suplidores.nombre || ' ' || suplidores.direccion || ' ' || coalesce(suplidores.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND suplidores.estado = true")
+    .order('suplidores.id ASC').to_a
+
+    if suplidores.length > 0
+      res.set_data(suplidores, {all: true})
+    else
+      res.set_data([])
+      cantidad_registros = Suplidor.where({estado: true}).count
+      res.add_msg(cantidad_registros == 0 ? 'No existen suplidores registrados.' : 'No existe suplidor con las especificaciones introducidas')
+      res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
-    suplidores = suplidores.order(Arel.sql(parse_filter_order(params["order_by"])))
-
-    return Response.new(params, HTTP_STATUS_CODE[:ok], suplidores, [], serializer_params, Suplidor.models_includes_for(serializer_params)) if suplidores.exists?
-
-    res = Response.new(params)
-    res.set_data([])
-    cantidad_registros = Suplidor.where(estado: true).count
-    res.add_msg(cantidad_registros == 0 ? "No existen suplidores registrados." : "No existe suplidor con las especificaciones introducidas")
-    res.set_status(HTTP_STATUS_CODE[:conflict])
-    res
+    return res
   end
+
+    # =========================================================================================================================================================
+		def get_balances_and_facturas(params, paginate_options)
+			res               = Response.new()
+			suplidor_en_turno = self
+			query             = "cabecera_facturas.can_pagar AND cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND cabecera_facturas.tipo = 'compra' AND cabecera_facturas.estado = true  AND cabecera_facturas.suplidor_id = #{suplidor_en_turno.id}"
+			res               = Balances.get_balances_and_facturas(params, paginate_options, query, 'pago_factura_detalles')
+			return res
+		end
+		# =========================================================================================================================================================
 
 end

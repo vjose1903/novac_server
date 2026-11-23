@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  resources :entidad_cuentas_contables
+  resources :categorias_entidades_contables
+  resources :sub_tipo_articulos
+  resources :cuentas_bancarias
 
   get "up" => "health#show"
   get "up/dgii" => "health#dgii"
@@ -27,7 +31,6 @@ Rails.application.routes.draw do
   resources :mantenimiento_formulas
   resources :formulas_productos_terminados
   resources :mantenimiento_articulos
-  resources :detalle_facturas
   resources :tipo_facturas
   resources :imagenes
   get "img/:file_name" => "imagenes#file", constraints: { file_name: /[^\/]+/ }, format: false
@@ -35,8 +38,11 @@ Rails.application.routes.draw do
   resources :tipo_articulos
   resources :secuencia_facturas
   resources :acciones
-  resources :detalles_facturas_notas
   resources :config_articulos
+  resources :grupos_de_cuentas
+  resources :nombre_bancos
+  resources :configuraciones_entidades_cuentas
+  resources :tipo_cuentas_bancarias
   resources :configuracion_cuadres, only: [:show, :update]
 
 
@@ -118,8 +124,11 @@ Rails.application.routes.draw do
       get "check_excede/:id"                           => "articulos#checkIfExcede" #
       get "filtro/:arg"                                => "articulos#getArticulosFiltrados" #
       get "historico/:date/:articulo_id"               => "mantenimiento_articulos#getOneArticuloByDate" #
-      get "custom/stock"                               => "articulos#getStock"
-      get "custom/get_actual_price_detalles"           => "articulos#getActualPriceDetalles"
+
+      scope "custom" do
+        get "stock"                               => "articulos#getStock"
+        get "get_actual_price_detalles"           => "articulos#getActualPriceDetalles"
+      end
     end
   end
 
@@ -129,6 +138,13 @@ Rails.application.routes.draw do
       get "revertir/:tipo/:id"                         => "recibos_ingresos#revertirRecibos"
     end
   end
+
+	resources :pago_facturas do
+		collection do
+			get "filtro/:arg"                                => "pago_facturas#getPagosFiltrados"
+      get "revertir/:tipo/:id"                         => "pago_facturas#revertirPagos"
+		end
+	end
 
   resources :cabecera_conduces do
     collection do
@@ -140,19 +156,28 @@ Rails.application.routes.draw do
   resources :suplidores do
     collection do
       get "filtro/:arg"                                => "suplidores#getSuplidoresFiltrados"
+
+			scope "custom" do
+				get "get_balances/:id"                         => "suplidores#getBalances"
+			end
     end
   end
 
   resources :clientes do
     collection do
       get "filtro/:arg"                                => "clientes#getClientesFiltrados"
-      get "custom/get_balances/:id"                    => "clientes#getBalances"
+
+      scope "custom" do
+        get "get_balances/:id"                         => "clientes#getBalances"
+      end
     end
   end
 
   resources :facturas_aplicadas do
     collection do
-      get "custom/get_cantidad_devuelto/:ids"          => "facturas_aplicadas#getCantidadDevuelto"
+      scope "custom" do
+        get "get_cantidad_devuelto/:ids"          => "facturas_aplicadas#getCantidadDevuelto"
+      end
     end
   end
 
@@ -170,8 +195,6 @@ Rails.application.routes.draw do
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
-      patch "custom/update/:id"                                   => "cabecera_facturas#update"
-      get "custom/:ruta_complemento"                              => "cabecera_facturas#custom_route"
       patch ":id/update/movimientos_viaje"                        => "cabecera_facturas#updateMovimientosViaje"
       patch ":id/convertir_viaje"                                 => "cabecera_facturas#convertir_a_viaje"
       patch ":id/desasignar_viaje"                                => "cabecera_facturas#desasignar_viaje"
@@ -183,10 +206,15 @@ Rails.application.routes.draw do
 
   resources :secuencia_comprobantes do
     collection do
-      get "custom/:id/:estado"  => "secuencia_comprobantes#getPaqueteRncByEstado"
-      get "filtro/:arg"         => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
+      get "filtro/:arg"                   => "secuencia_comprobantes#getSecuenciaComprobantesFiltrados"
+
+      scope "custom" do
+        get ":id/:estado"                 => "secuencia_comprobantes#getPaqueteRncByEstado"
+      end
     end
   end
+
+  resources :secuencia_documentos, only: [:index, :show, :update]
 
 
   # -------------------------------------------------------------------------------------------------------------------------------
@@ -215,7 +243,24 @@ Rails.application.routes.draw do
 
   resources :permisos do
     collection do
-      get "custom/parse_permisos_front"  => "permisos#parsePermisosFront"
+      scope "custom" do
+        get "parse_permisos_front"        => "permisos#parsePermisosFront"
+      end
+    end
+  end
+
+  resources :periodos_fiscales do
+    collection do
+      scope "custom" do
+        post "open_new_periodo" => "periodos_fiscales#openNewPeriodo"
+        get "is_open_month" => "periodos_fiscales#isOpenMonth"
+      end
+    end
+  end
+
+  resources :catalogo_de_cuentas do
+    collection do
+      post "create_default" => "catalogo_de_cuentas#createCatalogoDeCuentasDefault"
     end
   end
 
@@ -232,11 +277,50 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :cabezas_asientos_contables do
+    collection do
+      get "filtro/:arg" => "cabezas_asientos_contables#getAsientosFiltrados"
+    end
+  end
+
+  resources :bancos do
+    collection do
+      get "filtro/:arg" => "bancos#getBancosFiltrados"
+    end
+  end
+
+  resources :depositos do
+    collection do
+      get "filtro/:arg" => "depositos#getDepositosFiltrados"
+      delete "anular/:id" => "depositos#anularDeposito"
+    end
+  end
+
+  resources :transferencias do
+    collection do
+      get "filtro/:arg" => "transferencias#getTransferenciasFiltradas"
+      delete "anular/:id" => "transferencias#anularTransferencia"
+    end
+  end
+
+  resources :cheques do
+    collection do
+      get "filtro/:arg" => "cheques#getChequesFiltrados"
+      delete "anular/:id" => "cheques#anularCheque"
+    end
+  end
+
+  resources :cuentas_contables do
+    collection do
+      patch ":id/deactivate_or_reactivate" => "cuentas_contables#deactivateOrReactivate"
+    end
+  end
+
   mount_devise_token_auth_for "User", at: "auth", controllers: {
-                                        sessions: "devise_token_auth/sessions",
-                                        registrations: "devise_token_auth/registrations",
-                                        token_validations: "devise_token_auth/token_validations",
-                                      }
+    sessions: "devise_token_auth/sessions",
+    registrations: "devise_token_auth/registrations",
+    token_validations: "devise_token_auth/token_validations",
+  }
 
   post 'firebase/logos', to: 'firebase_logos#create'
   post 'firebase/logos/prelogin', to: 'firebase_logos#create_prelogin'

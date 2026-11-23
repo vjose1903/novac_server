@@ -1,5 +1,5 @@
 class NotasController < ApplicationController
-  before_action :set_nota, only: [:show, :update, :destroy]
+  before_action :set_nota, only: [:show, :destroy]
 
   # GET /notas
 	def index
@@ -12,9 +12,7 @@ class NotasController < ApplicationController
 	end
 
 	def getNotasFiltradas
-
-
-    resultado = Nota.filtrarNota(params, set_paginate_options(params))
+    resultado = Nota.filtrarNota(params, parse_pagination_params(params))
     resultado.send_response self
   end
 

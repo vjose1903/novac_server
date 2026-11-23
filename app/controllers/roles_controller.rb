@@ -14,7 +14,7 @@ class RolesController < ApplicationController
   def getRolesFiltrados
     arg = params["arg"]
 
-    resultado = Role.filtrarRole(arg, set_paginate_options(params))
+    resultado = Role.filtrarRole(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

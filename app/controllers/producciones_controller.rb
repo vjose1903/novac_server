@@ -1,11 +1,11 @@
 class ProduccionesController < ApplicationController
-  before_action :set_produccion, only: [:show, :update, :destroy]
+  before_action :set_produccion, only: [:show, :destroy]
 
   # GET /producciones
   def index
     return Response.new(params, nil, Produccion.all.includes(:detalles_produccion, :user), nil, {all: true}).send_response self
   end
-  
+
   # GET /producciones/1
   def show
     return Response.new(params, nil, @produccion, nil, {all: true}).send_response self
@@ -13,7 +13,7 @@ class ProduccionesController < ApplicationController
 
   def getProduccionesFiltradas
     arg = params["arg"]
-    resultado = Produccion.filtrarProduccion(arg, set_paginate_options(params))
+    resultado = Produccion.filtrarProduccion(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 
@@ -48,7 +48,7 @@ class ProduccionesController < ApplicationController
   def set_produccion
     respuesta   = set_entidad(Produccion, params)
     @produccion = respuesta.get_data
-      
+
     return respuesta.send_response self if @produccion.nil?
   end
 end

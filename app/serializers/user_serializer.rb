@@ -12,6 +12,7 @@ class UserSerializer < ActiveModel::Serializer
     data = serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) }, readers: readers)
     data[:roles] = roles_to_hash(object) if params[:roles]
     data[:permisos] = object.get_permisos.as_json(only: [:permiso_accion_id, :permiso]) if params[:permisos]
+    data[:cuentas_contables] = serialize_parser(object.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true }) if show_serialized_field?(params, :cuentas_contables)
     data[:nombre_completo] = object.nombre_completo
 
     data
@@ -35,7 +36,8 @@ class UserSerializer < ActiveModel::Serializer
       :role,
       :imagen,
       :sign_in_count,
-      :documentos_de_identidad
+      :documentos_de_identidad,
+      :cuentas_contables
     ]
   end
 

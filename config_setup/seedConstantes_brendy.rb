@@ -13,7 +13,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
   {
     'nombre': 'Administrador',
@@ -28,7 +27,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
 	{
     'nombre': 'Novac',
@@ -43,14 +41,12 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
 ]
 
 
 G_clientes = [
   {
-    'imagen_id': nil,
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',
@@ -102,12 +98,12 @@ G_tipos_articulo = [
 ]
 
 
-ACCIONES_COMUNES = [
-	{nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create'},
-	{nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'},
-	{nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'},
-	{nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'},
-]
+CREATE_ACTION   = { nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create' }
+READ_ALL_ACTION = { nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'}
+READ_ONE_ACTION = { nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'}
+UPDATE_ACTION   = { nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'}
+
+ACCIONES_COMUNES = [ CREATE_ACTION, READ_ALL_ACTION, READ_ONE_ACTION, UPDATE_ACTION ]
 
 ACCION_DESTROY = [{ nombre:'eliminar', mostrar_front: true, descripcion: 'destroy', metodo: 'destroy'}]
 

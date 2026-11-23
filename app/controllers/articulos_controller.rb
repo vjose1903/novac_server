@@ -1,5 +1,5 @@
 class ArticulosController < ApplicationController
-  before_action :set_articulo, only: [:show, :update, :destroy, :checkIfExcede]
+  before_action :set_articulo, only: [:show, :destroy, :checkIfExcede]
 
   # GET /articulos
   def index
@@ -21,14 +21,12 @@ class ArticulosController < ApplicationController
   end
 
   def crear_actualizar_articulo
-		parametros = params
-		parametros["id"] = params["id"] if params["id"]
-    resultado = Articulo.create_update_articulo(parametros, @articulo, true)
-		resultado.send_response self
-	end
+    resultado = Articulo.create_update_articulo(params, @articulo, true)
+    resultado.send_response self
+  end
 
   def getArticulosFiltrados
-    resultado = Articulo.filtrarArticulo(params)
+    resultado = Articulo.filtrarArticulo(params, get_parametros_opcionales)
     resultado.send_response self
   end
 
@@ -45,7 +43,7 @@ class ArticulosController < ApplicationController
 
   def checkIfExcede
     excede = @articulo.existencia.to_f < params["cantidad"].to_f
-		excede = false if @articulo.tipo_articulo.tipo == TipoArticuloType.servicio
+    excede = false if @articulo.tipo_articulo.tipo == TipoArticuloType.servicio
     return Response.new(params, nil, excede, nil, nil).send_response self
   end
 
@@ -85,6 +83,8 @@ class ArticulosController < ApplicationController
       calcular_saco:                  validate_optional_param(params, 'calcular_saco') ?                 params['calcular_saco'].to_boolean :                 false,
       costos:                         validate_optional_param(params, 'costos') ?                        params['costos'].to_boolean :                        false,
       tipo_articulo:                  validate_optional_param(params, 'tipo_articulo') ?                 params['tipo_articulo'].to_boolean :                 false,
+      sub_tipo_articulo:              validate_optional_param(params, 'sub_tipo_articulo') ?             params['sub_tipo_articulo'].to_boolean :             false,
+      cuentas_contables:              validate_optional_param(params, 'cuentas_contables') ?             params['cuentas_contables'].to_boolean :             false,
     }
   end
 

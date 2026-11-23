@@ -40,11 +40,11 @@ class DetalleRecibo < ApplicationRecord
       end
 
     else
-      res.add_msgs(res_valid.get_msgs)
+      res.add_msgs(res_valid.get_msgs.to_a)
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
     return res
-    raise ActiveRecord::Rollback if !detalle_recibo.errors.empty? || !res.status_valid
+    transaction_rollback if !detalle_recibo.errors.empty? || !res.status_valid
   end
 
   #  --------------------------------------------------------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ class DetalleRecibo < ApplicationRecord
 
   #  --------------------------------------------------------------------------------------------------------------------------------
 
-  def self.validar_e_inicializar(items, padre, save)
+  def self.validar_e_inicializar(items, padre)
     res_valid       = Response.new
     object_valid    = {:detalles => [], :devoluciones => []}
 

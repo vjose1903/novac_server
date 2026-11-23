@@ -15,8 +15,8 @@ class VehiculosController < ApplicationController
 
 
   def getVehiculosFiltrados
-    arg = params["arg"]
-    resultado = Vehiculo.filtrarVehiculo(arg, set_paginate_options(params), get_parametros_opcionales)
+    arg = params[:arg]
+    resultado = Vehiculo.filtrarVehiculo(arg, parse_pagination_params(params), get_parametros_opcionales)
     resultado.send_response self
   end
 

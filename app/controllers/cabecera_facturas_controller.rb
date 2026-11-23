@@ -75,7 +75,7 @@ class CabeceraFacturasController < ApplicationController
   end
 
   def getFacturasByClienteIdAndEstado
-    resultado = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params, set_paginate_options(params))
+    resultado = CabeceraFactura.get_facturas_by_cliente_id_and_estado(params, parse_pagination_params(params))
     resultado.send_response self
   end
 

@@ -30,7 +30,7 @@ class CabeceraConduce < ApplicationRecord
 
       conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_initialize
 
-      conduce.numero_conduce       = SecuenciaFactura.find_secuencia(15)
+      conduce.numero_conduce       = SecuenciaFactura.find_secuencia(@tipo_factura_id)
       conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       conduce.cliente_id           = params["cliente_id"]
       conduce.user_id              = get_current_user[:id]
@@ -42,13 +42,13 @@ class CabeceraConduce < ApplicationRecord
         {modelo: DetalleConduce, key_object: "detalle_conduces", padre: conduce},
       ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
         conduce.detalle_conduces   = dependencia_data if key_object == 'detalle_conduces'
       }
 
       if res.status_valid && conduce.errors.empty? && (!is_save || (is_save && conduce.save!))
 
-        res                        = updateSecuencias(15)
+        result                     = updateSecuencias(@tipo_factura_id)
 
         if res.status_valid
           res.set_data(conduce, {all: true})
@@ -56,16 +56,16 @@ class CabeceraConduce < ApplicationRecord
           res.add_msg("Conduce #{action} correctamente.")
 
         else
-          res.add_msgs(res.get_msgs)
-          res.set_status(HTTP_STATUS_CODE[:conflict])
+          res.add_msgs(result.get_msgs.to_a)
+          res.set_status(HTTP_STATUS.conflict)
         end
 
       else
         res.add_msgs(conduce.errors.to_a)
-        res.set_status(HTTP_STATUS_CODE[:conflict])
+        res.set_status(HTTP_STATUS.conflict)
       end
 
-      raise ActiveRecord::Rollback if !conduce.errors.empty? || !res.status_valid
+      transaction_rollback if !conduce.errors.empty? || !res.status_valid
     end
     return res
   end
@@ -84,7 +84,7 @@ class CabeceraConduce < ApplicationRecord
 		else
 			cantidad_registros = CabeceraConduce.where({estado: true}).count
 			res.add_msg(cantidad_registros == 0 ? "No existen conduces de mercancías registrados." : "No existen conduces con las especificaciones introducidas.")
-			res.set_status(HTTP_STATUS_CODE[:conflict])
+			res.set_status(HTTP_STATUS.conflict)
 		end
 
 		return res
@@ -105,14 +105,14 @@ class CabeceraConduce < ApplicationRecord
 					res.add_msg(msg)
 				else
 					res.add_msgs(conduce_a_anular.errors.to_a)
-					res.set_status(HTTP_STATUS_CODE[:conflict])
+					res.set_status(HTTP_STATUS.conflict)
 				end
 			else
-				res.add_msgs(res_valid.get_msgs)
-				res.set_status(HTTP_STATUS_CODE[:conflict])
+				res.add_msgs(res_valid.get_msgs.to_a)
+				res.set_status(HTTP_STATUS.conflict)
 			end
 
-			raise ActiveRecord::Rollback unless res.status_valid
+			transaction_rollback unless res.status_valid
 		end
 
 		return res

@@ -1,7 +1,7 @@
 class CostoFlete < ApplicationRecord
   belongs_to :municipio
 
-  validates :municipio, presence: { :message => "Debe seleccionar una provincia." }, uniqueness: { case_sensitive: false, :message => "Esta ciudad ya esta registrada." }
+  validates :municipio, presence: { :message => "Debe seleccionar una provincia." }, uniqueness: { case_sensitive: false, :message => "Esta ciudad ya está registrada." }
   validates :costo, presence: { :message => "Debe de especificar un costo." }, numericality: { greater_than: 0, :message => "El costo del flete debe de ser mayor a 0." }
 
   def self.crear_actualizar_costo(params, current_user, is_save=false)
@@ -33,7 +33,7 @@ class CostoFlete < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !costo_flete.errors.empty? || !res.status_valid
+      transaction_rollback if !costo_flete.errors.empty? || !res.status_valid
     end
 
     return res

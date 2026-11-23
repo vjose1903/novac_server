@@ -13,7 +13,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
   {
     'nombre': 'José',
@@ -28,7 +27,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
   {
     'nombre': 'Novac',
@@ -43,14 +41,12 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
 ]
 
 
 G_clientes = [
   {
-    'imagen_id': nil,
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',
@@ -96,19 +92,28 @@ G_documentos_de_identidad = [
 
 G_tipos_articulo = [
   { 'descripcion': 'Materiales de Oficina', 'tipo': 'venta_normal', 'codigo': 'materiales_de_oficina' },
-  { 'descripcion': 'Servicios legales', 'tipo': 'servicio', 'codigo': 'servicios_legales' },
-  { 'descripcion': 'Servicios contables', 'tipo': 'servicio', 'codigo': 'servicios_contables' },
+  { 'descripcion': 'Servicios legales',     'tipo': 'servicio',     'codigo': 'servicios_legales' },
+  { 'descripcion': 'Servicios contables',   'tipo': 'servicio',     'codigo': 'servicios_contables' },
 ]
 
 
-ACCIONES_COMUNES = [
-  {nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create'},
-  {nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'},
-  {nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'},
-  {nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'},
-]
+CREATE_ACTION   = { nombre:'crear',       mostrar_front: true, descripcion: 'create',    metodo: 'create' }
+READ_ALL_ACTION = { nombre:'ver todos',   mostrar_front: true, descripcion: 'read_all',  metodo: 'index'}
+READ_ONE_ACTION = { nombre:'buscar uno',  mostrar_front: true, descripcion: 'read_one',  metodo: 'show'}
+UPDATE_ACTION   = { nombre:'editar',      mostrar_front: true, descripcion: 'update',    metodo: 'update'}
+
+ACCIONES_COMUNES = [ CREATE_ACTION, READ_ALL_ACTION, READ_ONE_ACTION, UPDATE_ACTION ]
 
 ACCION_DESTROY = [{ nombre:'eliminar', mostrar_front: true, descripcion: 'destroy', metodo: 'destroy'}]
+
+CREATE_ACTION_CONTABILIDAD   = { nombre:'crear',       mostrar_front: false, descripcion: 'create',    metodo: 'create' }
+READ_ALL_ACTION_CONTABILIDAD  = { nombre:'ver todos',   mostrar_front: false, descripcion: 'read_all',  metodo: 'index'}
+READ_ONE_ACTION_CONTABILIDAD  = { nombre:'buscar uno',  mostrar_front: false, descripcion: 'read_one',  metodo: 'show'}
+UPDATE_ACTION_CONTABILIDAD    = { nombre:'editar',      mostrar_front: false, descripcion: 'update',    metodo: 'update'}
+
+ACCIONES_COMUNES_CONTABILIDAD = [ CREATE_ACTION_CONTABILIDAD, READ_ALL_ACTION_CONTABILIDAD, READ_ONE_ACTION_CONTABILIDAD, UPDATE_ACTION_CONTABILIDAD ]
+
+ACCION_DESTROY_CONTABILIDAD = [{ nombre:'eliminar', mostrar_front: false, descripcion: 'destroy', metodo: 'destroy'}]
 
 
 G_PERMISOS = [

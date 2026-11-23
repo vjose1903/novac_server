@@ -26,7 +26,7 @@ class HistoricoProduccionsController < ApplicationController
           mov = (articulo["existencia"] - ingrediente["cantidad"])
           unless articulo.update({ existencia: mov })
             render json: articulo.errors, status: :unprocessable_entity
-            raise ActiveRecord::Rollback
+            transaction_rollback
           end
         end
 
@@ -34,13 +34,13 @@ class HistoricoProduccionsController < ApplicationController
         movProd = (productoTerminado["existencia"] + params["cantidad"])
         unless productoTerminado.update({ existencia: movProd })
           render json: productoTerminado.errors, status: :unprocessable_entity
-          raise ActiveRecord::Rollback
+          transaction_rollback
         end
 
         render json: @historico_produccion, status: :created, location: @historico_produccion
       else
         render json: @historico_produccion.errors, status: :unprocessable_entity
-        raise ActiveRecord::Rollback
+        transaction_rollback
       end
     end
   end

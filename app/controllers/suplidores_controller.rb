@@ -1,5 +1,5 @@
 class SuplidoresController < ApplicationController
-  before_action :set_suplidor, only: [:show, :destroy]
+  before_action :set_suplidor, only: [:show, :destroy, :getBalances]
 
   # GET /suplidores
   def index    
@@ -22,12 +22,14 @@ class SuplidoresController < ApplicationController
   end
 
   def crear_actualizar_suplidor
-		parametros = params
-		parametros["id"] = params["id"] if params["id"]
+    resultado = Suplidor.create_update_suplidor(params, true)
+    resultado.send_response self
+  end
 
-    resultado = Suplidor.create_update_suplidor(parametros, true)
-		resultado.send_response self
-	end
+  def getBalances
+    resultado = @suplidor.get_balances_and_facturas(params, parse_pagination_params(params))
+    resultado.send_response self
+  end
 
   # POST /suplidores
   def create
@@ -49,11 +51,11 @@ class SuplidoresController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_suplidor
-    
-    params[:id] = params[:suplidor_id] if params[:suplidor_id] 
+
+    params[:id] = params[:suplidor_id] if params[:suplidor_id]
     respuesta = set_entidad(Suplidor, params)
     @suplidor = respuesta.get_data
-    
+
     return respuesta.send_response self if @suplidor.nil?
   end
 

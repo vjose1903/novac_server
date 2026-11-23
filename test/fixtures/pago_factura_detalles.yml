@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  pago_factura: one
+  cabecera_factura: one
+  balance_anterior_factura: 1.5
+  balance_factura: 1.5
+  deposito: 1.5
+  is_ultimo: false
+  descripcion: MyString
+  pago_a_tiempo: false
+
+two:
+  pago_factura: two
+  cabecera_factura: two
+  balance_anterior_factura: 1.5
+  balance_factura: 1.5
+  deposito: 1.5
+  is_ultimo: false
+  descripcion: MyString
+  pago_a_tiempo: false

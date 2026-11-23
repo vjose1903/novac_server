@@ -7,6 +7,7 @@ class CabeceraFactura < ApplicationRecord
 
   has_many :detalle_facturas, dependent: :destroy
   has_many :detalle_recibos,  dependent: :destroy
+  has_many :pago_factura_detalles, dependent: :destroy
   has_many :metodos_de_pago, as: :metodo_de_pago_able, class_name: 'MetodoDePago', dependent: :destroy
   has_many :facturas_aplicadas
 
@@ -62,6 +63,7 @@ class CabeceraFactura < ApplicationRecord
         {user: user_includes},
         {detalle_facturas: {articulo: [:tipo_articulo, :contenido_articulos]}},
         {detalle_recibos: {recibos_ingreso: :user}},
+        {pago_factura_detalles: {pago_factura: :user}},
         :metodos_de_pago,
         {movimientos_viaje: [{user: :documentos_de_identidad}, {vehiculo: :user}]},
         {facturas_aplicadas: [:nota, {detalles_facturas_notas:[:articulo]}]},
@@ -79,6 +81,7 @@ class CabeceraFactura < ApplicationRecord
       :vendedor,
       { detalle_facturas: { articulo: [:tipo_articulo, :contenido_articulos] } },
       { detalle_recibos: { recibos_ingreso: :user } },
+      { pago_factura_detalles: { pago_factura: :user } },
       :metodos_de_pago,
       { facturas_aplicadas: [:nota, { detalles_facturas_notas: :articulo }] },
       { suplidor: :documentos_de_identidad },
@@ -249,6 +252,7 @@ class CabeceraFactura < ApplicationRecord
     cabecera_factura.cotizacion               = params[:cotizacion]
     cabecera_factura.serie                    = params[:serie]
     cabecera_factura.is_external              = params[:is_external] if params.key?(:is_external)
+    cabecera_factura.can_pagar                = params[:can_pagar] if params.key?(:can_pagar)
 
     cabecera_factura.otras_validaciones(params, @tipo_de_factura)
     cabecera_factura
@@ -466,11 +470,11 @@ class CabeceraFactura < ApplicationRecord
     end
 
     unless self.pre_factura.nil?
-      res = CabeceraFactura.payFactura(self.pre_factura, {"deposito" => self.total_factura}, true)
+      res = CabeceraFactura.payFactura(self.pre_factura, {'deposito' => self.total_factura}, true)
     end
 
     unless self.cotizacion.nil?
-      res = CabeceraFactura.payFactura(self.cotizacion, {"deposito" => self.total_factura}, true)
+      res = CabeceraFactura.payFactura(self.cotizacion, {'deposito' => self.total_factura}, true)
     end
 
     return res
@@ -556,7 +560,7 @@ class CabeceraFactura < ApplicationRecord
     res                  = Response.new(paginate_options)
 
     campoNum           = params[:campo]
-    valor_des          = params[:valor].present? ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
+    valor_des          = params.has_key?(:valor) ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
     tipo_factura_id    = params[:tipo_factura_id]
     is_adelantada      = params[:is_adelantada] != '0' ? params[:is_adelantada].to_boolean : false
     tipo               = params[:tipo] ? params[:tipo] : 'venta'
@@ -824,7 +828,7 @@ class CabeceraFactura < ApplicationRecord
       res.set_data({canUpdate: true}) unless msg_.nil?
       res.add_msg(msg_) unless msg_.nil?
     else
-      res.add_msg('No se encuentra la factura a editar, contactar a Victor José Vásquez.')
+      res.add_msg('No se encuentra la factura a editar, Por favor comunicarse con el soporte de Novac System.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -862,6 +866,7 @@ class CabeceraFactura < ApplicationRecord
           factura_original.descuento       = factura_nueva['descuento']
           factura_original.Bruto           = factura_nueva['Bruto']
           factura_original.pagada          = factura_nueva['pagada']
+          factura_original.can_pagar       = factura_nueva['can_pagar'] if factura_nueva.key?('can_pagar') || factura_nueva.key?(:can_pagar)
           factura_original.balance         = factura_nueva['balance']
           factura_original.devuelta        = factura_nueva['devuelta']
           pagos = nil
@@ -899,7 +904,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !factura_original.errors.empty? || !res.status_valid
+      transaction_rollback if !factura_original.errors.empty? || !res.status_valid
     end
 
     return res
@@ -1535,7 +1540,7 @@ class CabeceraFactura < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !factura_a_pagar.errors.empty? || !res.status_valid
+      transaction_rollback if !factura_a_pagar.errors.empty? || !res.status_valid
     end
 
     return res
@@ -1554,7 +1559,7 @@ class CabeceraFactura < ApplicationRecord
     documentos.each do | documento |
       success_deleted   = true
 
-      if documento.tipo != TiposFacturasDescripcion.cotizacion && documento.tipo != TiposFacturasDescripcion.compra.downcase && documento.condicion == "Crédito" || documento.is_viaje
+      if documento.tipo != TiposFacturasDescripcion.cotizacion && documento.tipo != TiposFacturasDescripcion.compra.downcase && documento.condicion == 'Crédito' || documento.is_viaje
         res_valid       = Cliente.calculate_balance_cliente(documento.cliente_id, documento.total_factura, "-")
       end
 

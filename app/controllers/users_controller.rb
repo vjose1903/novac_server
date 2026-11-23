@@ -21,7 +21,7 @@ class UsersController < ApplicationController
 
   def getUsuariosFiltrados
     arg = params["arg"]
-    resultado = User.filtrarUsusarios(arg, set_paginate_options(params))
+    resultado = User.filtrarUsusarios(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 
@@ -58,8 +58,9 @@ class UsersController < ApplicationController
       email:                   validate_optional_param(params, 'email') ?                   params['email'].to_boolean :                   false,
       fecha_nacimiento:        validate_optional_param(params, 'fecha_nacimiento') ?        params['fecha_nacimiento'].to_boolean :        false,
       role:                    validate_optional_param(params, 'role') ?                    params['role'].to_boolean :                    false,
-      imagen:                  validate_optional_param(params, 'imagen') ?                  params['imagen'].to_boolean :                  false,
+      imagenes:                validate_optional_param(params, 'imagenes') ?                params['imagenes'].to_boolean :                false,
       documentos_de_identidad: validate_optional_param(params, 'documentos_de_identidad') ? params['documentos_de_identidad'].to_boolean : false,
+      cuentas_contables:       validate_optional_param(params, 'cuentas_contables') ?       params['cuentas_contables'].to_boolean :       false,
     }
   end
 

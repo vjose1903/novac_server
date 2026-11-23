@@ -6,9 +6,9 @@ class RecibosIngreso < ApplicationRecord
   has_many :detalle_recibos, dependent: :destroy
   has_many :metodos_de_pago, as: :metodo_de_pago_able, class_name: 'MetodoDePago', dependent: :destroy
 
-  has_many :incidencias, :as => :origen, dependent: :destroy, class_name: "Incidencia"
+  has_many :incidencias, :as => :origen, dependent: :destroy, class_name: 'Incidencia'
 
-  validates :total,    presence: { :message => "El recibo no esta completado." }, numericality: { greater_than: 0, :message => "El total del recibo debe de ser mayor a 0." }
+  validates :total,    presence: { :message => 'El recibo no esta completado.' }, numericality: { greater_than: 0, :message => 'El total del recibo debe de ser mayor a 0.' }
 
   # =========================================================================================================================================================
 
@@ -38,7 +38,7 @@ class RecibosIngreso < ApplicationRecord
 
       recibo.user_id               = get_current_user[:id]
       recibo.fecha_equivalente     = fecha_equivalente
-      recibo.numero_recibo         = SecuenciaFactura.find_secuencia(17)
+      recibo.numero_recibo         = SecuenciaFactura.find_secuencia(@tipo_factura_id)
       recibo.cliente_id            = params[:cliente_id]
       begin
         pagos                       = MetodoDePago.normalizar(params[:metodos_de_pago], params[:total], params[:forma_pago])
@@ -49,15 +49,16 @@ class RecibosIngreso < ApplicationRecord
       end
       recibo.forma_pago            = MetodoDePago.resumen(pagos)
       recibo.tipo_factura_id       = params[:tipo_factura_id]
-      recibo.estado                = params[:estado]
-
       recibo.devuelta              = params[:devuelta]
       recibo.bruto                 = params[:bruto]
       recibo.mora                  = params[:mora]
       recibo.total                 = params[:total]
+      recibo.devuelta              = params[:devuelta]
       recibo.balance_cliente       = params[:balance_cliente]
+      recibo.estado                = params.has_key?(:estado) ? params[:estado] : true
 
 			recibo.valid?
+      recibo.errors.delete(:total)
 
       dependencias = [
         {modelo: DetalleRecibo,  key_object: 'detalle_recibos',  padre: recibo},
@@ -66,7 +67,7 @@ class RecibosIngreso < ApplicationRecord
 
       devoluciones = []
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
         recibo.detalle_recibos   = dependencia_data[:detalles]      if key_object == 'detalle_recibos'
         devoluciones             = dependencia_data[:devoluciones]  if key_object == 'detalle_recibos'
         recibo.incidencias       = dependencia_data                 if key_object == 'incidencias'
@@ -87,7 +88,7 @@ class RecibosIngreso < ApplicationRecord
             res.add_msg("Recibo #{action} correctamente.")
 
           else
-            res.add_msgs(res_valid.get_msgs)
+            res.add_msgs(result.get_msgs.to_a)
             res.set_status(HTTP_STATUS_CODE[:conflict])
           end
 
@@ -97,7 +98,7 @@ class RecibosIngreso < ApplicationRecord
         end
       end
 
-      raise ActiveRecord::Rollback if !recibo.errors.empty? || !res.status_valid
+      transaction_rollback if !recibo.errors.empty? || !res.status_valid
     end
 
     return res
@@ -108,18 +109,18 @@ class RecibosIngreso < ApplicationRecord
     res = Response.new(params)
 
     recibos = RecibosIngreso
-    .joins("inner join detalle_recibos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id")
-    .joins("inner join cabecera_facturas on cabecera_facturas.id = detalle_recibos.cabecera_factura_id")
-    .joins("inner join clientes on clientes.id = recibos_ingresos.cliente_id")
+    .joins('inner join detalle_recibos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id')
+    .joins('inner join cabecera_facturas on cabecera_facturas.id = detalle_recibos.cabecera_factura_id')
+    .joins('inner join clientes on clientes.id = recibos_ingresos.cliente_id')
     .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
-    .group("recibos_ingresos.id")
-    .order("recibos_ingresos.id DESC")
+    .group('recibos_ingresos.id')
+    .order('recibos_ingresos.id DESC')
 
     if recibos.length > 0
       res.set_data(recibos, {all: true}, RecibosIngreso.models_includes)
     else
       cantidad_registros = RecibosIngreso.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? "No existen recibos de ingresos registrados." : "No existen recibos con las especificaciones introducidas")
+      res.add_msg(cantidad_registros == 0 ? 'No existen recibos de ingresos registrados.' : 'No existen recibos con las especificaciones introducidas')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -132,31 +133,31 @@ class RecibosIngreso < ApplicationRecord
     res                 = Response.new
     last_cuadre         = CuadreCaja.all.last
 
-    last_recibo         = DetalleRecibo.get_last_recibo_by_cabecera_factura(params["id"])
-    recibo_id           = params["tipo"] === "by_factura" ? last_recibo.recibos_ingreso_id : params["id"]
+    last_recibo         = DetalleRecibo.get_last_recibo_by_cabecera_factura(params[:id])
+    recibo_id           = params[:tipo] === 'by_factura' ? last_recibo.recibos_ingreso_id : params[:id]
     @recibo_a_anular    = RecibosIngreso.find_by_id(recibo_id)
 
     if !@recibo_a_anular.nil?
       if last_cuadre.nil? || comparar_fecha(@recibo_a_anular.fecha_equivalente.to_s, last_cuadre[:created_at].to_s, ">=")
 
-        if params["tipo"] === 'by_factura'
+        if params[:tipo] === 'by_factura'
           if last_recibo.nil? || (!last_recibo.nil? && !last_recibo.is_ultimo)
-            res.add_msg("Solo puede anular el último recibo realizado a esta factura.")
+            res.add_msg('Solo puede anular el último recibo realizado a esta factura.')
             res.set_status(HTTP_STATUS_CODE[:conflict])
           end
-        elsif params["tipo"] === 'by_id'
+        elsif params[:tipo] === 'by_id'
           unless @recibo_a_anular.detalle_recibos.all? { |detalle| detalle.is_ultimo }
-            res.add_msg("Solo puede anular el último recibo realizado a una factura, este recibo contiene una o varias facturas que tienen recibos mas recientes.")
+            res.add_msg('Solo puede anular el último recibo realizado a una factura, este recibo contiene una o varias facturas que tienen recibos mas recientes.')
             res.set_status(HTTP_STATUS_CODE[:conflict])
           end
         end
 
       else
-        res.add_msg("El recibo no puede ser anulado, por que no es del dia de hoy.")
+        res.add_msg('El recibo no puede ser anulado, por que no es del dia de hoy.')
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     else
-      res.add_msg("Error buscando el recibo de ingreso solicitado.")
+      res.add_msg('Error buscando el recibo de ingreso solicitado.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
     end
 
@@ -174,25 +175,23 @@ class RecibosIngreso < ApplicationRecord
         res_valid         = @recibo_a_anular.procesoRevertirRecibo
 
         if res_valid.status_valid && @recibo_a_anular.destroy
-          msg             = params["tipo"] === "by_factura" ? "Ultima transacción revertida correctamente." : "Recibo de ingreso anulado correctamente."
+          msg             = params[:tipo] === 'by_factura' ? 'Ultima transacción revertida correctamente.' : 'Recibo de ingreso anulado correctamente.'
           res.add_msg(msg)
         else
-          res.add_msgs(res_valid.get_msgs)
+          res.add_msgs(res_valid.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 
       else
-        res.add_msgs(res_valid.get_msgs)
+        res.add_msgs(res_valid.get_msgs.to_a)
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback unless res.status_valid
+      transaction_rollback unless res.status_valid
     end
 
     return res
   end
-
-
 
   # ===================================================================================================================================================
 
@@ -214,9 +213,9 @@ class RecibosIngreso < ApplicationRecord
 
     cabecera_factura = detalle.cabecera_factura
 
-    obj                       = { balance: detalle["balance_anterior_factura"] }
-    obj["fecha_completada"]   = nil   if cabecera_factura.fecha_completada
-    obj["pagada"]             = false if cabecera_factura.pagada
+    obj                       = { balance: detalle['balance_anterior_factura'] }
+    obj['fecha_completada']   = nil   if cabecera_factura.fecha_completada
+    obj['pagada']             = false if cabecera_factura.pagada
 
     if cabecera_factura.update(obj)
 

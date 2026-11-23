@@ -53,6 +53,22 @@ class ArticuloSerializer < ActiveModel::Serializer
     serializable_attributes(object.tipo_articulo)
   end
 
+  def sub_tipo_articulo
+    serializable_attributes(object.sub_tipo_articulo)
+  end
+
+  def cuentas_contables
+    serialize_parser(object.entidad_cuentas_contables, {
+      id: true,
+      key: true,
+      tipo_agrupacion_contable: true,
+      cuenta_contable: true,
+      is_comun: true,
+      origen_categoria: true,
+      configuracion_entidad_cuenta_id: true
+    })
+  end
+
   def content_historico(tipo)
     historicos_map = get_param('historicos_map')
     return current_content(tipo) if historicos_map.blank?
@@ -109,6 +125,8 @@ class ArticuloSerializer < ActiveModel::Serializer
   def self.optional_fields
     [
       :imagen_id,
+      :sub_tipo_articulo_id,
+      :sub_tipo_articulo,
       :tipo_articulo_id,
       :nombre,
       :costo_principal,
@@ -133,7 +151,8 @@ class ArticuloSerializer < ActiveModel::Serializer
       :cantidades,
       :calcular_saco,
       :costos,
-      :tipo_articulo
+      :tipo_articulo,
+      :cuentas_contables
     ]
   end
 
@@ -148,7 +167,9 @@ class ArticuloSerializer < ActiveModel::Serializer
       contenido: ->(_articulo) { serializer.contenido },
       cantidades: ->(_articulo) { serializer.cantidades },
       costos: ->(_articulo) { serializer.costos },
-      tipo_articulo: ->(_articulo) { serializer.tipo_articulo }
+      tipo_articulo: ->(_articulo) { serializer.tipo_articulo },
+      sub_tipo_articulo: ->(_articulo) { serializer.sub_tipo_articulo },
+      cuentas_contables: ->(_articulo) { serializer.cuentas_contables }
     }
   end
 end

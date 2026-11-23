@@ -1,5 +1,5 @@
 class MovimientosInventariosController < ApplicationController
-  before_action :set_movimientos_inventario, only: [:show, :update, :destroy]
+  before_action :set_movimientos_inventario, only: [:show, :destroy]
 
   # GET /movimientos_inventarios
   def index

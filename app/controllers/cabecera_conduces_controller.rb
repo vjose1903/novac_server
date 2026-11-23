@@ -1,5 +1,5 @@
 class CabeceraConducesController < ApplicationController
-  before_action :set_cabecera_conduce, only: [:show, :update, :destroy, :revertirConduce]
+  before_action :set_cabecera_conduce, only: [:show, :destroy, :revertirConduce]
 
   # GET /cabecera_conduces
   def index
@@ -15,7 +15,7 @@ class CabeceraConducesController < ApplicationController
 
   def getConducesFiltrados
     arg = params["arg"]
-    resultado = CabeceraConduce.filtrarConduces(arg, set_paginate_options(params))
+    resultado = CabeceraConduce.filtrarConduces(arg, parse_pagination_params(params))
     resultado.send_response self
   end
 

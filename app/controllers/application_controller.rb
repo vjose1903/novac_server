@@ -8,20 +8,29 @@ class ApplicationController < ActionController::API
     before_action :validateUserIsLogging!
   end
 
-  around_action :encarsular_usuario
+  around_action :encarsular_variables
 
+  before_action :log_controller_and_action
+  def log_controller_and_action
+    controller_name = params[:controller]
+    action_name = params[:action]
+
+    puts "Controller: #{controller_name}, Action: #{action_name}".yellow
+  end
   def validateUserIsLogging!
     unless user_signed_in?
       render json: { msg: "Para realizar esta accion debe de iniciar sesión.", action: "close_session" }, status: HTTP_STATUS_CODE[:unauthorized] unless params["controller"] == "devise_token_auth/sessions"
     end
   end
 
-  def encarsular_usuario
-    Thread.current[:current_user] = current_user
+  def encarsular_variables
+    Thread.current[:current_user]       = current_user
+    Thread.current[:has_contabilidad]   = request.headers["has-contabilidad"] ? request.headers["has-contabilidad"].to_boolean : nil
     begin
       yield
     ensure
-      Thread.current[:current_user] = nil
+      Thread.current[:current_user]     = nil
+      Thread.current[:has_contabilidad] = nil
     end
   end
 
@@ -40,6 +49,25 @@ class ApplicationController < ActionController::API
     # result = Permiso.verificateUserPermiso(user_id, 'articulo')
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
+    # res = result
+		TipoArticulo.all.each do | tipo_articulo |
+			tipo_articulo.descripcion = "#{tipo_articulo.descripcion}"
+			puts " "
+			puts " "
+			puts " "
+			puts " "
+			puts " ------ ".red * 8
+			puts "ACTUALIZANDO #{tipo_articulo.descripcion.upcase}"
+			puts " ------ ".red * 8
+			puts " "
+			puts " "
+			puts " "
+			resultado = TipoArticulo.create_update_tipo_articulo(tipo_articulo.attributes.with_indifferent_access, true)
+			unless resultado.status_valid
+				res = resultado
+				break
+			end
+		end
     # certification_params = { TipoeCF: 34, numero_comprobante: 'E340000010001' }.with_indifferent_access
     # document      = Nota.find_by_id(52)
 

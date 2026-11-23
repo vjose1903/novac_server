@@ -85,6 +85,7 @@ function dockerCommand(command) {
   console.log(`${white(' ')}`);
 
   const isBackground = command === 'up' && BACKGROUND === 'yes' ? '-d' : '';
+  const bakeEnv = command === 'build' ? 'COMPOSE_BAKE=false ' : '';
 
 	const useDgii = fs.existsSync(pathAdd('../config_setup/actual_dgii.txt'))
 		&& fs.readFileSync(pathAdd('../config_setup/actual_dgii.txt'), 'utf8').trim() === 'true';

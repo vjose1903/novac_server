@@ -119,7 +119,7 @@ def formar_permisos
     end
 
   end
-  return permisos_parsed
+  return permisos_parsed.to_json
 end
 
 
@@ -160,12 +160,12 @@ def reponer_formulas
 
 
     if formula_b == 0
-      value.each do |f|
+      value.each do | f |
         nueva_formula = FormulasProductosTerminado.new
         nueva_formula.articulo_id        = f.articulo_id
         nueva_formula.cantidad           = f.cantidad
         nueva_formula.costo              = f.costo
-        nueva_formula.articulo_combo     = f.articulo_combo
+        nueva_formula.articulo_combo_id  = f.articulo_combo_id
         nueva_formula.precio             = f.precio
         nueva_formula.medida             = "Libra"
 
@@ -189,7 +189,7 @@ end
 def agregar_formula_id_to_mantenimiento_formulas
 
   MantenimientoFormula.all.each do | mantenimiento |
-    formula_equivalente          = FormulasProductosTerminado.where({ articulo_id: mantenimiento.articulo_id, articulo_combo: mantenimiento.articulo_combo }).first
+    formula_equivalente          = FormulasProductosTerminado.where({ articulo_id: mantenimiento.articulo_id, articulo_combo_id: mantenimiento.articulo_combo }).first
 
     puts "(#{formula_equivalente})".yellow
 
@@ -227,6 +227,24 @@ def modificar_secuencia_mantenimiento
   nil
 end
 
+def crear_cuentas_tipo_articulos
+
+  TipoArticulo.all.each do | tipo_articulo |
+    tipo_articulo.descripcion = "#{tipo_articulo.descripcion}"
+		puts " "
+		puts " "
+		puts " "
+		puts " "
+		puts " ------ ".red * 8
+		puts "ACTUALIZANDO #{tipo_articulo.descripcion.upcase}"
+		puts " ------ ".red * 8
+		puts " "
+		puts " "
+		puts " "
+    resultado = TipoArticulo.create_update_tipo_articulo(tipo_articulo.attributes.with_indifferent_access, true)
+  end
+
+end
 
 def make_producto_terminado_calcular_saco
   articulos_arreglados = []
@@ -251,100 +269,6 @@ def make_producto_terminado_calcular_saco
   end
 
   return nil
-end
-# detalles a arreglar:
-# 21472 -> Saco de 100 libras
-# 16662 -> Quintal
-# 47352 -> Quintal
-# 793   -> Libra
-
-def recalcular_cantidad_en_undidades
-  # query_principal = "cabecera_facturas.tipo = 'venta' AND articulo_id not in (102, 213, 165, 69, 214, 108, 214)"
-  # query_principal = "cabecera_facturas.tipo = 'venta'"
-  # DetalleFactura.where(query_principal).joins("inner join cabecera_facturas on detalle_facturas.cabecera_factura_id = cabecera_facturas.id").includes([ {articulo: [:contenido_articulos, :tipo_articulo]}, :cabecera_factura ]).each do | detalle |
-  #   articulo           = detalle.articulo
-  #   cabecera_factura   = detalle.cabecera_factura
-  #   tipo_articulo      = articulo.tipo_articulo
-
-  #   articulo_historico = find_articulo_mantenimiento(articulo, cabecera_factura.fecha_equivalente)
-  #   unidad_en_turno    = detalle.unidad
-
-  #   unidad_en_turno    = parse_unidad_saco(detalle.unidad, articulo_historico) if detalle.unidad.include? "Saco de"
-
-  #   contenidos         = calcularContenidos(articulo_historico)
-  #   contenido_en_turno = contenidos[unidad_en_turno]
-
-  #   calculo   = 0
-
-  #   if unidad_en_turno.include? "Saco_"
-
-  #     unidad_en_turno_split = unidad_en_turno.split("_")
-  #     saco                  = unidad_en_turno_split[1].to_i
-  #     calculo               = saco * detalle.cantidad if !saco.nil?
-
-
-  #   elsif unidad_en_turno.include? "Saco de"
-  #     unidad_en_turno_split = unidad_en_turno.split(" ")
-  #     saco                  = unidad_en_turno_split[2].to_i
-  #     calculo               = saco * detalle.cantidad if !saco.nil?
-
-
-  #   else
-
-  #     calculo = detalle.cantidad * contenido_en_turno if !contenido_en_turno.nil?
-  #   end
-
-  #   if calculo > 0 && (calculo.to_f >= detalle.cantidad_en_unidades + 0.1 || calculo.to_f <= detalle.cantidad_en_unidades - 0.1)
-  #     detalle.cantidad_en_unidades = calculo
-  #     detalle.save!
-  #   end
-
-  # end
-
-  # return nil
-end
-
-
-
-def calcularContenidos(articulo )
-
-  contenido = articulo["contenido_articulos"]
-  contenidos = {}
-
-  if articulo["vendido_en"] == "Saco" && articulo["calcular_saco"]
-    [100, 50, 25].each do |c|
-      contenidos["Saco_#{c}"] = c
-    end
-  end
-
-  articulo['medida']                          = articulo['medida'] == "N/A" || articulo['medida'] == nil ? articulo['tipo_articulo'].tipo.titleize : articulo['medida']
-
-  contenidos[articulo["medida"]]              = contenido.to_a.length == 0 ? 1 : contenido.to_a.first["cantidad"]
-
-  if contenido.to_a.length > 0
-
-  else
-  end
-
-  contenidos[contenido.to_a.first["medida"]]  = 1 if contenido.to_a.length > 0
-
-
-  if contenido.to_a.length == 2
-
-    cantPrincipal = 1
-    cantHijo      = 1
-    cantPadre     = 1
-
-    contenido.to_a.each do |conte|
-      cantPrincipal *= conte["cantidad"]
-      cantPadre      = conte["cantidad"] if conte["referencia"] != nil
-    end
-
-    contenidos[articulo["medida"]]          = cantPrincipal
-    contenidos[contenido.to_a[0]["medida"]] = cantPadre
-    contenidos[contenido.to_a[1]["medida"]] = cantHijo
-  end
-  contenidos
 end
 
 def parse_unidad_saco(unidad, articulo)

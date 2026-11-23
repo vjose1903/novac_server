@@ -7,7 +7,7 @@ class Role < ApplicationRecord
 
   scopify
 
-  validates :nombre,      presence: { :message => "Debe de especificar un nombre para el rol." },       uniqueness: { scope: [:estado, :descripcion], case_sensitive: false, :message => "Este rol ya esta creado."}, :if => :estado
+  validates :nombre,      presence: { :message => "Debe de especificar un nombre para el rol." },       uniqueness: { scope: [:estado, :descripcion], case_sensitive: false, :message => "Este rol ya está creado."}, :if => :estado
   validates :descripcion, presence: { :message => "Debe de especificar una descripcion para el rol." }
 
 
@@ -40,7 +40,7 @@ class Role < ApplicationRecord
       {modelo: RolPermisoAccion, key_object: 'roles_permisos_acciones', padre: role},
     ]
 
-    res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+    res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
       role.roles_permisos_acciones   = dependencia_data if key_object == 'roles_permisos_acciones'
     }
 

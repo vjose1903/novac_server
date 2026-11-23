@@ -1,11 +1,9 @@
 class CostoFletesController < ApplicationController
-  before_action :set_municipio, only: [:set_costo_flete]
-  before_action :set_costo_flete, only: [:show, :update, :destroy]
+  before_action :set_costo_flete, only: [:show, :destroy]
 
   # GET /costo_fletes
   def index
     return Response.new(params, nil, CostoFlete.all.where({estado: true}).order('id DESC'), nil, {all: true}).send_response self
-
   end
 
   # GET /costo_fletes/1
@@ -14,10 +12,7 @@ class CostoFletesController < ApplicationController
   end
 
   def crear_actualizar_costo
-		parametros = costo_flete_params
-		parametros["id"] = params["id"] if params["id"]
-
-		resultado = CostoFlete.crear_actualizar_costo(parametros, current_user, true)
+		resultado = CostoFlete.crear_actualizar_costo(params, current_user, true)
 		resultado.send_response self
 	end
 
@@ -46,10 +41,5 @@ class CostoFletesController < ApplicationController
       @costo_flete = respuesta.get_data
 
       return respuesta.send_response self if @costo_flete.nil?
-    end
-
-    # Only allow a trusted parameter "white list" through.
-    def costo_flete_params
-      params.require(:costo_flete).permit(:municipio_id, :costo)
     end
 end

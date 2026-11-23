@@ -1,6 +1,7 @@
 require 'net/smtp'
 require "zlib"
 require 'openssl'
+require 'json'
 
 class Response
   def initialize(params=nil, status_=HTTP_STATUS_CODE[:ok], data=nil,  msg_=[], parametros_opcionales=nil, models_includes=nil)
@@ -12,15 +13,14 @@ class Response
   end
 
   def set_status(status)
-    @res[:status] = status
+    @res[:status]            = status
   end
 
   def status_valid
-    @res[:status] == HTTP_STATUS_CODE[:ok]
+    @res[:status]            == HTTP_STATUS.ok
   end
 
   def set_data(data, parametros_opcionales=nil, models_includes=nil)
-
     @paginate_class.paginate_data(data, models_includes)
 
     datos                    = parametros_opcionales.nil? ? @paginate_class.get_data() : serialize_response_data(@paginate_class.get_data(), parametros_opcionales)
@@ -64,6 +64,15 @@ class Response
 
   def get_msgs
     @res[:msg]
+  end
+
+  def manage_error_transaction(entity, http_status=HTTP_STATUS.conflict)
+    if !entity.errors.empty? || !self.status_valid
+      self.set_status(http_status)
+      self.add_msgs(entity.errors.to_a)
+
+      transaction_rollback
+    end
   end
 
   def send_response(controller)
@@ -110,8 +119,9 @@ end
 
 class Paginator
   def initialize(params)
-    @paginate_options  = {"page" => nil, "per_page" =>  nil, "paginado" =>  false }
-    @data_paginated    ={"data" => nil, "total_registros" => nil, "total_paginas" => nil }
+    @paginate_options  = { page: nil, per_page:  nil, paginado:  false }.with_indifferent_access
+    @data_paginated    = { data: nil, total_registros: nil, total_paginas: nil }.with_indifferent_access
+
     set_pagination_options(params)
   end
 
@@ -136,14 +146,14 @@ class Paginator
       end
     end
 
-    @data_paginated["data"] = data
-    @data_paginated         = paginate(data, models_includes) if @paginate_options["paginado"]
+    @data_paginated[:data] = data
+    @data_paginated         = paginate(data, models_includes) if @paginate_options[:paginado]
 
   end
 
   def paginate(items, models_includes=nil)
-    page      = @paginate_options["page"].to_i
-    per_page  = @paginate_options["per_page"].to_i
+    page      = @paginate_options[:page]
+    per_page  = @paginate_options[:per_page]
 
 
     # Asegurar que la página sea al menos 1
@@ -177,7 +187,7 @@ class Paginator
       itemsPaginated = paginated_relation.to_a
 
       total_pag = (total_count.to_f / per_page.to_f).ceil
-      return { "data" => itemsPaginated , "total_registros" => total_count, "total_paginas" => total_pag }
+      return { "data" => itemsPaginated , "total_registros" => total_count, "total_paginas" => total_pag }.with_indifferent_access
     end
 
     # Array/Hash u otros enumerables: usar slice (Hash -> Array de pares)
@@ -196,11 +206,11 @@ class Paginator
   end
 
   def is_paginated
-    @paginate_options['paginado']
+    @paginate_options[:paginado]
   end
 
   def set_page(page)
-    @paginate_options['page'] = page
+    @paginate_options[:page] = page
   end
 
 
@@ -209,19 +219,19 @@ class Paginator
   end
 
   def get_data
-    @data_paginated["data"]
+    @data_paginated[:data]
   end
 
   def get_total_registros()
-    @data_paginated["total_registros"]
+    @data_paginated[:total_registros]
   end
 
   def get_total_paginas()
-    @data_paginated["total_paginas"]
+    @data_paginated[:total_paginas]
   end
 
   def get_page
-    @paginate_options['page']
+    @paginate_options[:page]
   end
 
   def get_per_page
@@ -234,21 +244,29 @@ end
 def set_paginate_options(params)
   return { "page" => params.obj_has?('page') ? params[:page] : 0, "per_page" => params.obj_has?('per_page') ? params[:per_page] : 0, "paginado" => params.obj_has?('paginado') ? params[:paginado].to_boolean : false }
 end
+
 # ---------------------------------------------------------------------------------------------------------
+
 def validate_optional_param(params, key)
   params.obj_has?(key) && ["true", "false"].include?(params[key])
 end
+
 # ---------------------------------------------------------------------------------------------------------
 
-def set_entidad(modelo, params, key="id")
-  res = Response.new
-  where = { "#{key}": params[key]}
-  entidad = modelo.where(where)
+def set_entidad(modelo, params, models_includes= nil, key='id')
+  res      = Response.new
+  where    = { "#{key}": params[key]}
 
-  unless entidad.length == 0
+  if models_includes.nil?
+    entidad  = modelo.where(where)
+  else
+    entidad  = modelo.where(where).includes(models_includes)
+  end
+
+  unless entidad.empty?
     res.set_data(entidad.first)
   else
-    res.set_status(HTTP_STATUS_CODE[:not_found])
+    res.set_status(HTTP_STATUS.not_found)
     res.add_msg(traducir(:no_existe, entidad: "modelo.#{modelo.new.model_name.element}", otro_valor:""))
   end
 
@@ -256,6 +274,18 @@ def set_entidad(modelo, params, key="id")
 end
 
 # ---------------------------------------------------------------------------------------------------------
+
+def has_paginate_options(params)
+  return params.has_key?(:page) && params.has_key?(:per_page) && params.has_key?(:paginado)
+end
+
+# ---------------------------------------------------------------------------------------------------------
+
+def has_filter_target(params)
+  return params.has_key?(:filter_target) && !params[:filter_target].nil? && params[:filter_target].strip != ''
+end
+
+  # ---------------------------------------------------------------------------------------------------------
 
 def traducir(key, others=nil)
   others_tem = {}
@@ -269,24 +299,39 @@ def traducir(key, others=nil)
     texto_traducido = I18n.t(key)
   end
 
-  texto_traducido = texto_traducido.kind_of?(Array)? texto_traducido : [texto_traducido]
+  texto_traducido = texto_traducido.kind_of?(Array) ? texto_traducido : [texto_traducido]
 
   return texto_traducido.join(" ")
 end
+
+
+
 # ---------------------------------------------------------------------------------------------------------
+
 def borrar_entidad(obj)
-  res = Response.new
+  res  = Response.new
+  data = { deleted: false, disabled: false }.with_indifferent_access
+
+  tipo       = get_typeof(obj, :estado)
+  is_boolean = tipo == :boolean
+  is_string  = tipo == :string
+
 
   begin
     obj.destroy
+    data[:deleted] = true
   rescue => exception
-    obj.estado = false
+    obj.estado = false         if is_boolean
+    obj.estado = STATUS.delete if is_string
+
     unless obj.save!
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS.conflict)
       res.add_msg("Error borrando #{obj.model_name.element}.")
       return res
     end
+    data[:disabled] = true
   end
+  res.set_data(data)
   res.add_msg(traducir(:borrar_un, entidad: "modelo.#{obj.model_name.element}"))
   return res
 end
@@ -323,6 +368,7 @@ def encrypt(str)
   encrypted = cipher.update(str) + cipher.final
   encrypted.unpack('H*')[0].upcase
 end
+
 # ---------------------------------------------------------------------------------------------------------
 
 def decrypt(str)
@@ -335,6 +381,11 @@ def decrypt(str)
   cipher.update(decrypted) + cipher.final
 end
 
+
+# ---------------------------------------------------------------------------------------------------------
+def pretty_json(json)
+  return JSON.pretty_generate(json)
+end
 # ---------------------------------------------------------------------------------------------------------
 
 def round_to_nearest_multiple_of_5(number)
@@ -384,21 +435,24 @@ def dobleDesEncriptar(data_to_compress)
   data_uncompressed          = desencriptarZlib(data_doble_compressed)
   return data_uncompressed
 end
+
 # ---------------------------------------------------------------------------------------------------------
-def updateSecuencias(tipo_secuencia_id)
+
+def updateSecuencias(tipo_factura_id)
     res                         = Response.new
 
-    secuenciaBackend            = SecuenciaFactura.find_by_id(tipo_secuencia_id)
+    secuenciaBackend            = SecuenciaFactura.find_by_tipo_factura_id(tipo_factura_id)
     actual                      = secuenciaBackend.secuencia
     secuenciaBackend.secuencia  = actual + 1
 
     unless secuenciaBackend.save!
-      res.add_msg("Error actualizando la secuencia.")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.add_msg('Error actualizando la secuencia.')
+      res.set_status(HTTP_STATUS.conflict)
     end
 
     return res
   end
+
 # ---------------------------------------------------------------------------------------------------------
 
 def crear_actualizar_dependencias(dependencias, parametros, save)
@@ -410,6 +464,7 @@ def crear_actualizar_dependencias(dependencias, parametros, save)
 
     yield dependencia[:key_object], res_dependencia.get_data if block_given?
   end
+
   return Response.new
 end
 
@@ -429,7 +484,6 @@ end
 
 # ---------------------------------------------------------------------------------------------------------
 
-
 class String
 	def is_number?
 		!!(self =~ /\A\d+\z/)
@@ -437,12 +491,29 @@ class String
 end
 # ---------------------------------------------------------------------------------------------------------
 
+def fetch_related_object(record, prefix)
+  key_type = "#{prefix}_type"
+  key_id   = "#{prefix}_id"
+
+  # Verificar que el registro contenga los campos polimórficos especificados
+  unless record.respond_to?(key_type) && record.respond_to?(key_id)
+    raise ArgumentError, "The record does not have the specified polymorphic association keys with prefix '#{prefix}'"
+  end
+
+  # Obtener el tipo y el ID y devolver el objeto relacionado
+  record.send(key_type).constantize.find(record.send(key_id))
+end
+
+# ---------------------------------------------------------------------------------------------------------
 
 class Object
-	def obj_has?(key)
-		self.has_key?(:"#{key}") && !is_empty?(self[:"#{key}"])
-	end
+  def obj_has?(key)
+    self.has_key?(:"#{key}") && !isEmpty?(self[:"#{key}"])
+  end
 end
+
+# ---------------------------------------------------------------------------------------------------------
+
 
 # ---------------------------------------------------------------------------------------------------------
 class Array
@@ -451,16 +522,24 @@ class Array
   end
 
   def my_includes_obj(key, value)
-    return  self.any? { |item| item[key] == value }
+    return  self.any? do  |item|
+      res = false
+      begin
+        res = "#{item[key]}" == "#{value}"
+      rescue => exception
+        res = "#{item.attributes[key]}" == "#{value}"
+      end
+      return res
+    end
   end
 
   def get_order
-    return "" if self.empty? || self[0]["id"].nil?
+    return "" if self.empty? || self.first[:id].nil?
 
-    is_ascending = self.each_cons(2).all?{|left, right| left["id"] <= right["id"]}
-    is_desending = self.each_cons(2).all?{|left, right| left["id"] >= right["id"]}
+    is_ascending = self.each_cons(2).all?{|left, right| left[:id] <= right[:id]}
+    is_desending = self.each_cons(2).all?{|left, right| left[:id] >= right[:id]}
 
-    return is_ascending ? "ASC" : is_desending ? "DESC" : ""
+    return is_ascending ? 'ASC' : is_desending ? 'DESC' : ''
 
   end
 
@@ -489,6 +568,7 @@ class Array
   end
 end
 
+
 # ---------------------------------------------------------------------------------------------------------
 
 def roundNumberToDecimal(num)
@@ -509,6 +589,10 @@ end
 # ---------------------------------------------------------------------------------------------------------
 def get_current_user
   return Thread.current[:current_user]
+end
+
+def system_has_contabilidad
+  return Thread.current[:has_contabilidad]
 end
 
 def transaction_rollback

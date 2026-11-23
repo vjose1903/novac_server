@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cheque: one
+  comentario: MyString
+  tasa: 1.5
+  monto: 1.5
+  monto_local: 1.5
+
+two:
+  cheque: two
+  comentario: MyString
+  tasa: 1.5
+  monto: 1.5
+  monto_local: 1.5

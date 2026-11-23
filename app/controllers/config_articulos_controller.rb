@@ -1,5 +1,5 @@
 class ConfigArticulosController < ApplicationController
-  before_action :set_config_articulo, only: [:show, :update]
+  before_action :set_config_articulo, only: [ :show ]
 
   # GET /config_articulos/1
   def show
@@ -7,10 +7,7 @@ class ConfigArticulosController < ApplicationController
   end
 
   def actualizar_configuracion
-    parametros = params
-    parametros["id"] = params["id"] if params["id"]
-
-    resultado = ConfigArticulo.update_configuracion(parametros, true)
+    resultado = ConfigArticulo.update_configuracion(params, true)
     resultado.send_response self
   end
 

@@ -6,13 +6,13 @@ class MantenimientoFormula < ApplicationRecord
 
       historico                    = MantenimientoFormula.new
 
-      historico.formula_id         = parametros["id"]
-      historico.articulo_id        = parametros["articulo_id"]
-      historico.articulo_combo     = parametros["articulo_combo"]
-      historico.cantidad           = parametros["cantidad"]
-      historico.costo              = parametros["costo"]
-      historico.precio             = parametros["precio"]
-      historico.medida             = parametros["medida"]
+      historico.formula_id         = parametros[:id]
+      historico.articulo_id        = parametros[:articulo_id]
+      historico.articulo_combo     = parametros[:articulo_combo_id]
+      historico.cantidad           = parametros[:cantidad]
+      historico.costo              = parametros[:costo]
+      historico.precio             = parametros[:precio]
+      historico.medida             = parametros[:medida]
       historico.secuencia          = secuencia
 
 
@@ -21,7 +21,7 @@ class MantenimientoFormula < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-			raise ActiveRecord::Rollback if historico.errors.empty? || !res.status_valid
+			transaction_rollback if historico.errors.empty? || !res.status_valid
     end
 
 		return res
@@ -32,7 +32,7 @@ class MantenimientoFormula < ApplicationRecord
     res_valid      = Response.new
     array_valid    = []
 
-    parametros.to_a.each do |item|
+    parametros.to_a.each do | item |
       res_temp     = self.crear_historico(item, secuencia)
 
       if res_temp.status_valid

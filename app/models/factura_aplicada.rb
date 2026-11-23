@@ -31,7 +31,7 @@ class FacturaAplicada < ApplicationRecord
 
     dependencias                                 = [ {modelo: DetalleFacturaNota, key_object: "detalles_facturas_notas", padre: padre} ]
 
-    res_proceso = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+    res_proceso = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
       factura_aplicada.detalles_facturas_notas   = dependencia_data if key_object == 'detalles_facturas_notas'
     }
 
@@ -63,7 +63,7 @@ class FacturaAplicada < ApplicationRecord
 
   #  --------------------------------------------------------------------------------------------------------------------------------
 
-  def self.validar_e_inicializar(items, padre, save)
+  def self.validar_e_inicializar(items, padre)
     res_valid  = Response.new
     array_valid=[]
 

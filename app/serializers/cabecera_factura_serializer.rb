@@ -118,6 +118,20 @@ class CabeceraFacturaSerializer < ActiveModel::Serializer
 	def self.pagos_to_hash(record)
 		pago_parseo = []
 
+		# La contabilidad registra pagos en PagoFacturaDetalle; conservar también
+		# el formato histórico de recibos para facturas antiguas.
+		if record.respond_to?(:pago_factura_detalles) && record.pago_factura_detalles.any?
+			record.pago_factura_detalles.each do |detalle_pago|
+				pago = detalle_pago.pago_factura
+				item = detalle_pago.as_json.with_indifferent_access
+				item[:numero] = pago&.numero
+				item[:pago_creado_por] = pago&.user&.nombre_completo
+				item[:fecha_equivalente] = pago&.fecha_equivalente
+				pago_parseo << item
+			end
+			return pago_parseo
+		end
+
 		if record.condicion != 'Contado' || record.is_viaje
 			pagos = record.detalle_recibos
 

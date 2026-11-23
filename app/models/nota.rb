@@ -10,7 +10,7 @@ class Nota < ApplicationRecord
   has_one  :document_reference_as_referenced, :as => :document_referenced, dependent: :destroy, class_name: 'DocumentReference'
 
   validates :user,      presence: { :message => 'Falta el usuario creador de la nota.' }
-  validates :total,     presence: { :message => 'El total de la nota no puede estar vacio.' }
+  validates :total,     presence: { :message => 'El total de la nota no puede estar vacío.' }
 
 
   def self.models_includes
@@ -82,7 +82,7 @@ class Nota < ApplicationRecord
 
               dependencias                  = [ {modelo: FacturaAplicada, key_object: 'facturas_aplicadas', padre: nota} ]
 
-              res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
+              res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
                 nota.facturas_aplicadas     = dependencia_data if key_object == 'facturas_aplicadas'
               }
 

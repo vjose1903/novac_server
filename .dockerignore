@@ -18,6 +18,7 @@ npm-debug.log*
 /log/*
 *.sql.bz2
 *.sql
+tmp
 /tmp/*
 !/log/.keep
 !/tmp/.keep

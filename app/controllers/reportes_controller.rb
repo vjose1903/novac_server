@@ -6,7 +6,7 @@ class ReportesController < ApplicationController
     tipo         = params[:tipo]
     tipo_tabla   = 'normal'
 
-    muestra_sub_titulo = ['inventario', 'ventas_productos', 'suplidor_prod', 'cuentas_con_pagos', 'notas', 'ventas_cliente', 'movimientos_vehiculo', 'recibos', 'recibos_agrupado', 'cxc', 'cxc_ant_detallado', 'cxc_ant_agrupado' ]
+    muestra_sub_titulo = ['inventario', 'ventas_productos', 'suplidor_prod', 'cuentas_con_pagos', 'notas', 'ventas_cliente', 'movimientos_vehiculo', 'recibos', 'recibos_agrupado', 'cxc', 'cxc_ant_detallado', 'cxc_ant_agrupado', 'cxp', 'cxp_ant_detallado', 'cxp_ant_agrupado', 'pago_facturas', 'pago_facturas_agrupado' ]
 
 
     if  tipo_reporte == 'ventas_rango' || tipo_reporte == 'ventas_diarias' || tipo_reporte == 'ventas_cliente'
@@ -34,6 +34,15 @@ class ReportesController < ApplicationController
       tipo_reporte   = 'cxc_ant_detallado' if params[:tipo] == Report::CxC.detallado
       tipo_reporte   = 'cxc_ant_agrupado'  if params[:tipo] == Report::CxC.agrupado
 
+    elsif tipo_reporte == 'cuentas_pagar'
+      # ------------------- REPORTE DE CUENTAS POR PAGAR --------------------
+      body   = Reporte.get_cuentas_pagar(params)
+      titulo = "Cuentas por pagar #{ params[:tipo] == Report::CxP.por_suplidor ? 'por suplidor' : '' } #{ params[:tipo] == Report::CxP.por_suplidor ? '' : params[:tipo] == Report::CxP.detallado ? '- DETALLADO -' : '- AGRUPADO -' }"
+
+      tipo_reporte   = 'cxp'               if params[:tipo] == Report::CxP.por_suplidor
+      tipo_reporte   = 'cxp_ant_detallado' if params[:tipo] == Report::CxP.detallado
+      tipo_reporte   = 'cxp_ant_agrupado'  if params[:tipo] == Report::CxP.agrupado
+
     elsif tipo_reporte == 'cxc_historico'
       # ------------------- REPORTE DE CUENTAS POR COBRAR HISTORICO --------------------
       body   = Reporte.get_balance_cliente_historico(params)
@@ -55,6 +64,13 @@ class ReportesController < ApplicationController
       titulo = "Recibos de ingreso #{params[:tipo] == Report::ReciboIngreso.detallado ? '- DETALLADO -' : '- AGRUPADO -'}"
 
       tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == Report::ReciboIngreso.agrupado
+
+    elsif tipo_reporte == 'pago_facturas'
+      # ------------------- REPORTE DE PAGO DE FACTURAS --------------------
+      body   = Reporte.get_pagos(params)
+      titulo = "Pago de Facturas - desde #{formatearFecha(params[:desde], TipoFecha.sin_hora)} hasta #{formatearFecha(params[:hasta], TipoFecha.sin_hora)}"
+
+      tipo_reporte   = "#{tipo_reporte}_agrupado" if tipo == 'agrupado'
 
     elsif tipo_reporte == 'ventas_productos'
       # ------------------- REPORTE DE VENTAS POR PRODUCTO --------------------
@@ -89,7 +105,6 @@ class ReportesController < ApplicationController
 
     estructura_reporte = { titulo: titulo, tipo_reporte: tipo_reporte, content: body[:body], totalizacion: body[:totalizacion], sub_titulo: mostrar_sub_titulo, tipo_tabla: tipo_tabla,  }.with_indifferent_access
     respuesta          = Reporte.estructura_reporte(estructura_reporte)
-    my_print_log("------------ TERMINO ------------".red)
 
     render json: respuesta, status: :ok
   end

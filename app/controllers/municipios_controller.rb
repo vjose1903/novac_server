@@ -1,5 +1,5 @@
 class MunicipiosController < ApplicationController
-	before_action :set_municipio, only: [:show, :update, :destroy]
+	before_action :set_municipio, only: [:show, :destroy]
 	# GET /municipio
 	def index
 		optional_params = get_parametros_opcionales

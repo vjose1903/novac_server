@@ -4,16 +4,49 @@ IMAGES_PATH      = File.join Rails.root, "public/img"
 ENCRIPT_SECRET   = "1234567890ABCDEF"
 HTTP_STATUS_CODE = Rack::Utils::SYMBOL_TO_STATUS_CODE
 
+module HTTP_STATUS
+  CONFLICT        = HTTP_STATUS_CODE[:conflict]
+  NOT_FOUND       = HTTP_STATUS_CODE[:not_found]
+  OK              = HTTP_STATUS_CODE[:ok]
+  INTERNAL_ERROR  = HTTP_STATUS_CODE[:internal_server_error]
+  UNAUTHORIZED    = HTTP_STATUS_CODE[:unauthorized]
+  M_NOT_ALLOWED   = HTTP_STATUS_CODE[:method_not_allowed]
 
+
+  def self.conflict
+    return CONFLICT
+  end
+
+  def self.not_found
+    return NOT_FOUND
+  end
+
+  def self.ok
+    return OK
+  end
+
+  def self.internal_error
+    return INTERNAL_ERROR
+  end
+
+  def self.unauthorized
+    return UNAUTHORIZED
+  end
+
+  def self.method_not_allowed
+    return M_NOT_ALLOWED
+  end
+
+end
 
 DIAS             = ["Lunes", "Martes", "Miercoles", "Jueves",  "Viernes", "Sabado", "Domingo"]
 
 
 module Identificador
-  CLIENTE_ID = "1"
-  USER_ID = "2"
-  TOTAL_FACTURA = "3"
-  FECHA_EQUIVALENTE = "4"
+  CLIENTE_ID         = "1"
+  USER_ID            = "2"
+  TOTAL_FACTURA      = "3"
+  FECHA_EQUIVALENTE  = "4"
   CANTIDAD_ARTICULOS = "5"
 
   def self.cliente_id
@@ -313,9 +346,175 @@ module OperadoresMovimiento
   end
 end
 
+# modulo status ==========================================
+module STATUS
+  ACTIVE        = 'active'
+  DISABLE       = 'disable'
+  DELETE        = 'delete'
+  PENDING       = 'pending'
+  COMPLETE      = 'complete'
+  APPROVED      = 'approved'
+  DISAPPROVED   = 'disapproved'
+
+  def self.active
+    return ACTIVE
+  end
+
+  def self.disable
+    return DISABLE
+  end
+
+  def self.delete
+    return DELETE
+  end
+
+  def self.pending
+    return PENDING
+  end
+
+  def self.complete
+    return COMPLETE
+  end
+
+  def self.approved
+    return APPROVED
+  end
+
+  def self.disapproved
+    return DISAPPROVED
+  end
+
+  def self.is_active(status)
+    return status == self.active
+  end
+
+  def self.is_delete(status)
+    return status == self.delete
+  end
+
+end
+
+STATUS_VALIDOS = [ STATUS.active, STATUS.disable, STATUS.delete, STATUS.pending, STATUS.complete, STATUS.approved, STATUS.disapproved ]
+
+
+
+
 
 # G_OTROS_COSTOS=[
 # 	{descripcion:"Saco 100 libras", key: "saco_100", costo:9, precio:20 },
 # 	{descripcion:"Saco 75 libras",  key: "saco_75",  costo:9, precio:20 },
 # 	{descripcion:"Saco 25 libras",  key: "saco_25",  costo:9, precio:20 },
 # ]
+G_CATALOGO_DEFAULT = [
+  # 1
+  {descripcion: "ACTIVOS",              origen: "D", tipo: "R", cuentas_contables: [
+    { descripcion: "EFECTIVO CAJA Y BANCO",                        is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+      { descripcion: "EFECTIVO EN CAJA",                                    is_control: true, origen: "D", tipo: "R" },
+      { descripcion: "EFECTIVO EN BANCO MONEDA NACIONAL",                   is_control: true, origen: "D", tipo: "R" },
+      { descripcion: "EFECTIVO EN BANCO MONEDA EXTRANJERA",                 is_control: true, origen: "D", tipo: "R" },
+    ]},
+    { descripcion: "CUENTAS POR COBRAR",                           is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+      { descripcion: "CUENTAS POR COBRAR CLIENTES",                         is_control: true, origen: "D", tipo: "R" },
+      { descripcion: "CUENTAS POR COBRAR EMPLEADOS",                        is_control: true, origen: "D", tipo: "R" },
+    ]},
+    { descripcion: "OTRAS CUENTAS POR COBRAR",                     is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+    { descripcion: "INVENTARIOS",                                  is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+    { descripcion: "PROPIEDAD PLANTA Y EQUIPO",                    is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+      { descripcion: "EQUIPOS DE OFICINA",                                  is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+      { descripcion: "EQUIPO DE COMPUTACION Y COMUNICACION",                is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+      { descripcion: "EQUIPOS DE TRANSPORTE",                               is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+      { descripcion: "EQUIPOS DE ELECTRICIDAD",                             is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+      { descripcion: "DEPRECIACION ACUMULADA",                              is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    ]},
+    { descripcion: "ACTIVOS DIFERIDOS",                            is_control: true, origen: "D", tipo: "R", cuentas_contables: [
+      { descripcion: "GASTOS PAGADOS POR ANTICIPADO",                       is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+      { descripcion: "OTROS ACTIVOS",                                       is_control: true, origen: "D", tipo: "R", cuentas_contables: [] },
+    ]},
+  ]},
+
+  # 2
+  {descripcion: "PASIVOS",              origen: "C", tipo: "R", cuentas_contables: [
+    { descripcion: "CUENTAS POR PAGAR",                            is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+      { descripcion: "CUENTAS POR PAGAR PROVEEDORES MONEDA NACIONAL",       is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      { descripcion: "CUENTAS POR PAGAR PROVEEDORES MONEDA EXTRANJERA",     is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      { descripcion: "AVANCES",                                             is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    ]},
+    { descripcion: "OTRAS CUENTAS POR PAGAR",                      is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+      { descripcion: "OTRAS CUENTAS POR PAGAR",                             is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      { descripcion: "CUENTAS POR PAGAR EMPLEADOS",                         is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    ]},
+    { descripcion: "OTROS PASIVOS CORRIENTES",                     is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+      { descripcion: "IMPUESTOS Y GRAVAMENES",                              is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      { descripcion: "RETENCIONES POR PAGAR",                               is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+      { descripcion: "RETENCIONES A EMPLEADOS",                             is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    ]},
+    { descripcion: "ACUMULACIONES POR PAGAR",                      is_control: true, origen: "C", tipo: "R", cuentas_contables: [
+      { descripcion: "PROVISIONES",                                         is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    ]},
+  ]},
+
+  # 3
+  {descripcion: "CAPITAL SOCIAL",       origen: "C", tipo: "R", cuentas_contables: [
+    { descripcion: "CAPITAL SUSCRITO Y PAGADO",                    is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    { descripcion: "GANANCIA Y/O PERDIDA",                         is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+    { descripcion: "GANANCIA ACUMULADA",                           is_control: true, origen: "C", tipo: "R", cuentas_contables: [] },
+  ]},
+
+  # 4
+  {descripcion: "VENTAS",               origen: "C", tipo: "N", cuentas_contables: [
+    { descripcion: "VENTAS GENERALES",                             is_control: true, origen: "C", tipo: "N", cuentas_contables: [] },
+    { descripcion: "DESCUENTOS SOBRE VENTAS GENERALES",            is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+		]},
+
+		# 5
+		{descripcion: "COMPRAS",              origen: "D", tipo: "N", cuentas_contables: [
+			{ descripcion: "COMPRAS GENERALES",                          is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+			{ descripcion: "DESCUENTOS SOBRE COMPRAS GENERALES",                   is_control: true, origen: "C", tipo: "N", cuentas_contables: [] },
+  ]},
+
+  # 6
+  {descripcion: "GASTOS",               origen: "D", tipo: "N", cuentas_contables: [
+    { descripcion: "GASTOS ADMINISTRATIVOS",                       is_control: true, origen: "D", tipo: "N", cuentas_contables: [
+      { descripcion: "GASTOS DE PERSONAL ADMINISTRATIVO",                   is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "HONORARIOS",                                          is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "ALQUILERES",                                          is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "SERVICIOS",                                           is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "MANTENIMIENTO Y REPARACIONES",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "GASTOS LEGALES",                                      is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "GASTOS DE VEHICULOS",                                 is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "GASTO DEPRECIACION ACUMULADA",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "AMORTIZACIONES",                                      is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "DIVERSOS ADMINISTRATIVO",                             is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+    ]},
+    { descripcion: "GASTOS DE VENTA",                              is_control: true, origen: "D", tipo: "N", cuentas_contables: [
+      { descripcion: "GASTOS PERSONAL DE VENTAS",                           is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "GASTOS LEGALES",                                      is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "GASTOS DE VEHICULOS",                                 is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "COMUNICACION Y REDES PUNTO DE VENTA",                 is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "PUBLICIDAD, PROPAGANDA Y PROMOCIONES",                is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "ADECUACIONES E INSTALACIONES",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "GASTOS DE VIAJES",                                    is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "AMORTIZACION",                                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "GASTOS DEPRECIACION ACUMULADA",                       is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "MATERIAL GASTABLE PARA VENTA",                        is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+      { descripcion: "DIVERSOS VENTAS",                                     is_control: true, origen: "D", tipo: "N", cuentas_contables: [] },
+    ]},
+    { descripcion: "GASTOS FINANCIEROS",                           is_control: true, origen: "D", tipo: "N", cuentas_contables: [] }
+  ]},
+]
+
+G_CONFIG_ENTIDAD_CUENTA = [
+  { descripcion: 'CXC clientes',                      key: 'cobrar',             entidad: 'cliente',          is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'CUENTAS POR COBRAR CLIENTES' },
+  { descripcion: 'CXP suplidores moneda nacional',    key: 'pagar',              entidad: 'suplidor',         is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES MONEDA NACIONAL' },
+  { descripcion: 'CXP suplidores moneda extranjera',  key: 'pagar',              entidad: 'suplidor',         is_nacional: false,   has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'CUENTAS POR PAGAR PROVEEDORES MONEDA EXTRANJERA' },
+  { descripcion: 'CXC empleados',                     key: 'cobrar',             entidad: 'user',             is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'CUENTAS POR COBRAR EMPLEADOS' },
+  { descripcion: 'CXP empleados',                     key: 'pagar',              entidad: 'user',             is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'CUENTAS POR PAGAR EMPLEADOS' },
+  { descripcion: 'Retenciones empleados',             key: 'retencion',          entidad: 'user',             is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'RETENCIONES A EMPLEADOS' },
+  { descripcion: 'Efectivo banco moneda nacional',    key: 'efectivo_banco',     entidad: 'cuenta_bancaria',  is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA NACIONAL' },
+  { descripcion: 'Efectivo banco moneda extranjera',  key: 'efectivo_banco',     entidad: 'cuenta_bancaria',  is_nacional: false,   has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'EFECTIVO EN BANCO MONEDA EXTRANJERA' },
+  { descripcion: 'Inventario',                        key: 'inventario',         entidad: 'articulo',         is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: true,   cuenta_contable_descripcion: 'INVENTARIOS' },
+  { descripcion: 'Ventas',                            key: 'ventas',             entidad: 'articulo',         is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: true,   cuenta_contable_descripcion: 'VENTAS GENERALES' },
+  { descripcion: 'Descuentos de ventas',              key: 'descuento_ventas',   entidad: 'articulo',         is_nacional: true,    has_comun: false, is_control: false, has_individual: false, has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'DESCUENTOS SOBRE VENTAS GENERALES' },
+  { descripcion: 'Compras',                           key: 'compras',            entidad: 'articulo',         is_nacional: true,    has_comun: true,  is_control: true,  has_individual: true,  has_categoria: true,  has_sub_categoria: true,   cuenta_contable_descripcion: 'COMPRAS GENERALES' },
+  { descripcion: 'Descuentos de compras',             key: 'descuento_compras',  entidad: 'articulo',         is_nacional: true,    has_comun: false, is_control: false, has_individual: false, has_categoria: true,  has_sub_categoria: false,  cuenta_contable_descripcion: 'DESCUENTOS SOBRE COMPRAS GENERALES' },
+]

@@ -4,7 +4,8 @@ module ArticuloFiltering
   FULL_ARTICULO_INCLUDES = [
     :tipo_articulo,
     :contenido_articulos,
-    { formulas_productos_terminados: { articulo_combo_articulo: [:tipo_articulo, :contenido_articulos] } }
+    { formulas_productos_terminados: { articulo_combo_articulo: [:tipo_articulo, :contenido_articulos] } },
+    { entidad_cuentas_contables: [:cuenta_contable, :configuracion_entidad_cuenta, :origen_categoria] }
   ]
 
   LIST_ARTICULO_SERIALIZER_OPTIONS = {
@@ -89,7 +90,7 @@ module ArticuloFiltering
       return articulo_mode_config(mode)[:includes]
     end
 
-    def filtrarArticulo(params)
+    def filtrarArticulo(params, parametros_opcionales=nil)
       res = Response.new
       Thread.current[:articulos_cache] = {}
 
@@ -104,7 +105,8 @@ module ArticuloFiltering
 
       articulos_finales, historicos_map = preparar_articulos_response(articulos, params, mode_config)
 
-      res.set_data(articulos_finales, mode_config[:serializer_options].merge(historicos_map: historicos_map), mode_config[:includes])
+      serializer_options = mode_config[:serializer_options].merge(historicos_map: historicos_map).merge(parametros_opcionales || {})
+      res.set_data(articulos_finales, serializer_options, mode_config[:includes])
       res.set_pagination_metadata(total_registros, paginas_articulos(total_registros, paginacion[:per_page])) if paginacion[:paginado]
 
       return res

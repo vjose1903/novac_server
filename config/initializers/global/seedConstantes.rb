@@ -13,7 +13,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
   {
     'nombre': 'Administrador',
@@ -28,9 +27,8 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
-	{
+  {
     'nombre': 'Novac',
     'usuario': 'novac',
     'uid': 'novac',
@@ -43,14 +41,12 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
 ]
 
 
 G_clientes = [
   {
-    'imagen_id': nil,
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',
@@ -63,30 +59,30 @@ G_clientes = [
 ]
 
 G_documentos_de_identidad = [
-	{
+  {
     'origen_type': 'User',
-		'origen_entity': 'adm01',
+    'origen_entity': 'adm01',
     'descripcion': 'cedula',
     'documento': '047-0099635-0',
     'principal': true,
   },
   {
     'origen_type': 'User',
-		'origen_entity': 'ADMIN',
+    'origen_entity': 'ADMIN',
     'descripcion': 'cedula',
     'documento': '047-0099635-0',
     'principal': true,
   },
   {
     'origen_type': 'User',
-		'origen_entity': 'novac',
+    'origen_entity': 'novac',
     'descripcion': 'cedula',
     'documento': '000-0000000-1',
     'principal': true,
   },
   {
     'origen_type': 'Cliente',
-		'origen_entity': 'Cliente contado',
+    'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
     'principal': true,
@@ -138,6 +134,7 @@ G_PERMISOS = [
   { nombre: 'producciones',                  mostrar_front: true,     descripcion: 'produccion',                        controlador: 'Producciones',                   acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getProduccionesFiltradas'} ]},
   { nombre: 'provincias',                    mostrar_front: true,     descripcion: 'provincia',                         controlador: 'Provincias',                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
   { nombre: 'recibos ingreso',               mostrar_front: true,     descripcion: 'recibo_ingreso',                    controlador: 'RecibosIngresos',                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getRecibosFiltrados'}, {nombre:'revertir recibo',mostrar_front: true, descripcion: 'revertir_recibo', metodo: 'revertirRecibos'} ]},
+  { nombre: 'pago facturas compra',            mostrar_front: true,     descripcion: 'pagos_compras',                    controlador: 'PagoFactura',                   acciones: [*ACCIONES_COMUNES, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getPagosFiltrados'}, {nombre:'revertir pago', mostrar_front: true, descripcion: 'revertir_pago', metodo: 'revertirPagos'} ]},
   { nombre: 'reportes',                      mostrar_front: true,     descripcion: 'reporte',                           controlador: 'Reportes',                       acciones: [{nombre:'ver reportes', mostrar_front: true, descripcion: 'get_reportes', metodo: 'getReportes'} ]},
   { nombre: 'comprobantes fiscales',         mostrar_front: true,     descripcion: 'secuencia_comprobante',             controlador: 'SecuenciaComprobantes',          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getSecuenciaComprobantesFiltrados'}, {nombre:'buscar comprobanrte por estado',mostrar_front: true, descripcion: 'get_paquete_rnc_estado', metodo: 'getPaqueteRncByEstado'} ]},
   { nombre: 'suplidores',                    mostrar_front: true,     descripcion: 'suplidor',                          controlador: 'Suplidores',                     acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar nombres de suplidores',mostrar_front: true, descripcion: 'get_nombres_suplidores', metodo: 'getNombresSuplidores'}, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getSuplidoresFiltrados'} ]},
@@ -148,6 +145,20 @@ G_PERMISOS = [
   { nombre: 'vehiculos',                     mostrar_front: true,     descripcion: 'vehiculo',                          controlador: 'Vehiculos',                      acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getVehiculosFiltrados'}  ]},
   { nombre: 'sesion de usuario',             mostrar_front: true,     descripcion: 'device',                            controlador: 'devise_token_auth/sessions',     acciones: [{nombre:'iniciar sesión', mostrar_front: true, descripcion: 'login', metodo: 'create'}]},
   { nombre: 'roles',                         mostrar_front: true,     descripcion: 'role',                              controlador: 'Roles',                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, {nombre:'buscar filtrados',mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getRolesFiltrados'}]},
+  { nombre: 'periodo fiscal',                mostrar_front: true,     descripcion: 'periodo_fiscal',                    controlador: 'PeriodoFiscal',                 acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY, { nombre:'abrir nuevo periodo', mostrar_front: true, descripcion: 'open_new_periodo', metodo: 'openNewPeriodo' }]},
+  { nombre: 'grupos de cuentas contables',   mostrar_front: true,     descripcion: 'grupo_cuenta',                     controlador: 'GrupoCuenta',                   acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'cuentas contables',             mostrar_front: true,     descripcion: 'cuenta_contable',                  controlador: 'CuentaContable',                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'cierre de cuentas contables',   mostrar_front: true,     descripcion: 'cierre_cuenta',                    controlador: 'CierreCuenta',                  acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'configuracion cuentas contables', mostrar_front: true,   descripcion: 'configuracion_entidad_cuenta',    controlador: 'ConfiguracionEntidadCuenta',     acciones: [READ_ALL_ACTION, READ_ONE_ACTION, UPDATE_ACTION]},
+  { nombre: 'tipo de cuenta bancaria',       mostrar_front: true,     descripcion: 'tipo_cuenta_bancaria',             controlador: 'TipoCuentaBancaria',            acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'banco',                         mostrar_front: true,     descripcion: 'banco',                            controlador: 'Banco',                          acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'cuenta_bancaria',               mostrar_front: true,     descripcion: 'cuenta_bancaria',                  controlador: 'CuentaBancaria',                acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'asiento contable',              mostrar_front: true,     descripcion: 'cabeza_asiento_contable',          controlador: 'CabezaAsientoContable',         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
+  { nombre: 'categoria de entidad contable', mostrar_front: true,     descripcion: 'categoria_entidad_contable',       controlador: 'CategoriaEntidadContable',      acciones: [*ACCIONES_COMUNES ]},
+  { nombre: 'entidad cuenta contable',        mostrar_front: true,     descripcion: 'entidad_cuenta_contable',          controlador: 'EntidadCuentaContable',          acciones: [*ACCIONES_COMUNES ]},
+  { nombre: 'deposito',                      mostrar_front: true,     descripcion: 'deposito',                         controlador: 'Deposito',                       acciones: [*ACCIONES_COMUNES, { nombre:'anular deposito', mostrar_front: true, descripcion: 'anular_deposito', metodo: 'anularDeposito'} ]},
+  { nombre: 'transferencia',                 mostrar_front: true,     descripcion: 'transferencia',                    controlador: 'Transferencia',                  acciones: [*ACCIONES_COMUNES, { nombre:'anular transferencia', mostrar_front: true, descripcion: 'anular_transferencia', metodo: 'anularTransferencia'} ]},
+  { nombre: 'cheque',                        mostrar_front: true,     descripcion: 'cheque',                           controlador: 'Cheque',                         acciones: [*ACCIONES_COMUNES, { nombre:'anular cheque', mostrar_front: true, descripcion: 'anular_cheque', metodo: 'anularCheque'}, { nombre: 'buscar filtrados', mostrar_front: true, descripcion: 'get_filtrados', metodo: 'getChequesFiltrados' } ]},
   { nombre: 'divisa',                        mostrar_front: true,     descripcion: 'divisa',                            controlador: 'Divisa',                         acciones: [*ACCIONES_COMUNES, *ACCION_DESTROY ]},
   { nombre: 'tasa de cambio',                mostrar_front: true,     descripcion: 'tasa_cambio',                       controlador: 'TasaCambio',                     acciones: [ {nombre:'ver todos', mostrar_front: true, descripcion: 'read_all', metodo: 'index'}, {nombre:'buscar uno', mostrar_front: true, descripcion: 'read_one', metodo: 'show'}, {nombre:'editar', mostrar_front: true, descripcion: 'update', metodo: 'update'}, {nombre:'obtener historicos de tasas de cambio', mostrar_front: true, descripcion: 'get_history_changes', metodo: 'getHistoryChanges'} ]},
   { nombre: 'Recepcion Ecf',                 mostrar_front: true,     descripcion: 'ecf_reception',                     controlador: 'EcfReception',                   acciones: [READ_ALL_ACTION, READ_ONE_ACTION, { nombre: 'Responder recibo de factura', mostrar_front: true, descripcion: 'response_receive', metodo: 'approveDenyEcf'}]},
@@ -172,3 +183,5 @@ G_DIVISA_DEFAULT = [
 
 
 G_CONFIG_CUADRES = { target_fondo: 12000, auto_apply_difference: true }
+
+G_HAS_CONTABILIDAD = true

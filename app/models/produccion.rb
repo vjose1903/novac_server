@@ -18,22 +18,22 @@ class Produccion < ApplicationRecord
       produccion.fecha_equivalente        = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       produccion.valid?
 
-      dependencias = [ {modelo: DetalleProduccion, key_object: "detalles_produccion", padre: produccion} ]
+      dependencias = [ {modelo: DetalleProduccion, key_object: 'detalles_produccion', padre: produccion} ]
 
-      res = crear_actualizar_dependencias(dependencias, params, false) { |key_object, dependencia_data|
-        produccion.detalles_produccion    = dependencia_data if key_object == "detalles_produccion"
+      res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
+        produccion.detalles_produccion    = dependencia_data if key_object == 'detalles_produccion'
       }
 
       if res.status_valid && produccion.errors.empty? && (!is_save || (is_save && produccion.save!))
 
-        res                               = updateSecuencias(16)
+        result                               = updateSecuencias(@tipo_factura_id)
 
         if res.status_valid
           res.set_data(produccion, {all: true})
           res.add_msg("Produccion creada correctamente.")
 
         else
-          res.add_msgs(res.get_msgs)
+          res.add_msgs(result.get_msgs.to_a)
           res.set_status(HTTP_STATUS_CODE[:conflict])
         end
 
@@ -42,7 +42,7 @@ class Produccion < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
-      raise ActiveRecord::Rollback if !produccion.errors.empty? || !res.status_valid
+      transaction_rollback if !produccion.errors.empty? || !res.status_valid
     end
 
 		return res

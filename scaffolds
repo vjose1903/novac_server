@@ -99,6 +99,13 @@ rails generate serializer cabecera_conduce
 rails generate serializer detalle_conduce
 rails generate serializer cabecera_factura
 rails generate serializer detalle_factura
+rails generate serializer imagen
+rails generate serializer detalle_asiento_contable
+rails generate serializer tipo_articulo
+rails generate serializer pago_factura_detalle
+
+rails g migration AddCamposToImagen
+rails g migration AddCamposToPeriodoFiscal
 
 rails g scaffold configuracion nombre_empresa:string rnc_empresa:string direccion_empresa:string telefono_empresa:string logo_empresa:string color_app:string url_servidor:string url_servidor_respaldo:string puerto_servidor:integer url_servidor_descargas:string
 
@@ -112,6 +119,7 @@ rails generate serializer role
 rails generate serializer permiso
 rails generate serializer accion
 rails generate serializer permiso_accion
+rails generate serializer tipo_articulo_cuenta_contable
 
 rails g scaffold nota cliente:references user:references tipo_factura:references total:float identificador:string numero_documento:integer numero_comprobante:string fecha_equivalente:datetime estado:boolean
 rails g scaffold factura_aplicada nota:references cabeza_factura:references total:float
@@ -150,6 +158,7 @@ rails g migration AddIsDevueltoToDetalleFactura
 rails g migration AddIsDefectuosoToDetalleFactura
 
 
+rails g migration changeColumnOrigenToImagen
 rails g migration change_secuencua_to_be_string_in_tables
 rails g migration add_formula_id_to_mantenimiento_formula
 rails g migration addMedidaToMantenimientoFormula
@@ -186,6 +195,60 @@ rails generate serializer movimiento_viaje
 rails g migration AddKeyToRoles
 rails g scaffold config_articulo porciento_ganancia:float
 
+rails g scaffold sub_tipo_articulo tipo_articulo:references cuenta_contable:references descripcion:string
+rails g model tipo_articulo_cuenta_contable origen_tipo:references{polymorphic} key:string cuenta_contable_control:references cuenta_contable_auxiliar:references
+
+rails g scaffold pago_factura user:references suplidor:references fecha_equivalente:date numero:integer forma_pago:string tipo_factura:references estado:boolean total:float
+rails g model pago_factura_detalle pago_factura:references cabecera_factura:references balance_anterior_factura:float balance_factura:float deposito:float is_ultimo:boolean descripcion:string pago_a_tiempo:boolean
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------
+// CONTABILIDAD
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+✅ rails g scaffold grupo_cuenta descripcion:string grupo:integer origen:string tipo:string
+✅ rails g scaffold cuenta_contable grupo_cuenta:references descripcion:string cuenta_control:integer codigo:string nivel:integer origen:string tipo:string
+
+✅ rails g scaffold periodo_fiscal fecha_inicio:date fecha_cierre:date estado:boolean
+✅ rails g scaffold detalle_periodo_fiscal periodo_fiscal:references enero:boolean febrero:boolean marzo:boolean abril:boolean mayo:boolean junio:boolean julio:boolean agosto:boolean septiembre:boolean octubre:boolean noviembre:boolean diciembre:boolean
+
+✅ rails g scaffold cierre_cuenta periodo_fiscal:references cuenta_contable:references enero:float enero_debito:float enero_credito:float febrero:float febrero_debito:float febrero_credito:float marzo:float marzo_debito:float marzo_credito:float abril:float abril_debito:float abril_credito:float mayo:float mayo_debito:float mayo_credito:float junio:float junio_debito:float junio_credito:float julio:float julio_debito:float julio_credito:float agosto:float agosto_debito:float agosto_credito:float septiembre:float septiembre_debito:float septiembre_credito:float octubre:float octubre_debito:float octubre_credito:float noviembre:float noviembre_debito:float noviembre_credito:float diciembre:float diciembre_debito:float diciembre_credito:float total_anual:float
+
+✅ rails g scaffold configuracion_entidad_cuenta descripcion:string cuenta_contable:references
+
+✅ rails g scaffold divisa nombre:string simbolo:string imagen:references is_principal:boolean estado:boolean
+✅ rails g scaffold tasa_cambio divisa:references valor:float fecha_equivalente:date
+
+✅ rails g scaffold tipo_cuenta_bancaria descripcion:string estado:boolean
+✅ rails g scaffold banco nombre:string rnc:string comentario:string telefono:string direccion:string ejecutivo_cuenta:string telefono_ejecutivo_cuenta:string estado:boolean
+✅ rails g scaffold cuenta_bancaria banco:references tipo_cuenta_bancaria:references divisa:references cuenta_contable:references numero_cuenta:string comentario:string descripcion:string fecha_apertura:date is_nacional:boolean estado:boolean
+
+✅ rails g scaffold cabeza_asiento_contable usuario_creador:references usuario_anulador:references periodo_fiscal:references comentario:string tipo:string fecha_equivalente:date fecha_anulacion:date estado:boolean
+✅ rails g model detalle_asiento_contable cabeza_asiento_contable:references cuenta_contable_auxiliar:references cuenta_contable_control:references valor_debito:float valor_credito:float
+
+✅ rails g scaffold categoria_entidad_contable descripcion:string entidad:string key:string cuenta_contable_control:references cuenta_contable_auxiliar:references configuracion_entidad_cuenta:references
+✅ rails g scaffold entidad_cuenta_contable origen_entidad:references{polymorphic} cuenta_contable:references key:string tipo_agrupacion_contable:string origen_categoria:references{polymorphic}
+
+✅ rails g scaffold deposito cuenta_bancaria:references user_creador:references user_anulador:references tasa:float monto:float monto_local:float comentario:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean
+✅ rails g scaffold transferencia cuenta_bancaria_origen:references cuenta_bancaria_destino:references user_creador:references last_user_update:references user_anulador:references tipo:string tasa:float monto:float monto_local:float comentario:string nombre_banco_tercero:string cuenta_bancaria_tercero:string numero_referencia:string fecha_equivalente:date fecha_anulacion:date estado:boolean
+
+✅ rails g scaffold nombre_banco nombre:string
+
+✅ rails g scaffold secuencia_documento origen_secuencia:references{polymorphic} secuencia:integer
+rails g scaffold cheque cuenta_bancaria:references tasa:float monto:float monto_local:float balance:float comentario:string fecha_equivalente:datetime user_creador:references last_user_update:references fecha_update:date user_anulador:references fecha_anulacion:date secuencia:integer estado:string
+rails g model detalle_cheque cheque:references comentario:string tasa:float monto:float monto_local:float
+
+// rails g migration addHasCuentaIndividualToConfingCuenta
+// rails g migration addFechaPrimeraConciliacionToCuentaBancaria
+// rails g migration changeRncBancoToNullable
+// rails g migration change_fecha_equivalente_type_pago_facturas
+// rails g migration change_fecha_equivalente_type_transferencias
+// rails g migration addCodigoToCabezaAsientoContable
+// rails g migration addHasChequeaToCuentaBancaria
+// rails g migration addFechaUpdateToTransferencia
+// rails g migration addIsAutoCreatedToCuentaContable
+
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------
 rails g scaffold ecf_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float approved:boolean
 rails g scaffold commertial_approval_reception eNCF:string rnc_emisor:string rnc_comprador:string monto_total:float estado:integer detalleMotivoRechazo:string cabecera_factura:references
 

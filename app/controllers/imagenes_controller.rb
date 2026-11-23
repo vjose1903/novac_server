@@ -7,8 +7,7 @@ class ImagenesController < ApplicationController
 
   # GET /imagenes
   def index
-    @imagenes = Imagen.all
-
+    return Response.new(params, nil, Imagen.all.order('id ASC'), nil, {all: true}).send_response self
     render json: @imagenes
   end
 
@@ -64,19 +63,16 @@ class ImagenesController < ApplicationController
 
   # DELETE /imagenes/1
   def destroy
-    @imagen.destroy
+    resultado = borrar_entidad(@imagen)
+    resultado.send_response self
   end
 
   private
-
-  # Use callbacks to share common setup or constraints between actions.
   def set_imagen
-    @imagen = Imagen.find(params[:id])
-  end
+		respuesta = set_entidad(Imagen, params)
+    @imagen   = respuesta.get_data
 
-  # Only allow a trusted parameter "white list" through.
-  def imagen_params
-    params.require(:imagen).permit(:file_name, :base_64, :path)
+    return respuesta.send_response self if @imagen.nil?
   end
 
   def image_content_type(file_name)

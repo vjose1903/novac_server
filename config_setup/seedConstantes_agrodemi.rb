@@ -13,7 +13,6 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
   {
     'nombre': 'Administrador',
@@ -28,9 +27,8 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
-	{
+  {
     'nombre': 'Novac',
     'usuario': 'novac',
     'uid': 'novac',
@@ -43,14 +41,12 @@ G_usuarios =
     'password': '1234567',
     'password_confirmation': '1234567',
     'estado': true,
-    'imagen_id': nil,
   },
 ]
 
 
 G_clientes = [
   {
-    'imagen_id': nil,
     'nombre': 'Cliente contado',
     'apellido': '.',
     'telefono': '(---) --------',
@@ -63,30 +59,30 @@ G_clientes = [
 ]
 
 G_documentos_de_identidad = [
-	{
+  {
     'origen_type': 'User',
-		'origen_entity': 'adm01',
+    'origen_entity': 'adm01',
     'descripcion': 'cedula',
     'documento': '047-0099635-0',
     'principal': true,
   },
   {
     'origen_type': 'User',
-		'origen_entity': 'ADMIN',
+    'origen_entity': 'ADMIN',
     'descripcion': 'cedula',
     'documento': '047-0099635-0',
     'principal': true,
   },
   {
     'origen_type': 'User',
-		'origen_entity': 'novac',
+    'origen_entity': 'novac',
     'descripcion': 'cedula',
     'documento': '000-0000000-1',
     'principal': true,
   },
   {
     'origen_type': 'Cliente',
-		'origen_entity': 'Cliente contado',
+    'origen_entity': 'Cliente contado',
     'descripcion': 'cedula',
     'documento': ' ',
     'principal': true,

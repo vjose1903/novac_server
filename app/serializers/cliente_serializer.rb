@@ -19,7 +19,8 @@ class ClienteSerializer < ActiveModel::Serializer
       documentos_de_identidad: ->(cliente) { documentos_de_identidad_to_hash(cliente, params[:documentos_de_identidad], params[:all]) },
       provincia_id: ->(cliente) { cliente.provincia&.id },
       provincia: ->(cliente) { provincia_to_hash(cliente.provincia, params[:provincia], params[:all]) },
-      municipio: ->(cliente) { municipio_to_hash(cliente.municipio, params[:municipio], params[:all]) }
+      municipio: ->(cliente) { municipio_to_hash(cliente.municipio, params[:municipio], params[:all]) },
+      cuentas_contables: ->(cliente) { serialize_parser(cliente.entidad_cuentas_contables, { id: true, key: true, tipo_agrupacion_contable: true, cuenta_contable: true, is_comun: true, origen_categoria: true, configuracion_entidad_cuenta_id: true }) }
     }
     serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) }, readers: readers)
   end
@@ -48,7 +49,8 @@ class ClienteSerializer < ActiveModel::Serializer
       :documentos_de_identidad,
       :provincia_id,
       :provincia,
-      :municipio
+      :municipio,
+      :cuentas_contables
     ]
   end
 
