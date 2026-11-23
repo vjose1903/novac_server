@@ -6,6 +6,10 @@ class ClientesController < ApplicationController
     return Response.new(params, nil, Cliente.where({ estado: true}).order('id DESC'), nil, {all: true}, Cliente.models_includes).send_response self
   end
 
+  def show
+    return Response.new(params, nil, @cliente, nil, {all: true}, Cliente.models_includes).send_response self
+  end
+
 
   def getClientesFiltrados
     arg       = params[:arg]
