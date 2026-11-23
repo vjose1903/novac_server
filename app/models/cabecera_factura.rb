@@ -1219,8 +1219,8 @@ class CabeceraFactura < ApplicationRecord
       return res
     end
 
-    if factura.fecha_completada.present? || factura.verificateFacturaHasPagos.get_data
-      res.add_msg('No se puede desasignar un viaje que ya tiene pagos o está completado.')
+    if factura.fecha_completada.present?
+      res.add_msg('No se puede desasignar un viaje que ya está completado.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
       return res
     end
@@ -1234,8 +1234,8 @@ class CabeceraFactura < ApplicationRecord
             raise ActiveRecord::Rollback
           end
 
-          if factura.fecha_completada.present? || factura.verificateFacturaHasPagos.get_data
-            res.add_msg('No se puede desasignar un viaje que ya tiene pagos o está completado.')
+          if factura.fecha_completada.present?
+            res.add_msg('No se puede desasignar un viaje que ya está completado.')
             res.set_status(HTTP_STATUS_CODE[:conflict])
             raise ActiveRecord::Rollback
           end
@@ -1359,8 +1359,8 @@ class CabeceraFactura < ApplicationRecord
       return res
     end
 
-    if factura_origen.fecha_completada.present? || factura_origen.verificateFacturaHasPagos.get_data
-      res.add_msg('No se puede transferir un viaje que ya tiene pagos o está completado.')
+    if factura_origen.fecha_completada.present?
+      res.add_msg('No se puede transferir un viaje que ya está completado.')
       res.set_status(HTTP_STATUS_CODE[:conflict])
       return res
     end
@@ -1453,8 +1453,8 @@ class CabeceraFactura < ApplicationRecord
           raise ActiveRecord::Rollback
         end
 
-        if origen.fecha_completada.present? || origen.verificateFacturaHasPagos.get_data
-          res.add_msg('No se puede transferir un viaje que ya tiene pagos o está completado.')
+        if origen.fecha_completada.present?
+          res.add_msg('No se puede transferir un viaje que ya está completado.')
           res.set_status(HTTP_STATUS_CODE[:conflict])
           raise ActiveRecord::Rollback
         end
