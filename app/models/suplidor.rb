@@ -126,7 +126,7 @@ class Suplidor < ApplicationRecord
       res.set_data([])
       cantidad_registros = Suplidor.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? 'No existen suplidores registrados.' : 'No existe suplidor con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res

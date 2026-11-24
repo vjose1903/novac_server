@@ -164,7 +164,7 @@ class CabezaAsientoContable < ApplicationRecord
       res.set_data([])
       cantidad_registros = CabezaAsientoContable.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? 'No existen entradas de diario registradas.' : 'No existe entrada de diario con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res

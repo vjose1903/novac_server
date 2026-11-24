@@ -46,7 +46,7 @@ class CalendarEventType < ApplicationRecord
     else
       res.set_data([])
       res.add_msg('No existen tipos de evento registrados.')
-      res.set_status(HTTP_STATUS_CODE[:not_found])
+      res.set_status(HTTP_STATUS_CODE[:ok])
     end
 
     res

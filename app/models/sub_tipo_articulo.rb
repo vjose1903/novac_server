@@ -25,7 +25,7 @@ class SubTipoArticulo < ApplicationRecord
       res.set_data([])
       cantidad_registros = tipo_articulo_id.nil? ? SubTipoArticulo.all.count : SubTipoArticulo.where({ tipo_articulo_id: tipo_articulo_id }).count
       res.add_msg(cantidad_registros == 0 ? 'No existen sub categorias registradas.' : 'No existe sub categoria de articulo con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res

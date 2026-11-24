@@ -613,7 +613,7 @@ class CabeceraFactura < ApplicationRecord
       documento =  tipo == TiposFacturasDescripcion.cotizacion  ? 'Cotizaciones' : tipo == TiposFacturasDescripcion.pre_venta ? 'Pre-Ventas' : 'Facturas'
 
       res.add_msg("No existen #{documento} con las especificaciones introducidas") if !is_adelantada && cantidad_registros != 0
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res
@@ -662,7 +662,7 @@ class CabeceraFactura < ApplicationRecord
     else
       cantidad_registros = CabeceraFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? 'No existen facturas registradas.' : 'No existen facturas con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res
@@ -728,8 +728,9 @@ class CabeceraFactura < ApplicationRecord
     if facturas.exists?
       res.set_data(facturas, { all: true, **parametros_opcionales }, CabeceraFactura.models_includes_for(movimientos_viaje: false))
     else
+      res.set_data([])
       res.add_msg('No existen facturas disponibles para transferir el viaje.')
-      res.set_status(HTTP_STATUS_CODE[:not_found])
+      res.set_status(HTTP_STATUS_CODE[:ok])
     end
 
     res

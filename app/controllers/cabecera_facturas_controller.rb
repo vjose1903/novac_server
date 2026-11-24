@@ -88,7 +88,7 @@ class CabeceraFacturasController < ApplicationController
     else
       resultado.set_data([])
       resultado.add_msg('El cliente buscado no tiene facturas registradas.')
-      resultado.set_status(HTTP_STATUS_CODE[:not_found])
+      resultado.set_status(HTTP_STATUS_CODE[:ok])
     end
 
     resultado.send_response self

@@ -91,7 +91,7 @@ class CabeceraConduce < ApplicationRecord
 		else
 			cantidad_registros = CabeceraConduce.where({estado: true}).count
 			res.add_msg(cantidad_registros == 0 ? "No existen conduces de mercancías registrados." : "No existen conduces con las especificaciones introducidas.")
-			res.set_status(HTTP_STATUS.conflict)
+			res.set_empty_collection_status(cantidad_registros)
 		end
 
 		return res

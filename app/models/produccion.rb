@@ -68,7 +68,7 @@ class Produccion < ApplicationRecord
       res.set_data([])
 			cantidad_registros = Produccion.all.count
       res.add_msg(cantidad_registros == 0 ? "No existen producciones registradas." : "No existen producciones con las especificaciones introducidas")
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res

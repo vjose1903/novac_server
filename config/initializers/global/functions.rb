@@ -16,6 +16,11 @@ class Response
     @res[:status]            = status
   end
 
+  def set_empty_collection_status(total_records = 0)
+    status = total_records.to_i.zero? ? HTTP_STATUS_CODE[:ok] : HTTP_STATUS_CODE[:conflict]
+    set_status(status)
+  end
+
   def status_valid
     @res[:status]            == HTTP_STATUS.ok
   end

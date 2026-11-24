@@ -103,7 +103,7 @@ class PagoFactura < ApplicationRecord
     else
       cantidad_registros = PagoFactura.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? 'No existen pagos de facturas registrados.' : 'No existen pagos de facturas con las especificaciones introducidas.')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res

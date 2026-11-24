@@ -119,7 +119,7 @@ class Transferencia < ApplicationRecord
       res.set_data([])
       cantidad_registros = Transferencia.where({ estado: true }).count
       res.add_msg(cantidad_registros == 0 ? 'No existen transferencias registradas.' : 'No existe transferencia con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res

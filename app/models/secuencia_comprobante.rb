@@ -77,7 +77,7 @@ class SecuenciaComprobante < ApplicationRecord
         res.set_data([])
         cantidad_registros = SecuenciaComprobante.all.count
         res.add_msg(cantidad_registros == 0 ? "No existen paquetes de comprobantes registrados." : "No existe paquetes de comprobantes con las especificaciones introducidas")
-        res.set_status(HTTP_STATUS.conflict)
+        res.set_empty_collection_status(cantidad_registros)
       end
 
       return res

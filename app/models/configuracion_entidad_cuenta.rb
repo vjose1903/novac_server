@@ -31,7 +31,7 @@ class ConfiguracionEntidadCuenta < ApplicationRecord
     else
       res.set_data([])
       res.add_msg('No existen configuraciones para entidades contables con las especificaciones introducidas.')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_status(HTTP_STATUS_CODE[:ok])
     end
 
     return res

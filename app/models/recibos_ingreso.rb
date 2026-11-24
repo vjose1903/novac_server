@@ -128,7 +128,7 @@ class RecibosIngreso < ApplicationRecord
     else
       cantidad_registros = RecibosIngreso.where({estado: true}).count
       res.add_msg(cantidad_registros == 0 ? 'No existen recibos de ingresos registrados.' : 'No existen recibos con las especificaciones introducidas')
-      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.set_empty_collection_status(cantidad_registros)
     end
 
     return res
