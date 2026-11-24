@@ -118,7 +118,9 @@ class Suplidor < ApplicationRecord
 		def get_balances_and_facturas(params, paginate_options)
 			res               = Response.new()
 			suplidor_en_turno = self
-			query             = "cabecera_facturas.can_pagar AND cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND cabecera_facturas.tipo = 'compra' AND cabecera_facturas.estado = true  AND cabecera_facturas.suplidor_id = #{suplidor_en_turno.id}"
+			fecha_primer_grupo_catalogo = GrupoCuenta.minimum(:created_at)
+			fecha_primer_grupo_sql      = CabeceraFactura.connection.quote(fecha_primer_grupo_catalogo)
+			query             = "cabecera_facturas.can_pagar AND cabecera_facturas.created_at >= #{fecha_primer_grupo_sql} AND cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND cabecera_facturas.tipo = 'compra' AND cabecera_facturas.estado = true  AND cabecera_facturas.suplidor_id = #{suplidor_en_turno.id}"
 			res               = Balances.get_balances_and_facturas(params, paginate_options, query, 'pago_factura_detalles')
 			return res
 		end

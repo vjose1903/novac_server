@@ -209,6 +209,13 @@ class CabeceraFactura < ApplicationRecord
       tipo_downcase != TiposFacturasDescripcion.cotizacion.downcase
   end
 
+  private_class_method def self.can_pagar_por_fecha_catalogo?(tipo)
+    return false unless tipo.to_s.downcase == TiposFacturasDescripcion.compra.downcase
+
+    fecha_primer_grupo_catalogo = GrupoCuenta.minimum(:created_at)
+    fecha_primer_grupo_catalogo.present? && Time.current >= fecha_primer_grupo_catalogo
+  end
+
   private_class_method def self.build_cabecera_factura(params, data_secuencias)
     today_cuadre = CuadreCaja.blocks_documents_today?
 
@@ -252,7 +259,7 @@ class CabeceraFactura < ApplicationRecord
     cabecera_factura.cotizacion               = params[:cotizacion]
     cabecera_factura.serie                    = params[:serie]
     cabecera_factura.is_external              = params[:is_external] if params.key?(:is_external)
-    cabecera_factura.can_pagar                = params[:can_pagar] if params.key?(:can_pagar)
+    cabecera_factura.can_pagar                = can_pagar_por_fecha_catalogo?(params[:tipo])
 
     cabecera_factura.otras_validaciones(params, @tipo_de_factura)
     cabecera_factura
@@ -866,7 +873,6 @@ class CabeceraFactura < ApplicationRecord
           factura_original.descuento       = factura_nueva['descuento']
           factura_original.Bruto           = factura_nueva['Bruto']
           factura_original.pagada          = factura_nueva['pagada']
-          factura_original.can_pagar       = factura_nueva['can_pagar'] if factura_nueva.key?('can_pagar') || factura_nueva.key?(:can_pagar)
           factura_original.balance         = factura_nueva['balance']
           factura_original.devuelta        = factura_nueva['devuelta']
           pagos = nil
