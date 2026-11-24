@@ -259,6 +259,7 @@ Rails.application.routes.draw do
   end
 
   get "catalogo_de_cuentas" => "catalogo_de_cuentas#getCatalogoDeCuentas"
+  get "catalogo_de_cuentas/default_structure" => "catalogo_de_cuentas#getDefaultStructure"
   post "catalogo_de_cuentas/create_default" => "catalogo_de_cuentas#createCatalogoDeCuentasDefault"
 
   resources :tasas_de_cambio, only: [:index, :show, :update] do
