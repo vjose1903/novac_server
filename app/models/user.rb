@@ -154,27 +154,36 @@ class User < ApplicationRecord
 
   # =====================================================================================================================
   def self.filtrarUsusarios(arg, params)
-    res = Response.new(params)
-    users = User
-    .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
-    .where(estado: true)
-    .where.not(sexo: 'i')
-    .distinct
-
+    serializer_params = { all: true, roles: true, cuentas_contables: true }
     palabra = "%#{ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)}%"
-    users = users.where("immutable_unaccent(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) ILIKE immutable_unaccent(?)", palabra)
-    .order('users.id ASC')
+
+    matching_user_ids = User
+      .joins("LEFT JOIN documentos_de_identidad ON users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
+      .where(estado: true)
+      .where.not(sexo: 'i')
+      .where("immutable_unaccent(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) ILIKE immutable_unaccent(?)", palabra)
+      .select(:id)
+      .distinct
+
+    users = User.where(id: matching_user_ids).order('users.id ASC')
 
     if users.exists?
-      res.set_data(users, {all: true, roles: true}, User.models_includes)
-    else
-      res.set_data([])
-      cantidad_registros = User.where({estado: true}).count
-      res.add_msg(cantidad_registros == 0 ? 'No existen empleados registrados.' : 'No existe empleado con las especificaciones introducidas.')
-      res.set_empty_collection_status(cantidad_registros)
+      return Response.new(
+        params,
+        HTTP_STATUS_CODE[:ok],
+        users,
+        [],
+        serializer_params,
+        User.models_includes_for(serializer_params)
+      )
     end
 
-    return res
+    res = Response.new(params)
+    res.set_data([])
+    cantidad_registros = User.where(estado: true).count
+    res.add_msg(cantidad_registros.zero? ? 'No existen empleados registrados.' : 'No existe empleado con las especificaciones introducidas.')
+    res.set_empty_collection_status(cantidad_registros)
+    res
   end
 
     # =========================================================================================================================================================
