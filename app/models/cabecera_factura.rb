@@ -567,7 +567,7 @@ class CabeceraFactura < ApplicationRecord
     res                  = Response.new(paginate_options)
 
     campoNum           = params[:campo]
-    valor_des          = params.has_key?(:valor) ? desencriptarBase64(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
+    valor_des          = params.has_key?(:valor) ? decrypt(params[:valor].gsub(/\b&^IC\b/, '\\')) : ''
     tipo_factura_id    = params[:tipo_factura_id]
     is_adelantada      = params[:is_adelantada] != '0' ? params[:is_adelantada].to_boolean : false
     tipo               = params[:tipo] ? params[:tipo] : 'venta'
@@ -605,7 +605,7 @@ class CabeceraFactura < ApplicationRecord
                              .group('cabecera_facturas.id')
                              .limit(limit_)
 
-    if facturas.length > 0
+    if facturas.exists?
       res.set_data(facturas, {all: true, **parametros_opcionales})
     else
       cantidad_registros = CabeceraFactura.all.count
@@ -745,16 +745,24 @@ class CabeceraFactura < ApplicationRecord
   def self.get_facturas_by_cliente_id_and_estado(params, paginate_options)
     res                          = Response.new(paginate_options)
 
-    where                        = "cliente_id=#{params[:cliente_id]} AND pagada=#{params[:pagada]} AND tipo='venta' AND condicion='Crédito' AND cabecera_facturas.estado=true"
+    pagada = ActiveModel::Type::Boolean.new.cast(params[:pagada])
+    credit_invoices = CabeceraFactura.where(
+      cliente_id: params[:cliente_id],
+      pagada: pagada,
+      tipo: 'venta',
+      condicion: 'Crédito',
+      estado: true
+    )
+    cash_trips = CabeceraFactura.where(
+      cliente_id: params[:cliente_id],
+      is_viaje: true,
+      condicion: 'Contado',
+      estado: true
+    ).where.not(balance: 0)
+    facturas = credit_invoices.or(cash_trips).order('cabecera_facturas.id DESC')
 
-    cabeceras                    = CabeceraFactura.where(where).order('cabecera_facturas.id DESC').group('cabecera_facturas.id').to_a
-
-    cabe_viajes_contado_deviendo = CabeceraFactura.where({ cliente_id: params[:cliente_id], is_viaje: true, condicion: 'Contado', estado: true }).where.not(balance: 0).to_a
-
-    cabeceras.concat cabe_viajes_contado_deviendo
-
-    if cabeceras.length > 0
-      res.set_data(cabeceras, {all: true}, CabeceraFactura.models_includes)
+    if facturas.exists?
+      res.set_data(facturas, {all: true}, CabeceraFactura.models_includes)
     else
       res.add_msg('El cliente buscado no tiene facturas pendientes.')
       res.set_status(HTTP_STATUS_CODE[:not_found])

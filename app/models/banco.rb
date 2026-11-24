@@ -6,7 +6,7 @@ class Banco < ApplicationRecord
   validates :rnc,     uniqueness: { scope: [:estado], case_sensitive: false, :message => "RNC ya está registrado, en otro banco." }, if: -> { estado && rnc.present? }
 
   def otras_validaciones(params)
-    if params.obj_has?(:validate_rnc) && params[:validate_rnc] == true && isEmpty?(params[:rnc])
+    if params.obj_has?(:validate_rnc) && params[:validate_rnc] == true && is_empty?(params[:rnc])
       self.errors.add(:rnc, :blank)
     end
   end
@@ -60,9 +60,12 @@ class Banco < ApplicationRecord
     res    = Response.new(pagination_params)
     arg    = params[:arg]
 
-    bancos = Banco.where("lower(bancos.nombre || ' ' ||  coalesce(bancos.rnc,'')) like lower('%#{arg}%')  AND bancos.estado = true").order('bancos.id ASC').to_a
+    search_term = "%#{Banco.sanitize_sql_like(arg.to_s.strip)}%"
+    bancos = Banco
+              .where("lower(bancos.nombre || ' ' || coalesce(bancos.rnc, '')) LIKE lower(?) AND bancos.estado = ?", search_term, true)
+              .order('bancos.id ASC')
 
-    if bancos.length > 0
+    if bancos.exists?
       res.set_data(bancos, {all: true})
     else
       res.set_data([])

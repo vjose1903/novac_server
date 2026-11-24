@@ -20,9 +20,10 @@ class TipoArticulo < ApplicationRecord
 
     res                   = Response.new
     filter_target         = params[:filter_target]
+    palabra = "%#{TipoArticulo.sanitize_sql_like(filter_target.to_s.strip)}%"
 
     tiposArticulos = TipoArticulo
-    .where("lower(tipo_articulos.descripcion) like lower('%#{filter_target}%')")
+    .where("lower(tipo_articulos.descripcion) like lower(?)", palabra)
     .order('tipo_articulos.id ASC').to_a
 
     if tiposArticulos.length > 0

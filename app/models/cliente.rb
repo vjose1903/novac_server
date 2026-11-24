@@ -1,8 +1,9 @@
 class Cliente < ApplicationRecord
   after_initialize :init, if: :new_record?
 
-  # belongs_to :imagen,    optional: true
+  belongs_to :imagen, optional: true
   belongs_to :municipio, optional: true,                  class_name: 'Municipio'
+  belongs_to :vendedor, optional: true,                  class_name: 'User'
 
   has_many  :documentos_de_identidad,    :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
   has_many  :entidad_cuentas_contables,  :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
@@ -44,12 +45,27 @@ class Cliente < ApplicationRecord
   def self.models_includes
     includes = [
       :documentos_de_identidad,
+      :imagen,
       :imagenes,
       :municipio,
       :provincia,
+      :vendedor,
       { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
     ]
     return includes
+  end
+
+  def self.filter_order_columns
+    {
+      'id' => 'clientes.id', 'nombre' => 'clientes.nombre', 'apellido' => 'clientes.apellido',
+      'telefono' => 'clientes.telefono', 'direccion' => 'clientes.direccion',
+      'limite_credito' => 'clientes.limite_credito', 'maximo_credito' => 'clientes.maximo_credito',
+      'balance' => 'clientes.balance', 'created_at' => 'clientes.created_at', 'updated_at' => 'clientes.updated_at'
+    }
+  end
+
+  def self.parse_filter_order(order_by)
+    ORDER_MANAGER.parse_safe(order_by, filter_order_columns, 'clientes.id ASC')
   end
 
   # =========================================================================================================================================================
@@ -65,7 +81,7 @@ class Cliente < ApplicationRecord
 
   def self.create_update_cliente(params , is_save=false)
     res                            = Response.new
-    @has_contabilidad              = system_has_contabilidad
+    has_contabilidad                = system_has_contabilidad
 
     Cliente.transaction do
 
@@ -86,9 +102,9 @@ class Cliente < ApplicationRecord
       cliente.create_validations   = true
       cliente.valid?
 
-      cliente.otras_validaciones(params, @has_contabilidad)
+      cliente.otras_validaciones(params, has_contabilidad)
 
-      if @has_contabilidad
+      if has_contabilidad
         cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: cliente.nombre_completo }.with_indifferent_access
         EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true ) if cliente.errors.empty?
       end
@@ -99,7 +115,7 @@ class Cliente < ApplicationRecord
           { modelo: Imagen,                key_object: 'imagenes',                    padre: cliente }
         ]
 
-        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: cliente }) if @has_contabilidad
+        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: cliente }) if has_contabilidad
 
         res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
           cliente.documentos_de_identidad    = dependencia_data if key_object == 'documentos_de_identidad'
@@ -140,20 +156,16 @@ class Cliente < ApplicationRecord
             AND documentos_de_identidad.origen_type = 'Cliente'
             AND documentos_de_identidad.principal = true")
 
-    # Aplica cada palabra como un filtro separado
+    query = query.where('clientes.sexo IS NOT NULL').distinct
+
     palabras_busqueda.each do |palabra|
-      query = query.where("
-      lower(clientes.nombre) LIKE :palabra OR
-      lower(clientes.apellido) LIKE :palabra OR
-      lower(COALESCE(documentos_de_identidad.documento, '')) LIKE :palabra",
-                          palabra: "%#{palabra}%"
-      )
+      palabra = "%#{ActiveRecord::Base.sanitize_sql_like(palabra)}%"
+      query = query.where("immutable_unaccent(clientes.nombre) ILIKE immutable_unaccent(:palabra) OR immutable_unaccent(clientes.apellido) ILIKE immutable_unaccent(:palabra) OR immutable_unaccent(documentos_de_identidad.documento) ILIKE immutable_unaccent(:palabra)", palabra: palabra)
     end
 
-    # Ordena los resultados
-    clientes = query.where('clientes.sexo IS NOT NULL').order("clientes.id ASC")
+    clientes = query.order(Arel.sql(parse_filter_order(paginate_options['order_by'])))
 
-    if clientes.length > 0
+    if clientes.exists?
       res.set_data(clientes, { all: true }, Cliente.models_includes)
     else
       res.set_data([])
@@ -172,15 +184,21 @@ class Cliente < ApplicationRecord
     paginate_class               = Paginator.new(paginate_options)
     res                          = Response.new()
     cliente_en_turno             = self
-    order_by                     = ORDER_MANAGER.parse(params[:order_by])
+    order_columns = CabeceraFactura.column_names.each_with_object({}) do |column, allowed|
+      allowed[column] = "cabecera_facturas.#{column}"
+    end
+    order_by = ORDER_MANAGER.parse_safe(params[:order_by], order_columns, 'cabecera_facturas.id DESC')
 
     factura_a_buscar             = params[:factura_a_buscar]
     next_page                    = nil
 
-    query      = "cabecera_facturas.balance >= 1 AND NOT cabecera_facturas.pagada AND (cabecera_facturas.tipo = 'venta' OR cabecera_facturas.tipo = 'pre_venta') AND cabecera_facturas.estado = true  AND cabecera_facturas.cliente_id = #{cliente_en_turno.id}"
     data       = {'balances' => { 'total_facturado' => 0, 'notas_credito' => 0, 'notas_debito' => 0, 'debiendo' => 0, 'abonado' => 0}, 'facturas' => [], 'page' => paginate_class.get_page}
 
-    facturas   = CabeceraFactura.where(query).order(order_by ? order_by : 'id DESC').includes(CabeceraFactura.models_includes).each do | factura |
+    facturas   = CabeceraFactura
+                   .where('cabecera_facturas.balance >= ?', 1)
+                   .where(pagada: false, tipo: %w[venta pre_venta], estado: true, cliente_id: cliente_en_turno.id)
+                   .order(Arel.sql(order_by))
+                   .includes(CabeceraFactura.models_includes).each do | factura |
 
       data['balances']['total_facturado'] += factura.total_factura
       data['balances']['debiendo']        += factura.balance

@@ -79,6 +79,26 @@ class CabeceraFacturasController < ApplicationController
     resultado.send_response self
   end
 
+  def getFacturasByClienteId
+    facturas = CabeceraFactura.where(cliente_id: params[:id], estado: true).order('cabecera_facturas.id DESC')
+    resultado = Response.new(parse_pagination_params(params))
+
+    if facturas.exists?
+      resultado.set_data(facturas, { all: true }, CabeceraFactura.models_includes)
+    else
+      resultado.set_data([])
+      resultado.add_msg('El cliente buscado no tiene facturas registradas.')
+      resultado.set_status(HTTP_STATUS_CODE[:not_found])
+    end
+
+    resultado.send_response self
+  end
+
+  def cancelarFactura
+    resultado = CabeceraFactura.delete_documentos(params.merge(ids: params[:id], tipo: 'anular'))
+    resultado.send_response self
+  end
+
   # POST /cabecera_facturas
   def create
     resultado = CabeceraFactura.create_factura(params, true)
@@ -135,7 +155,7 @@ class CabeceraFacturasController < ApplicationController
 
     if dgii_cert_date.nil?
       msg_error = 'Variable de entorno DGII_CERTIFICATION_DATE no configurada.'
-      return Response.new(params, msg_error, nil, HTTP_STATUS_CODE[:internal_server_error]).send_response self
+      return Response.new(params, HTTP_STATUS_CODE[:internal_server_error], nil, [msg_error]).send_response self
     end
 
     begin
@@ -144,11 +164,11 @@ class CabeceraFacturasController < ApplicationController
 
       if fecha_factura < fecha_certificacion
         msg_error = 'Solo se pueden reemplazar facturas luego de la fecha de certificación con la dgii'
-        return Response.new(params, msg_error, nil, HTTP_STATUS_CODE[:bad_request]).send_response self
+        return Response.new(params, HTTP_STATUS_CODE[:bad_request], nil, [msg_error]).send_response self
       end
     rescue ArgumentError => e
       msg_error = 'Error al procesar las fechas: formato inválido'
-      return Response.new(params, msg_error, nil, HTTP_STATUS_CODE[:bad_request]).send_response self
+      return Response.new(params, HTTP_STATUS_CODE[:bad_request], nil, [msg_error]).send_response self
     end
   end
 

@@ -107,12 +107,13 @@ class Transferencia < ApplicationRecord
     res    = Response.new(pagination_params)
     arg    = params[:arg]
 
+    search_term = "%#{Transferencia.sanitize_sql_like(arg.to_s.strip)}%"
     transferencias = Transferencia
                   .joins('inner join cuentas_bancarias on transferencias.cuenta_bancaria_origen_id = cuentas_bancarias.id')
-                  .where("lower(transferencias.monto || ' ' || transferencias.comentario || ' ' || coalesce(transferencias.numero_referencia, '') || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion || ' ' || coalesce(transferencias.nombre_banco_tercero, '') ) like lower('%#{arg}%') AND transferencias.estado = true").order('transferencias.id ASC').to_a
+                  .where("lower(transferencias.monto || ' ' || transferencias.comentario || ' ' || coalesce(transferencias.numero_referencia, '') || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion || ' ' || coalesce(transferencias.nombre_banco_tercero, '')) LIKE lower(?) AND transferencias.estado = ?", search_term, true)
+                  .order('transferencias.id ASC')
 
-    puts "transferencias ".red + " #{transferencias.to_json}"
-    if transferencias.length > 0
+    if transferencias.exists?
       res.set_data(transferencias, {all: true})
     else
       res.set_data([])

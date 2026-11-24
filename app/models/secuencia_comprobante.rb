@@ -68,10 +68,10 @@ class SecuenciaComprobante < ApplicationRecord
 
       paquetes = SecuenciaComprobante
       .joins("inner join tipo_facturas on secuencia_comprobantes.tipo_factura_id = tipo_facturas.id")
-      .where("lower(tipo_facturas.descripcion  || ' ' || secuencia_comprobantes.desde || ' ' || secuencia_comprobantes.hasta) like lower('%#{arg}%')")
+      .where("lower(tipo_facturas.descripcion || ' ' || secuencia_comprobantes.desde || ' ' || secuencia_comprobantes.hasta) LIKE lower(?)", "%#{SecuenciaComprobante.sanitize_sql_like(arg.to_s.strip)}%")
       .order("secuencia_comprobantes.id DESC")
 
-      if paquetes.length > 0
+      if paquetes.exists?
         res.set_data(paquetes, {all: true}, SecuenciaComprobante.models_includes)
       else
         res.set_data([])

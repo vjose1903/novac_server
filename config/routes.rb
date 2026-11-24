@@ -1,8 +1,8 @@
 Rails.application.routes.draw do
-  resources :entidad_cuentas_contables
-  resources :categorias_entidades_contables
-  resources :sub_tipo_articulos
-  resources :cuentas_bancarias
+  resources :entidad_cuentas_contables, only: [:index, :show, :create, :update, :destroy]
+  resources :categorias_entidades_contables, only: [:index, :show, :create, :update]
+  resources :sub_tipo_articulos, only: [:index, :show, :create, :update]
+  resources :cuentas_bancarias, only: [:index, :show, :create, :update, :destroy]
 
   get "up" => "health#show"
   get "up/dgii" => "health#dgii"
@@ -26,23 +26,25 @@ Rails.application.routes.draw do
   resources :detalle_conduces
   resources :detalle_recibos
   resources :tipo_recibos
-  resources :movimientos_inventarios
+  resources :movimientos_inventarios, only: [:index, :show, :create, :destroy]
   resources :historico_produccions
   resources :mantenimiento_formulas
   resources :formulas_productos_terminados
   resources :mantenimiento_articulos
+  resources :detalle_facturas
+  resources :detalles_facturas_notas
   resources :tipo_facturas
   resources :imagenes
   get "img/:file_name" => "imagenes#file", constraints: { file_name: /[^\/]+/ }, format: false
   resources :contenido_articulos
-  resources :tipo_articulos
+  resources :tipo_articulos, only: [:index, :show, :create, :update]
   resources :secuencia_facturas
-  resources :acciones
-  resources :config_articulos
-  resources :grupos_de_cuentas
-  resources :nombre_bancos
-  resources :configuraciones_entidades_cuentas
-  resources :tipo_cuentas_bancarias
+  resources :acciones, only: [:index, :show]
+  resources :config_articulos, only: [:show, :update]
+  resources :grupos_de_cuentas, except: [:new, :edit]
+  resources :nombre_bancos, only: [:index, :show]
+  resources :configuraciones_entidades_cuentas, only: [:index, :show, :update]
+  resources :tipo_cuentas_bancarias, only: [:index, :show, :create, :update, :destroy]
   resources :configuracion_cuadres, only: [:show, :update]
 
 
@@ -53,11 +55,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :reportes do
-    collection do
-      get "custom/:tipo_reporte" => "reportes#getReportes"
-    end
-  end
+  get "reportes/custom/:tipo_reporte" => "reportes#getReportes"
 
   resources :cuadre_cajas do
     collection do
@@ -139,7 +137,7 @@ Rails.application.routes.draw do
     end
   end
 
-	resources :pago_facturas do
+	resources :pago_facturas, except: [:new, :edit] do
 		collection do
 			get "filtro/:arg"                                => "pago_facturas#getPagosFiltrados"
       get "revertir/:tipo/:id"                         => "pago_facturas#revertirPagos"
@@ -192,6 +190,8 @@ Rails.application.routes.draw do
   resources :cabecera_facturas do
     collection do
       # cabecera facturas
+      patch "custom/update/:id"                                   => "cabecera_facturas#update"
+      get "custom/:ruta_complemento"                              => "cabecera_facturas#custom_route"
       get "cliente/:cliente_id/pagada/:pagada"                    => "cabecera_facturas#getFacturasByClienteIdAndEstado"
       get "cliente/:id"                                           => "cabecera_facturas#getFacturasByClienteId"
       post "anular_factura/:id"                                   => "cabecera_facturas#cancelarFactura"
@@ -241,7 +241,7 @@ Rails.application.routes.draw do
 
   get "ruta/test"              => "application#testFunction"
 
-  resources :permisos do
+  resources :permisos, only: [:index, :show] do
     collection do
       scope "custom" do
         get "parse_permisos_front"        => "permisos#parsePermisosFront"
@@ -249,7 +249,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :periodos_fiscales do
+  resources :periodos_fiscales, except: [:new, :edit] do
     collection do
       scope "custom" do
         post "open_new_periodo" => "periodos_fiscales#openNewPeriodo"
@@ -258,59 +258,56 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :catalogo_de_cuentas do
-    collection do
-      post "create_default" => "catalogo_de_cuentas#createCatalogoDeCuentasDefault"
-    end
-  end
+  get "catalogo_de_cuentas" => "catalogo_de_cuentas#getCatalogoDeCuentas"
+  post "catalogo_de_cuentas/create_default" => "catalogo_de_cuentas#createCatalogoDeCuentasDefault"
 
-  resources :tasas_de_cambio do
+  resources :tasas_de_cambio, only: [:index, :show, :update] do
     collection do
       get "custom/get_history_changes" => "tasas_de_cambio#getHistoryChanges"
     end
   end
 
-  resources :divisas do
+  resources :divisas, only: [:index, :show, :create, :update] do
     collection do
       patch ":id/deactivate_or_reactivate" => "divisas#deactivateOrReactivate"
       get "custom/get_principal"           => "divisas#getPrincipalDivisa"
     end
   end
 
-  resources :cabezas_asientos_contables do
+  resources :cabezas_asientos_contables, except: [:new, :edit] do
     collection do
       get "filtro/:arg" => "cabezas_asientos_contables#getAsientosFiltrados"
     end
   end
 
-  resources :bancos do
+  resources :bancos, except: [:new, :edit] do
     collection do
       get "filtro/:arg" => "bancos#getBancosFiltrados"
     end
   end
 
-  resources :depositos do
+  resources :depositos, only: [:index, :show, :create, :update] do
     collection do
       get "filtro/:arg" => "depositos#getDepositosFiltrados"
       delete "anular/:id" => "depositos#anularDeposito"
     end
   end
 
-  resources :transferencias do
+  resources :transferencias, only: [:index, :show, :create, :update] do
     collection do
       get "filtro/:arg" => "transferencias#getTransferenciasFiltradas"
       delete "anular/:id" => "transferencias#anularTransferencia"
     end
   end
 
-  resources :cheques do
+  resources :cheques, except: [:new, :edit] do
     collection do
       get "filtro/:arg" => "cheques#getChequesFiltrados"
       delete "anular/:id" => "cheques#anularCheque"
     end
   end
 
-  resources :cuentas_contables do
+  resources :cuentas_contables, only: [:index, :show, :create, :update] do
     collection do
       patch ":id/deactivate_or_reactivate" => "cuentas_contables#deactivateOrReactivate"
     end

@@ -37,8 +37,19 @@ class ApplicationController < ActionController::API
   def testFunction
 
     res = Response.new
-    fecha            = params[:fecha] ? params[:fecha] : DateTime.now
-    ventas_contado_total_facturado_ = CabeceraFactura.where("fecha_equivalente::date='#{fecha}' and fecha_completada::date='#{fecha}' and lower(tipo)='venta' and lower(condicion)='contado'").sum(:total_factura)
+    begin
+      fecha = Date.parse(params[:fecha].presence || Date.current.to_s)
+    rescue ArgumentError, TypeError
+      res.set_status(HTTP_STATUS_CODE[:bad_request])
+      res.add_msg('La fecha indicada no tiene un formato válido.')
+      return res.send_response self
+    end
+
+    ventas_contado_total_facturado_ = CabeceraFactura
+      .where(fecha_equivalente: fecha.beginning_of_day..fecha.end_of_day,
+             fecha_completada: fecha.beginning_of_day..fecha.end_of_day,
+             tipo: 'venta', condicion: 'contado')
+      .sum(:total_factura)
     # factura = CabeceraFactura.find_by_id(55723)
     # factura = CabeceraFactura.find_by_id(55736)
     # ncf_modificado = factura.ncf_modificado
@@ -50,24 +61,6 @@ class ApplicationController < ActionController::API
     # result = Permiso.verificateUserPermiso(user_id, 'marca')
 
     # res = result
-		TipoArticulo.all.each do | tipo_articulo |
-			tipo_articulo.descripcion = "#{tipo_articulo.descripcion}"
-			puts " "
-			puts " "
-			puts " "
-			puts " "
-			puts " ------ ".red * 8
-			puts "ACTUALIZANDO #{tipo_articulo.descripcion.upcase}"
-			puts " ------ ".red * 8
-			puts " "
-			puts " "
-			puts " "
-			resultado = TipoArticulo.create_update_tipo_articulo(tipo_articulo.attributes.with_indifferent_access, true)
-			unless resultado.status_valid
-				res = resultado
-				break
-			end
-		end
     # certification_params = { TipoeCF: 34, numero_comprobante: 'E340000010001' }.with_indifferent_access
     # document      = Nota.find_by_id(52)
 

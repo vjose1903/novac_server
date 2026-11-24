@@ -106,10 +106,12 @@ class Cheque < ApplicationRecord
     res    = Response.new(pagination_params)
     arg    = params[:arg]
 
+    search_term = "%#{Cheque.sanitize_sql_like(arg.to_s.strip)}%"
     cheques = Cheque.joins('inner join cuentas_bancarias on cheques.cuenta_bancaria_id = cuentas_bancarias.id')
-                    .where("lower( CONCAT(cheques.monto, ' ', cheques.comentario, ' ', cuentas_bancarias.numero_cuenta, ' ', cuentas_bancarias.descripcion) ) like lower('%#{arg}%') AND cheques.estado = '#{STATUS.active}'").order('cheques.id ASC').to_a
+                    .where("lower(CONCAT(cheques.monto, ' ', cheques.comentario, ' ', cuentas_bancarias.numero_cuenta, ' ', cuentas_bancarias.descripcion)) LIKE lower(?) AND cheques.estado = ?", search_term, STATUS.active)
+                    .order('cheques.id ASC')
 
-    if cheques.length > 0
+    if cheques.exists?
       res.set_data(cheques, { all: true })
     else
       res.set_data([])
@@ -137,6 +139,23 @@ class Cheque < ApplicationRecord
     end
 
     return res
+  end
+
+  def anular_registro
+    res = Response.new
+    self.user_anulador_id = get_current_user[:id]
+    self.fecha_anulacion = Date.current
+    self.estado = STATUS.delete
+
+    if save
+      res.set_data(self)
+      res.add_msg('Cheque anulado correctamente.')
+    else
+      res.add_msgs(errors.to_a)
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+    end
+
+    res
   end
 
 end

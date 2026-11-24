@@ -1,4 +1,4 @@
-require 'net/smtp'
+require 'base64'
 require "zlib"
 require 'openssl'
 require 'json'
@@ -133,13 +133,14 @@ class Paginator
 
 
   def paginate_data(data, models_includes=nil)
+    @is_paginated = @paginate_options[:paginado] && collection_data?(data)
 
     # Aplica includes/preload incluso cuando no hay paginación para evitar N+1
     if models_includes
 
       if data.respond_to?(:includes)
         data = data.includes(models_includes)
-      elsif data.is_a?(Array) && !data.empty? && data.first.is_a?(ActiveRecord::Base)
+      elsif data.is_a?(Array) && !@is_paginated && !data.empty? && data.first.is_a?(ActiveRecord::Base)
         ActiveRecord::Associations::Preloader.new(records: data, associations: models_includes).call
       elsif defined?(ActiveRecord::Base) && data.is_a?(ActiveRecord::Base)
         ActiveRecord::Associations::Preloader.new(records: [data], associations: models_includes).call
@@ -147,13 +148,13 @@ class Paginator
     end
 
     @data_paginated[:data] = data
-    @data_paginated         = paginate(data, models_includes) if @paginate_options[:paginado]
+    @data_paginated = paginate(data, models_includes) if @is_paginated
 
   end
 
   def paginate(items, models_includes=nil)
-    page      = @paginate_options[:page]
-    per_page  = @paginate_options[:per_page]
+    page      = @paginate_options[:page].to_i
+    per_page  = @paginate_options[:per_page].to_i
 
 
     # Asegurar que la página sea al menos 1
@@ -202,11 +203,11 @@ class Paginator
     total_length = source_items.length
     total_pag = (total_length.to_f / per_page.to_f).ceil
 
-    return { "data" => itemsPaginated , "total_registros" => total_length, "total_paginas" => total_pag }
+    return { "data" => itemsPaginated , "total_registros" => total_length, "total_paginas" => total_pag }.with_indifferent_access
   end
 
   def is_paginated
-    @paginate_options[:paginado]
+    !!@is_paginated
   end
 
   def set_page(page)
@@ -231,11 +232,19 @@ class Paginator
   end
 
   def get_page
-    @paginate_options[:page]
+    page = @paginate_options[:page].to_i
+    page > 0 ? page : 1
   end
 
   def get_per_page
-    @paginate_options['per_page']
+    per_page = @paginate_options[:per_page].to_i
+    per_page > 0 ? per_page : 1
+  end
+
+  private
+
+  def collection_data?(data)
+    (defined?(ActiveRecord::Relation) && data.is_a?(ActiveRecord::Relation)) || data.is_a?(Array)
   end
 
 end
@@ -243,6 +252,11 @@ end
 # ---------------------------------------------------------------------------------------------------------
 def set_paginate_options(params)
   return { "page" => params.obj_has?('page') ? params[:page] : 0, "per_page" => params.obj_has?('per_page') ? params[:per_page] : 0, "paginado" => params.obj_has?('paginado') ? params[:paginado].to_boolean : false }
+end
+
+# Keep the pagination contract used by controller/model filter endpoints.
+def parse_pagination_params(params)
+  set_paginate_options(params)
 end
 
 # ---------------------------------------------------------------------------------------------------------
@@ -254,6 +268,11 @@ end
 # ---------------------------------------------------------------------------------------------------------
 
 def set_entidad(modelo, params, models_includes= nil, key='id')
+  if models_includes.is_a?(String) || models_includes.is_a?(Symbol)
+    key = models_includes
+    models_includes = nil
+  end
+
   res      = Response.new
   where    = { "#{key}": params[key]}
 
@@ -361,24 +380,16 @@ end
 
 
 def encrypt(str)
-  cipher_salt1 = '013213810'
-  cipher_salt2 = '013213810'
-  cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').encrypt
-  cipher.key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(cipher_salt1, cipher_salt2, 20_000, cipher.key_len)
-  encrypted = cipher.update(str) + cipher.final
-  encrypted.unpack('H*')[0].upcase
+  Base64.strict_encode64(str.to_s.encode(Encoding::UTF_8))
 end
 
 # ---------------------------------------------------------------------------------------------------------
 
 def decrypt(str)
-  cipher_salt1 = 'some-random-salt-'
-  cipher_salt2 = 'another-random-salt-'
-  cipher = OpenSSL::Cipher.new('DES-EDE3-CBC').decrypt
-  cipher.key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(cipher_salt1, cipher_salt2, 20_000, cipher.key_len)
-  decrypted = [encrypted_str].pack('H*').unpack('C*').pack('c*')
+  decoded = Base64.strict_decode64(str.to_s).force_encoding(Encoding::UTF_8)
+  raise ArgumentError, 'El texto descifrado no contiene UTF-8 válido.' unless decoded.valid_encoding?
 
-  cipher.update(decrypted) + cipher.final
+  decoded
 end
 
 
@@ -513,7 +524,7 @@ end
 
 class Object
   def obj_has?(key)
-    self.has_key?(:"#{key}") && !isEmpty?(self[:"#{key}"])
+    self.has_key?(:"#{key}") && !is_empty?(self[:"#{key}"])
   end
 end
 
@@ -527,22 +538,37 @@ class Array
   end
 
   def my_includes_obj(key, value)
-    return  self.any? do  |item|
-      res = false
-      begin
-        res = "#{item[key]}" == "#{value}"
-      rescue => exception
-        res = "#{item.attributes[key]}" == "#{value}"
+    return self.any? do |item|
+      item_value = if item.respond_to?(:attributes)
+        item.attributes[key.to_s]
+      elsif item.respond_to?(:key?) && item.key?(key)
+        item[key]
+      elsif item.respond_to?(:key?) && item.key?(key.to_s)
+        item[key.to_s]
+      elsif item.respond_to?(:key?) && item.key?(key.to_sym)
+        item[key.to_sym]
       end
-      return res
+
+      item_value.to_s == value.to_s
     end
   end
 
   def get_order
-    return "" if self.empty? || self.first[:id].nil?
+    return "" if self.empty?
 
-    is_ascending = self.each_cons(2).all?{|left, right| left[:id] <= right[:id]}
-    is_desending = self.each_cons(2).all?{|left, right| left[:id] >= right[:id]}
+    ids = self.map do |item|
+      if item.respond_to?(:id)
+        item.id
+      elsif item.respond_to?(:key?) && item.key?(:id)
+        item[:id]
+      elsif item.respond_to?(:key?) && item.key?('id')
+        item['id']
+      end
+    end
+    return "" if ids.any?(&:nil?)
+
+    is_ascending = ids.each_cons(2).all? { |left, right| left <= right }
+    is_desending = ids.each_cons(2).all? { |left, right| left >= right }
 
     return is_ascending ? 'ASC' : is_desending ? 'DESC' : ''
 

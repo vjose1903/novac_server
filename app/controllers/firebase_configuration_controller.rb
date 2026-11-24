@@ -1,5 +1,5 @@
 class FirebaseConfigurationController < ApplicationController
-  skip_around_action :encarsular_usuario
+  skip_around_action :encarsular_variables
   before_action :set_user_by_token
   before_action :require_authenticated_user
   skip_before_action :validateUserIsLogging!, only: :create_prelogin, raise: false

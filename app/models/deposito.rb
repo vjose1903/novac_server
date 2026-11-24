@@ -118,11 +118,13 @@ class Deposito < ApplicationRecord
     res    = Response.new(pagination_params)
     arg    = params[:arg]
 
+    search_term = "%#{Deposito.sanitize_sql_like(arg.to_s.strip)}%"
     depositos = Deposito
                .joins('inner join cuentas_bancarias on depositos.cuenta_bancaria_id = cuentas_bancarias.id')
-               .where("lower(depositos.monto || ' ' || depositos.comentario || ' ' || coalesce(depositos.numero_referencia, '') || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion ) like lower('%#{arg}%')  AND depositos.estado = true").order('depositos.id ASC').to_a
+               .where("lower(depositos.monto || ' ' || depositos.comentario || ' ' || coalesce(depositos.numero_referencia, '') || ' ' || cuentas_bancarias.numero_cuenta || ' ' || cuentas_bancarias.descripcion) LIKE lower(?) AND depositos.estado = ?", search_term, true)
+               .order('depositos.id ASC')
 
-    if depositos.length > 0
+    if depositos.exists?
       res.set_data(depositos, {all: true})
     else
       res.set_data([])

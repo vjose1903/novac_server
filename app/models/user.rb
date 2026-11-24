@@ -4,12 +4,13 @@ class User < ApplicationRecord
   rolify
   extend Devise::Models
 
+  belongs_to :imagen, optional: true
   has_many  :imagenes,                  :as => :origen_img,       dependent: :destroy, class_name: 'Imagen'
   has_many  :entidad_cuentas_contables, :as => :origen_entidad,   dependent: :destroy, class_name: 'EntidadCuentaContable'
   has_many  :documentos_de_identidad,   :as => :origen,           dependent: :destroy, class_name: 'DocumentoDeIdentidad'
   has_many  :roles_permisos_acciones,   through: :roles
 
-  devise   :database_authenticatable, :registerable, :recoverable, :rememberable, :trackable, :validatable, :timeoutable
+  devise   :database_authenticatable, :registerable, :rememberable, :trackable, :validatable, :timeoutable
 
   validates :usuario,             presence: { :message => 'Usuario no puede estar vacío.' },                  uniqueness: { case_sensitive: false, :message => 'El nombre de usuario ya está registrado' }
   validates :telefono,            presence: { :message => 'Telefono no puede estar vacío.' }
@@ -38,11 +39,21 @@ class User < ApplicationRecord
   def self.models_includes
     includes = [
       :documentos_de_identidad,
+      :imagen,
       :imagenes,
       { entidad_cuentas_contables: [ :cuenta_contable, :configuracion_entidad_cuenta ] },
       { roles_permisos_acciones: [:role, :permiso_accion] }
     ]
     return includes
+  end
+
+  def self.models_includes_for(params={})
+    includes = [:imagen]
+    includes << :documentos_de_identidad if params[:all] || params[:documentos_de_identidad]
+    includes << :roles if params[:roles] || params[:role]
+    includes << { roles_permisos_acciones: [:role, :permiso_accion] } if params[:permisos]
+    includes << { entidad_cuentas_contables: [:cuenta_contable, :configuracion_entidad_cuenta] } if params[:cuentas_contables]
+    includes
   end
 
   # =====================================================================================================================
@@ -59,25 +70,33 @@ class User < ApplicationRecord
   # HANDLE FILTER
   # --------------------------------------------------------------------------------------------
   def self.handleFilter(parametros)
+    filter_value = parametros[:filter_value]
 
-    if parametros[:filter_key] == 'role'
-      return User.joins(:roles).where(roles: {key: parametros[:filter_value]})
-    elsif parametros[:filter_key] == 'cedula'
-
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.cedula , documento: parametros[:filter_value]}).where("usuario NOT IN ('novac', 'adm01')")
-    elsif parametros[:filter_key] == 'rnc'
-      return User.joins(:documentos_de_identidad).where(documentos_de_identidad: {descripcion: Documentos.rnc , documento: parametros[:filter_value]}).where("usuario NOT IN ('novac', 'adm01')")
+    case parametros[:filter_key].to_s
+    when 'role'
+      User.joins(:roles).where(roles: { key: filter_value })
+    when 'cedula'
+      User.joins(:documentos_de_identidad)
+        .where(documentos_de_identidad: { descripcion: Documentos.cedula, documento: filter_value })
+        .where.not(usuario: ['novac', 'adm01'])
+    when 'rnc'
+      User.joins(:documentos_de_identidad)
+        .where(documentos_de_identidad: { descripcion: Documentos.rnc, documento: filter_value })
+        .where.not(usuario: ['novac', 'adm01'])
     else
-      return User.all.where("#{parametros[:filter_key]} = #{parametros[:filter_value]} and estado = true")
-    end
+      columnas_permitidas = %w[id estado usuario nombre apellido email sexo]
+      columna = parametros[:filter_key].to_s
+      return User.none unless columnas_permitidas.include?(columna)
 
+      User.where(columna => filter_value, estado: true)
+    end
   end
 
   # =====================================================================================================================
 
   def self.crear_actualizar_user(params , is_save=false)
     res                           = Response.new
-    @has_contabilidad             = system_has_contabilidad
+    has_contabilidad               = system_has_contabilidad
 
     User.transaction do
       user                        = User.where(:id => params[:id]).first_or_initialize
@@ -96,16 +115,16 @@ class User < ApplicationRecord
 
       user.valid?
 
-      user.otras_validaciones(params, @has_contabilidad)
+      user.otras_validaciones(params, has_contabilidad)
 
-      if @has_contabilidad
+      if has_contabilidad
         cuentas_config = { view_prima: false, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: user.nombre_completo }.with_indifferent_access
         EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true ) if user.errors.empty?
       end
 
       if user.errors.empty?
         dependencias = [ { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: user } ]
-        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }) if @has_contabilidad
+        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: user }) if has_contabilidad
 
 
         res = crear_actualizar_dependencias(dependencias, params) { |key_object, dependencia_data|
@@ -138,10 +157,15 @@ class User < ApplicationRecord
     res = Response.new(params)
     users = User
     .joins("left join documentos_de_identidad on users.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'User' AND documentos_de_identidad.principal = true")
-    .where("lower(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND users.estado = true AND sexo != 'i'")
+    .where(estado: true)
+    .where.not(sexo: 'i')
+    .distinct
+
+    palabra = "%#{ActiveRecord::Base.sanitize_sql_like(arg.to_s.strip)}%"
+    users = users.where("immutable_unaccent(users.nombre || ' ' || users.apellido || ' ' || coalesce(users.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) ILIKE immutable_unaccent(?)", palabra)
     .order('users.id ASC')
 
-    if users.length > 0
+    if users.exists?
       res.set_data(users, {all: true, roles: true}, User.models_includes)
     else
       res.set_data([])

@@ -36,11 +36,23 @@ class Suplidor < ApplicationRecord
     return includes
   end
 
+  def self.filter_order_columns
+    {
+      'id' => 'suplidores.id', 'nombre' => 'suplidores.nombre', 'telefono' => 'suplidores.telefono',
+      'direccion' => 'suplidores.direccion', 'email' => 'suplidores.email',
+      'created_at' => 'suplidores.created_at', 'updated_at' => 'suplidores.updated_at'
+    }
+  end
+
+  def self.parse_filter_order(order_by)
+    ORDER_MANAGER.parse_safe(order_by, filter_order_columns, 'suplidores.id ASC')
+  end
+
   # ============================================================================================================================================
 
   def self.create_update_suplidor(params, is_save=false)
     res               = Response.new
-    @has_contabilidad = system_has_contabilidad
+    has_contabilidad = system_has_contabilidad
 
     Suplidor.transaction do
 
@@ -54,16 +66,16 @@ class Suplidor < ApplicationRecord
       suplidor.estado                          = true
       suplidor.valid?
 
-      suplidor.otras_validaciones(params, @has_contabilidad)
+      suplidor.otras_validaciones(params, has_contabilidad)
 
-      if @has_contabilidad
+      if has_contabilidad
         cuentas_config = { view_prima: true, usa_moneda_nacional: suplidor.divisa.is_principal, tipo_categoria: CatContable.categoria_entidad_contable, descripcion_cuenta: suplidor.nombre_completo }.with_indifferent_access
         EntCuentaContable.parsear_cuentas_contables(params, cuentas_config, true ) if suplidor.errors.empty?
       end
 
       if suplidor.errors.empty?
         dependencias = [ { modelo: DocumentoDeIdentidad,  key_object: 'documentos_de_identidad',   padre: suplidor } ]
-        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }) if @has_contabilidad
+        dependencias.push({ modelo: EntidadCuentaContable, key_object: 'entidad_cuentas_contables', padre: suplidor }) if has_contabilidad
 
 
         res = crear_actualizar_dependencias(dependencias, params) { | key_object, dependencia_data |
@@ -98,12 +110,18 @@ class Suplidor < ApplicationRecord
     res = Response.new(params)
 
     suplidores = Suplidor
-    .joins("left join documentos_de_identidad on suplidores.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Suplidor' AND documentos_de_identidad.principal = true")
-    .where("lower(suplidores.nombre || ' ' || suplidores.direccion || ' ' || coalesce(suplidores.email, '') || ' ' || coalesce(documentos_de_identidad.documento, '')) like lower('%#{arg}%')  AND suplidores.estado = true")
-    .order('suplidores.id ASC').to_a
+      .where(estado: true)
+      .joins("left join documentos_de_identidad on suplidores.id = documentos_de_identidad.origen_id AND documentos_de_identidad.origen_type = 'Suplidor' AND documentos_de_identidad.principal = true")
+      .distinct
 
-    if suplidores.length > 0
-      res.set_data(suplidores, {all: true})
+    arg.to_s.downcase.split.each do |palabra|
+      palabra = "%#{ActiveRecord::Base.sanitize_sql_like(palabra)}%"
+      suplidores = suplidores.where("immutable_unaccent(suplidores.nombre) ILIKE immutable_unaccent(:palabra) OR immutable_unaccent(suplidores.direccion) ILIKE immutable_unaccent(:palabra) OR immutable_unaccent(suplidores.email) ILIKE immutable_unaccent(:palabra) OR immutable_unaccent(documentos_de_identidad.documento) ILIKE immutable_unaccent(:palabra)", palabra: palabra)
+    end
+    suplidores = suplidores.order(Arel.sql(parse_filter_order(params['order_by'])))
+
+    if suplidores.exists?
+      res.set_data(suplidores, {all: true}, Suplidor.models_includes)
     else
       res.set_data([])
       cantidad_registros = Suplidor.where({estado: true}).count

@@ -165,13 +165,20 @@ class PeriodoFiscal < ApplicationRecord
 
   def self.filtrar(filter_target, params)
     res = Response.new(params)
+    begin
+      fecha_filtro = Date.parse(filter_target.to_s)
+    rescue ArgumentError, TypeError
+      res.set_status(HTTP_STATUS_CODE[:bad_request])
+      res.add_msg('La fecha de filtro no tiene un formato válido.')
+      return res
+    end
 
     periodos_fiscales = PeriodoFiscal
-    .where("( (periodos_fiscales.fecha_inicio between '#{(Date.parse filter_target).beginning_of_day}' AND '#{(Date.parse filter_target).end_of_day}' ) OR (periodos_fiscales.fecha_cierre between '#{(Date.parse filter_target).beginning_of_day}' AND '#{(Date.parse filter_target).end_of_day}' ) ) AND periodos_fiscales.estado = true")
+    .where('(periodos_fiscales.fecha_inicio BETWEEN ? AND ? OR periodos_fiscales.fecha_cierre BETWEEN ? AND ?) AND periodos_fiscales.estado = ?', fecha_filtro.beginning_of_day, fecha_filtro.end_of_day, fecha_filtro.beginning_of_day, fecha_filtro.end_of_day, true)
     .order('periodos_fiscales.id ASC')
     .includes(PeriodoFiscal.models_includes)
 
-    if periodos_fiscales.length > 0
+    if periodos_fiscales.exists?
       res.set_data(periodos_fiscales, { all: true }, PeriodoFiscal.models_includes)
     else
       res.set_data([])

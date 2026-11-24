@@ -3,7 +3,7 @@ class SecuenciaComprobantesController < ApplicationController
 
   # GET /secuencia_comprobantes
   def index
-    return Response.new(params, nil, Cliente.all.order('id DESC'), nil, {all: true}).send_response self
+    return Response.new(params, nil, SecuenciaComprobante.all.order('id DESC'), nil, {all: true}).send_response self
   end
 
   # GET /secuencia_comprobantes/1

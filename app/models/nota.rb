@@ -405,24 +405,26 @@ class Nota < ApplicationRecord
     arg         = params[:arg]
     tipo_nota   = params[:tipo_nota] || nil
 
-    query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) like lower('%#{arg}%')"
+    query       = "lower(notas.numero_comprobante || ' ' || notas.fecha_equivalente || ' ' || notas.total || ' ' || coalesce(notas.no_cliente_nombre,'') || ' ' || coalesce(notas.no_cliente_direccion,'') || ' ' || coalesce(clientes.nombre, '') || ' ' || coalesce(clientes.apellido, '')) LIKE lower(?)"
+    query_params = ["%#{Nota.sanitize_sql_like(arg.to_s.strip)}%"]
 
     if tipo_nota.present?
       referencias = tipo_nota.split(',').map(&:strip)
       query += " AND tipo_facturas.referencia IN (?)"
+      query_params << referencias
 
       notas = Nota
         .joins('left join clientes on clientes.id = notas.cliente_id inner join tipo_facturas on tipo_facturas.id = notas.tipo_factura_id')
-        .where(query, referencias)
+        .where(query, *query_params)
         .order('notas.id DESC')
     else
       notas = Nota
         .joins('left join clientes on clientes.id = notas.cliente_id inner join tipo_facturas on tipo_facturas.id = notas.tipo_factura_id')
-        .where(query)
+        .where(query, *query_params)
         .order('notas.id DESC')
     end
 
-    if notas.length > 0
+    if notas.exists?
       res.set_data(notas, { all: true }, Nota.models_includes)
     else
       res.set_data([])

@@ -1,5 +1,5 @@
 class ChequesController < ApplicationController
-  before_action :set_cheque, only: %i[ show update destroy ]
+  before_action :set_cheque, only: %i[ show update destroy anularCheque ]
 
   # GET /cheques
   def index
@@ -32,11 +32,13 @@ class ChequesController < ApplicationController
   end
 
   def anularCheque
+    resultado = @cheque.anular_registro
+    resultado.send_response self
   end
 
   # DELETE /cheques/1
   def destroy
-    resultado = borrar_entidad(@cheque)
+    resultado = @cheque.anular_registro
     resultado.send_response self
   end
 

@@ -105,7 +105,10 @@ module ArticuloFiltering
 
       articulos_finales, historicos_map = preparar_articulos_response(articulos, params, mode_config)
 
-      serializer_options = mode_config[:serializer_options].merge(historicos_map: historicos_map).merge(parametros_opcionales || {})
+      opciones_opcionales_activas = (parametros_opcionales || {}).select { |_campo, habilitado| habilitado }
+      serializer_options = mode_config[:serializer_options]
+        .merge(opciones_opcionales_activas)
+        .merge(historicos_map: historicos_map)
       res.set_data(articulos_finales, serializer_options, mode_config[:includes])
       res.set_pagination_metadata(total_registros, paginas_articulos(total_registros, paginacion[:per_page])) if paginacion[:paginado]
 

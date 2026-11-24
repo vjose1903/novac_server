@@ -26,11 +26,18 @@ class CabeceraConduce < ApplicationRecord
 
   def self.create_update_conduce(params, is_save=false)
     res = Response.new
+    tipo_factura_id = TipoFacturaManagement.get_by_key(TiposFacturasKey.conduce)&.id
+    unless tipo_factura_id
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.add_msg('No se encontró el tipo de factura para generar el número del conduce.')
+      return res
+    end
+
     CabeceraConduce.transaction do
 
       conduce                      = CabeceraConduce.where(:id => params["id"]).first_or_initialize
 
-      conduce.numero_conduce       = SecuenciaFactura.find_secuencia(@tipo_factura_id)
+      conduce.numero_conduce       = SecuenciaFactura.find_secuencia(tipo_factura_id)
       conduce.fecha_equivalente    = params["fecha_equivalente"] ? params["fecha_equivalente"] : DateTime.now
       conduce.cliente_id           = params["cliente_id"]
       conduce.user_id              = get_current_user[:id]
@@ -48,9 +55,9 @@ class CabeceraConduce < ApplicationRecord
 
       if res.status_valid && conduce.errors.empty? && (!is_save || (is_save && conduce.save!))
 
-        result                     = updateSecuencias(@tipo_factura_id)
+        result                     = updateSecuencias(tipo_factura_id)
 
-        if res.status_valid
+        if result.status_valid
           res.set_data(conduce, {all: true})
           action = params["id"] ? 'actualizado' : 'creado'
           res.add_msg("Conduce #{action} correctamente.")
@@ -76,10 +83,10 @@ class CabeceraConduce < ApplicationRecord
 
 		conduces = CabeceraConduce
 		.joins("inner join clientes on clientes.id = cabecera_conduces.cliente_id")
-		.where("lower(cabecera_conduces.numero_conduce || ' ' || clientes.nombre || ' ' || clientes.apellido ) like lower('%#{arg}%') AND cabecera_conduces.estado = true")
+		.where("lower(cabecera_conduces.numero_conduce || ' ' || clientes.nombre || ' ' || clientes.apellido) LIKE lower(?) AND cabecera_conduces.estado = ?", "%#{CabeceraConduce.sanitize_sql_like(arg.to_s.strip)}%", true)
 		.order("cabecera_conduces.id DESC")
 
-		if conduces.length > 0
+		if conduces.exists?
 			res.set_data(conduces, {all: true}, CabeceraConduce.models_includes)
 		else
 			cantidad_registros = CabeceraConduce.where({estado: true}).count

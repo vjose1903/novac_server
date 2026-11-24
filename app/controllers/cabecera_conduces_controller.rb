@@ -39,7 +39,7 @@ class CabeceraConducesController < ApplicationController
 
   # PATCH/PUT /cabecera_conduces/1
   def update
-    crear_actualizar_articulo
+    crear_actualizar_conduce
   end
 
   # DELETE /cabecera_conduces/1

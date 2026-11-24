@@ -1,6 +1,8 @@
 class EntidadCuentaContable < ApplicationRecord
   self.table_name = "entidad_cuentas_contables"
 
+  TIPOS_DE_AGRUPACIONES_VALIDOS = %w[sin_cuenta categoria sub_categoria individual].freeze
+
   belongs_to :cuenta_contable,               optional: true
   belongs_to :configuracion_entidad_cuenta,  optional: false
 

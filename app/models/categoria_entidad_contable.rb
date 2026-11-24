@@ -67,13 +67,15 @@ class CategoriaEntidadContable < ApplicationRecord
     filter_target    = params[:filter_target]
     configuracion_id = params[:configuracion_id]
 
-    where_            = ""
-    where_           += "configuracion_entidad_cuenta_id=#{configuracion_id}" if params.has_key?(:configuracion_id)
-    where_           += "#{params.has_key?(:configuracion_id) ? 'AND' : ''} lower(categorias_entidades_contables.descripcion) like lower('%#{filter_target}%')" if has_filter_target(params)
+    categorias       = CategoriaEntidadContable.all
+    categorias       = categorias.where(configuracion_entidad_cuenta_id: configuracion_id) if params.has_key?(:configuracion_id)
+    if has_filter_target(params)
+      search_term = "%#{CategoriaEntidadContable.sanitize_sql_like(filter_target.to_s.strip)}%"
+      categorias = categorias.where('lower(categorias_entidades_contables.descripcion) LIKE lower(?)', search_term)
+    end
+    categorias       = categorias.order('id ASC').includes(CategoriaEntidadContable.models_includes)
 
-    categorias       = CategoriaEntidadContable.where(where_).order('id ASC').includes(CategoriaEntidadContable.models_includes)
-
-    if categorias.length > 0
+    if categorias.exists?
       res.set_data(categorias, { all: true }, CategoriaEntidadContable.models_includes)
     else
       res.set_data([])
@@ -83,19 +85,6 @@ class CategoriaEntidadContable < ApplicationRecord
     end
 
     return res
-
-
-
-    if has_paginate_options(params)
-      return Response.new(params, nil, CategoriaEntidadContable.all, nil, { all: true }).send_response self
-    else
-      if has_filter_target(params)
-        return Response.new(params, nil, CategoriaEntidadContable.all, nil, { all: true }).send_response self
-      else
-        return Response.new(params, nil, CategoriaEntidadContable.all, nil, { all: true }).send_response self
-      end
-    end
-
   end
 
   # ============================================================================================================================================

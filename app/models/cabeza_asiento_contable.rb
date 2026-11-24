@@ -140,15 +140,25 @@ class CabezaAsientoContable < ApplicationRecord
     desde         = params[:desde]
     hasta         = params[:hasta].nil? ? params[:desde] : params[:hasta]
 
-    query['fecha_equivalente'] = (Date.parse desde).beginning_of_day..(Date.parse hasta).end_of_day
+    begin
+      fecha_desde = Date.parse(desde.to_s)
+      fecha_hasta = Date.parse(hasta.to_s)
+    rescue ArgumentError, TypeError
+      res.set_status(HTTP_STATUS_CODE[:bad_request])
+      res.add_msg('Debe especificar un rango de fechas válido.')
+      return res
+    end
+
+    query['fecha_equivalente'] = fecha_desde.beginning_of_day..fecha_hasta.end_of_day
     query['is_validated'] = is_validated.to_boolean unless is_validated.nil?
 
+    search_term = "%#{CabezaAsientoContable.sanitize_sql_like(arg.to_s.strip)}%"
     asientos = CabezaAsientoContable
                  .where(query)
-                 .where("lower(cabezas_asientos_contables.comentario || ' ' || cabezas_asientos_contables.codigo) like lower('%#{arg}%')  AND cabezas_asientos_contables.estado = true")
-                 .order('cabezas_asientos_contables.id ASC').to_a
+                 .where("lower(cabezas_asientos_contables.comentario || ' ' || cabezas_asientos_contables.codigo) LIKE lower(?) AND cabezas_asientos_contables.estado = ?", search_term, true)
+                 .order('cabezas_asientos_contables.id ASC')
 
-    if asientos.length > 0
+    if asientos.exists?
       res.set_data(asientos, {all: true})
     else
       res.set_data([])

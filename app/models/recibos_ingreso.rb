@@ -26,6 +26,13 @@ class RecibosIngreso < ApplicationRecord
   # =========================================================================================================================================================
   def self.create_update_recibo(params, is_save=false)
     res                            = Response.new
+    tipo_factura_id = TipoFacturaManagement.get_by_key(TiposFacturasKey.recibo_ingreso)&.id
+    unless tipo_factura_id
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.add_msg('No se encontró el tipo de factura para generar el número del recibo.')
+      return res
+    end
+
     RecibosIngreso.transaction do
 
 			recibo                       = RecibosIngreso.where(:id => params[:id]).first_or_initialize
@@ -38,7 +45,7 @@ class RecibosIngreso < ApplicationRecord
 
       recibo.user_id               = get_current_user[:id]
       recibo.fecha_equivalente     = fecha_equivalente
-      recibo.numero_recibo         = SecuenciaFactura.find_secuencia(@tipo_factura_id)
+      recibo.numero_recibo         = SecuenciaFactura.find_secuencia(tipo_factura_id)
       recibo.cliente_id            = params[:cliente_id]
       begin
         pagos                       = MetodoDePago.normalizar(params[:metodos_de_pago], params[:total], params[:forma_pago])
@@ -77,7 +84,7 @@ class RecibosIngreso < ApplicationRecord
         if recibo.errors.empty? && (!is_save || (is_save && recibo.save!))
           MetodoDePago.reemplazar!(recibo, pagos)
 
-          res_valid                = updateSecuencias(17)
+          res_valid                = updateSecuencias(tipo_factura_id)
 
           if res_valid.status_valid
             data = {"recibo": RecibosIngresoSerializer.to_hash(recibo, { all: true }) }
@@ -112,11 +119,11 @@ class RecibosIngreso < ApplicationRecord
     .joins('inner join detalle_recibos on recibos_ingresos.id = detalle_recibos.recibos_ingreso_id')
     .joins('inner join cabecera_facturas on cabecera_facturas.id = detalle_recibos.cabecera_factura_id')
     .joins('inner join clientes on clientes.id = recibos_ingresos.cliente_id')
-    .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND recibos_ingresos.estado = true")
+    .where("lower(recibos_ingresos.numero_recibo || ' ' || clientes.nombre || ' ' || clientes.apellido || ' ' || cabecera_facturas.numero_comprobante) LIKE lower(?) AND recibos_ingresos.estado = ?", "%#{RecibosIngreso.sanitize_sql_like(arg.to_s.strip)}%", true)
     .group('recibos_ingresos.id')
     .order('recibos_ingresos.id DESC')
 
-    if recibos.length > 0
+    if recibos.exists?
       res.set_data(recibos, {all: true}, RecibosIngreso.models_includes)
     else
       cantidad_registros = RecibosIngreso.where({estado: true}).count

@@ -21,9 +21,14 @@ class PagoFactura < ApplicationRecord
 	# =========================================================================================================================================================
 	def self.create_update(params, is_save=false)
     res                          = Response.new
-    PagoFactura.transaction do
+    tipo_factura_id              = TipoFacturaManagement.get_by_key(TiposFacturasKey.pago_factura)&.id
+    unless tipo_factura_id
+      res.set_status(HTTP_STATUS_CODE[:conflict])
+      res.add_msg('No se encontró el tipo de factura para generar el número del pago.')
+      return res
+    end
 
-      @tipo_factura_id           = TipoFacturaManagement.get_by_key(TiposFacturasKey.pago_factura)&.id
+    PagoFactura.transaction do
 
 			pago                       = PagoFactura.where(:id => params[:id]).first_or_create
 
@@ -34,9 +39,9 @@ class PagoFactura < ApplicationRecord
 
       pago.user_id               = get_current_user[:id]
       pago.suplidor_id           = params[:suplidor_id]
-      pago.tipo_factura_id       = params[:tipo_factura_id]
+      pago.tipo_factura_id       = tipo_factura_id
       pago.fecha_equivalente     = fecha_equivalente
-      pago.numero                = SecuenciaFactura.find_secuencia(@tipo_factura_id)
+      pago.numero                = SecuenciaFactura.find_secuencia(tipo_factura_id)
       pago.forma_pago            = params[:forma_pago]
 
 			pago.valid?
@@ -57,7 +62,7 @@ class PagoFactura < ApplicationRecord
 
         if pago.errors.empty? && (!is_save || (is_save && pago.save!))
 
-          result                = updateSecuencias(@tipo_factura_id)
+          result                = updateSecuencias(tipo_factura_id)
 
           if result.status_valid
             res.set_data(serialize_parser(pago, {all: true}))
@@ -89,11 +94,11 @@ class PagoFactura < ApplicationRecord
     .joins('inner join pago_factura_detalles on pago_facturas.id = pago_factura_detalles.pago_factura_id')
     .joins('inner join cabecera_facturas on cabecera_facturas.id = pago_factura_detalles.cabecera_factura_id')
     .joins('inner join suplidores on suplidores.id = pago_facturas.suplidor_id')
-    .where("lower(pago_facturas.numero || ' ' || suplidores.nombre || ' ' || cabecera_facturas.numero_comprobante) like lower('%#{arg}%') AND pago_facturas.estado = true")
+    .where("lower(pago_facturas.numero || ' ' || suplidores.nombre || ' ' || cabecera_facturas.numero_comprobante) LIKE lower(?) AND pago_facturas.estado = ?", "%#{PagoFactura.sanitize_sql_like(arg.to_s.strip)}%", true)
     .group('pago_facturas.id')
     .order('pago_facturas.id DESC')
 
-    if pagos.length > 0
+    if pagos.exists?
       res.set_data(pagos, {all: true}, PagoFactura.models_includes)
     else
       cantidad_registros = PagoFactura.where({estado: true}).count
