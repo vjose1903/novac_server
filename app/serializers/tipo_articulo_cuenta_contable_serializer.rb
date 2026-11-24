@@ -1,17 +1,6 @@
 class TipoArticuloCuentaContableSerializer < ActiveModel::Serializer
 
-  attribute :id,                       if: Proc.new {   self.get_param('id')                      || self.get_param('all')  }
-  attribute :key,                      if: Proc.new {   self.get_param('key')                     || self.get_param('all')  }
-  attribute :origen_tipo_id,           if: Proc.new {   self.get_param('origen_tipo_id')          || self.get_param('all')  }
-  attribute :descripcion_control,      if: Proc.new { ( self.get_param('descripcion_control')     || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
-  attribute :codigo_control,           if: Proc.new { ( self.get_param('codigo_control')          || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
-  attribute :is_control_control,       if: Proc.new { ( self.get_param('is_control_control')      || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
-  attribute :label_control,            if: Proc.new { ( self.get_param('label_control')           || self.get_param('all') ) && !object.cuenta_contable_control.nil? }
 
-  attribute :descripcion_auxiliar,     if: Proc.new { ( self.get_param('descripcion_auxiliar')    || self.get_param('all') ) && !object.cuenta_contable_auxiliar.nil? }
-  attribute :codigo_auxiliar,          if: Proc.new { ( self.get_param('codigo_auxiliar')         || self.get_param('all') ) && !object.cuenta_contable_auxiliar.nil? }
-  attribute :is_control_auxiliar,      if: Proc.new { ( self.get_param('is_control_auxiliar')     || self.get_param('all') ) && !object.cuenta_contable_auxiliar.nil? }
-  attribute :label_auxiliar,           if: Proc.new { ( self.get_param('label_auxiliar')          || self.get_param('all') ) && !object.cuenta_contable_auxiliar.nil? }
 
 
   def descripcion_control
@@ -46,9 +35,20 @@ class TipoArticuloCuentaContableSerializer < ActiveModel::Serializer
     object.cuenta_contable_auxiliar.is_control
   end
 
+end
 
-  def get_param(col)
-    return @instance_options[:"#{col}"]
+class TipoArticuloCuentaContableSerializer
+  extend FastSerializer
+  extend ActiveModelSerializerFastAdapter
+
+  def self.default_fields
+    [:id, :key, :origen_tipo_id, :descripcion_control, :codigo_control, :is_control_control, :label_control, :descripcion_auxiliar, :codigo_auxiliar, :is_control_auxiliar, :label_auxiliar]
   end
 
+  def self.fast_serialized_fields(record, params)
+    fields = default_fields.select { |field| show_serialized_field?(params, field) }
+    fields -= [:descripcion_control, :codigo_control, :is_control_control, :label_control] if record.cuenta_contable_control.nil?
+    fields -= [:descripcion_auxiliar, :codigo_auxiliar, :is_control_auxiliar, :label_auxiliar] if record.cuenta_contable_auxiliar.nil?
+    fields
+  end
 end

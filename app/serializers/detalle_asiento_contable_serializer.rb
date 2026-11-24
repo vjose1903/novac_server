@@ -1,21 +1,19 @@
 class DetalleAsientoContableSerializer < ActiveModel::Serializer
-  attribute :id,                          if: Proc.new { self.get_param('id')                            || self.get_param('all') }
-  attribute :valor_credito,               if: Proc.new { self.get_param('valor_credito')                 || self.get_param('all') }
-  attribute :valor_debito,                if: Proc.new { self.get_param('valor_debito')                  || self.get_param('all') }
-  attribute :cuenta_contable_auxiliar,    if: Proc.new { self.get_param('cuenta_contable_auxiliar')      || self.get_param('all') }
-  attribute :cuenta_contable_auxiliar_id, if: Proc.new { self.get_param('cuenta_contable_auxiliar_id')   || self.get_param('all') }
-  attribute :cuenta_contable_control,     if: Proc.new { self.get_param('cuenta_contable_control')       || self.get_param('all') }
-  attribute :cuenta_contable_control_id,  if: Proc.new { self.get_param('cuenta_contable_control_id')    || self.get_param('all') }
 
   def cuenta_contable_auxiliar
-    serialize_parser(object.cuenta_contable_auxiliar, { id: true, descripcion: true, codigo: true })
+    fast_serialize_parser(object.cuenta_contable_auxiliar, { id: true, descripcion: true, codigo: true })
   end
 
   def cuenta_contable_control
-    serialize_parser(object.cuenta_contable_control, { id: true, descripcion: true, codigo: true })
+    fast_serialize_parser(object.cuenta_contable_control, { id: true, descripcion: true, codigo: true })
   end
+end
 
-  def get_param(col)
-    return @instance_options[:"#{col}"]
+class DetalleAsientoContableSerializer
+  extend FastSerializer
+  extend ActiveModelSerializerFastAdapter
+
+  def self.default_fields
+    [:id, :valor_credito, :valor_debito, :cuenta_contable_auxiliar, :cuenta_contable_auxiliar_id, :cuenta_contable_control, :cuenta_contable_control_id]
   end
 end

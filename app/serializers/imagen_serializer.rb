@@ -1,9 +1,11 @@
 class ImagenSerializer < ActiveModel::Serializer
-  attribute :id,                       if: Proc.new { self.get_param('id') || self.get_param('all') }
-  attribute :file_name,                if: Proc.new { self.get_param('file_name') || self.get_param('all') }
-  attribute :base_64,                  if: Proc.new { self.get_param('base_64') || self.get_param('all') }
+end
 
-	def get_param(col)
-		return @instance_options[:"#{col}"]
-	end
+class ImagenSerializer
+  extend FastSerializer
+  extend ActiveModelSerializerFastAdapter
+
+  def self.default_fields
+    [:id, :file_name, :base_64]
+  end
 end

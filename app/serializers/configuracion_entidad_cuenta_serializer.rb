@@ -1,23 +1,17 @@
 class ConfiguracionEntidadCuentaSerializer < ActiveModel::Serializer
-  attribute :id,                                          if: Proc.new { self.get_param('id')                 || self.get_param('all') }
-  attribute :descripcion,                                 if: Proc.new { self.get_param('descripcion')        || self.get_param('all') }
-  attribute :entidad,                                     if: Proc.new { self.get_param('entidad')            || self.get_param('all') }
-  attribute :key,                                         if: Proc.new { self.get_param('key')                || self.get_param('all') }
-  attribute :is_nacional,                                 if: Proc.new { self.get_param('is_nacional')        || self.get_param('all') }
-  attribute :cuenta_contable_id,                          if: Proc.new { self.get_param('cuenta_contable_id') || self.get_param('all') }
-  attribute :has_comun,                                   if: Proc.new { self.get_param('has_comun')          || self.get_param('all') }
-  attribute :has_individual,                              if: Proc.new { self.get_param('has_individual')     || self.get_param('all') }
-  attribute :has_categoria,                               if: Proc.new { self.get_param('has_categoria')      || self.get_param('all') }
-  attribute :has_sub_categoria,                           if: Proc.new { self.get_param('has_sub_categoria')  || self.get_param('all') }
 
-  attribute :cuenta_contable,                             if: Proc.new { self.get_param('cuenta_contable')    || self.get_param('all') }
 
 	def cuenta_contable
-    serialize_parser(object.cuenta_contable, {id: true, descripcion: true, codigo: true, label: true })
+    fast_serialize_parser(object.cuenta_contable, {id: true, descripcion: true, codigo: true, label: true })
   end
 
-	def get_param(col)
-    return @instance_options[:"#{col}"]
-  end
+end
 
+class ConfiguracionEntidadCuentaSerializer
+  extend FastSerializer
+  extend ActiveModelSerializerFastAdapter
+
+  def self.default_fields
+    [:id, :descripcion, :entidad, :key, :is_nacional, :cuenta_contable_id, :has_comun, :has_individual, :has_categoria, :has_sub_categoria, :cuenta_contable]
+  end
 end

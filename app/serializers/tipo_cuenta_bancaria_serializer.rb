@@ -1,3 +1,11 @@
 class TipoCuentaBancariaSerializer < ActiveModel::Serializer
-  attributes :id, :descripcion, :estado
+end
+
+class TipoCuentaBancariaSerializer
+  extend FastSerializer
+  extend ActiveModelSerializerFastAdapter
+
+  def self.default_fields
+    [:id, :descripcion, :estado]
+  end
 end

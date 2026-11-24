@@ -40,3 +40,26 @@ module FastSerializer
     nil
   end
 end
+
+module ActiveModelSerializerFastAdapter
+  def to_hash(record, params={})
+    params ||= {}
+    serializer = new(record, params)
+    requested_fields = if respond_to?(:fast_serialized_fields, true)
+      fast_serialized_fields(record, params)
+    else
+      default_fields.select { |field| show_serialized_field?(params, field) }
+    end
+
+    custom_methods = instance_methods(false)
+    readers = requested_fields.each_with_object({}) do |field, fields|
+      fields[field] = ->(object) { serializer.public_send(field) } if custom_methods.include?(field)
+    end
+
+    serialize_record(record, requested_fields, readers: readers)
+  end
+
+  def collection_to_hash(records, params={})
+    records.map { |record| to_hash(record, params) }
+  end
+end

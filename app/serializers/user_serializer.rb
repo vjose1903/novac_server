@@ -6,7 +6,7 @@ class UserSerializer < ActiveModel::Serializer
       nombre: ->(user) { user.nombre.capitalize },
       apellido: ->(user) { user.apellido.capitalize },
       fecha_nacimiento: ->(user) { formatearFecha(user.fecha_nacimiento.to_s, TipoFecha.sin_hora) },
-      imagen: ->(user) { user.imagen.as_json },
+      imagen: ->(user) { user.imagen&.as_json },
       documentos_de_identidad: ->(user) { documentos_de_identidad_to_hash(user) }
     }
     data = serialize_record(object, default_fields.select { |field| show_serialized_field?(params, field) }, readers: readers)
