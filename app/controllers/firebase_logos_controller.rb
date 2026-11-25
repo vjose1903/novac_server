@@ -6,6 +6,7 @@ class FirebaseLogosController < ApplicationController
   skip_before_action :set_user_by_token, :require_authenticated_user, only: :create_prelogin
 
   def create
+    FirebaseConfigurationService.new.authorize_prelogin!(empresa_id: params.require(:empresa_id).to_s, config_password: params[:config_password].to_s)
     paths = upload_logos
     render json: { data: paths }, status: :ok
   rescue ActionController::ParameterMissing, ArgumentError => e

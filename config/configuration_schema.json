@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "fields": {
+    "cliente": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "nombre_empresa": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "rnc_empresa": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "registro_mercantil": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "direccion_empresa": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "telefono_empresa": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "color_app": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096,
+      "enum": [
+        "red",
+        "blue",
+        "green"
+      ]
+    },
+    "url_servidor": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096,
+      "format": "httpUrl"
+    },
+    "url_servidor_respaldo": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096,
+      "format": "httpUrl"
+    },
+    "dgii_consulta_persona_url": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096,
+      "format": "httpUrl"
+    },
+    "config_password": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "usa_url_principal": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "usa_facturas_externas": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "is_produccion": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "has_contabilidad": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "calcular_itbis": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "usa_mora": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "is_db_local": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "facturacion_editar_precio": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "vende_sin_inventario": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "use_ecf": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "usa_modulo_viajes": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "usa_facturacion_electronica": {
+      "scope": "general",
+      "type": "boolean"
+    },
+    "documentos_a_imprimir": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "serie_default": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096,
+      "enum": [
+        "normal",
+        "electronica"
+      ]
+    },
+    "medida_producto_terminado": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "logo_empresa_path": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "logo_impresion_path": {
+      "scope": "general",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "machineId": {
+      "scope": "machine",
+      "type": "string",
+      "maxLength": 4096
+    },
+    "mode_app": {
+      "scope": "machine",
+      "type": "string",
+      "maxLength": 4096,
+      "enum": [
+        "light",
+        "dark"
+      ]
+    },
+    "pages_sizes": {
+      "scope": "machine",
+      "type": "stringMap"
+    },
+    "printer_selected": {
+      "scope": "machine",
+      "type": "stringMap"
+    }
+  }
+}
