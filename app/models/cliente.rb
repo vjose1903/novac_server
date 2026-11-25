@@ -26,7 +26,7 @@ class Cliente < ApplicationRecord
 
   def otras_validaciones(params, has_contabilidad)
     if has_contabilidad
-      cliente_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.suplidor)
+      cliente_configs = ConfiguracionEntidadCuenta.where(:entidad => ConfigEntidadCuentaCont.cliente)
 
       if !params.has_key?(:cuentas_contables) || params[:cuentas_contables].nil? || ( cliente_configs.length < params[:cuentas_contables].length )
         self.errors.add(:base, 'Debe de especificar todos los atributos para cuentas contables.')

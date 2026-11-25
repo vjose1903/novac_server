@@ -102,8 +102,10 @@ class Articulo < ApplicationRecord
       if articulo.errors.empty?
 
         dependencias = [
-          {modelo: ContenidoArticulo,          key_object: 'contenido_articulos',           padre: articulo},
-          {modelo: FormulasProductosTerminado, key_object: 'formulas_productos_terminados', padre: articulo},
+          { modelo: ContenidoArticulo,          key_object: 'contenido_articulos',           padre: articulo },
+          { modelo: FormulasProductosTerminado, key_object: 'formulas_productos_terminados', padre: articulo },
+          { modelo: EntidadCuentaContable,      key_object: 'entidad_cuentas_contables',     padre: articulo },
+          { modelo: Imagen,                     key_object: 'imagenes',                      padre: articulo },
         ]
 
         puts " "
