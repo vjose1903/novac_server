@@ -27,20 +27,23 @@ module CatalogoCuenta
   module CuentaContable
 
     def self.iterator( all_cuentas, parametros_opcionales={} )
+      cuentas = all_cuentas.to_a
       cuentas_parsed = []
-      all_cuentas.each do | cuenta |
+      cuentas_by_id = cuentas.each_with_object({}) do |cuenta, parsed_by_id|
+        cuenta_parsed = serialize_parser(cuenta, { all: true, cuentas_contables: true, **parametros_opcionales })
+        cuenta_parsed[:cuentas_contables] = []
+        parsed_by_id[cuenta.id] = cuenta_parsed
+      end
 
-        arreglo_sin_cuenta_actual     = all_cuentas.select { | item | item.codigo != cuenta.codigo }
-        padre                         = obtener_padre(arreglo_sin_cuenta_actual, cuenta)
+      cuentas.each do |cuenta|
+        cuenta_parsed = cuentas_by_id[cuenta.id]
+        padre = cuentas_by_id[cuenta.cuenta_control_id]
 
-        unless padre.nil?
-          padre.cuentas_contables     = [] if padre.cuentas_contables.nil?
-          padre.cuentas_contables.push(serialize_parser(cuenta, { all: true, cuentas_contables: true, **parametros_opcionales }))
+        if padre
+          padre[:cuentas_contables] << cuenta_parsed
         else
-          cuenta.cuentas_contables     = []
-          cuentas_parsed.push(serialize_parser(cuenta, { all: true, cuentas_contables: true, **parametros_opcionales }))
+          cuentas_parsed.push(cuenta_parsed)
         end
-
       end
 
       return cuentas_parsed

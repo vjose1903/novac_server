@@ -36,6 +36,17 @@ class CatalogoDeCuentas < ApplicationRecord
         res.set_status(HTTP_STATUS_CODE[:conflict])
       end
 
+      if res.status_valid
+        TipoArticulo.find_each do |tipo_articulo|
+          resultado = TipoArticulo.create_update_tipo_articulo(tipo_articulo.attributes.with_indifferent_access, true)
+          next if resultado.status_valid
+
+          res.add_msgs(resultado.get_msgs.to_a)
+          res.set_status(HTTP_STATUS_CODE[:conflict])
+          break
+        end
+      end
+
       transaction_rollback unless res.status_valid
     end
 

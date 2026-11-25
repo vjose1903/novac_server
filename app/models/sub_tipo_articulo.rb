@@ -105,7 +105,14 @@ class SubTipoArticulo < ApplicationRecord
 
         if params[:id].nil? || !params.has_key?(:id) || cuenta_contable_per_config_key.nil?
 
-            cuenta_contable = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key).cuenta_contable_control
+            cuenta_tipo_articulo = tipo_articulo.tipo_articulo_cuentas_contables.find_by_key(config_articulo.key)
+            cuenta_contable = cuenta_tipo_articulo&.cuenta_contable_control || config_articulo.cuenta_contable
+
+            unless cuenta_contable
+              res.add_msg("No existe una cuenta de control configurada para #{config_articulo.key} en el tipo de artículo #{tipo_articulo.descripcion}.")
+              res.set_status(HTTP_STATUS_CODE[:conflict])
+              next
+            end
 
             cuentas.push({
               key:                              config_articulo.key,
