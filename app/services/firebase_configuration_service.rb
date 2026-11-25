@@ -1,18 +1,11 @@
 require 'googleauth'
 require 'json'
+require 'securerandom'
 require 'net/http'
 require 'uri'
 require 'active_support/security_utils'
 
 class FirebaseConfigurationService
-  GENERAL_KEYS = %w[
-    cliente nombre_empresa rnc_empresa registro_mercantil direccion_empresa telefono_empresa color_app
-    url_servidor url_servidor_respaldo config_password usa_url_principal usa_facturas_externas
-    is_produccion has_contabilidad calcular_itbis usa_mora is_db_local facturacion_editar_precio
-    vende_sin_inventario use_ecf usa_modulo_viajes usa_facturacion_electronica documentos_a_imprimir serie_default medida_producto_terminado
-    logo_empresa_path logo_impresion_path
-  ].freeze
-  MACHINE_KEYS = %w[machineId mode_app pages_sizes printer_selected].freeze
   SCOPE = 'https://www.googleapis.com/auth/datastore'.freeze
   TRAVEL_CACHE_TTL = 30
   @travel_cache = {}
@@ -42,39 +35,81 @@ class FirebaseConfigurationService
     )
   end
 
-  def update(empresa_id:, machine_id:, config:, only_missing: false)
-    raise ArgumentError, 'Empresa inválida' if empresa_id.blank?
-    raise ArgumentError, 'Máquina inválida' if machine_id.blank?
+  class Conflict < StandardError; end
 
-    general = select(config, GENERAL_KEYS)
-    general_document_path = "Empresas/#{empresa_id}/general_configuration/app"
-    existing_general = firestore_fields_to_hash(read_document(general_document_path)['fields'])
-    usa_facturacion_electronica = general.fetch('usa_facturacion_electronica', existing_general['usa_facturacion_electronica'])
-    force_normal_serie = usa_facturacion_electronica != true && existing_general['serie_default'] != 'normal'
-    general['serie_default'] = 'normal' unless usa_facturacion_electronica == true
-    machine = select(config, MACHINE_KEYS).merge('machineId' => machine_id)
-    if only_missing && force_normal_serie
-      patch_document(general_document_path, general.except('serie_default'), only_missing: true)
-      patch_document(general_document_path, { 'serie_default' => 'normal' }, only_missing: false)
-    else
-      patch_document(general_document_path, general, only_missing: only_missing)
+  def update(empresa_id:, machine_id:, config:, only_missing: false, expected_general_revision: nil, expected_machine_revision: nil, schema_version: nil)
+    [empresa_id, machine_id].each do |id|
+      raise ArgumentError, 'Identificador de configuración inválido' unless id.is_a?(String) && id.match?(/\A[a-zA-Z0-9_-]{1,128}\z/)
     end
-    patch_document("Empresas/#{empresa_id}/configuration/#{machine_id}", machine, only_missing: only_missing)
+    if schema_version != ConfigurationContract::VERSION
+      raise ArgumentError, 'El contrato de configuración cambió; actualice la aplicación.'
+    end
+    unless [expected_general_revision, expected_machine_revision].all? { |value| value.is_a?(String) && value.length <= 128 }
+      raise ArgumentError, 'Falta la revisión de configuración. Recargue la aplicación.'
+    end
+    incoming = ConfigurationContract.values(config, strict: true)
+    %w[logo_empresa logo_impresion].each do |key|
+      value = incoming["#{key}_path"]
+      if value && value != "Empresas/#{empresa_id}/logos/#{key}"
+        raise ArgumentError, 'La ruta del logo no pertenece a la empresa.'
+      end
+    end
+    general_path = "Empresas/#{empresa_id}/general_configuration/app"
+    machine_path = "Empresas/#{empresa_id}/configuration/#{machine_id}"
+    general_document = read_document(general_path)
+    machine_document = read_document(machine_path)
+    existing_general = firestore_fields_to_hash(general_document['fields'])
+    existing_machine = firestore_fields_to_hash(machine_document['fields'])
+    [existing_general, existing_machine].each do |existing|
+      version = existing['_config_schema_version']
+      if version && (!version.is_a?(Integer) || version < 1 || version > ConfigurationContract::VERSION)
+        raise ArgumentError, 'La configuración requiere actualizar el servidor.'
+      end
+    end
+    [[expected_general_revision, existing_general], [expected_machine_revision, existing_machine]].each do |expected, existing|
+      if !expected.nil? && expected != existing.fetch('_config_revision', '')
+        raise Conflict, 'La configuración cambió en otro equipo. Recargue antes de guardar.'
+      end
+    end
+    general = merge_configuration(ConfigurationContract.values(existing_general, scope: 'general'), ConfigurationContract.values(incoming, scope: 'general'), only_missing: only_missing)
+    machine = merge_configuration(ConfigurationContract.values(existing_machine, scope: 'machine'), ConfigurationContract.values(incoming, scope: 'machine'), only_missing: only_missing).merge('machineId' => machine_id)
+    general['serie_default'] = 'normal' unless general['usa_facturacion_electronica'] == true
+    revision = SecureRandom.uuid
+    metadata = { '_config_schema_version' => ConfigurationContract::VERSION, '_config_revision' => revision }
+    # Una sola operación atómica; las precondiciones evitan perder cambios concurrentes.
+    writes = [[general_path, general_document, general], [machine_path, machine_document, machine]].map do |path, document, values|
+      payload = values.merge(metadata)
+      {
+        update: { name: "projects/#{@project_id}/databases/(default)/documents/#{path}", fields: payload.transform_values { |value| firestore_value(value) } },
+        updateMask: { fieldPaths: payload.keys },
+        currentDocument: document['updateTime'] ? { updateTime: document['updateTime'] } : { exists: false }
+      }
+    end
+    commit_configuration(writes)
     self.class.instance_variable_get(:@travel_cache)&.delete(empresa_id)
-    { 'firebase_empresa_id' => empresa_id, 'machineId' => machine_id }
+    # Nunca devolver config_password en la respuesta, aunque el cliente lo envíe
+    # para autorizar el guardado.
+    general.except('config_password').merge(machine).merge(
+      'firebase_empresa_id' => empresa_id,
+      'firebase_general_revision' => revision,
+      'firebase_machine_revision' => revision,
+      'firebase_config_schema_version' => ConfigurationContract::VERSION
+    )
   end
 
-  def update_prelogin(empresa_id:, machine_id:, config:, config_password:)
+  def update_prelogin(empresa_id:, machine_id:, config:, config_password:, **options)
     authorize_prelogin!(empresa_id: empresa_id, config_password: config_password)
-    update(empresa_id: empresa_id, machine_id: machine_id, config: config)
+    update(empresa_id: empresa_id, machine_id: machine_id, config: config, **options)
   end
 
   def authorize_prelogin!(empresa_id:, config_password:)
-    return true if Rails.env.development?
+    raise ArgumentError, 'Empresa inválida' unless empresa_id.match?(/\A[a-zA-Z0-9_-]{1,128}\z/)
 
-    stored_password = firestore_fields_to_hash(
-      read_document("Empresas/#{empresa_id}/general_configuration/app")['fields']
-    )['config_password'].to_s
+    document = read_document("Empresas/#{empresa_id}/general_configuration/app")
+    stored_password = firestore_fields_to_hash(document['fields'])['config_password'].to_s
+    if document.empty? && empresa_id == ENV['FIREBASE_BOOTSTRAP_EMPRESA_ID']
+      stored_password = ENV['FIREBASE_BOOTSTRAP_CONFIG_PASSWORD'].to_s
+    end
     supplied_password = config_password.to_s
 
     valid = stored_password.present? && supplied_password.present? &&
@@ -85,15 +120,10 @@ class FirebaseConfigurationService
   end
 
   def read_document(document_path)
-    credentials = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: File.open(@credentials_path),
-      scope: SCOPE
-    )
-    credentials.fetch_access_token!
     uri = URI("https://firestore.googleapis.com/v1/projects/#{@project_id}/databases/(default)/documents/#{document_path}")
     request = Net::HTTP::Get.new(uri)
-    request['Authorization'] = "Bearer #{credentials.access_token}"
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    request['Authorization'] = "Bearer #{access_token}"
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, open_timeout: 10, read_timeout: 20) { |http| http.request(request) }
     return {} if response.code.to_i == 404
     return JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
 
@@ -102,10 +132,23 @@ class FirebaseConfigurationService
 
   private
 
-  def select(config, keys)
-    keys.each_with_object({}) do |key, result|
-      result[key] = config[key] if config.key?(key) && !config[key].nil?
+  def access_token
+    @access_token ||= File.open(@credentials_path) do |file|
+      credentials = Google::Auth::ServiceAccountCredentials.make_creds(json_key_io: file, scope: SCOPE)
+      credentials.fetch_access_token!
+      credentials.access_token
     end
+  end
+
+  def commit_configuration(writes)
+    uri = URI("https://firestore.googleapis.com/v1/projects/#{@project_id}/databases/(default)/documents:commit")
+    request = Net::HTTP::Post.new(uri)
+    request['Authorization'] = "Bearer #{access_token}"
+    request['Content-Type'] = 'application/json'
+    request.body = JSON.generate(writes: writes)
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, open_timeout: 10, read_timeout: 20) { |http| http.request(request) }
+    raise Conflict, 'La configuración cambió durante el guardado. Recargue e intente de nuevo.' if [409, 412].include?(response.code.to_i) || response.body.to_s.include?('FAILED_PRECONDITION')
+    raise "No se pudo confirmar la configuración (#{response.code})" unless response.is_a?(Net::HTTPSuccess)
   end
 
   def firestore_value(value)
@@ -155,24 +198,4 @@ class FirebaseConfigurationService
     end
   end
 
-  def patch_document(document_path, data, only_missing: false)
-    existing_document = read_document(document_path)
-    existing_fields = firestore_fields_to_hash(existing_document['fields'])
-    merged_data = merge_configuration(existing_fields, data, only_missing: only_missing)
-
-    credentials = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: File.open(@credentials_path),
-      scope: SCOPE
-    )
-    credentials.fetch_access_token!
-    uri = URI("https://firestore.googleapis.com/v1/projects/#{@project_id}/databases/(default)/documents/#{document_path}")
-    request = Net::HTTP::Patch.new(uri)
-    request['Authorization'] = "Bearer #{credentials.access_token}"
-    request['Content-Type'] = 'application/json'
-    request.body = JSON.generate('fields' => merged_data.transform_values { |value| firestore_value(value) })
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
-    return if response.is_a?(Net::HTTPSuccess)
-
-    raise "Firestore respondió #{response.code}: #{response.body.to_s[0, 500]}"
-  end
 end

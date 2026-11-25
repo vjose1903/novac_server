@@ -8,6 +8,8 @@ class FirebaseConfigurationController < ApplicationController
   def create
     data = update_configuration
     render json: { data: data }, status: :ok
+  rescue FirebaseConfigurationService::Conflict => e
+    render json: { msg: e.message }, status: :conflict
   rescue ActionController::ParameterMissing, ArgumentError => e
     render json: { msg: e.message }, status: :unprocessable_entity
   rescue StandardError => e
@@ -24,9 +26,12 @@ class FirebaseConfigurationController < ApplicationController
       empresa_id: empresa_id,
       machine_id: machine_id,
       config: config,
-      config_password: config_password
+      config_password: config_password,
+      **configuration_options
     )
     render json: { data: data }, status: :ok
+  rescue FirebaseConfigurationService::Conflict => e
+    render json: { msg: e.message }, status: :conflict
   rescue ActionController::ParameterMissing, ArgumentError => e
     render json: { msg: e.message }, status: :unprocessable_entity
   rescue StandardError => e
@@ -41,7 +46,17 @@ class FirebaseConfigurationController < ApplicationController
     config = params.require(:config).permit!.to_h
     machine_id = params.require(:machine_id).to_s
     only_missing = ActiveModel::Type::Boolean.new.cast(params[:only_missing])
-    FirebaseConfigurationService.new.update(empresa_id: empresa_id, machine_id: machine_id, config: config, only_missing: only_missing)
+    service = FirebaseConfigurationService.new
+    service.authorize_prelogin!(empresa_id: empresa_id, config_password: params[:config_password].to_s)
+    service.update(empresa_id: empresa_id, machine_id: machine_id, config: config, only_missing: only_missing, **configuration_options)
+  end
+
+  def configuration_options
+    {
+      schema_version: params[:schema_version],
+      expected_general_revision: params[:expected_general_revision],
+      expected_machine_revision: params[:expected_machine_revision]
+    }
   end
 
   def require_authenticated_user
