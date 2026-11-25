@@ -22,9 +22,22 @@ class CategoriaEntidadContable < ApplicationRecord
     res                     = Response.new
     parametros              = CategoriaEntidadContable.check_params(parametros)
 
+    categorias_creadas = 0
+    categorias_omitidas = 0
+
     CategoriaEntidadContable.transaction do
 
       parametros[:categoria_entidad_contable][:categorias].each do | params |
+
+        # Al registrar en varios apartados, una categoria existente solo debe
+        # omitir ese apartado y permitir que se creen las categorias restantes.
+        if params[:id].blank? && CategoriaEntidadContable
+          .where(configuracion_entidad_cuenta_id: params[:configuracion_entidad_cuenta_id])
+          .where('LOWER(descripcion) = LOWER(?)', params[:descripcion].to_s)
+          .exists?
+          categorias_omitidas += 1
+          next
+        end
 
         cate_entidad_cont    = CategoriaEntidadContable.where(:id => params[:id]).first_or_create
 
@@ -39,6 +52,7 @@ class CategoriaEntidadContable < ApplicationRecord
         if result_procesos.status_valid && cate_entidad_cont.errors.empty? && (!is_save || (is_save && cate_entidad_cont.save!))
 
           res.set_data(cate_entidad_cont)
+          categorias_creadas += 1
 
           action = params[:id] ? 'actualizada' : 'creada'
           res.add_msg("Categoria de #{CatEntidadContable.tipos[cate_entidad_cont.entidad]} #{action} correctamente.")
@@ -51,6 +65,11 @@ class CategoriaEntidadContable < ApplicationRecord
           transaction_rollback
           return res
         end
+      end
+
+      if categorias_creadas.zero? && categorias_omitidas.positive?
+        res.add_msg('Categoria ya está registrada.')
+        res.set_status(HTTP_STATUS_CODE[:conflict])
       end
     end
 
